@@ -29,6 +29,15 @@ end
 gem "bigdecimal"
 gem "mutex_m"
 
+# Optional dependencies for type checking
+gem "sidekiq", "~> 7.2", require: false
+gem "shrine", "~> 3.5", require: false
+gem "sentry-ruby", "~> 5.15", require: false
+gem "bugsnag", "~> 6.26", require: false
+gem "rollbar", "~> 3.4", require: false
+gem "honeybadger", "~> 5.4", require: false
+gem "postmark", "~> 1.25", require: false
+
 group :development, :test do
   gem "debug"
   gem "rspec-sorbet-types", "~> 0.3.0"
