@@ -4,7 +4,7 @@ require 'logger'
 require 'active_support/core_ext/object/blank'
 require 'active_support/json'
 require_relative 'param_filters'
-require_relative 'logstop'
+require_relative 'logstop_fork'
 
 module RailsStructuredLogging
   # Formatter for structured logging that outputs logs as JSON
@@ -20,12 +20,12 @@ module RailsStructuredLogging
       new_tags = tags.flatten
       if new_tags.any?
         current_tags.concat(new_tags)
+        yield
+      else
+        yield
       end
-      yield self
     ensure
-      if new_tags.any?
-        current_tags.pop(new_tags.size)
-      end
+      current_tags.pop(new_tags.size) if new_tags.any?
     end
 
     # Add clear_tags! method to support ActiveSupport::TaggedLogging
@@ -33,108 +33,84 @@ module RailsStructuredLogging
       Thread.current[:activesupport_tagged_logging_tags] = []
     end
 
-    def scrub_string(string)
-      # Use our Logstop module to scrub sensitive information from strings
-      RailsStructuredLogging::Logstop.scrub(
-        string,
-        email: true,
-        credit_card: true,
-        ssn: true,
-        url_password: true,
-        phone: false,
-        ip: false,
-        mac: false
-      )
-    end
-
-    # Format values safely, handling sensitive data and complex objects
-    def format_values(arg)
-      @format_recursion_counter ||= 0
-      # Prevent infinite recursion, just return args with no modifications
-      return arg if @format_recursion_counter > 20
-
-      case arg
-      when Hash
-        @format_recursion_counter += 1
-        result = {}
-
-        # Process each key-value pair
-        arg.each do |key, value|
-          # Check if this key should be filtered
-          result[key] = if ParamFilters.should_filter_key?(key) || ParamFilters.should_filter_json_data?(key)
-            # Filter the value
-            { _filtered: ParamFilters.summarize_json_attribute(value) }
-          else
-            # Process the value normally
-            format_values(value)
-          end
-        end
-
-        result
-      when Array
-        @format_recursion_counter += 1
-        result = arg.map { |value| format_values(value) }
-
-        # Filter large arrays
-        if result.size > 10
-          result = result.take(10) + ["... and #{result.size - 10} more items"]
-        end
-
-        result
-      when String
-        scrub_string(arg)
-      else
-        # Handle GlobalID objects if available
-        if defined?(GlobalID::Identification) && arg.is_a?(GlobalID::Identification)
-          begin
-            arg.to_global_id.to_s
-          rescue StandardError
-            begin
-              "#{arg.class.name}(##{arg.id})"
-            rescue StandardError
-              '[GlobalID Error]'
-            end
-          end
-        else
-          arg
-        end
+    # Format the log message
+    def call(severity, timestamp, progname, msg)
+      # Use our LogstopFork module to scrub sensitive information from strings
+      if msg.is_a?(String)
+        msg = RailsStructuredLogging::LogstopFork.scrub(msg, url_password: true, email: true, credit_card: true, phone: true, ssn: true, ip: false, mac: false)
       end
-    rescue StandardError
-      arg
-    end
 
-    def call(severity, time, progname, msg)
-      @format_recursion_counter = 0
-
-      # Use standardized field names
+      # Convert to a hash if it's not already one
       data = msg.is_a?(Hash) ? msg.dup : { msg: msg.to_s }
 
-      # Filter params, scrub sensitive values, format complex objects
-      data = format_values(data)
-
-      # Add standard fields if not already present
-      data[:src] ||= 'rails'
-      data[:evt] ||= 'log'
-      data[:ts] ||= time.iso8601(3)
-      data[:level] = severity.downcase
-      data[:progname] = progname if progname.present?
+      # Add standard fields
+      data[:level] ||= severity&.downcase
+      data[:ts] ||= timestamp.strftime('%Y-%m-%dT%H:%M:%S.%3N%z')
+      data[:pid] ||= Process.pid
 
       # Add tags if present
       if current_tags.any?
         data[:tags] ||= current_tags.dup
       end
 
-      # Scrub any string messages
-      if data[:msg].is_a?(String)
-        data[:msg] = scrub_string(data[:msg])
-      end
+      # Add progname if present
+      data[:progname] = progname if progname.present?
 
-      generate_json(data)
+      # Scrub sensitive data from string values
+      scrub_sensitive_data(data)
+
+      # Filter sensitive parameters
+      filter_sensitive_params(data)
+
+      # Convert to JSON
+      "#{generate_json(data)}\n"
+    rescue => e
+      # If JSON generation fails, fall back to a simple format
+      "#{timestamp.strftime('%Y-%m-%dT%H:%M:%S.%3N%z')} [#{severity}] #{msg} (Error formatting log: #{e.message})\n"
     end
 
-    # Output as JSON with a newline
+    private
+
+    # Scrub sensitive data from string values in the hash
+    def scrub_sensitive_data(data)
+      data.each do |key, value|
+        if value.is_a?(String)
+          # Scrub sensitive information from string values
+          data[key] = RailsStructuredLogging::LogstopFork.scrub(value, url_password: true, email: true, credit_card: true, phone: true, ssn: true, ip: false, mac: false)
+        elsif value.is_a?(Hash)
+          # Recursively scrub nested hashes
+          scrub_sensitive_data(value)
+        elsif value.is_a?(Array)
+          # Scrub arrays of strings
+          data[key] = value.map do |item|
+            if item.is_a?(String)
+              RailsStructuredLogging::LogstopFork.scrub(item, url_password: true, email: true, credit_card: true, phone: true, ssn: true, ip: false, mac: false)
+            elsif item.is_a?(Hash)
+              scrub_sensitive_data(item)
+              item
+            else
+              item
+            end
+          end
+        end
+      end
+    end
+
+    # Filter sensitive parameters
+    def filter_sensitive_params(data)
+      # Filter params if present
+      if data[:params].is_a?(Hash)
+        data[:params] = ParamFilters.filter_params(data[:params])
+      end
+
+      # Filter any JSON columns that might contain sensitive data
+      ParamFilters.filter_json_columns(data)
+    end
+
+    # Generate JSON from the data hash
     def generate_json(data)
-      "#{data.to_json}\n"
+      # Use ActiveSupport::JSON.encode for consistent JSON generation
+      ActiveSupport::JSON.encode(data)
     end
   end
 end

@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email = ["support@docspring.com"]
 
   spec.summary = "JSON structured logging for Rails applications"
-  spec.description = "An opinionated and comprehensive structured logging solution for Rails applications."
+  spec.description = "An opinionated, comprehensive structured logging solution for Rails applications"
   spec.homepage = "https://github.com/docspring/rails_structured_logging"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
@@ -29,9 +29,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "rails", ">= 5.0"
-  spec.add_dependency "activesupport", ">= 5.0"
-  spec.add_dependency "actionmailer", ">= 5.0"
+  spec.add_dependency "rails", ">= 7.0"
+  spec.add_dependency "activesupport", ">= 7.0"
+  spec.add_dependency "actionmailer", ">= 7.0"
   spec.add_dependency "lograge", ">= 0.11"
 
   spec.add_development_dependency "rspec", "~> 3.0"
