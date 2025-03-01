@@ -15,6 +15,10 @@ module RailsStructuredLogging
       extend ActiveSupport::Concern
 
       included do
+        # Tell Sorbet that 'self' in this context has rescue_from available
+        # This is because the including class will have ActiveSupport::Rescuable mixed in
+        T.cast(self, T.all(Module, T.class_of(ActiveSupport::Rescuable)))
+
         # NOTE: rescue_from handlers are checked in reverse order.
         # The handler that was defined last is checked first, so put
         # more specific handlers at the end.

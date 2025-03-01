@@ -43,9 +43,9 @@ module RailsStructuredLogging
         params(
           src: Symbol,
           evt: Symbol,
+          operation: Symbol,
           ts: T.nilable(Time),
           msg: T.nilable(String),
-          operation: Symbol,
           duration: T.nilable(Float),
           uploader: T.nilable(String),
           record_id: T.nilable(T.any(Integer, String)),

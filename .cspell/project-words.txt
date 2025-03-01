@@ -8,6 +8,7 @@ railtie
 rdoc
 referer
 reraises
+Rescuable
 Rollbar
 rsig
 Sidekiq

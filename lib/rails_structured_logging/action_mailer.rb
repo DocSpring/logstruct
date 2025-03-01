@@ -23,14 +23,6 @@ module RailsStructuredLogging
   module ActionMailer
     include RailsStructuredLogging::TypedSig
     extend T::Sig
-    extend ::ActiveSupport::Concern
-
-    # We can't use included block with strict typing
-    # This will be handled by ActiveSupport::Concern at runtime
-    included do
-      include RailsStructuredLogging::ActionMailer::EventLogging
-      include RailsStructuredLogging::ActionMailer::ErrorHandling
-    end
 
     class << self
       extend T::Sig
@@ -46,9 +38,10 @@ module RailsStructuredLogging
         # This is required because we replace the logging using our own callbacks
         ::ActionMailer::Base.logger = ::Logger.new('/dev/null') if defined?(::ActionMailer::Base)
 
-        # Include our modules into ::ActionMailer::Base
+        # Include our modules directly into ::ActionMailer::Base
         ::ActiveSupport.on_load(:action_mailer) do
-          include RailsStructuredLogging::ActionMailer
+          include RailsStructuredLogging::ActionMailer::EventLogging
+          include RailsStructuredLogging::ActionMailer::ErrorHandling
         end
 
         # Set up callbacks for Rails 7.0.x (not needed for Rails 7.1+)
