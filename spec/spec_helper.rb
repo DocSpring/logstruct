@@ -4,6 +4,7 @@ require "rails_structured_logging"
 require "sorbet-runtime"
 require "json"
 require "ostruct"
+require "debug"
 
 # Set up a minimal Rails environment for testing
 require "rails"

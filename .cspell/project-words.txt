@@ -5,6 +5,7 @@ Logstop
 progname
 railtie
 referer
+reraises
 Rollbar
 rsig
 Sidekiq

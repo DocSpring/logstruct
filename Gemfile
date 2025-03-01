@@ -5,6 +5,8 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in rails_structured_logging.gemspec
 gemspec
 
+ruby File.read(File.expand_path('.ruby-version', __dir__)).strip
+
 # Define Rails version based on environment variable
 rails_version = ENV["RAILS_VERSION"] || "7.0"
 
@@ -28,11 +30,12 @@ gem "bigdecimal"
 gem "mutex_m"
 
 group :development, :test do
-  gem "rspec", "~> 3.0"
+  gem "debug"
   gem "rspec-sorbet-types", "~> 0.3.0"
-  gem "rubocop", "~> 1.21"
+  gem "rspec", "~> 3.0"
   gem "rubocop-rspec", "~> 2.11"
-  gem "sorbet", "~> 0.5"
+  gem "rubocop", "~> 1.21"
   gem "sorbet-runtime", "~> 0.5.11874"
+  gem "sorbet", "~> 0.5"
   gem "tapioca", "~> 0.16.0"
 end

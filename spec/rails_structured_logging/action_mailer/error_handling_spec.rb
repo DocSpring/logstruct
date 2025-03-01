@@ -9,7 +9,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
   # Define a test mailer class that inherits from ActionMailer::Base
   let(:test_mailer_class) do
     Class.new(ActionMailer::Base) do
-      # No need to manually include modules - the gem should do this automatically
+      # We need to include the module to test it
+      include RailsStructuredLogging::ActionMailer::ErrorHandling
 
       def self.name
         "TestMailer"
@@ -71,9 +72,6 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
   let(:postmark_inactive_error) { Postmark::InactiveRecipientError.new("Inactive recipient", ["inactive@example.com"]) }
 
   before do
-    # Set up the ActionMailer integration
-    RailsStructuredLogging::ActionMailer.setup
-
     # Mock the logger methods
     allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_structured_error)
     allow(Rails.logger).to receive(:info)
@@ -84,29 +82,18 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
     it "registers rescue handlers for different error types" do
       handlers = test_mailer_class.rescue_handlers
 
-      # Check StandardError handler
-      standard_handler = handlers.find { |h| h[0] == StandardError }
-      expect(standard_handler).not_to be_nil
-      expect(standard_handler[1][:with]).to eq(:log_and_reraise_error)
-
-      # Check for Postmark error handlers
-      postmark_handler = handlers.find { |h| h[0] == Postmark::Error }
-      expect(postmark_handler).not_to be_nil
-      expect(postmark_handler[1][:with]).to eq(:log_and_reraise_error)
-
-      postmark_inactive_handler = handlers.find { |h| h[0] == Postmark::InactiveRecipientError }
-      expect(postmark_inactive_handler).not_to be_nil
-      expect(postmark_inactive_handler[1][:with]).to eq(:log_and_notify_error)
-
-      postmark_invalid_handler = handlers.find { |h| h[0] == Postmark::InvalidEmailRequestError }
-      expect(postmark_invalid_handler).not_to be_nil
-      expect(postmark_invalid_handler[1][:with]).to eq(:log_and_notify_error)
+      # Check for handlers by name and method
+      expect(handlers).to include(["StandardError", :log_and_reraise_error])
+      expect(handlers).to include(["Postmark::Error", :log_and_reraise_error])
+      expect(handlers).to include(["Postmark::InactiveRecipientError", :log_and_notify_error])
+      expect(handlers).to include(["Postmark::InvalidEmailRequestError", :log_and_notify_error])
     end
   end
 
   describe "#log_and_ignore_error" do
     it "logs the error but does not raise it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error, notify: false, report: false, reraise: false)
+      expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error, notify: false, report: false, reraise: false).and_call_original
+      allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
       # Should not raise an error
       expect { mailer.send(:log_and_ignore_error, postmark_inactive_error) }.not_to raise_error
@@ -115,7 +102,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_notify_error" do
     it "logs the error with notify flag and does not raise it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: true, report: false, reraise: false)
+      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: true, report: false, reraise: false).and_call_original
+      allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
       # Should not raise an error
       expect { mailer.send(:log_and_notify_error, standard_error) }.not_to raise_error
@@ -124,7 +112,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_report_error" do
     it "logs the error with report flag and does not raise it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: false)
+      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: false).and_call_original
+      allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
       # Should not raise an error
       expect { mailer.send(:log_and_report_error, standard_error) }.not_to raise_error
@@ -133,7 +122,10 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_reraise_error" do
     it "logs the error and reraises it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: true)
+      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: true).and_call_original
+
+      # We need to allow handle_error_notifications to be called and actually reraise the error
+      expect(mailer).to receive(:handle_error_notifications).with(standard_error, false, true, true).and_call_original
 
       # Should raise the error
       expect { mailer.send(:log_and_reraise_error, standard_error) }.to raise_error(StandardError, "Standard error message")
