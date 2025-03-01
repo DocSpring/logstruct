@@ -23,6 +23,10 @@ when "8.0"
   gem "activesupport", "~> 8.0.1"
 end
 
+# Add these gems to silence Ruby 3.4 warnings
+gem "bigdecimal"
+gem "mutex_m"
+
 group :development, :test do
   gem "rspec", "~> 3.0"
   gem "rspec-sorbet-types", "~> 0.3.0"

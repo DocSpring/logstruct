@@ -20,8 +20,8 @@
   },
   "homepage": "https://github.com/docspring/rails_structured_logging#readme",
   "devDependencies": {
+    "@docspring/cspell-lockfile-dicts": "^1.1.1",
     "cspell": "^8.17.5",
-    "prettier": "^3.5.2",
-    "@docspring/cspell-lockfile-dicts": "^1.1.0"
+    "prettier": "^3.5.2"
   }
 }

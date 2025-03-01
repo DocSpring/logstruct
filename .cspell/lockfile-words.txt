@@ -119,7 +119,7 @@ wrap-ansi
 wrap-ansi-cjs
 xdg-basedir
 
-# Words from Gemfile.lock (84 words)
+# Words from Gemfile.lock (87 words)
 # ----------------------------------------
 actioncable
 actionmailbox
@@ -135,6 +135,7 @@ activesupport
 ast
 base64
 benchmark
+bigdecimal
 builder
 bundler
 concurrent-ruby
@@ -154,6 +155,7 @@ marcel
 method_source
 mini_mime
 minitest
+mutex_m
 net-imap
 net-pop
 net-protocol
@@ -181,6 +183,7 @@ rspec
 rspec-core
 rspec-expectations
 rspec-mocks
+rspec-sorbet-types
 rspec-support
 rubocop
 rubocop-ast

@@ -412,10 +412,10 @@
   resolved "https://registry.yarnpkg.com/@cspell/url/-/url-8.17.5.tgz#fd8eeb710ab19236ec30c681e2086201497c45e1"
   integrity sha512-GNQqST7zI85dAFVyao6oiTeg5rNhO9FH1ZAd397qQhvwfxrrniNfuoewu8gPXyP0R4XBiiaCwhBL7w9S/F5guw==
 
-"@docspring/cspell-lockfile-dicts@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@docspring/cspell-lockfile-dicts/-/cspell-lockfile-dicts-1.1.0.tgz#91ca9a556df6d0df45e75a49eac854f689d78a5a"
-  integrity sha512-wdLluuISfdWZ1zKSZQBCrNHUJk3ZIcnTp5gluGP2IFcAB7MAWBhqs/v7zBZmXBTS1RBctkSQsOb+RFYgLq0oNg==
+"@docspring/cspell-lockfile-dicts@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@docspring/cspell-lockfile-dicts/-/cspell-lockfile-dicts-1.1.1.tgz#d538fdc8802a989b738a946ab5d096b6bc23f2dd"
+  integrity sha512-XguKrAV+0TvtexFjnQr6vX07ZB36fqtzcemcAFZOliuQBhmL6If67bC+7TSUq87LGQy5COpJAvxVwCVqh2fn+w==
   dependencies:
     "@cspell/cspell-types" "^8.0.0"
     commander "^10.0.1"
@@ -950,6 +950,7 @@ signal-exit@^4.0.1:
   integrity sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==
 
 "string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -968,6 +969,7 @@ string-width@^5.0.1, string-width@^5.1.2:
     strip-ansi "^7.0.1"
 
 "strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+  name strip-ansi-cjs
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
