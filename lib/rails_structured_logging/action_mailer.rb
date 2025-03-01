@@ -46,7 +46,7 @@ module RailsStructuredLogging
         # This is required because we replace the logging using our own callbacks
         ::ActionMailer::Base.logger = ::Logger.new('/dev/null') if defined?(::ActionMailer::Base)
 
-        # Include our modules into ActionMailer::Base
+        # Include our modules into ::ActionMailer::Base
         ::ActiveSupport.on_load(:action_mailer) do
           include RailsStructuredLogging::ActionMailer
         end
@@ -63,7 +63,7 @@ module RailsStructuredLogging
         return unless defined?(::Rails)
         return if ::Rails.gem_version >= Gem::Version.new('7.1.0')
 
-        # Include the callbacks module in ActionMailer::Base
+        # Include the callbacks module in ::ActionMailer::Base
         ::ActiveSupport.on_load(:action_mailer) do
           include RailsStructuredLogging::ActionMailer::Callbacks
         end

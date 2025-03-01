@@ -6,9 +6,9 @@ require "action_mailer"
 require "active_support"
 
 RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
-  # Define a test mailer class that inherits from ActionMailer::Base
+  # Define a test mailer class that inherits from ::ActionMailer::Base
   let(:test_mailer_class) do
-    Class.new(ActionMailer::Base) do
+    Class.new(::ActionMailer::Base) do
       # We need to include the module to test it
       include RailsStructuredLogging::ActionMailer::ErrorHandling
 

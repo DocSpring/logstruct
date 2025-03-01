@@ -3,7 +3,11 @@
 require "spec_helper"
 require "rails"
 require "action_mailer"
+require "action_mailer/message_delivery"
 require "active_support"
+
+# Test the backported callbacks from Rails 7.1.x
+# Only need to run these tests if we're using Rails < 7.1.0
 
 RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_version < Gem::Version.new("7.1.0") do
   describe "delivery callbacks" do
@@ -76,30 +80,10 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
     # Test integration with ActionMailer::MessageDelivery
     context "when integrated with ActionMailer::MessageDelivery" do
       before do
-        # Define a mock MessageDelivery class to simulate Rails behavior
-        ::ActionMailer.const_set(:MessageDelivery, Class.new do
-          def initialize(mailer_class, action, *args)
-            @mailer_class = mailer_class
-            @action = action
-            @args = args
-          end
-
-          def processed_mailer
-            @processed_mailer ||= @mailer_class.new.tap do |mailer|
-              mailer.process(@action, *@args)
-            end
-          end
-        end)
-
         # Allow class_eval to be called
         allow_any_instance_of(::ActionMailer::MessageDelivery).to receive(:processed_mailer).and_return(
           double("Mailer", handle_exceptions: true, run_callbacks: true)
         )
-      end
-
-      after do
-        # Clean up
-        ::ActionMailer.send(:remove_const, :MessageDelivery) if defined?(::ActionMailer::MessageDelivery)
       end
 
       it "adds the handle_exceptions method to MessageDelivery" do
@@ -118,23 +102,10 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
 
   describe ".patch_message_delivery" do
     before do
-      # Create a mock MessageDelivery class for testing
-      ::ActionMailer.const_set(:MessageDelivery, Class.new do
-        def initialize; end
-        def deliver; end
-        def deliver!; end
-        def processed_mailer; end
-      end)
-
       # Allow class_eval to be called
       allow_any_instance_of(::ActionMailer::MessageDelivery).to receive(:processed_mailer).and_return(
         double("Mailer", handle_exceptions: true, run_callbacks: true)
       )
-    end
-
-    after do
-      # Clean up
-      ::ActionMailer.send(:remove_const, :MessageDelivery) if defined?(::ActionMailer::MessageDelivery)
     end
 
     it "patches MessageDelivery with deliver_now and deliver_now! methods" do

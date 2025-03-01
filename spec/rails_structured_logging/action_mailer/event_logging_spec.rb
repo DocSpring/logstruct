@@ -6,9 +6,9 @@ require "action_mailer"
 require "active_support"
 
 RSpec.describe RailsStructuredLogging::ActionMailer::EventLogging do
-  # Create a test mailer class that inherits from ActionMailer::Base
+  # Create a test mailer class that inherits from ::ActionMailer::Base
   let(:test_mailer_class) do
-    Class.new(ActionMailer::Base) do
+    Class.new(::ActionMailer::Base) do
       include RailsStructuredLogging::ActionMailer::EventLogging
 
       def self.name
