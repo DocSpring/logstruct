@@ -10,6 +10,11 @@ require "active_support"
 # Only need to run these tests if we're using Rails < 7.1.0
 
 RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_version < Gem::Version.new("7.1.0") do
+  # Apply the patch before running tests
+  before(:all) do
+    described_class.patch_message_delivery
+  end
+
   describe "delivery callbacks" do
     # Define a test mailer class for testing callbacks using Class.new
     let(:test_mailer_class) do
@@ -57,6 +62,11 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
             true
           end
         end
+
+        # Add handle_exceptions method for testing
+        def handle_exceptions
+          yield if block_given?
+        end
       end
     end
 
@@ -79,41 +89,37 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
 
     # Test integration with ActionMailer::MessageDelivery
     context "when integrated with ActionMailer::MessageDelivery" do
-      before do
-        # Allow class_eval to be called
-        allow_any_instance_of(::ActionMailer::MessageDelivery).to receive(:processed_mailer).and_return(
-          double("Mailer", handle_exceptions: true, run_callbacks: true)
-        )
-      end
-
       it "adds the handle_exceptions method to MessageDelivery" do
         expect(::ActionMailer::MessageDelivery.instance_methods).to include(:handle_exceptions)
       end
 
       it "calls run_callbacks on the processed mailer" do
-        delivery = ::ActionMailer::MessageDelivery.new(test_mailer_class, :test_method)
-        mailer = delivery.processed_mailer
+        # Create a mailer double that will receive run_callbacks
+        mailer_double = double("Mailer")
+        message_double = double("Message")
 
-        expect(mailer).to receive(:run_callbacks).with(:deliver)
-        delivery.handle_exceptions
+        # Set up expectations before creating the delivery object
+        expect(mailer_double).to receive(:handle_exceptions).and_yield
+        expect(mailer_double).to receive(:run_callbacks).with(:deliver).and_yield
+        expect(message_double).to receive(:deliver)
+
+        # Create a MessageDelivery with the correct arguments
+        delivery = ::ActionMailer::MessageDelivery.new(test_mailer_class, :test_method)
+
+        # Mock the methods to return our doubles
+        allow(delivery).to receive(:processed_mailer).and_return(mailer_double)
+        allow(delivery).to receive(:message).and_return(message_double)
+
+        # Call deliver_now which should trigger the callbacks
+        delivery.deliver_now
       end
     end
   end
 
   describe ".patch_message_delivery" do
-    before do
-      # Allow class_eval to be called
-      allow_any_instance_of(::ActionMailer::MessageDelivery).to receive(:processed_mailer).and_return(
-        double("Mailer", handle_exceptions: true, run_callbacks: true)
-      )
-    end
-
     it "patches MessageDelivery with deliver_now and deliver_now! methods" do
-      # Apply the patch
-      described_class.patch_message_delivery
-
-      # Create a new instance
-      message_delivery = ::ActionMailer::MessageDelivery.new
+      # Create a MessageDelivery with the correct arguments
+      message_delivery = ::ActionMailer::MessageDelivery.new(Class.new, :test_method)
 
       # Verify the methods were patched
       expect(message_delivery).to respond_to(:deliver_now)

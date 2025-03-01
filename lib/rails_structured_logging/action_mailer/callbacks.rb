@@ -9,14 +9,17 @@ module RailsStructuredLogging
     module Callbacks
       include RailsStructuredLogging::TypedSig
       extend T::Sig
-      extend ActiveSupport::Concern
+      extend ::ActiveSupport::Concern
+
+      # Track if we've already patched MessageDelivery
+      @patched_message_delivery = false
 
       # We can't use included block with strict typing
       # This will be handled by ActiveSupport::Concern at runtime
-      # included do
-      #   include ActiveSupport::Callbacks
-      #   define_callbacks :deliver, skip_after_callbacks_if_terminated: true
-      # end
+      included do
+        include ::ActiveSupport::Callbacks
+        define_callbacks :deliver, skip_after_callbacks_if_terminated: true
+      end
 
       class_methods do
         extend T::Sig
@@ -26,7 +29,7 @@ module RailsStructuredLogging
         sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
         def before_deliver(*filters, &blk)
           # This will be handled by ActiveSupport::Callbacks at runtime
-          # set_callback(:deliver, :before, *filters, &blk)
+          set_callback(:deliver, :before, *filters, &blk)
         end
 
         # Defines a callback that will get called right after the
@@ -34,40 +37,56 @@ module RailsStructuredLogging
         sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
         def after_deliver(*filters, &blk)
           # This will be handled by ActiveSupport::Callbacks at runtime
-          # set_callback(:deliver, :after, *filters, &blk)
+          set_callback(:deliver, :after, *filters, &blk)
         end
 
         # Defines a callback that will get called around the message's deliver method.
         sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).params(arg0: T.untyped).void)).void }
         def around_deliver(*filters, &blk)
           # This will be handled by ActiveSupport::Callbacks at runtime
-          # set_callback(:deliver, :around, *filters, &blk)
+          set_callback(:deliver, :around, *filters, &blk)
         end
       end
 
-      # Patch MessageDelivery to run the callbacks
-      sig { void }
+      sig { returns(T::Boolean) }
       def self.patch_message_delivery
-        # This will be handled at runtime
-        # ::ActionMailer::MessageDelivery.class_eval do
-        #   # Override deliver_now to run callbacks
-        #   def deliver_now
-        #     processed_mailer.handle_exceptions do
-        #       processed_mailer.run_callbacks(:deliver) do
-        #         message.deliver
-        #       end
-        #     end
-        #   end
-        #
-        #   # Override deliver_now! to run callbacks
-        #   def deliver_now!
-        #     processed_mailer.handle_exceptions do
-        #       processed_mailer.run_callbacks(:deliver) do
-        #         message.deliver!
-        #       end
-        #     end
-        #   end
-        # end
+        # Return early if we've already patched
+        return true if @patched_message_delivery
+
+        # Use T.unsafe only for the class_eval call since this is metaprogramming
+        # that Sorbet can't statically analyze
+        T.unsafe(::ActionMailer::MessageDelivery).class_eval do
+          # Add handle_exceptions method if it doesn't exist
+          unless method_defined?(:handle_exceptions)
+            def handle_exceptions(&block)
+              processed_mailer.handle_exceptions do
+                yield if block_given?
+              end
+            end
+          end
+
+          # Override deliver_now to run callbacks
+          def deliver_now
+            processed_mailer.handle_exceptions do
+              processed_mailer.run_callbacks(:deliver) do
+                message.deliver
+              end
+            end
+          end
+
+          # Override deliver_now! to run callbacks
+          def deliver_now!
+            processed_mailer.handle_exceptions do
+              processed_mailer.run_callbacks(:deliver) do
+                message.deliver!
+              end
+            end
+          end
+        end
+
+        # Mark as patched so we don't do it again
+        @patched_message_delivery = true
+        true
       end
     end
   end

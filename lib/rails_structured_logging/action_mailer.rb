@@ -23,14 +23,14 @@ module RailsStructuredLogging
   module ActionMailer
     include RailsStructuredLogging::TypedSig
     extend T::Sig
-    extend ::ActiveSupport::Concern if defined?(::ActiveSupport::Concern)
+    extend ::ActiveSupport::Concern
 
     # We can't use included block with strict typing
     # This will be handled by ActiveSupport::Concern at runtime
     included do
       include RailsStructuredLogging::ActionMailer::EventLogging
       include RailsStructuredLogging::ActionMailer::ErrorHandling
-    end if defined?(::ActiveSupport::Concern)
+    end
 
     class << self
       extend T::Sig

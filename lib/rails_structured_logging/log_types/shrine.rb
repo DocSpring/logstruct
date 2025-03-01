@@ -55,7 +55,7 @@ module RailsStructuredLogging
           io_size: T.nilable(Integer)
         ).void
       end
-      def initialize(src:, evt:, ts: nil, msg: nil, operation:, duration: nil,
+      def initialize(src:, evt:, operation:, ts: nil, msg: nil, duration: nil,
                     uploader: nil, record_id: nil, record_class: nil,
                     storage: nil, location: nil, io_size: nil)
         super(src: src, evt: evt, ts: ts, msg: msg)
