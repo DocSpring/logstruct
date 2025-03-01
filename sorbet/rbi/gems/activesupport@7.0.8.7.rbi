@@ -2354,6 +2354,41 @@ end
 # source://activesupport//lib/active_support/code_generator.rb#6
 ActiveSupport::CodeGenerator::MethodSet::METHOD_CACHES = T.let(T.unsafe(nil), Hash)
 
+# source://activesupport//lib/active_support/core_ext/range/compare_range.rb#4
+module ActiveSupport::CompareWithRange
+  # Extends the default Range#=== to support range comparisons.
+  #  (1..5) === (1..5)  # => true
+  #  (1..5) === (2..3)  # => true
+  #  (1..5) === (1...6) # => true
+  #  (1..5) === (2..6)  # => false
+  #
+  # The native Range#=== behavior is untouched.
+  #  ('a'..'f') === ('c') # => true
+  #  (5..9) === (11) # => false
+  #
+  # The given range must be fully bounded, with both start and end.
+  #
+  # source://activesupport//lib/active_support/core_ext/range/compare_range.rb#16
+  def ===(value); end
+
+  # Extends the default Range#include? to support range comparisons.
+  #  (1..5).include?(1..5)  # => true
+  #  (1..5).include?(2..3)  # => true
+  #  (1..5).include?(1...6) # => true
+  #  (1..5).include?(2..6)  # => false
+  #
+  # The native Range#include? behavior is untouched.
+  #  ('a'..'f').include?('c') # => true
+  #  (5..9).include?(11) # => false
+  #
+  # The given range must be fully bounded, with both start and end.
+  #
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/core_ext/range/compare_range.rb#41
+  def include?(value); end
+end
+
 # A typical module looks like this:
 #
 #   module M
@@ -2531,6 +2566,26 @@ end
 
 # source://activesupport//lib/active_support/concurrency/share_lock.rb#7
 module ActiveSupport::Concurrency; end
+
+# A monitor that will permit dependency loading while blocked waiting for
+# the lock.
+#
+# source://activesupport//lib/active_support/concurrency/load_interlock_aware_monitor.rb#9
+class ActiveSupport::Concurrency::LoadInterlockAwareMonitor < ::Monitor
+  # Enters an exclusive section, but allows dependency loading while blocked
+  #
+  # source://activesupport//lib/active_support/concurrency/load_interlock_aware_monitor.rb#15
+  def mon_enter; end
+
+  # source://activesupport//lib/active_support/concurrency/load_interlock_aware_monitor.rb#20
+  def synchronize(&block); end
+end
+
+# source://activesupport//lib/active_support/concurrency/load_interlock_aware_monitor.rb#11
+ActiveSupport::Concurrency::LoadInterlockAwareMonitor::EXCEPTION_IMMEDIATE = T.let(T.unsafe(nil), Hash)
+
+# source://activesupport//lib/active_support/concurrency/load_interlock_aware_monitor.rb#10
+ActiveSupport::Concurrency::LoadInterlockAwareMonitor::EXCEPTION_NEVER = T.let(T.unsafe(nil), Hash)
 
 # A share/exclusive lock, otherwise known as a read/write lock.
 #
@@ -3135,6 +3190,24 @@ module ActiveSupport::Dependencies::RequireDependency
   # source://activesupport//lib/active_support/dependencies/require_dependency.rb#11
   def require_dependency(filename); end
 end
+
+# source://activesupport//lib/active_support/core_ext/numeric/deprecated_conversions.rb#4
+module ActiveSupport::DeprecatedNumericWithFormat
+  # source://activesupport//lib/active_support/core_ext/numeric/deprecated_conversions.rb#5
+  def to_s(format = T.unsafe(nil), options = T.unsafe(nil)); end
+end
+
+# source://activesupport//lib/active_support/core_ext/range/deprecated_conversions.rb#4
+module ActiveSupport::DeprecatedRangeWithFormat
+  # source://activesupport//lib/active_support/deprecation/method_wrappers.rb#63
+  def to_default_s(*args, **_arg1, &block); end
+
+  # source://activesupport//lib/active_support/core_ext/range/deprecated_conversions.rb#6
+  def to_s(format = T.unsafe(nil)); end
+end
+
+# source://activesupport//lib/active_support/core_ext/range/deprecated_conversions.rb#5
+ActiveSupport::DeprecatedRangeWithFormat::NOT_SET = T.let(T.unsafe(nil), Object)
 
 # \Deprecation specifies the API used by Rails to deprecate methods, instance
 # variables, objects, and constants.
@@ -4371,6 +4444,22 @@ end
 
 # source://activesupport//lib/active_support/duration.rb#130
 ActiveSupport::Duration::VARIABLE_PARTS = T.let(T.unsafe(nil), Array)
+
+# source://activesupport//lib/active_support/core_ext/range/each.rb#6
+module ActiveSupport::EachTimeWithZone
+  # source://activesupport//lib/active_support/core_ext/range/each.rb#7
+  def each(&block); end
+
+  # source://activesupport//lib/active_support/core_ext/range/each.rb#12
+  def step(n = T.unsafe(nil), &block); end
+
+  private
+
+  # @raise [TypeError]
+  #
+  # source://activesupport//lib/active_support/core_ext/range/each.rb#18
+  def ensure_iteration_allowed; end
+end
 
 # Provides convenience methods on top of EncryptedFile to access values stored
 # as encrypted YAML.
@@ -8831,6 +8920,223 @@ class ActiveSupport::NumberHelper::RoundingHelper
   def convert_to_decimal(number); end
 end
 
+# source://activesupport//lib/active_support/core_ext/numeric/conversions.rb#7
+module ActiveSupport::NumericWithFormat
+  # Provides options for converting numbers into formatted strings.
+  # Options are provided for phone numbers, currency, percentage,
+  # precision, positional notation, file size, and pretty printing.
+  #
+  # This method is aliased to <tt>to_formatted_s</tt>.
+  #
+  # ==== Options
+  #
+  # For details on which formats use which options, see ActiveSupport::NumberHelper
+  #
+  # ==== Examples
+  #
+  #  Phone Numbers:
+  #  5551234.to_fs(:phone)                                     # => "555-1234"
+  #  1235551234.to_fs(:phone)                                  # => "123-555-1234"
+  #  1235551234.to_fs(:phone, area_code: true)                 # => "(123) 555-1234"
+  #  1235551234.to_fs(:phone, delimiter: ' ')                  # => "123 555 1234"
+  #  1235551234.to_fs(:phone, area_code: true, extension: 555) # => "(123) 555-1234 x 555"
+  #  1235551234.to_fs(:phone, country_code: 1)                 # => "+1-123-555-1234"
+  #  1235551234.to_fs(:phone, country_code: 1, extension: 1343, delimiter: '.')
+  #  # => "+1.123.555.1234 x 1343"
+  #
+  #  Currency:
+  #  1234567890.50.to_fs(:currency)                     # => "$1,234,567,890.50"
+  #  1234567890.506.to_fs(:currency)                    # => "$1,234,567,890.51"
+  #  1234567890.506.to_fs(:currency, precision: 3)      # => "$1,234,567,890.506"
+  #  1234567890.506.to_fs(:currency, round_mode: :down) # => "$1,234,567,890.50"
+  #  1234567890.506.to_fs(:currency, locale: :fr)       # => "1 234 567 890,51 €"
+  #  -1234567890.50.to_fs(:currency, negative_format: '(%u%n)')
+  #  # => "($1,234,567,890.50)"
+  #  1234567890.50.to_fs(:currency, unit: '&pound;', separator: ',', delimiter: '')
+  #  # => "&pound;1234567890,50"
+  #  1234567890.50.to_fs(:currency, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
+  #  # => "1234567890,50 &pound;"
+  #
+  #  Percentage:
+  #  100.to_fs(:percentage)                                  # => "100.000%"
+  #  100.to_fs(:percentage, precision: 0)                    # => "100%"
+  #  1000.to_fs(:percentage, delimiter: '.', separator: ',') # => "1.000,000%"
+  #  302.24398923423.to_fs(:percentage, precision: 5)        # => "302.24399%"
+  #  302.24398923423.to_fs(:percentage, round_mode: :down)   # => "302.243%"
+  #  1000.to_fs(:percentage, locale: :fr)                    # => "1 000,000%"
+  #  100.to_fs(:percentage, format: '%n  %')                 # => "100.000  %"
+  #
+  #  Delimited:
+  #  12345678.to_fs(:delimited)                     # => "12,345,678"
+  #  12345678.05.to_fs(:delimited)                  # => "12,345,678.05"
+  #  12345678.to_fs(:delimited, delimiter: '.')     # => "12.345.678"
+  #  12345678.to_fs(:delimited, delimiter: ',')     # => "12,345,678"
+  #  12345678.05.to_fs(:delimited, separator: ' ')  # => "12,345,678 05"
+  #  12345678.05.to_fs(:delimited, locale: :fr)     # => "12 345 678,05"
+  #  98765432.98.to_fs(:delimited, delimiter: ' ', separator: ',')
+  #  # => "98 765 432,98"
+  #
+  #  Rounded:
+  #  111.2345.to_fs(:rounded)                                      # => "111.235"
+  #  111.2345.to_fs(:rounded, precision: 2)                        # => "111.23"
+  #  111.2345.to_fs(:rounded, precision: 2, round_mode: :up)       # => "111.24"
+  #  13.to_fs(:rounded, precision: 5)                              # => "13.00000"
+  #  389.32314.to_fs(:rounded, precision: 0)                       # => "389"
+  #  111.2345.to_fs(:rounded, significant: true)                   # => "111"
+  #  111.2345.to_fs(:rounded, precision: 1, significant: true)     # => "100"
+  #  13.to_fs(:rounded, precision: 5, significant: true)           # => "13.000"
+  #  111.234.to_fs(:rounded, locale: :fr)                          # => "111,234"
+  #  13.to_fs(:rounded, precision: 5, significant: true, strip_insignificant_zeros: true)
+  #  # => "13"
+  #  389.32314.to_fs(:rounded, precision: 4, significant: true)    # => "389.3"
+  #  1111.2345.to_fs(:rounded, precision: 2, separator: ',', delimiter: '.')
+  #  # => "1.111,23"
+  #
+  #  Human-friendly size in Bytes:
+  #  123.to_fs(:human_size)                                    # => "123 Bytes"
+  #  1234.to_fs(:human_size)                                   # => "1.21 KB"
+  #  12345.to_fs(:human_size)                                  # => "12.1 KB"
+  #  1234567.to_fs(:human_size)                                # => "1.18 MB"
+  #  1234567890.to_fs(:human_size)                             # => "1.15 GB"
+  #  1234567890123.to_fs(:human_size)                          # => "1.12 TB"
+  #  1234567890123456.to_fs(:human_size)                       # => "1.1 PB"
+  #  1234567890123456789.to_fs(:human_size)                    # => "1.07 EB"
+  #  1234567.to_fs(:human_size, precision: 2)                  # => "1.2 MB"
+  #  1234567.to_fs(:human_size, precision: 2, round_mode: :up) # => "1.3 MB"
+  #  483989.to_fs(:human_size, precision: 2)                   # => "470 KB"
+  #  1234567.to_fs(:human_size, precision: 2, separator: ',')  # => "1,2 MB"
+  #  1234567890123.to_fs(:human_size, precision: 5)            # => "1.1228 TB"
+  #  524288000.to_fs(:human_size, precision: 5)                # => "500 MB"
+  #
+  #  Human-friendly format:
+  #  123.to_fs(:human)                                       # => "123"
+  #  1234.to_fs(:human)                                      # => "1.23 Thousand"
+  #  12345.to_fs(:human)                                     # => "12.3 Thousand"
+  #  1234567.to_fs(:human)                                   # => "1.23 Million"
+  #  1234567890.to_fs(:human)                                # => "1.23 Billion"
+  #  1234567890123.to_fs(:human)                             # => "1.23 Trillion"
+  #  1234567890123456.to_fs(:human)                          # => "1.23 Quadrillion"
+  #  1234567890123456789.to_fs(:human)                       # => "1230 Quadrillion"
+  #  489939.to_fs(:human, precision: 2)                      # => "490 Thousand"
+  #  489939.to_fs(:human, precision: 2, round_mode: :down)   # => "480 Thousand"
+  #  489939.to_fs(:human, precision: 4)                      # => "489.9 Thousand"
+  #  1234567.to_fs(:human, precision: 4,
+  #                   significant: false)                             # => "1.2346 Million"
+  #  1234567.to_fs(:human, precision: 1,
+  #                   separator: ',',
+  #                   significant: false)                             # => "1,2 Million"
+  #
+  # source://activesupport//lib/active_support/core_ext/numeric/conversions.rb#111
+  def to_formatted_s(format = T.unsafe(nil), options = T.unsafe(nil)); end
+
+  # Provides options for converting numbers into formatted strings.
+  # Options are provided for phone numbers, currency, percentage,
+  # precision, positional notation, file size, and pretty printing.
+  #
+  # This method is aliased to <tt>to_formatted_s</tt>.
+  #
+  # ==== Options
+  #
+  # For details on which formats use which options, see ActiveSupport::NumberHelper
+  #
+  # ==== Examples
+  #
+  #  Phone Numbers:
+  #  5551234.to_fs(:phone)                                     # => "555-1234"
+  #  1235551234.to_fs(:phone)                                  # => "123-555-1234"
+  #  1235551234.to_fs(:phone, area_code: true)                 # => "(123) 555-1234"
+  #  1235551234.to_fs(:phone, delimiter: ' ')                  # => "123 555 1234"
+  #  1235551234.to_fs(:phone, area_code: true, extension: 555) # => "(123) 555-1234 x 555"
+  #  1235551234.to_fs(:phone, country_code: 1)                 # => "+1-123-555-1234"
+  #  1235551234.to_fs(:phone, country_code: 1, extension: 1343, delimiter: '.')
+  #  # => "+1.123.555.1234 x 1343"
+  #
+  #  Currency:
+  #  1234567890.50.to_fs(:currency)                     # => "$1,234,567,890.50"
+  #  1234567890.506.to_fs(:currency)                    # => "$1,234,567,890.51"
+  #  1234567890.506.to_fs(:currency, precision: 3)      # => "$1,234,567,890.506"
+  #  1234567890.506.to_fs(:currency, round_mode: :down) # => "$1,234,567,890.50"
+  #  1234567890.506.to_fs(:currency, locale: :fr)       # => "1 234 567 890,51 €"
+  #  -1234567890.50.to_fs(:currency, negative_format: '(%u%n)')
+  #  # => "($1,234,567,890.50)"
+  #  1234567890.50.to_fs(:currency, unit: '&pound;', separator: ',', delimiter: '')
+  #  # => "&pound;1234567890,50"
+  #  1234567890.50.to_fs(:currency, unit: '&pound;', separator: ',', delimiter: '', format: '%n %u')
+  #  # => "1234567890,50 &pound;"
+  #
+  #  Percentage:
+  #  100.to_fs(:percentage)                                  # => "100.000%"
+  #  100.to_fs(:percentage, precision: 0)                    # => "100%"
+  #  1000.to_fs(:percentage, delimiter: '.', separator: ',') # => "1.000,000%"
+  #  302.24398923423.to_fs(:percentage, precision: 5)        # => "302.24399%"
+  #  302.24398923423.to_fs(:percentage, round_mode: :down)   # => "302.243%"
+  #  1000.to_fs(:percentage, locale: :fr)                    # => "1 000,000%"
+  #  100.to_fs(:percentage, format: '%n  %')                 # => "100.000  %"
+  #
+  #  Delimited:
+  #  12345678.to_fs(:delimited)                     # => "12,345,678"
+  #  12345678.05.to_fs(:delimited)                  # => "12,345,678.05"
+  #  12345678.to_fs(:delimited, delimiter: '.')     # => "12.345.678"
+  #  12345678.to_fs(:delimited, delimiter: ',')     # => "12,345,678"
+  #  12345678.05.to_fs(:delimited, separator: ' ')  # => "12,345,678 05"
+  #  12345678.05.to_fs(:delimited, locale: :fr)     # => "12 345 678,05"
+  #  98765432.98.to_fs(:delimited, delimiter: ' ', separator: ',')
+  #  # => "98 765 432,98"
+  #
+  #  Rounded:
+  #  111.2345.to_fs(:rounded)                                      # => "111.235"
+  #  111.2345.to_fs(:rounded, precision: 2)                        # => "111.23"
+  #  111.2345.to_fs(:rounded, precision: 2, round_mode: :up)       # => "111.24"
+  #  13.to_fs(:rounded, precision: 5)                              # => "13.00000"
+  #  389.32314.to_fs(:rounded, precision: 0)                       # => "389"
+  #  111.2345.to_fs(:rounded, significant: true)                   # => "111"
+  #  111.2345.to_fs(:rounded, precision: 1, significant: true)     # => "100"
+  #  13.to_fs(:rounded, precision: 5, significant: true)           # => "13.000"
+  #  111.234.to_fs(:rounded, locale: :fr)                          # => "111,234"
+  #  13.to_fs(:rounded, precision: 5, significant: true, strip_insignificant_zeros: true)
+  #  # => "13"
+  #  389.32314.to_fs(:rounded, precision: 4, significant: true)    # => "389.3"
+  #  1111.2345.to_fs(:rounded, precision: 2, separator: ',', delimiter: '.')
+  #  # => "1.111,23"
+  #
+  #  Human-friendly size in Bytes:
+  #  123.to_fs(:human_size)                                    # => "123 Bytes"
+  #  1234.to_fs(:human_size)                                   # => "1.21 KB"
+  #  12345.to_fs(:human_size)                                  # => "12.1 KB"
+  #  1234567.to_fs(:human_size)                                # => "1.18 MB"
+  #  1234567890.to_fs(:human_size)                             # => "1.15 GB"
+  #  1234567890123.to_fs(:human_size)                          # => "1.12 TB"
+  #  1234567890123456.to_fs(:human_size)                       # => "1.1 PB"
+  #  1234567890123456789.to_fs(:human_size)                    # => "1.07 EB"
+  #  1234567.to_fs(:human_size, precision: 2)                  # => "1.2 MB"
+  #  1234567.to_fs(:human_size, precision: 2, round_mode: :up) # => "1.3 MB"
+  #  483989.to_fs(:human_size, precision: 2)                   # => "470 KB"
+  #  1234567.to_fs(:human_size, precision: 2, separator: ',')  # => "1,2 MB"
+  #  1234567890123.to_fs(:human_size, precision: 5)            # => "1.1228 TB"
+  #  524288000.to_fs(:human_size, precision: 5)                # => "500 MB"
+  #
+  #  Human-friendly format:
+  #  123.to_fs(:human)                                       # => "123"
+  #  1234.to_fs(:human)                                      # => "1.23 Thousand"
+  #  12345.to_fs(:human)                                     # => "12.3 Thousand"
+  #  1234567.to_fs(:human)                                   # => "1.23 Million"
+  #  1234567890.to_fs(:human)                                # => "1.23 Billion"
+  #  1234567890123.to_fs(:human)                             # => "1.23 Trillion"
+  #  1234567890123456.to_fs(:human)                          # => "1.23 Quadrillion"
+  #  1234567890123456789.to_fs(:human)                       # => "1230 Quadrillion"
+  #  489939.to_fs(:human, precision: 2)                      # => "490 Thousand"
+  #  489939.to_fs(:human, precision: 2, round_mode: :down)   # => "480 Thousand"
+  #  489939.to_fs(:human, precision: 4)                      # => "489.9 Thousand"
+  #  1234567.to_fs(:human, precision: 4,
+  #                   significant: false)                             # => "1.2346 Million"
+  #  1234567.to_fs(:human, precision: 1,
+  #                   separator: ',',
+  #                   significant: false)                             # => "1,2 Million"
+  #
+  # source://activesupport//lib/active_support/core_ext/numeric/conversions.rb#111
+  def to_fs(format = T.unsafe(nil), options = T.unsafe(nil)); end
+end
+
 # source://activesupport//lib/active_support/option_merger.rb#6
 class ActiveSupport::OptionMerger
   # @return [OptionMerger] a new instance of OptionMerger
@@ -9111,6 +9417,50 @@ end
 
 # source://activesupport//lib/active_support/railtie.rb#7
 class ActiveSupport::Railtie < ::Rails::Railtie; end
+
+# source://activesupport//lib/active_support/core_ext/range/conversions.rb#4
+module ActiveSupport::RangeWithFormat
+  # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.
+  #
+  # This method is aliased to <tt>to_formatted_s</tt>.
+  #
+  #   range = (1..100)           # => 1..100
+  #
+  #   range.to_s                 # => "1..100"
+  #   range.to_fs(:db)            # => "BETWEEN '1' AND '100'"
+  #
+  # == Adding your own range formats to to_s
+  # You can add your own formats to the Range::RANGE_FORMATS hash.
+  # Use the format name as the hash key and a Proc instance.
+  #
+  #   # config/initializers/range_formats.rb
+  #   Range::RANGE_FORMATS[:short] = ->(start, stop) { "Between #{start.to_fs(:db)} and #{stop.to_fs(:db)}" }
+  #
+  # source://activesupport//lib/active_support/core_ext/range/conversions.rb#30
+  def to_formatted_s(format = T.unsafe(nil)); end
+
+  # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.
+  #
+  # This method is aliased to <tt>to_formatted_s</tt>.
+  #
+  #   range = (1..100)           # => 1..100
+  #
+  #   range.to_s                 # => "1..100"
+  #   range.to_fs(:db)            # => "BETWEEN '1' AND '100'"
+  #
+  # == Adding your own range formats to to_s
+  # You can add your own formats to the Range::RANGE_FORMATS hash.
+  # Use the format name as the hash key and a Proc instance.
+  #
+  #   # config/initializers/range_formats.rb
+  #   Range::RANGE_FORMATS[:short] = ->(start, stop) { "Between #{start.to_fs(:db)} and #{stop.to_fs(:db)}" }
+  #
+  # source://activesupport//lib/active_support/core_ext/range/conversions.rb#30
+  def to_fs(format = T.unsafe(nil)); end
+end
+
+# source://activesupport//lib/active_support/core_ext/range/conversions.rb#5
+ActiveSupport::RangeWithFormat::RANGE_FORMATS = T.let(T.unsafe(nil), Hash)
 
 # --
 # This class defines several callbacks:
@@ -11568,8 +11918,8 @@ class ActiveSupport::TimeWithZone
 
   # Returns a string of the object's date and time.
   #
-  # source://activesupport//lib/active_support/time_with_zone.rb#210
-  def to_s; end
+  # source://activesupport//lib/active_support/core_ext/time/deprecated_conversions.rb#42
+  def to_s(format = T.unsafe(nil)); end
 
   # Returns an instance of +Time+, either with the same UTC offset
   # as +self+ or in the local system timezone depending on the setting
@@ -11694,6 +12044,9 @@ class ActiveSupport::TimeWithZone
     def name; end
   end
 end
+
+# source://activesupport//lib/active_support/core_ext/time/deprecated_conversions.rb#40
+ActiveSupport::TimeWithZone::NOT_SET = T.let(T.unsafe(nil), Object)
 
 # source://activesupport//lib/active_support/time_with_zone.rb#55
 ActiveSupport::TimeWithZone::PRECISIONS = T.let(T.unsafe(nil), Hash)
@@ -12364,6 +12717,16 @@ class Array
   # source://activesupport//lib/active_support/core_ext/array/access.rb#47
   def excluding(*elements); end
 
+  # Removes and returns the elements for which the block returns a true value.
+  # If no block is given, an Enumerator is returned instead.
+  #
+  #   numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+  #   odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
+  #   numbers # => [0, 2, 4, 6, 8]
+  #
+  # source://activesupport//lib/active_support/core_ext/array/extract.rb#10
+  def extract!; end
+
   # Extracts options from a set of arguments. Removes and returns the last
   # element in the array if it's a hash, otherwise returns a blank hash.
   #
@@ -12410,6 +12773,49 @@ class Array
   # source://activesupport//lib/active_support/core_ext/array/access.rb#12
   def from(position); end
 
+  # Splits or iterates over the array in +number+ of groups, padding any
+  # remaining slots with +fill_with+ unless it is +false+.
+  #
+  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups(3) {|group| p group}
+  #   ["1", "2", "3", "4"]
+  #   ["5", "6", "7", nil]
+  #   ["8", "9", "10", nil]
+  #
+  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups(3, '&nbsp;') {|group| p group}
+  #   ["1", "2", "3", "4"]
+  #   ["5", "6", "7", "&nbsp;"]
+  #   ["8", "9", "10", "&nbsp;"]
+  #
+  #   %w(1 2 3 4 5 6 7).in_groups(3, false) {|group| p group}
+  #   ["1", "2", "3"]
+  #   ["4", "5"]
+  #   ["6", "7"]
+  #
+  # source://activesupport//lib/active_support/core_ext/array/grouping.rb#62
+  def in_groups(number, fill_with = T.unsafe(nil), &block); end
+
+  # Splits or iterates over the array in groups of size +number+,
+  # padding any remaining slots with +fill_with+ unless it is +false+.
+  #
+  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups_of(3) {|group| p group}
+  #   ["1", "2", "3"]
+  #   ["4", "5", "6"]
+  #   ["7", "8", "9"]
+  #   ["10", nil, nil]
+  #
+  #   %w(1 2 3 4 5).in_groups_of(2, '&nbsp;') {|group| p group}
+  #   ["1", "2"]
+  #   ["3", "4"]
+  #   ["5", "&nbsp;"]
+  #
+  #   %w(1 2 3 4 5).in_groups_of(2, false) {|group| p group}
+  #   ["1", "2"]
+  #   ["3", "4"]
+  #   ["5"]
+  #
+  # source://activesupport//lib/active_support/core_ext/array/grouping.rb#22
+  def in_groups_of(number, fill_with = T.unsafe(nil), &block); end
+
   # Returns a new array that includes the passed elements.
   #
   #   [ 1, 2, 3 ].including(4, 5) # => [ 1, 2, 3, 4, 5 ]
@@ -12417,6 +12823,20 @@ class Array
   #
   # source://activesupport//lib/active_support/core_ext/array/access.rb#36
   def including(*elements); end
+
+  # Wraps the array in an ActiveSupport::ArrayInquirer object, which gives a
+  # friendlier way to check its string-like contents.
+  #
+  #   pets = [:cat, :dog].inquiry
+  #
+  #   pets.cat?     # => true
+  #   pets.ferret?  # => false
+  #
+  #   pets.any?(:cat, :ferret)  # => true
+  #   pets.any?(:ferret, :alligator)  # => false
+  #
+  # source://activesupport//lib/active_support/core_ext/array/inquiry.rb#16
+  def inquiry; end
 
   # Equal to <tt>self[1]</tt>.
   #
@@ -12431,6 +12851,15 @@ class Array
   #
   # source://activesupport//lib/active_support/core_ext/array/access.rb#97
   def second_to_last; end
+
+  # Divides the array into one or more subarrays based on a delimiting +value+
+  # or the result of an optional block.
+  #
+  #   [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
+  #   (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
+  #
+  # source://activesupport//lib/active_support/core_ext/array/grouping.rb#93
+  def split(value = T.unsafe(nil), &block); end
 
   # source://activesupport//lib/active_support/core_ext/enumerable.rb#315
   def sum(init = T.unsafe(nil), &block); end
@@ -12498,6 +12927,9 @@ class Array
   #
   # source://activesupport//lib/active_support/core_ext/object/to_query.rb#50
   def to_query(key); end
+
+  # source://activesupport//lib/active_support/core_ext/array/deprecated_conversions.rb#5
+  def to_s(format = T.unsafe(nil)); end
 
   # Converts the array to a comma-separated sentence where the last element is
   # joined by the connector word.
@@ -12685,9 +13117,14 @@ class Array
   end
 end
 
+# source://activesupport//lib/active_support/core_ext/array/deprecated_conversions.rb#4
+Array::NOT_SET = T.let(T.unsafe(nil), Object)
+
 # source://activesupport//lib/active_support/core_ext/object/json.rb#118
 class BigDecimal < ::Numeric
   include ::ActiveSupport::BigDecimalWithDefaultFormat
+  include ::ActiveSupport::NumericWithFormat
+  include ::ActiveSupport::DeprecatedNumericWithFormat
 
   # A BigDecimal would be naturally represented as a JSON number. Most libraries,
   # however, parse non-integer JSON numbers directly as floats. Clients using
@@ -12702,8 +13139,8 @@ class BigDecimal < ::Numeric
   # source://activesupport//lib/active_support/core_ext/object/json.rb#128
   def as_json(options = T.unsafe(nil)); end
 
-  # source://activesupport//lib/active_support/core_ext/big_decimal/conversions.rb#8
-  def to_s(format = T.unsafe(nil)); end
+  # source://activesupport//lib/active_support/core_ext/numeric/deprecated_conversions.rb#5
+  def to_s(format = T.unsafe(nil), options = T.unsafe(nil)); end
 end
 
 # source://activesupport//lib/active_support/core_ext/class/attribute.rb#5
@@ -12897,6 +13334,15 @@ class Date
   # source://activesupport//lib/active_support/core_ext/date/calculations.rb#67
   def beginning_of_day; end
 
+  # No Date is blank:
+  #
+  #   Date.today.blank? # => false
+  #
+  # @return [false]
+  #
+  # source://activesupport//lib/active_support/core_ext/date/blank.rb#11
+  def blank?; end
+
   # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
   # The +options+ parameter is a hash with a combination of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>.
   #
@@ -13020,6 +13466,9 @@ class Date
   # source://activesupport//lib/active_support/core_ext/date/conversions.rb#47
   def to_fs(format = T.unsafe(nil)); end
 
+  # source://activesupport//lib/active_support/core_ext/date/deprecated_conversions.rb#7
+  def to_s(format = T.unsafe(nil)); end
+
   # Converts a Date instance to a Time, where the time is set to the beginning of the day.
   # The timezone can be either +:local+ or +:utc+ (default +:local+).
   #
@@ -13101,6 +13550,9 @@ end
 
 # source://activesupport//lib/active_support/core_ext/date/conversions.rb#9
 Date::DATE_FORMATS = T.let(T.unsafe(nil), Hash)
+
+# source://activesupport//lib/active_support/core_ext/date/deprecated_conversions.rb#6
+Date::NOT_SET = T.let(T.unsafe(nil), Object)
 
 # source://activesupport//lib/active_support/core_ext/date_and_time/compatibility.rb#5
 module DateAndTime; end
@@ -13606,11 +14058,27 @@ end
 
 # source://activesupport//lib/active_support/core_ext/date_time/calculations.rb#5
 class DateTime < ::Date
+  include ::DateAndTime::Compatibility
+
   # Layers additional behavior on DateTime#<=> so that Time and
   # ActiveSupport::TimeWithZone instances can be compared with a DateTime.
   #
   # source://activesupport//lib/active_support/core_ext/date_time/calculations.rb#208
   def <=>(other); end
+
+  # Duck-types as a Date-like class. See Object#acts_like?.
+  #
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/core_ext/date_time/acts_like.rb#8
+  def acts_like_date?; end
+
+  # Duck-types as a Time-like class. See Object#acts_like?.
+  #
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/core_ext/date_time/acts_like.rb#13
+  def acts_like_time?; end
 
   # Uses Date to provide precise Time calculations for years, months, and days.
   # The +options+ parameter takes a hash with any of these keys: <tt>:years</tt>,
@@ -13697,6 +14165,15 @@ class DateTime < ::Date
   #
   # source://activesupport//lib/active_support/core_ext/date_time/calculations.rb#158
   def beginning_of_minute; end
+
+  # No DateTime is ever blank:
+  #
+  #   DateTime.now.blank? # => false
+  #
+  # @return [false]
+  #
+  # source://activesupport//lib/active_support/core_ext/date_time/blank.rb#11
+  def blank?; end
 
   # Returns a new DateTime where one or more of the elements have been changed
   # according to the +options+ parameter. The time options (<tt>:hour</tt>,
@@ -13916,6 +14393,17 @@ class DateTime < ::Date
   # source://activesupport//lib/active_support/core_ext/date_time/conversions.rb#84
   def to_i; end
 
+  # source://activesupport//lib/active_support/core_ext/date_time/deprecated_conversions.rb#7
+  def to_s(format = T.unsafe(nil)); end
+
+  # Either return an instance of +Time+ with the same UTC offset
+  # as +self+ or an instance of +Time+ representing the same time
+  # in the local system timezone depending on the setting of
+  # on the setting of +ActiveSupport.to_time_preserves_timezone+.
+  #
+  # source://activesupport//lib/active_support/core_ext/date_time/compatibility.rb#15
+  def to_time; end
+
   # Returns the fraction of a second as microseconds
   #
   # source://activesupport//lib/active_support/core_ext/date_time/conversions.rb#89
@@ -13970,10 +14458,66 @@ class DateTime < ::Date
   end
 end
 
+# source://activesupport//lib/active_support/core_ext/date_time/deprecated_conversions.rb#6
+DateTime::NOT_SET = T.let(T.unsafe(nil), Object)
+
 # source://activesupport//lib/active_support/core_ext/object/try.rb#117
 class Delegator < ::BasicObject
   include ::ActiveSupport::Tryable
 end
+
+# source://activesupport//lib/active_support/core_ext/digest/uuid.rb#7
+module Digest::UUID
+  class << self
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#13
+    def use_rfc4122_namespaced_uuids; end
+
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#13
+    def use_rfc4122_namespaced_uuids=(val); end
+
+    # Generates a v5 non-random UUID (Universally Unique IDentifier).
+    #
+    # Using OpenSSL::Digest::MD5 generates version 3 UUIDs; OpenSSL::Digest::SHA1 generates version 5 UUIDs.
+    # uuid_from_hash always generates the same UUID for a given name and namespace combination.
+    #
+    # See RFC 4122 for details of UUID at: https://www.ietf.org/rfc/rfc4122.txt
+    #
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#21
+    def uuid_from_hash(hash_class, namespace, name); end
+
+    # Convenience method for uuid_from_hash using OpenSSL::Digest::MD5.
+    #
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#44
+    def uuid_v3(uuid_namespace, name); end
+
+    # Convenience method for SecureRandom.uuid.
+    #
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#54
+    def uuid_v4; end
+
+    # Convenience method for uuid_from_hash using OpenSSL::Digest::SHA1.
+    #
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#49
+    def uuid_v5(uuid_namespace, name); end
+
+    private
+
+    # source://activesupport//lib/active_support/core_ext/digest/uuid.rb#58
+    def pack_uuid_namespace(namespace); end
+  end
+end
+
+# source://activesupport//lib/active_support/core_ext/digest/uuid.rb#8
+Digest::UUID::DNS_NAMESPACE = T.let(T.unsafe(nil), String)
+
+# source://activesupport//lib/active_support/core_ext/digest/uuid.rb#10
+Digest::UUID::OID_NAMESPACE = T.let(T.unsafe(nil), String)
+
+# source://activesupport//lib/active_support/core_ext/digest/uuid.rb#9
+Digest::UUID::URL_NAMESPACE = T.let(T.unsafe(nil), String)
+
+# source://activesupport//lib/active_support/core_ext/digest/uuid.rb#11
+Digest::UUID::X500_NAMESPACE = T.let(T.unsafe(nil), String)
 
 module ERB::Escape
   private
@@ -14483,11 +15027,17 @@ end
 
 # source://activesupport//lib/active_support/core_ext/object/json.rb#110
 class Float < ::Numeric
+  include ::ActiveSupport::NumericWithFormat
+  include ::ActiveSupport::DeprecatedNumericWithFormat
+
   # Encoding Infinity or NaN to JSON should return "null". The default returns
   # "Infinity" or "NaN" which are not valid JSON.
   #
   # source://activesupport//lib/active_support/core_ext/object/json.rb#113
   def as_json(options = T.unsafe(nil)); end
+
+  # source://activesupport//lib/active_support/core_ext/numeric/deprecated_conversions.rb#5
+  def to_s(format = T.unsafe(nil), options = T.unsafe(nil)); end
 end
 
 # source://activesupport//lib/active_support/core_ext/object/blank.rb#93
@@ -15164,6 +15714,9 @@ end
 
 # source://activesupport//lib/active_support/core_ext/integer/time.rb#6
 class Integer < ::Numeric
+  include ::ActiveSupport::NumericWithFormat
+  include ::ActiveSupport::DeprecatedNumericWithFormat
+
   # Returns a Duration instance matching the number of months provided.
   #
   #   2.months # => 2 months
@@ -15177,6 +15730,9 @@ class Integer < ::Numeric
   #
   # source://activesupport//lib/active_support/core_ext/integer/time.rb#10
   def months; end
+
+  # source://activesupport//lib/active_support/core_ext/numeric/deprecated_conversions.rb#5
+  def to_s(format = T.unsafe(nil), options = T.unsafe(nil)); end
 
   # Returns a Duration instance matching the number of years provided.
   #
@@ -16986,6 +17542,8 @@ class Pathname
 end
 
 module Process
+  extend ::ConnectionPool::ForkTracker
+  extend ::RedisClient::PIDCache::CoreExt
   extend ::ActiveSupport::ForkTracker::ModernCoreExt
 
   class << self
@@ -17002,16 +17560,44 @@ end
 
 # source://activesupport//lib/active_support/core_ext/object/json.rb#151
 class Range
+  include ::ActiveSupport::RangeWithFormat
+  include ::ActiveSupport::DeprecatedRangeWithFormat
+  include ::ActiveSupport::CompareWithRange
+  include ::ActiveSupport::EachTimeWithZone
   include ::Enumerable
+
+  # source://activesupport//lib/active_support/core_ext/range/compare_range.rb#16
+  def ===(value); end
 
   # source://activesupport//lib/active_support/core_ext/object/json.rb#152
   def as_json(options = T.unsafe(nil)); end
+
+  # source://activesupport//lib/active_support/core_ext/range/each.rb#7
+  def each(&block); end
+
+  # source://activesupport//lib/active_support/core_ext/range/compare_range.rb#41
+  def include?(value); end
+
+  # Compare two ranges and see if they overlap each other
+  #  (1..5).overlaps?(4..6) # => true
+  #  (1..5).overlaps?(7..9) # => false
+  #
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/core_ext/range/overlaps.rb#7
+  def overlaps?(other); end
+
+  # source://activesupport//lib/active_support/core_ext/range/each.rb#12
+  def step(n = T.unsafe(nil), &block); end
 
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
   #
   # source://activesupport//lib/active_support/core_ext/enumerable.rb#292
   def sum(identity = T.unsafe(nil)); end
+
+  # source://activesupport//lib/active_support/core_ext/range/deprecated_conversions.rb#6
+  def to_s(format = T.unsafe(nil)); end
 end
 
 # source://activesupport//lib/active_support/core_ext/object/json.rb#133
@@ -17279,6 +17865,22 @@ class String
   #
   # source://activesupport//lib/active_support/core_ext/string/inflections.rb#262
   def humanize(capitalize: T.unsafe(nil), keep_id_suffix: T.unsafe(nil)); end
+
+  # Converts String to a TimeWithZone in the current zone if Time.zone or Time.zone_default
+  # is set, otherwise converts String to a Time via String#to_time
+  #
+  # source://activesupport//lib/active_support/core_ext/string/zones.rb#9
+  def in_time_zone(zone = T.unsafe(nil)); end
+
+  # Wraps the current string in the ActiveSupport::StringInquirer class,
+  # which gives you a prettier way to test for equality.
+  #
+  #   env = 'production'.inquiry
+  #   env.production?  # => true
+  #   env.development? # => false
+  #
+  # source://activesupport//lib/active_support/core_ext/string/inquiry.rb#13
+  def inquiry; end
 
   # Returns +true+ if string has utf_8 encoding.
   #
@@ -17689,6 +18291,7 @@ class Time
   include ::Comparable
   include ::DateAndTime::Zones
   include ::DateAndTime::Calculations
+  include ::DateAndTime::Compatibility
 
   # source://activesupport//lib/active_support/core_ext/time/calculations.rb#284
   def +(other); end
@@ -18033,6 +18636,15 @@ class Time
   # source://activesupport//lib/active_support/core_ext/time/conversions.rb#53
   def to_fs(format = T.unsafe(nil)); end
 
+  # source://activesupport//lib/active_support/core_ext/time/deprecated_conversions.rb#7
+  def to_s(format = T.unsafe(nil)); end
+
+  # Either return +self+ or the time in the local system timezone depending
+  # on the setting of +ActiveSupport.to_time_preserves_timezone+.
+  #
+  # source://activesupport//lib/active_support/core_ext/time/compatibility.rb#13
+  def to_time; end
+
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
     #
@@ -18177,6 +18789,9 @@ Time::COMMON_YEAR_DAYS_IN_MONTH = T.let(T.unsafe(nil), Array)
 
 # source://activesupport//lib/active_support/core_ext/time/conversions.rb#8
 Time::DATE_FORMATS = T.let(T.unsafe(nil), Hash)
+
+# source://activesupport//lib/active_support/core_ext/time/deprecated_conversions.rb#6
+Time::NOT_SET = T.let(T.unsafe(nil), Object)
 
 # source://activesupport//lib/active_support/core_ext/object/blank.rb#72
 class TrueClass

@@ -72,9 +72,9 @@ module RailsStructuredLogging
         end
 
         # Get job_id from ActiveJob if available
-        if defined?(ActiveJob::Logging) && ActiveJob::Logging.respond_to?(:job_id) &&
-           T.unsafe(ActiveJob::Logging).job_id.present?
-          log_data[:job_id] = T.unsafe(ActiveJob::Logging).job_id
+        if defined?(::ActiveJob::Logging) && ::ActiveJob::Logging.respond_to?(:job_id) &&
+           T.unsafe(::ActiveJob::Logging).job_id.present?
+          log_data[:job_id] = T.unsafe(::ActiveJob::Logging).job_id
         end
       end
     end
