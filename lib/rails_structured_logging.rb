@@ -14,7 +14,6 @@ require 'rails_structured_logging/sidekiq'
 require 'rails_structured_logging/shrine'
 require 'rails_structured_logging/action_mailer'
 require 'rails_structured_logging/active_job'
-require 'rails_structured_logging/constants'
 require 'rails_structured_logging/enums'
 require 'rails_structured_logging/log_types'
 require 'rails_structured_logging/railtie' if defined?(Rails)

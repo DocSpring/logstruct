@@ -1,6 +1,9 @@
 # frozen_string_literal: true
+# typed: true
 
-require_relative 'constants'
+require_relative 'enums'
+require_relative 'log_types'
+require_relative 'sorbet'
 
 begin
   require 'shrine'
@@ -12,34 +15,37 @@ module RailsStructuredLogging
   # Shrine integration for structured logging
   module Shrine
     class << self
+      include RailsStructuredLogging::TypedSig
+      extend T::Sig
+
       # Set up Shrine structured logging
+      sig { void }
       def setup
         return unless defined?(::Shrine)
         return unless RailsStructuredLogging.enabled?
         return unless RailsStructuredLogging.configuration.shrine_integration_enabled
 
         # Create a structured log subscriber for Shrine
-        shrine_log_subscriber = lambda do |event|
+        # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
+        shrine_log_subscriber = T.unsafe(lambda do |event|
+          # Extract the event name and payload
+          event_name = event.name.to_sym
           payload = event.payload.except(:io, :metadata, :name).dup
-          payload[:src] = Constants::SRC_SHRINE
-          payload[:evt] = Constants::EVT_FILE_OPERATION
-          payload[:operation] = event.name
-          payload[:duration] = event.duration
 
-          # Handle record references safely
-          if payload.dig(:options, :record).present?
-            payload[:options][:record_id] = payload[:options][:record].id
-            payload[:options][:record_class] = payload[:options][:record].class.name
-            payload[:options].delete(:record)
-          end
+          # Create structured log data
+          log_data = LogTypes.create_shrine_log_data(
+            event_name,
+            event.duration,
+            payload
+          )
 
           # Pass the structured hash to the logger
           # If Rails.logger has our LogFormatter, it will handle JSON conversion
-          ::Shrine.logger.info payload
-        end
+          T.unsafe(::Shrine).logger.info log_data
+        end)
 
         # Configure Shrine to use our structured log subscriber
-        ::Shrine.plugin :instrumentation,
+        T.unsafe(::Shrine).plugin :instrumentation,
                       log_events: [:upload, :exists, :download, :delete],
                       log_subscriber: shrine_log_subscriber
       end

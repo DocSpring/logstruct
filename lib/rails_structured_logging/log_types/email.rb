@@ -3,37 +3,104 @@
 
 require 'sorbet-runtime'
 require_relative 'base'
+require_relative '../enums'
 
 module RailsStructuredLogging
   module LogTypes
     extend T::Sig
 
-    # Email delivery log data struct
+    # Email delivery log data class
     class EmailLogData < BaseLogData
       extend T::Sig
 
-      const :message_id, T.nilable(String)
-      const :mailer_class, T.nilable(String)
-      const :mailer_action, T.nilable(String)
-      const :to, T.nilable(String)
-      const :cc, T.nilable(String)
-      const :bcc, T.nilable(String)
-      const :subject, T.nilable(String)
+      sig { returns(T.nilable(String)) }
+      attr_reader :message_id
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :mailer_class
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :mailer_action
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :to
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :cc
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :bcc
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :subject
+
+      # Initialize with all fields
+      sig do
+        params(
+          src: Symbol,
+          evt: Symbol,
+          ts: T.nilable(Time),
+          msg: T.nilable(String),
+          message_id: T.nilable(String),
+          mailer_class: T.nilable(String),
+          mailer_action: T.nilable(String),
+          to: T.nilable(String),
+          cc: T.nilable(String),
+          bcc: T.nilable(String),
+          subject: T.nilable(String)
+        ).void
+      end
+      def initialize(src:, evt:, ts: nil, msg: nil, message_id: nil, mailer_class: nil,
+                    mailer_action: nil, to: nil, cc: nil, bcc: nil, subject: nil)
+        super(src: src, evt: evt, ts: ts, msg: msg)
+        @message_id = message_id
+        @mailer_class = mailer_class
+        @mailer_action = mailer_action
+        @to = to
+        @cc = cc
+        @bcc = bcc
+        @subject = subject
+      end
+
+      # Convert to hash for logging
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h
+        super.merge({
+          message_id: @message_id,
+          mailer_class: @mailer_class,
+          mailer_action: @mailer_action,
+          to: @to,
+          cc: @cc,
+          bcc: @bcc,
+          subject: @subject
+        }.compact)
+      end
     end
+
+    # Valid email event types
+    EMAIL_EVENT_TYPES = T.let(
+      [:email_delivery, :email_delivered, :email_error].freeze,
+      T::Array[Symbol]
+    )
 
     # Helper method to create an email log data object
     sig do
       params(
         mailer: T.untyped,
         message: T.nilable(String),
-        additional_data: T::Hash[T.any(Symbol, String), T.untyped]
+        event_type: Symbol
       ).returns(EmailLogData)
     end
-    def self.create_email_log_data(mailer, message = nil, additional_data = {})
+    def self.create_email_log_data(mailer, message = nil, event_type = :email_delivery)
+      # Validate event type
+      unless EMAIL_EVENT_TYPES.include?(event_type)
+        raise ArgumentError, "Invalid email event type: #{event_type}"
+      end
+
       # Create email log data
       EmailLogData.new(
-        src: Constants::SRC_ACTIONMAILER,
-        evt: Constants::EVT_EMAIL_DELIVERY,
+        src: Enums::SourceType::ActionMailer.to_sym,
+        evt: event_type,
         msg: message,
         message_id: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.message_id : nil,
         mailer_class: T.unsafe(mailer).class.name,
@@ -41,8 +108,7 @@ module RailsStructuredLogging
         to: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.to).join(', ') : nil,
         cc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.cc).join(', ') : nil,
         bcc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.bcc).join(', ') : nil,
-        subject: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.subject : nil,
-        additional_data: additional_data
+        subject: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.subject : nil
       )
     end
   end

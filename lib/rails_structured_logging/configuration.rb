@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require 'sorbet-runtime'
-require_relative 'constants'
+require_relative 'enums'
 
 module RailsStructuredLogging
   # Configuration class for RailsStructuredLogging

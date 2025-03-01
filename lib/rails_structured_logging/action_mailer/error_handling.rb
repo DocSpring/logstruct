@@ -2,6 +2,8 @@
 # typed: true
 
 require_relative '../sorbet'
+require_relative '../enums'
+require_relative '../log_types'
 
 module RailsStructuredLogging
   module ActionMailer
@@ -107,21 +109,8 @@ module RailsStructuredLogging
       # Log a notification event that can be picked up by external systems
       sig { params(error: StandardError).void }
       def log_notification_event(error)
-        # Use T.unsafe for accessing error class name
-        error_class_name = T.unsafe(error.class).name
-
-        # Create notification data with safely accessed properties
-        notification_data = {
-          src: 'mailer',
-          evt: 'notification',
-          error_class: error_class_name,
-          error_message: error.message,
-          recipients: recipients(error),
-          notification_type: 'email_delivery_error',
-          mailer_class: T.unsafe(self).class.name,
-          mailer_action: T.unsafe(self).respond_to?(:action_name) ? T.unsafe(self).action_name : nil,
-          message_id: T.unsafe(self).respond_to?(:message) ? T.unsafe(self).message&.message_id : nil
-        }
+        # Create a notification log data object
+        notification_data = LogTypes.create_email_notification_log_data(error, self)
 
         # Log at info level since this is a notification, not an error
         Rails.logger.info(notification_data)

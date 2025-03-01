@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../constants'
+require_relative '../enums'
 
 module RailsStructuredLogging
   module Rack
@@ -19,9 +19,9 @@ module RailsStructuredLogging
         rescue ActionDispatch::RemoteIp::IpSpoofAttackError => e
           log_event(
             env,
-            event: Constants::EVT_SECURITY_VIOLATION,
+            event: Enums::EventType::SecurityViolation.to_sym,
             level: :warn,
-            violation_type: Constants::VIOLATION_TYPE_IP_SPOOF,
+            violation_type: Enums::ViolationType::IpSpoof.to_sym,
             error: e.message,
             # Can't call .remote_ip on the request because that's what raises the error.
             # Have to pass the client_ip and x_forwarded_for headers.
@@ -36,8 +36,8 @@ module RailsStructuredLogging
           log_event(
             env,
             level: :warn,
-            event: Constants::EVT_SECURITY_VIOLATION,
-            violation_type: Constants::VIOLATION_TYPE_CSRF,
+            event: Enums::EventType::SecurityViolation.to_sym,
+            violation_type: Enums::ViolationType::Csrf.to_sym,
             error: e.message
           )
           raise # Re-raise to let Rails/Sentry handle the response
@@ -46,7 +46,7 @@ module RailsStructuredLogging
           log_event(
             env,
             level: :error,
-            event: Constants::EVT_REQUEST_ERROR,
+            event: Enums::EventType::RequestError.to_sym,
             error_class: e.class.name,
             error_message: e.message
           )
@@ -63,7 +63,7 @@ module RailsStructuredLogging
         request = ActionDispatch::Request.new(env)
 
         log_data = {
-          src: Constants::SRC_RAILS,
+          src: Enums::SourceType::Rails.to_sym,
           evt: event,
           level: level,
           request_id: request.request_id,

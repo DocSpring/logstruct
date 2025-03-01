@@ -3,7 +3,6 @@
 
 require "spec_helper"
 require "sorbet-runtime"
-require "rspec/sorbet"
 require "rspec/sorbet/types" # Required for rsig
 
 RSpec.describe "Sorbet Type Signatures" do

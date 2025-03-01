@@ -2,23 +2,60 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative '../constants'
+require_relative '../enums'
 
 module RailsStructuredLogging
   module LogTypes
     extend T::Sig
 
-    # Base log data struct with common fields
-    class BaseLogData < T::Struct
+    # Base log data class with common fields
+    class BaseLogData
       extend T::Sig
 
-      const :src, Symbol
-      const :evt, Symbol
-      const :ts, T.nilable(Time), default: Time.now
-      const :msg, T.nilable(String)
+      sig { returns(Symbol) }
+      attr_reader :src
 
-      # Allow additional data with string/symbol keys
-      const :additional_data, T::Hash[T.any(Symbol, String), T.untyped], default: {}
+      sig { returns(Symbol) }
+      attr_reader :evt
+
+      sig { returns(Time) }
+      attr_reader :ts
+
+      sig { returns(T.nilable(String)) }
+      attr_reader :msg
+
+      # Initialize with required fields
+      sig do
+        params(
+          src: Symbol,
+          evt: Symbol,
+          ts: T.nilable(Time),
+          msg: T.nilable(String)
+        ).void
+      end
+      def initialize(src:, evt:, ts: nil, msg: nil)
+        @src = src
+        @evt = evt
+        @ts = ts || Time.now
+        @msg = msg
+      end
+
+      # Convert to hash for logging
+      sig { returns(T::Hash[Symbol, T.untyped]) }
+      def to_h
+        {
+          src: @src,
+          evt: @evt,
+          ts: @ts,
+          msg: @msg
+        }.compact
+      end
+
+      # Allow hash-like access to properties
+      sig { params(key: Symbol).returns(T.untyped) }
+      def [](key)
+        to_h[key]
+      end
     end
   end
 end

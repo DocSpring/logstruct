@@ -3,10 +3,10 @@
 
 require 'sorbet-runtime'
 require_relative 'log_types/base'
-require_relative 'log_types/enums'
 require_relative 'log_types/notification'
 require_relative 'log_types/email'
 require_relative 'log_types/error'
+require_relative 'log_types/shrine'
 
 module RailsStructuredLogging
   # Type definitions for structured logging

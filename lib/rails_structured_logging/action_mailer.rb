@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 # typed: true
 
-require_relative 'constants'
+require_relative 'enums'
 require_relative 'sorbet'
 
 begin
