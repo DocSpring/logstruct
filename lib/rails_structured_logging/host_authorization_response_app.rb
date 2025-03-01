@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'constants'
+require_relative 'enums'
 
 module RailsStructuredLogging
   # Host Authorization integration for structured logging of blocked hosts
@@ -20,9 +20,9 @@ module RailsStructuredLogging
           # Log the blocked host attempt as a hash
           # (converted to JSON by the Rails log formatter)
           Rails.logger.warn(
-            src: Constants::SRC_RAILS,
-            evt: Constants::EVT_SECURITY_VIOLATION,
-            violation_type: Constants::VIOLATION_TYPE_BLOCKED_HOST,
+            src: Enums::SourceType::Rails.to_sym,
+            evt: Enums::EventType::SecurityViolation.to_sym,
+            violation_type: Enums::ViolationType::BlockedHost.to_sym,
             blocked_host: request.host,
             blocked_hosts: blocked_hosts,
             request_id: request.request_id,

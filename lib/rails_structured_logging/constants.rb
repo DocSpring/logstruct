@@ -16,6 +16,7 @@ module RailsStructuredLogging
     EVT_EMAIL_DELIVERY = :email_delivery
     EVT_JOB_EXECUTION = :job_execution
     EVT_FILE_OPERATION = :file_operation
+    EVT_NOTIFICATION = :notification
 
     # Security violation types
     VIOLATION_TYPE_IP_SPOOF = :ip_spoof_attack
