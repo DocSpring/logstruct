@@ -3,6 +3,7 @@
 require 'logger'
 require 'active_support/core_ext/object/blank'
 require 'json'
+require 'globalid'
 require_relative 'param_filters'
 require_relative 'logstop_fork'
 require_relative 'multi_error_reporter'

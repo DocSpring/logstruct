@@ -1,6 +1,10 @@
-yardoc
-Logstop
-railtie
-ssns
 bindir
+Bugsnag
+Honeybadger
+Logstop
+progname
+railtie
+Rollbar
 rsig
+ssns
+yardoc
