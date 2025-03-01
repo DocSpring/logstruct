@@ -32,7 +32,7 @@ module RailsStructuredLogging
 
       # Error handling methods with different behaviors:
       # - log_and_ignore_error: Just logs the error without reporting or retrying
-      # - log_and_notify_error: Logs and sends a Slack notification, but doesn't report to Sentry or reraise
+      # - log_and_notify_error: Logs and sends a notification, but doesn't report to Sentry or reraise
       # - log_and_report_error: Logs and reports to Sentry, but doesn't reraise
       # - log_and_reraise_error: Logs, reports to Sentry, and reraises for retry
 
@@ -90,12 +90,9 @@ module RailsStructuredLogging
       # Handle error notifications, reporting, and reraising
       sig { params(error: StandardError, notify: T::Boolean, report: T::Boolean, reraise: T::Boolean).void }
       def handle_error_notifications(error, notify, report, reraise)
-        # Send notification to Slack if requested
-        if notify && defined?(InternalSlackNotificationJob) && defined?(SlackChannels)
-          InternalSlackNotificationJob.perform_async(
-            channel: SlackChannels::CUSTOMERS,
-            text: "Postmark error: #{error.class}: Cannot send email to #{recipients(error)}! #{error.message}"
-          )
+        # Log a notification event if requested
+        if notify
+          log_notification_event(error)
         end
 
         # Report to Sentry if requested
@@ -105,6 +102,29 @@ module RailsStructuredLogging
 
         # Re-raise the error if requested
         Kernel.raise error if reraise
+      end
+
+      # Log a notification event that can be picked up by external systems
+      sig { params(error: StandardError).void }
+      def log_notification_event(error)
+        # Use T.unsafe for accessing error class name
+        error_class_name = T.unsafe(error.class).name
+
+        # Create notification data with safely accessed properties
+        notification_data = {
+          src: 'mailer',
+          evt: 'notification',
+          error_class: error_class_name,
+          error_message: error.message,
+          recipients: recipients(error),
+          notification_type: 'email_delivery_error',
+          mailer_class: T.unsafe(self).class.name,
+          mailer_action: T.unsafe(self).respond_to?(:action_name) ? T.unsafe(self).action_name : nil,
+          message_id: T.unsafe(self).respond_to?(:message) ? T.unsafe(self).message&.message_id : nil
+        }
+
+        # Log at info level since this is a notification, not an error
+        Rails.logger.info(notification_data)
       end
 
       sig { params(error: StandardError).returns(String) }

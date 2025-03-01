@@ -69,7 +69,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
     end
 
     module Sentry
-      def self.capture_exception(error)
+      def self.capture_exception(error, options = {})
         # Mock implementation
       end
     end

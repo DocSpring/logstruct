@@ -42,6 +42,15 @@ module RailsStructuredLogging
       @lograge_custom_options = value
     end
 
+    # Notification callback for email delivery errors
+    sig { returns(T.nilable(T.proc.params(error: StandardError, recipients: String, message: String).void)) }
+    attr_reader :email_error_notification_callback
+
+    sig { params(value: T.nilable(T.proc.params(error: StandardError, recipients: String, message: String).void)).void }
+    def email_error_notification_callback=(value)
+      @email_error_notification_callback = value
+    end
+
     # Integration flags
     sig { returns(T::Boolean) }
     attr_reader :actionmailer_integration_enabled
@@ -154,6 +163,12 @@ module RailsStructuredLogging
       @lograge_enabled = true
       @logstop_email_salt = 'l0g5t0p'
       @lograge_custom_options = nil # Applications can provide a proc to extend lograge options
+
+      # Default notification callback logs to Rails.logger.info
+      @email_error_notification_callback = ->(error, recipients, message) {
+        Rails.logger.info("Email delivery error notification: #{error.class}: #{message} Recipients: #{recipients}")
+      }
+
       @actionmailer_integration_enabled = true # Enable ActionMailer integration by default
       @host_authorization_enabled = true # Enable host authorization logging by default
       @activejob_integration_enabled = true # Enable ActiveJob integration by default

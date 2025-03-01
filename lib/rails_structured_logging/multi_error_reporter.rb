@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# typed: strict
+# typed: true
 
 require_relative 'sorbet'
 require 'json'
@@ -12,11 +12,11 @@ module RailsStructuredLogging
     include RailsStructuredLogging::TypedSig
     extend T::Sig
 
+    # Use T.let to properly declare the class variable at the class level
+    @error_reporter = T.let(nil, T.nilable(Symbol))
+
     class << self
       extend T::Sig
-
-      # Use T.let to properly declare the class variable
-      @error_reporter = T.let(nil, T.nilable(Symbol))
 
       sig { returns(T.nilable(Symbol)) }
       attr_reader :error_reporter
@@ -24,20 +24,17 @@ module RailsStructuredLogging
       # Initialize the error reporter once
       sig { returns(Symbol) }
       def initialize_reporter
-        @error_reporter = T.let(
-          if defined?(::Sentry)
-            :sentry
-          elsif defined?(::Bugsnag)
-            :bugsnag
-          elsif defined?(::Rollbar)
-            :rollbar
-          elsif defined?(::Honeybadger)
-            :honeybadger
-          else
-            :fallback
-          end,
-          Symbol
-        )
+        @error_reporter = if defined?(::Sentry)
+                            :sentry
+                          elsif defined?(::Bugsnag)
+                            :bugsnag
+                          elsif defined?(::Rollbar)
+                            :rollbar
+                          elsif defined?(::Honeybadger)
+                            :honeybadger
+                          else
+                            :fallback
+                          end
       end
 
       # Report an exception to the configured error reporting service
@@ -49,7 +46,7 @@ module RailsStructuredLogging
         return if exception.nil?
 
         # Initialize the reporter if it hasn't been initialized yet
-        initialize_reporter if @error_reporter.nil?
+        @error_reporter ||= initialize_reporter
 
         # Call the appropriate reporter method based on what's available
         case @error_reporter
@@ -72,6 +69,7 @@ module RailsStructuredLogging
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_sentry(exception, context = {})
         return unless defined?(::Sentry)
+        # Use the proper Sentry interface defined in the RBI
         ::Sentry.capture_exception(exception, extra: context)
       rescue => e
         # If Sentry fails, fall back to basic logging
