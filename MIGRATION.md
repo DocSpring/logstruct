@@ -44,8 +44,17 @@ RailsStructuredLogging.configure do |config|
   config.rack_middleware_enabled = true
   config.host_authorization_enabled = true
 
-  # Configure LogstopFork
+  # Configure Logstop (vendored fork)
   config.logstop_email_salt = 'your_custom_salt_here' # Replace with your actual salt
+
+  # Logstop (vendored fork) filtering options (all optional)
+  config.filter_emails = true        # Filter email addresses (default: true)
+  config.filter_url_passwords = true # Filter passwords in URLs (default: true)
+  config.filter_credit_cards = true  # Filter credit card numbers (default: true)
+  config.filter_phones = true        # Filter phone numbers (default: true)
+  config.filter_ssns = true          # Filter social security numbers (default: true)
+  config.filter_ips = false          # Filter IP addresses (default: false)
+  config.filter_macs = false         # Filter MAC addresses (default: false)
 
   # Silence noisy loggers
   config.silence_noisy_loggers = true
@@ -251,4 +260,4 @@ If you notice performance degradation:
 
 - [RailsStructuredLogging README](https://github.com/docspring/rails_structured_logging/blob/main/README.md)
 - [Lograge Documentation](https://github.com/roidrage/lograge)
-- [LogstopFork Documentation](https://github.com/docspring/rails_structured_logging/blob/main/lib/rails_structured_logging/logstop_fork.rb)
+- [Logstop (vendored fork) Documentation](https://github.com/docspring/rails_structured_logging/blob/main/lib/rails_structured_logging/logstop_fork.rb)

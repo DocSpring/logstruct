@@ -12,7 +12,7 @@ Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfil
 - Error handling and reporting
 - Metadata collection for rich context
 - Lograge integration for structured request logging
-- Sensitive data scrubbing with Logstop (forked copy)
+- Sensitive data scrubbing with Logstop (vendored fork)
 - Host authorization logging for security violations
 - Rack middleware for enhanced error logging
 - ActionMailer delivery callbacks for Rails 7.0.x (backported from Rails 7.1)
@@ -255,8 +255,17 @@ RailsStructuredLogging.configure do |config|
   # Enable or disable host authorization logging
   config.host_authorization_enabled = true
 
-  # Configure the email salt used by Logstop (forked copy) for email hashing
+  # Configure the email salt used by Logstop for email hashing
   config.logstop_email_salt = 'custom_salt'
+
+  # Logstop filtering options
+  config.filter_emails = true        # Filter email addresses (default: true)
+  config.filter_url_passwords = true # Filter passwords in URLs (default: true)
+  config.filter_credit_cards = true  # Filter credit card numbers (default: true)
+  config.filter_phones = true        # Filter phone numbers (default: true)
+  config.filter_ssns = true          # Filter social security numbers (default: true)
+  config.filter_ips = false          # Filter IP addresses (default: false)
+  config.filter_macs = false         # Filter MAC addresses (default: false)
 
   # Silence noisy loggers (defaults to true)
   config.silence_noisy_loggers = true

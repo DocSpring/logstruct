@@ -37,7 +37,7 @@ module RailsStructuredLogging
     def call(severity, timestamp, progname, msg)
       # Use our LogstopFork module to scrub sensitive information from strings
       if msg.is_a?(String)
-        msg = RailsStructuredLogging::LogstopFork.scrub(msg, url_password: true, email: true, credit_card: true, phone: true, ssn: true, ip: false, mac: false)
+        msg = RailsStructuredLogging::LogstopFork.scrub(msg)
       end
 
       # Convert to a hash if it's not already one
@@ -76,7 +76,7 @@ module RailsStructuredLogging
       data.each do |key, value|
         if value.is_a?(String)
           # Scrub sensitive information from string values
-          data[key] = RailsStructuredLogging::LogstopFork.scrub(value, url_password: true, email: true, credit_card: true, phone: true, ssn: true, ip: false, mac: false)
+          data[key] = RailsStructuredLogging::LogstopFork.scrub(value)
         elsif value.is_a?(Hash)
           # Recursively scrub nested hashes
           scrub_sensitive_data(value)
@@ -84,7 +84,7 @@ module RailsStructuredLogging
           # Scrub arrays of strings
           data[key] = value.map do |item|
             if item.is_a?(String)
-              RailsStructuredLogging::LogstopFork.scrub(item, url_password: true, email: true, credit_card: true, phone: true, ssn: true, ip: false, mac: false)
+              RailsStructuredLogging::LogstopFork.scrub(item)
             elsif item.is_a?(Hash)
               scrub_sensitive_data(item)
               item
