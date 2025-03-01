@@ -124,7 +124,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
       expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error, notify: false, report: false, reraise: false)
 
       # Should not raise an error
-      expect { mailer.log_and_ignore_error(postmark_inactive_error) }.not_to raise_error
+      expect { mailer.send(:log_and_ignore_error, postmark_inactive_error) }.not_to raise_error
     end
   end
 
@@ -133,7 +133,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
       expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: true, report: false, reraise: false)
 
       # Should not raise an error
-      expect { mailer.log_and_notify_error(standard_error) }.not_to raise_error
+      expect { mailer.send(:log_and_notify_error, standard_error) }.not_to raise_error
     end
   end
 
@@ -142,7 +142,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
       expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: false)
 
       # Should not raise an error
-      expect { mailer.log_and_report_error(standard_error) }.not_to raise_error
+      expect { mailer.send(:log_and_report_error, standard_error) }.not_to raise_error
     end
   end
 
@@ -151,7 +151,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
       expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: true)
 
       # Should raise the error
-      expect { mailer.log_and_reraise_error(standard_error) }.to raise_error(StandardError, "Standard error message")
+      expect { mailer.send(:log_and_reraise_error, standard_error) }.to raise_error(StandardError, "Standard error message")
     end
   end
 
