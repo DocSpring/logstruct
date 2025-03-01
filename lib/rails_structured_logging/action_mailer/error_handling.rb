@@ -64,12 +64,6 @@ module RailsStructuredLogging
       # Log when email delivery fails
       sig { params(error: StandardError, notify: T::Boolean, report: T::Boolean, reraise: T::Boolean).void }
       def log_email_delivery_error(error, notify: false, report: true, reraise: true)
-        # Skip logging for AbortDeliveryError as it's an expected case
-        # when emails are intentionally not sent
-        return if defined?(ApplicationMailer) &&
-                 defined?(ApplicationMailer::AbortDeliveryError) &&
-                 error.is_a?(ApplicationMailer::AbortDeliveryError)
-
         # Generate appropriate error message
         message = error_message_for(error, reraise)
 

@@ -38,34 +38,6 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
     end
   end
 
-  # Define a custom error class for testing
-  before(:all) do
-    module Postmark
-      class Error < StandardError; end
-
-      class InactiveRecipientError < Error
-        attr_reader :recipients
-
-        def initialize(message, recipients = [])
-          super(message)
-          @recipients = recipients
-        end
-      end
-
-      class InvalidEmailRequestError < Error; end
-    end
-
-    class ApplicationMailer
-      class AbortDeliveryError < StandardError; end
-    end
-  end
-
-  after(:all) do
-    # Clean up
-    Object.send(:remove_const, :Postmark) if defined?(Postmark)
-    Object.send(:remove_const, :ApplicationMailer) if defined?(ApplicationMailer)
-  end
-
   let(:mailer) { test_mailer_class.new.welcome_email }
   let(:standard_error) { StandardError.new("Standard error message") }
   let(:postmark_error) { Postmark::Error.new("Postmark error") }
@@ -133,17 +105,6 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
   end
 
   describe "#log_email_delivery_error" do
-    context "with AbortDeliveryError" do
-      let(:abort_error) { ApplicationMailer::AbortDeliveryError.new("Aborted") }
-
-      it "returns early without logging" do
-        expect(RailsStructuredLogging::ActionMailer::Logger).not_to receive(:log_structured_error)
-        expect(mailer).not_to receive(:handle_error_notifications)
-
-        mailer.send(:log_email_delivery_error, abort_error)
-      end
-    end
-
     context "with standard error" do
       it "logs the error and handles notifications" do
         expect(mailer).to receive(:error_message_for).with(standard_error, true).and_call_original
