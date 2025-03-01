@@ -57,31 +57,12 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
     class ApplicationMailer
       class AbortDeliveryError < StandardError; end
     end
-
-    module SlackChannels
-      CUSTOMERS = "customers"
-    end
-
-    class InternalSlackNotificationJob
-      def self.perform_async(options)
-        # Mock implementation
-      end
-    end
-
-    module Sentry
-      def self.capture_exception(error, options = {})
-        # Mock implementation
-      end
-    end
   end
 
   after(:all) do
     # Clean up
     Object.send(:remove_const, :Postmark) if defined?(Postmark)
     Object.send(:remove_const, :ApplicationMailer) if defined?(ApplicationMailer)
-    Object.send(:remove_const, :SlackChannels) if defined?(SlackChannels)
-    Object.send(:remove_const, :InternalSlackNotificationJob) if defined?(InternalSlackNotificationJob)
-    Object.send(:remove_const, :Sentry) if defined?(Sentry)
   end
 
   let(:mailer) { test_mailer_class.new.welcome_email }
@@ -91,8 +72,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   before do
     allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_structured_error)
-    allow(InternalSlackNotificationJob).to receive(:perform_async)
-    allow(Sentry).to receive(:capture_exception)
+    allow(Rails.logger).to receive(:info)
+    allow(RailsStructuredLogging::MultiErrorReporter).to receive(:report_exception)
   end
 
   describe "rescue handlers" do
@@ -202,15 +183,21 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#handle_error_notifications" do
     context "when notify is true" do
-      it "sends a Slack notification" do
-        expect(InternalSlackNotificationJob).to receive(:perform_async)
+      it "logs a notification event" do
+        expect(mailer).to receive(:log_notification_event).with(standard_error)
         mailer.send(:handle_error_notifications, standard_error, true, false, false)
       end
     end
 
     context "when report is true" do
-      it "reports to Sentry" do
-        expect(Sentry).to receive(:capture_exception).with(standard_error)
+      it "reports to error reporting service" do
+        expect(RailsStructuredLogging::MultiErrorReporter).to receive(:report_exception).with(
+          standard_error,
+          hash_including(
+            mailer_class: "TestMailer",
+            recipients: "unknown"
+          )
+        )
         mailer.send(:handle_error_notifications, standard_error, false, true, false)
       end
     end
@@ -221,6 +208,15 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
           mailer.send(:handle_error_notifications, standard_error, false, false, true)
         }.to raise_error(StandardError, "Standard error message")
       end
+    end
+  end
+
+  describe "#log_notification_event" do
+    it "logs a notification with structured data" do
+      expect(RailsStructuredLogging::LogTypes).to receive(:create_email_notification_log_data).with(standard_error, mailer).and_call_original
+      expect(Rails.logger).to receive(:info)
+
+      mailer.send(:log_notification_event, standard_error)
     end
   end
 

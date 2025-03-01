@@ -26,5 +26,13 @@ RSpec.configure do |config|
   # Reset RailsStructuredLogging configuration before each test
   config.before do
     RailsStructuredLogging.configuration = RailsStructuredLogging::Configuration.new
+
+    # Mock Rails.logger
+    logger_double = double("Logger")
+    allow(logger_double).to receive(:info)
+    allow(logger_double).to receive(:error)
+    allow(logger_double).to receive(:warn)
+    allow(logger_double).to receive(:debug)
+    allow(Rails).to receive(:logger).and_return(logger_double)
   end
 end

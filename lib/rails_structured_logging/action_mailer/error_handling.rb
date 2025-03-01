@@ -4,6 +4,7 @@
 require_relative '../sorbet'
 require_relative '../enums'
 require_relative '../log_types'
+require_relative '../multi_error_reporter'
 
 module RailsStructuredLogging
   module ActionMailer
@@ -18,7 +19,7 @@ module RailsStructuredLogging
         # The handler that was defined last is checked first, so put
         # more specific handlers at the end.
         # -------------------------------------------------------------
-        # Log and report to Sentry by default. These errors are retried.
+        # Log and report to error reporting service by default. These errors are retried.
         rescue_from StandardError, with: :log_and_reraise_error
 
         if defined?(Postmark)
@@ -34,9 +35,9 @@ module RailsStructuredLogging
 
       # Error handling methods with different behaviors:
       # - log_and_ignore_error: Just logs the error without reporting or retrying
-      # - log_and_notify_error: Logs and sends a notification, but doesn't report to Sentry or reraise
-      # - log_and_report_error: Logs and reports to Sentry, but doesn't reraise
-      # - log_and_reraise_error: Logs, reports to Sentry, and reraises for retry
+      # - log_and_notify_error: Logs and sends a notification, but doesn't report to error service or reraise
+      # - log_and_report_error: Logs and reports to error service, but doesn't reraise
+      # - log_and_reraise_error: Logs, reports to error service, and reraises for retry
 
       sig { params(ex: StandardError).void }
       def log_and_ignore_error(ex)
@@ -97,9 +98,14 @@ module RailsStructuredLogging
           log_notification_event(error)
         end
 
-        # Report to Sentry if requested
-        if report && defined?(Sentry)
-          Sentry.capture_exception(error)
+        # Report to error reporting service if requested
+        if report
+          context = {
+            mailer_class: self.class.name,
+            mailer_action: self.respond_to?(:action_name) ? self.action_name : nil,
+            recipients: recipients(error)
+          }
+          RailsStructuredLogging::MultiErrorReporter.report_exception(error, context)
         end
 
         # Re-raise the error if requested

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../enums'
+require_relative '../multi_error_reporter'
 
 module RailsStructuredLogging
   module Rack
@@ -40,7 +41,11 @@ module RailsStructuredLogging
             violation_type: Enums::ViolationType::Csrf.to_sym,
             error: e.message
           )
-          raise # Re-raise to let Rails/Sentry handle the response
+
+          # Report to error reporting service and re-raise
+          context = extract_request_context(env)
+          MultiErrorReporter.report_exception(e, context)
+          raise # Re-raise to let Rails handle the response
         rescue StandardError => e
           # Log other exceptions with request context
           log_event(
@@ -50,11 +55,29 @@ module RailsStructuredLogging
             error_class: e.class.name,
             error_message: e.message
           )
-          raise # Re-raise to let Rails/Sentry/etc. handle the response
+
+          # Report to error reporting service and re-raise
+          context = extract_request_context(env)
+          MultiErrorReporter.report_exception(e, context)
+          raise # Re-raise to let Rails handle the response
         end
       end
 
       private
+
+      def extract_request_context(env)
+        request = ActionDispatch::Request.new(env)
+        {
+          request_id: request.request_id,
+          path: request.path,
+          method: request.method,
+          user_agent: request.user_agent,
+          referer: request.referer
+        }
+      rescue => e
+        # If we can't extract request context, return minimal info
+        { error_extracting_context: e.message }
+      end
 
       def log_event(env, event:, level:, client_ip: nil, **custom_fields)
         # WARNING: Calling .remote_ip on the request will raise an error
