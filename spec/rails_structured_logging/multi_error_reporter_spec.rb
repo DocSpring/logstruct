@@ -6,18 +6,28 @@ require 'rails_structured_logging/multi_error_reporter'
 RSpec.describe RailsStructuredLogging::MultiErrorReporter do
   let(:exception) { StandardError.new("Test error") }
   let(:context) { { user_id: 123, action: "test" } }
+  # Default to no reporter
+  let(:reporter) { nil }
 
   describe '.report_exception' do
     before do
       # Reset the error reporter before each test
       described_class.instance_variable_set(:@error_reporter, nil)
+
+      # Hide all error reporting services by default
+      hide_const("Sentry") if reporter != :sentry && reporter != :all
+      hide_const("Bugsnag") if reporter != :bugsnag && reporter != :all
+      hide_const("Rollbar") if reporter != :rollbar && reporter != :all
+      hide_const("Honeybadger") if reporter != :honeybadger && reporter != :all
+
       # Stub stdout to capture output
       allow($stdout).to receive(:puts)
     end
 
     context 'when Sentry is available' do
+      let(:reporter) { :sentry }
+
       before do
-        stub_const('Sentry', double)
         allow(Sentry).to receive(:capture_exception)
       end
 
@@ -44,10 +54,10 @@ RSpec.describe RailsStructuredLogging::MultiErrorReporter do
     end
 
     context 'when Bugsnag is available' do
-      let(:report) { double }
+      let(:reporter) { :bugsnag }
+      let(:report) { double('report') }
 
       before do
-        stub_const('Bugsnag', double)
         allow(Bugsnag).to receive(:notify).and_yield(report)
         allow(report).to receive(:add_metadata)
       end
@@ -65,8 +75,9 @@ RSpec.describe RailsStructuredLogging::MultiErrorReporter do
     end
 
     context 'when Rollbar is available' do
+      let(:reporter) { :rollbar }
+
       before do
-        stub_const('Rollbar', double)
         allow(Rollbar).to receive(:error)
       end
 
@@ -82,8 +93,9 @@ RSpec.describe RailsStructuredLogging::MultiErrorReporter do
     end
 
     context 'when Honeybadger is available' do
+      let(:reporter) { :honeybadger }
+
       before do
-        stub_const('Honeybadger', double)
         allow(Honeybadger).to receive(:notify)
       end
 
@@ -99,6 +111,8 @@ RSpec.describe RailsStructuredLogging::MultiErrorReporter do
     end
 
     context 'when no error reporting service is available' do
+      # reporter is nil by default
+
       it 'logs to stdout with structured JSON' do
         json_output = nil
         expect($stdout).to receive(:puts) do |output|
@@ -121,22 +135,10 @@ RSpec.describe RailsStructuredLogging::MultiErrorReporter do
       end
     end
 
-    context 'when exception is nil' do
-      it 'does nothing' do
-        expect(Sentry).not_to receive(:capture_exception) if defined?(Sentry)
-        expect($stdout).not_to receive(:puts)
-        described_class.report_exception(nil)
-      end
-    end
-
     context 'with multiple error services available' do
-      before do
-        # Define all services but only Sentry should be used (first one)
-        stub_const('Sentry', double)
-        stub_const('Bugsnag', double)
-        stub_const('Rollbar', double)
-        stub_const('Honeybadger', double)
+      let(:reporter) { :all }
 
+      before do
         allow(Sentry).to receive(:capture_exception)
         allow(Bugsnag).to receive(:notify)
         allow(Rollbar).to receive(:error)

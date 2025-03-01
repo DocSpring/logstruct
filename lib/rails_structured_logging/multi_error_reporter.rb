@@ -43,6 +43,8 @@ module RailsStructuredLogging
       # @return [void]
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
+        # We still keep this check for backward compatibility with existing code
+        # but the type signature ensures that exception should never be nil
         return if exception.nil?
 
         # Initialize the reporter if it hasn't been initialized yet
