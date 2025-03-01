@@ -4,6 +4,7 @@ Honeybadger
 Logstop
 progname
 railtie
+rdoc
 referer
 reraises
 Rollbar

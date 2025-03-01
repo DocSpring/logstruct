@@ -2,14 +2,22 @@ gem:
   # Add your `gem` command parameters here:
   #
   exclude:
+    - crass
+    - debug
+    - prism
+    - racc
+    - rbi
+    - rdoc
     - rubocop
     - rubocop-rspec
+    - spoom
     - tapioca
+    - thor
     - yard
     - yard-sorbet
-    - sorbet
-  # doc: true
-  # workers: 5
+    - zeitwerk
+  doc: true
+  workers: 5
 dsl:
   # Add your `dsl` command parameters here:
   #

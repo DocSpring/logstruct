@@ -36,7 +36,7 @@ module RailsStructuredLogging
       def initialize(src:, evt:, ts: nil, msg: nil)
         @src = src
         @evt = evt
-        @ts = ts || Time.now
+        @ts = T.let(ts || Time.now, Time)
         @msg = msg
       end
 
