@@ -9,6 +9,7 @@
 /Gemfile.lock
 *.gem
 /node_modules/
+/plans/
 
 # rspec failure tracking
 .rspec_status

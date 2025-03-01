@@ -8,21 +8,21 @@ module RailsStructuredLogging
     class << self
       # Set up host authorization logging
       def setup
-        return unless defined?(Rails) && defined?(ActionDispatch::HostAuthorization)
+        return unless defined?(::Rails) && defined?(::ActionDispatch::HostAuthorization)
         return unless RailsStructuredLogging.enabled?
         return unless RailsStructuredLogging.configuration.host_authorization_enabled
 
         # Define the response app as a separate variable to fix block alignment
         response_app = lambda do |env|
-          request = ActionDispatch::Request.new(env)
+          request = ::ActionDispatch::Request.new(env)
           blocked_hosts = env['action_dispatch.blocked_hosts']
 
           # Log the blocked host attempt as a hash
           # (converted to JSON by the Rails log formatter)
-          Rails.logger.warn(
-            src: Enums::SourceType::Rails.to_sym,
-            evt: Enums::EventType::SecurityViolation.to_sym,
-            violation_type: Enums::ViolationType::BlockedHost.to_sym,
+          ::Rails.logger.warn(
+            src: Enums::SourceType::Rails.serialize,
+            evt: Enums::EventType::SecurityViolation.serialize,
+            violation_type: Enums::ViolationType::BlockedHost.serialize,
             blocked_host: request.host,
             blocked_hosts: blocked_hosts,
             request_id: request.request_id,
@@ -38,8 +38,8 @@ module RailsStructuredLogging
         end
 
         # Assign the lambda to the host_authorization config
-        Rails.application.config.host_authorization ||= {}
-        Rails.application.config.host_authorization[:response_app] = response_app
+        ::Rails.application.config.host_authorization ||= {}
+        ::Rails.application.config.host_authorization[:response_app] = response_app
       end
     end
   end

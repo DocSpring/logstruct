@@ -23,6 +23,6 @@ module ActiveSupport
 end
 
 # Apply the monkey patch if ActiveSupport::TaggedLogging::Formatter exists
-if defined?(ActiveSupport::TaggedLogging)
-  ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
+if defined?(::ActiveSupport::TaggedLogging)
+  ::ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
 end

@@ -10,7 +10,7 @@ rescue LoadError
   # ActionMailer gem is not available, integration will be skipped
 end
 
-if defined?(ActionMailer)
+if defined?(::ActionMailer)
   require_relative "action_mailer/logger"
   require_relative "action_mailer/metadata_collection"
   require_relative "action_mailer/event_logging"
@@ -23,14 +23,14 @@ module RailsStructuredLogging
   module ActionMailer
     include RailsStructuredLogging::TypedSig
     extend T::Sig
-    extend ActiveSupport::Concern if defined?(ActiveSupport::Concern)
+    extend ::ActiveSupport::Concern if defined?(::ActiveSupport::Concern)
 
     # We can't use included block with strict typing
     # This will be handled by ActiveSupport::Concern at runtime
     included do
       include RailsStructuredLogging::ActionMailer::EventLogging
       include RailsStructuredLogging::ActionMailer::ErrorHandling
-    end if defined?(ActiveSupport::Concern)
+    end if defined?(::ActiveSupport::Concern)
 
     class << self
       extend T::Sig
@@ -47,7 +47,7 @@ module RailsStructuredLogging
         ::ActionMailer::Base.logger = ::Logger.new('/dev/null') if defined?(::ActionMailer::Base)
 
         # Include our modules into ActionMailer::Base
-        ActiveSupport.on_load(:action_mailer) do
+        ::ActiveSupport.on_load(:action_mailer) do
           include RailsStructuredLogging::ActionMailer
         end
 
@@ -64,7 +64,7 @@ module RailsStructuredLogging
         return if ::Rails.gem_version >= Gem::Version.new('7.1.0')
 
         # Include the callbacks module in ActionMailer::Base
-        ActiveSupport.on_load(:action_mailer) do
+        ::ActiveSupport.on_load(:action_mailer) do
           include RailsStructuredLogging::ActionMailer::Callbacks
         end
 

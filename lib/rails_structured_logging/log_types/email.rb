@@ -99,7 +99,7 @@ module RailsStructuredLogging
 
       # Create email log data
       EmailLogData.new(
-        src: Enums::SourceType::ActionMailer.to_sym,
+        src: Enums::SourceType::ActionMailer.serialize,
         evt: event_type,
         msg: message,
         message_id: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.message_id : nil,

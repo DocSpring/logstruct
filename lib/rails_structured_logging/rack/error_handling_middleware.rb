@@ -17,12 +17,12 @@ module RailsStructuredLogging
         # Try to process the request
         begin
           @app.call(env)
-        rescue ActionDispatch::RemoteIp::IpSpoofAttackError => e
+        rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => e
           log_event(
             env,
-            event: Enums::EventType::SecurityViolation.to_sym,
+            event: Enums::EventType::SecurityViolation.serialize,
             level: :warn,
-            violation_type: Enums::ViolationType::IpSpoof.to_sym,
+            violation_type: Enums::ViolationType::IpSpoof.serialize,
             error: e.message,
             # Can't call .remote_ip on the request because that's what raises the error.
             # Have to pass the client_ip and x_forwarded_for headers.
@@ -32,13 +32,13 @@ module RailsStructuredLogging
 
           # Return a custom response for IP spoofing instead of raising
           [403, { 'Content-Type' => 'text/plain' }, ['Forbidden: IP Spoofing Detected']]
-        rescue ActionController::InvalidAuthenticityToken => e
+        rescue ::ActionController::InvalidAuthenticityToken => e
           # Handle CSRF token errors
           log_event(
             env,
             level: :warn,
-            event: Enums::EventType::SecurityViolation.to_sym,
-            violation_type: Enums::ViolationType::Csrf.to_sym,
+            event: Enums::EventType::SecurityViolation.serialize,
+            violation_type: Enums::ViolationType::Csrf.serialize,
             error: e.message
           )
 
@@ -51,7 +51,7 @@ module RailsStructuredLogging
           log_event(
             env,
             level: :error,
-            event: Enums::EventType::RequestError.to_sym,
+            event: Enums::EventType::RequestError.serialize,
             error_class: e.class.name,
             error_message: e.message
           )
@@ -66,7 +66,7 @@ module RailsStructuredLogging
       private
 
       def extract_request_context(env)
-        request = ActionDispatch::Request.new(env)
+        request = ::ActionDispatch::Request.new(env)
         {
           request_id: request.request_id,
           path: request.path,
@@ -83,10 +83,10 @@ module RailsStructuredLogging
         # WARNING: Calling .remote_ip on the request will raise an error
         # if this is a remote IP spoofing attack. It's still safe to call
         # any other methods.
-        request = ActionDispatch::Request.new(env)
+        request = ::ActionDispatch::Request.new(env)
 
         log_data = {
-          src: Enums::SourceType::Rails.to_sym,
+          src: Enums::SourceType::Rails.serialize,
           evt: event,
           level: level,
           request_id: request.request_id,
@@ -99,7 +99,7 @@ module RailsStructuredLogging
         }
         # We send a hash to the Rails log formatter which scrubs sensitive data,
         # adds tags, and then serializes it as JSON.
-        Rails.logger.public_send(level, log_data)
+        ::Rails.logger.public_send(level, log_data)
       end
     end
   end
