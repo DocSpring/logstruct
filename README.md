@@ -1,10 +1,10 @@
 # Rails Structured Logging
 
-A comprehensive structured logging solution for Rails applications.
+Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile and you're good to go. We support all the gems you already use. (If not, open a PR!)
 
 ## Features
 
-- Structured JSON logging for Rails applications
+- JSON logging enabled by default in production and test environments
 - ActionMailer integration for email delivery logging
 - ActiveJob integration for job execution logging
 - Sidekiq integration for background job logging
@@ -21,14 +21,14 @@ A comprehensive structured logging solution for Rails applications.
 
 The following table lists the gems that Rails Structured Logging integrates with and their supported versions:
 
-| Gem | Supported Versions | Notes |
-|-----|-------------------|-------|
-| Rails | >= 6.0 | Core dependency |
-| ActionMailer | >= 6.0 | Part of Rails |
-| ActiveJob | >= 6.0 | Part of Rails |
-| Sidekiq | >= 6.0 | For background job logging |
-| Shrine | >= 3.0 | For file upload logging |
-| Lograge | >= 0.11 | For structured request logging |
+| Gem          | Supported Versions | Notes                          |
+| ------------ | ------------------ | ------------------------------ |
+| Rails        | >= 6.0             | Core dependency                |
+| ActionMailer | >= 6.0             | Part of Rails                  |
+| ActiveJob    | >= 6.0             | Part of Rails                  |
+| Sidekiq      | >= 6.0             | For background job logging     |
+| Shrine       | >= 3.0             | For file upload logging        |
+| Lograge      | >= 0.11            | For structured request logging |
 
 ## Installation
 
@@ -92,6 +92,7 @@ end
 The gem automatically integrates with ActionMailer by including the necessary module into `ActionMailer::Base`. This integration is enabled by default but can be configured.
 
 When enabled, the integration will automatically:
+
 - Log when emails are about to be delivered
 - Log when emails are successfully delivered
 - Log and handle errors during email delivery

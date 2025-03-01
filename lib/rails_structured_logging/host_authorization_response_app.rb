@@ -4,7 +4,7 @@ require_relative 'constants'
 
 module RailsStructuredLogging
   # Host Authorization integration for structured logging of blocked hosts
-  module HostAuthorization
+  module HostAuthorizationResponseApp
     class << self
       # Set up host authorization logging
       def setup
@@ -13,7 +13,7 @@ module RailsStructuredLogging
         return unless RailsStructuredLogging.configuration.host_authorization_enabled
 
         # Define the response app as a separate variable to fix block alignment
-        structured_logging_response_app = lambda do |env|
+        response_app = lambda do |env|
           request = ActionDispatch::Request.new(env)
           blocked_hosts = env['action_dispatch.blocked_hosts']
 
@@ -38,9 +38,8 @@ module RailsStructuredLogging
         end
 
         # Assign the lambda to the host_authorization config
-        Rails.application.config.host_authorization = {
-          response_app: structured_logging_response_app,
-        }
+        Rails.application.config.host_authorization ||= {}
+        Rails.application.config.host_authorization[:response_app] = response_app
       end
     end
   end

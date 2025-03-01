@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["DocSpring"]
   spec.email = ["support@docspring.com"]
 
-  spec.summary = "JSON structured logging for Rails applications"
+  spec.summary = "Adds JSON structured logging to any Rails app"
   spec.description = "An opinionated, comprehensive structured logging solution for Rails applications"
   spec.homepage = "https://github.com/docspring/rails_structured_logging"
   spec.license = "MIT"

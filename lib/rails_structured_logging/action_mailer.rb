@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+
 begin
   require 'action_mailer'
 rescue LoadError
@@ -30,6 +32,10 @@ module RailsStructuredLogging
         return unless defined?(::ActionMailer)
         return unless RailsStructuredLogging.enabled?
         return unless RailsStructuredLogging.configuration.actionmailer_integration_enabled
+
+        # Silence default ActionMailer logs (we use our own structured logging)
+        # This is required because we replace the logging using our own callbacks
+        ::ActionMailer::Base.logger = Logger.new('/dev/null') if defined?(::ActionMailer::Base)
 
         # Include our modules into ActionMailer::Base
         ActiveSupport.on_load(:action_mailer) do
