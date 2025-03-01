@@ -1,0 +1,35 @@
+module RailsStructuredLogging
+  # This class contains configuration for filtering sensitive data in logs
+  class ParamFilters
+    class << self
+      attr_accessor filtered_keys: Array[Symbol]
+      attr_accessor filtered_json_columns: Hash[Symbol, Array[Symbol]]
+      attr_accessor ignored_json_columns: Hash[Symbol, Array[Symbol]]
+      attr_accessor ignored_tables: Array[Symbol]
+
+      # Initialize default configuration
+      def configure: () ?{ (self) -> void } -> void
+
+      # Check if a key should be filtered based on our defined sensitive keys
+      def should_filter_key?: (Symbol | String key) -> bool
+
+      # Check if a key should be filtered based on our defined column names
+      def should_filter_json_data?: (Symbol | String key) -> bool
+
+      # Create a simple summary of JSON data for logging
+      def summarize_json_attribute: (untyped data) -> Hash[Symbol, untyped]
+
+      # Summarize a hash for logging
+      def summarize_hash: (Hash[untyped, untyped] hash) -> Hash[Symbol, untyped]
+
+      # Summarize an array for logging
+      def summarize_array: (Array[untyped] array) -> Hash[Symbol, untyped]
+
+      # Filter parameters to remove sensitive data
+      def filter_params: (Hash[Symbol | String, untyped] params) -> Hash[Symbol | String, untyped]
+
+      # Filter JSON columns that might contain sensitive data
+      def filter_json_columns: (Hash[Symbol | String, untyped] data) -> void
+    end
+  end
+end 

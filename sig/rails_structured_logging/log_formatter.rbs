@@ -1,0 +1,27 @@
+module RailsStructuredLogging
+  # Formatter for structured logging that outputs logs as JSON
+  class LogFormatter < Logger::Formatter
+    # Add current_tags method to support ActiveSupport::TaggedLogging
+    def current_tags: () -> Array[untyped]
+
+    # Add tagged method to support ActiveSupport::TaggedLogging
+    def tagged: (*untyped tags) { () -> void } -> void
+
+    # Add clear_tags! method to support ActiveSupport::TaggedLogging
+    def clear_tags!: () -> Array[untyped]
+
+    # Format the log message
+    def call: (String severity, Time timestamp, String? progname, untyped msg) -> String
+
+    private
+
+    # Scrub sensitive data from string values in the hash
+    def scrub_sensitive_data: (Hash[Symbol | String, untyped] data) -> void
+
+    # Filter sensitive parameters
+    def filter_sensitive_params: (Hash[Symbol | String, untyped] data) -> void
+
+    # Generate JSON from the data hash
+    def generate_json: (Hash[Symbol | String, untyped] data) -> String
+  end
+end 

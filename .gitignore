@@ -8,6 +8,12 @@
 /tmp/
 /Gemfile.lock
 *.gem
+/node_modules/
 
 # rspec failure tracking
 .rspec_status
+
+# Sorbet
+/sorbet/rbi/gems/
+/sorbet/rbi/dsl/
+/sorbet/rbi/annotations/

@@ -16,6 +16,7 @@ Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfil
 - Host authorization logging for security violations
 - Rack middleware for enhanced error logging
 - ActionMailer delivery callbacks for Rails 7.0.x (backported from Rails 7.1)
+- Type checking with Sorbet and RBS annotations
 
 ## Supported Gems and Versions
 
@@ -29,6 +30,7 @@ The following table lists the gems that Rails Structured Logging integrates with
 | Sidekiq      | >= 6.0             | For background job logging     |
 | Shrine       | >= 3.0             | For file upload logging        |
 | Lograge      | >= 0.11            | For structured request logging |
+| Sorbet       | >= 0.5             | For type checking              |
 
 ## Installation
 
@@ -223,6 +225,44 @@ RailsStructuredLogging.configure do |config|
   config.host_authorization_enabled = false
 end
 ```
+
+### Type Checking with Sorbet
+
+This gem includes Sorbet type definitions using RBS annotations. This provides several benefits:
+
+- Static type checking to catch errors before runtime
+- Better code documentation through type annotations
+- Improved IDE integration with type-aware autocompletion and error detection
+
+To use Sorbet with this gem in your application:
+
+1. Add Sorbet to your Gemfile:
+
+```ruby
+gem 'sorbet', group: :development
+gem 'sorbet-runtime'
+```
+
+2. Initialize Sorbet in your project:
+
+```bash
+$ bundle exec srb init
+```
+
+3. Enable RBS signatures in your Sorbet config:
+
+```
+# sorbet/config
+--enable-experimental-rbs-signatures
+```
+
+4. Run type checking:
+
+```bash
+$ bundle exec srb tc
+```
+
+For more information on using Sorbet with RBS annotations, see the [Sorbet documentation](https://sorbet.org/docs/rbs-support).
 
 ### Configuration
 

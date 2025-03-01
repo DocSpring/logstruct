@@ -32,7 +32,7 @@ module RailsStructuredLogging
 
       # Log to Rails logger with structured data
       def self.log_to_rails(message, level = :info)
-        RailsStructuredLogging::Logger.log(message, level)
+        Rails.logger.public_send(level, message)
       end
     end
   end

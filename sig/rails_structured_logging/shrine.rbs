@@ -1,0 +1,9 @@
+module RailsStructuredLogging
+  # Shrine integration for structured logging
+  module Shrine
+    class << self
+      # Set up Shrine structured logging
+      def setup: () -> void
+    end
+  end
+end 

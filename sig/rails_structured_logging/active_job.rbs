@@ -1,0 +1,27 @@
+module RailsStructuredLogging
+  # ActiveJob integration for structured logging
+  module ActiveJob
+    class << self
+      # Set up ActiveJob structured logging
+      def setup: () -> void
+    end
+
+    # StructuredLogSubscriber for ActiveJob
+    class StructuredLogSubscriber < ::ActiveSupport::LogSubscriber
+      def enqueue: (untyped event) -> void
+      def enqueue_at: (untyped event) -> void
+      def perform: (untyped event) -> void
+      def perform_start: (untyped event) -> void
+      def enqueue_retry: (untyped event) -> void
+      def retry_stopped: (untyped event) -> void
+      def discard: (untyped event) -> void
+
+      private
+
+      def extract_job_info: (untyped event) -> Hash[Symbol, untyped]
+      def args_info: (untyped job) -> Array[untyped]
+      def format_duration: (untyped duration) -> Float
+      def logger: () -> untyped
+    end
+  end
+end 

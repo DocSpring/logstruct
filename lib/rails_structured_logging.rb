@@ -1,5 +1,7 @@
+# typed: false
 # frozen_string_literal: true
 
+require 'sorbet-runtime'
 require 'rails_structured_logging/version'
 require 'rails_structured_logging/logstop_fork'
 require 'rails_structured_logging/param_filters'
@@ -24,12 +26,17 @@ if defined?(ActiveSupport::TaggedLogging)
 end
 
 module RailsStructuredLogging
+  extend T::Sig
+
   class Error < StandardError; end
 
   class << self
+    extend T::Sig
+
     attr_accessor :configuration
 
-    def configure
+    sig { params(block: T.nilable(T.proc.params(config: Configuration).void)).void }
+    def configure(&block)
       self.configuration ||= Configuration.new
       yield(configuration) if block_given?
 
@@ -40,6 +47,7 @@ module RailsStructuredLogging
       setup_integrations if configuration.enabled
     end
 
+    sig { void }
     def setup_integrations
       # Set up the Rails logger formatter
       Rails.logger.formatter = LogFormatter.new
@@ -54,6 +62,7 @@ module RailsStructuredLogging
       Shrine.setup if configuration.shrine_integration_enabled
     end
 
+    sig { returns(T::Boolean) }
     def enabled?
       configuration&.enabled || false
     end

@@ -33,7 +33,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activesupport", ">= 7.0"
   spec.add_dependency "actionmailer", ">= 7.0"
   spec.add_dependency "lograge", ">= 0.11"
-
-  spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency "rubocop", "~> 1.21"
 end

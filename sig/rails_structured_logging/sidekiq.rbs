@@ -1,0 +1,14 @@
+module RailsStructuredLogging
+  # Sidekiq integration for structured logging
+  module Sidekiq
+    class << self
+      # Set up Sidekiq structured logging
+      def setup: () -> void
+    end
+
+    # Formatter for Sidekiq logs that outputs structured JSON
+    class Formatter < ::Sidekiq::Logger::Formatters::Base
+      def call: (String severity, Time time, String _program_name, untyped message) -> String
+    end
+  end
+end 

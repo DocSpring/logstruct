@@ -1,0 +1,27 @@
+{
+  "name": "rails_structured_logging",
+  "version": "0.1.0",
+  "description": "Adds JSON structured logging to any Rails app",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/docspring/rails_structured_logging.git"
+  },
+  "keywords": [
+    "rails",
+    "logging",
+    "json",
+    "structured"
+  ],
+  "author": "DocSpring",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/docspring/rails_structured_logging/issues"
+  },
+  "homepage": "https://github.com/docspring/rails_structured_logging#readme",
+  "devDependencies": {
+    "cspell": "^8.17.5",
+    "prettier": "^3.5.2",
+    "@docspring/cspell-lockfile-dicts": "^1.1.0"
+  }
+}

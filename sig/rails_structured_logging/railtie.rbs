@@ -1,0 +1,6 @@
+module RailsStructuredLogging
+  # Railtie to integrate with Rails
+  class Railtie < Rails::Railtie
+    # The initializer is defined in the class body, not as a method
+  end
+end 

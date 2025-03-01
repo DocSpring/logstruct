@@ -1,0 +1,51 @@
+module RailsStructuredLogging
+  # ActionMailer integration for structured logging
+  module ActionMailer
+    extend ActiveSupport::Concern
+
+    included: () -> void
+
+    class << self
+      # Set up ActionMailer structured logging
+      def setup: () -> void
+
+      private
+
+      # Set up callbacks for Rails 7.0.x
+      def setup_callbacks_for_rails_7_0: () -> void
+    end
+
+    # ActionMailer::Logger module
+    module Logger
+      def self.new: (String path) -> ::Logger
+    end
+
+    # ActionMailer::MetadataCollection module
+    module MetadataCollection
+      def self.collect_metadata: (untyped mail) -> Hash[Symbol, untyped]
+    end
+
+    # ActionMailer::EventLogging module
+    module EventLogging
+      extend ActiveSupport::Concern
+
+      included: () -> void
+    end
+
+    # ActionMailer::ErrorHandling module
+    module ErrorHandling
+      extend ActiveSupport::Concern
+
+      included: () -> void
+    end
+
+    # ActionMailer::Callbacks module
+    module Callbacks
+      extend ActiveSupport::Concern
+
+      included: () -> void
+
+      def self.patch_message_delivery: () -> void
+    end
+  end
+end 

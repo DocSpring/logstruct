@@ -12,11 +12,15 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
       action_name: "welcome_email"
     )
   }
+  let(:rails_logger) { double("Rails.logger") }
 
   before(:each) do
     allow(RailsStructuredLogging::ActionMailer::MetadataCollection).to receive(:add_message_metadata)
     allow(RailsStructuredLogging::ActionMailer::MetadataCollection).to receive(:add_context_metadata)
-    allow(RailsStructuredLogging::Logger).to receive(:log)
+    allow(Rails).to receive(:logger).and_return(rails_logger)
+    allow(rails_logger).to receive(:info)
+    allow(rails_logger).to receive(:error)
+    allow(rails_logger).to receive(:debug)
   end
 
   describe ".build_base_log_data" do
@@ -68,13 +72,13 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
     it "sends log message to Rails logger with correct level" do
       message = { key: "value" }
 
-      expect(RailsStructuredLogging::Logger).to receive(:log).with(message, :info)
+      expect(rails_logger).to receive(:info).with(message)
       described_class.log_to_rails(message, :info)
 
-      expect(RailsStructuredLogging::Logger).to receive(:log).with(message, :error)
+      expect(rails_logger).to receive(:error).with(message)
       described_class.log_to_rails(message, :error)
 
-      expect(RailsStructuredLogging::Logger).to receive(:log).with(message, :debug)
+      expect(rails_logger).to receive(:debug).with(message)
       described_class.log_to_rails(message, :debug)
     end
   end

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Format files using Prettier
+npx prettier --write "**/*.{js,json,md}" 
