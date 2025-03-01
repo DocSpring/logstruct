@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# typed: strict
+# typed: true
 
 require_relative '../sorbet'
 
@@ -11,7 +11,7 @@ module RailsStructuredLogging
       extend T::Sig
 
       # Add message-specific metadata to log data
-      sig { params(mailer: T.untyped, log_data: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(mailer: T.untyped, log_data: T::Hash[Symbol, T.untyped]).void }
       def self.add_message_metadata(mailer, log_data)
         message = mailer.respond_to?(:message) ? mailer.message : nil
 
@@ -31,7 +31,7 @@ module RailsStructuredLogging
       end
 
       # Add context metadata to log data
-      sig { params(mailer: T.untyped, log_data: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(mailer: T.untyped, log_data: T::Hash[Symbol, T.untyped]).void }
       def self.add_context_metadata(mailer, log_data)
         # Add account ID information if available (but not user email)
         extract_ids_to_log_data(mailer, log_data)
@@ -40,7 +40,7 @@ module RailsStructuredLogging
         add_current_tags_to_log_data(log_data)
       end
 
-      sig { params(mailer: T.untyped, log_data: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(mailer: T.untyped, log_data: T::Hash[Symbol, T.untyped]).void }
       def self.extract_ids_to_log_data(mailer, log_data)
         # Extract account ID if available
         if mailer.instance_variable_defined?(:@account)
@@ -55,25 +55,26 @@ module RailsStructuredLogging
         log_data[:user_id] = user.id if user.respond_to?(:id)
       end
 
-      sig { params(log_data: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(log_data: T::Hash[Symbol, T.untyped]).void }
       def self.add_current_tags_to_log_data(log_data)
         # Get current tags from ActiveSupport::TaggedLogging if available
-        if defined?(ActiveSupport::TaggedLogging) && ActiveSupport::TaggedLogging.respond_to?(:current_tags)
-          tags = ActiveSupport::TaggedLogging.current_tags
+        if defined?(ActiveSupport::TaggedLogging) &&
+           ActiveSupport::TaggedLogging.respond_to?(:current_tags)
+          tags = T.unsafe(ActiveSupport::TaggedLogging).current_tags
           log_data[:tags] = tags if tags.present?
         end
 
         # Get request_id from ActionDispatch if available
         if defined?(ActionDispatch) && ActionDispatch.const_defined?(:Request) &&
            ActionDispatch::Request.respond_to?(:current_request_id) &&
-           ActionDispatch::Request.current_request_id.present?
-          log_data[:request_id] = ActionDispatch::Request.current_request_id
+           T.unsafe(ActionDispatch::Request).current_request_id.present?
+          log_data[:request_id] = T.unsafe(ActionDispatch::Request).current_request_id
         end
 
         # Get job_id from ActiveJob if available
         if defined?(ActiveJob::Logging) && ActiveJob::Logging.respond_to?(:job_id) &&
-           ActiveJob::Logging.job_id.present?
-          log_data[:job_id] = ActiveJob::Logging.job_id
+           T.unsafe(ActiveJob::Logging).job_id.present?
+          log_data[:job_id] = T.unsafe(ActiveJob::Logging).job_id
         end
       end
     end

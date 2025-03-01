@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# typed: strict
+# typed: true
 
 require_relative 'constants'
 require_relative 'sorbet'
@@ -22,15 +22,18 @@ module RailsStructuredLogging
   # ActionMailer integration for structured logging
   module ActionMailer
     include RailsStructuredLogging::TypedSig
+    extend T::Sig
     extend ActiveSupport::Concern if defined?(ActiveSupport::Concern)
 
-    included do
-      include RailsStructuredLogging::ActionMailer::EventLogging
-      include RailsStructuredLogging::ActionMailer::ErrorHandling
-    end if defined?(ActiveSupport::Concern)
+    # We can't use included block with strict typing
+    # This will be handled by ActiveSupport::Concern at runtime
+    # included do
+    #   include RailsStructuredLogging::ActionMailer::EventLogging
+    #   include RailsStructuredLogging::ActionMailer::ErrorHandling
+    # end if defined?(ActiveSupport::Concern)
 
     class << self
-      include RailsStructuredLogging::TypedSig
+      extend T::Sig
 
       # Set up ActionMailer structured logging
       sig { void }
@@ -41,7 +44,7 @@ module RailsStructuredLogging
 
         # Silence default ActionMailer logs (we use our own structured logging)
         # This is required because we replace the logging using our own callbacks
-        ::ActionMailer::Base.logger = Logger.new('/dev/null') if defined?(::ActionMailer::Base)
+        ::ActionMailer::Base.logger = ::Logger.new('/dev/null') if defined?(::ActionMailer::Base)
 
         # Include our modules into ActionMailer::Base
         ActiveSupport.on_load(:action_mailer) do

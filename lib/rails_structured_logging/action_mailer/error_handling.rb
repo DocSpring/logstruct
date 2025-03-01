@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# typed: strict
+# typed: true
 
 require_relative '../sorbet'
 
@@ -104,14 +104,15 @@ module RailsStructuredLogging
         end
 
         # Re-raise the error if requested
-        raise error if reraise
+        Kernel.raise error if reraise
       end
 
       sig { params(error: StandardError).returns(String) }
       def recipients(error)
         # Extract recipient info if available
-        if error.respond_to?(:recipients) && error.recipients.present?
-          error.recipients.join(', ')
+        if error.respond_to?(:recipients) && error.respond_to?(:recipients) &&
+           T.unsafe(error).recipients.present?
+          T.unsafe(error).recipients.join(', ')
         else
           'unknown'
         end

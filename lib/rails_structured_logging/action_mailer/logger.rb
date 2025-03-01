@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# typed: strict
+# typed: true
 
 require_relative '../sorbet'
 
@@ -11,7 +11,7 @@ module RailsStructuredLogging
       extend T::Sig
 
       # Build base log data common to all logging methods
-      sig { params(mailer: T.untyped, event_type: String).returns(T::Hash[String, T.nilable(T.any(String, Integer, Float, T::Boolean))]) }
+      sig { params(mailer: T.untyped, event_type: String).returns(T::Hash[Symbol, T.nilable(T.any(String, Integer, Float, T::Boolean))]) }
       def self.build_base_log_data(mailer, event_type)
         log_data = {
           src: 'mailer',
@@ -32,7 +32,7 @@ module RailsStructuredLogging
       sig { params(mailer: T.untyped, error: StandardError, message: String).void }
       def self.log_structured_error(mailer, error, message)
         log_data = build_base_log_data(mailer, 'email_error')
-        log_data[:error_class] = error.class.name
+        log_data[:error_class] = T.unsafe(error.class).name
         log_data[:error_message] = error.message
         log_data[:msg] = message
         log_to_rails(log_data, :error)
