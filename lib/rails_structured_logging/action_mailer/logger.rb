@@ -17,7 +17,7 @@ module RailsStructuredLogging
           src: 'mailer',
           evt: event_type,
           ts: Time.current.iso8601(3),
-          message_id: mailer.respond_to?(:message) ? mailer.message&.message_id : nil,
+          message_id: extract_message_id(mailer),
           mailer_class: mailer.class.name,
           mailer_action: mailer.respond_to?(:action_name) ? mailer.action_name : nil,
         }
@@ -26,6 +26,19 @@ module RailsStructuredLogging
         MetadataCollection.add_context_metadata(mailer, log_data)
 
         log_data
+      end
+
+      # Extract message_id safely from mailer
+      sig { params(mailer: T.untyped).returns(T.nilable(String)) }
+      def self.extract_message_id(mailer)
+        return nil unless mailer.respond_to?(:message)
+
+        message = mailer.message
+        if message.respond_to?(:message_id)
+          message.message_id
+        else
+          nil
+        end
       end
 
       # Log structured error information

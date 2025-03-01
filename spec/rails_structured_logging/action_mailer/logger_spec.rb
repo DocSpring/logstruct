@@ -25,13 +25,14 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
 
   describe ".build_base_log_data" do
     it "builds base log data with correct structure" do
-      allow(Time).to receive(:current).and_return(Time.new(2023, 1, 1, 12, 0, 0))
+      test_time = Time.new(2023, 1, 1, 12, 0, 0)
+      allow(Time).to receive(:current).and_return(test_time)
 
       log_data = described_class.build_base_log_data(mailer, "test_event")
 
       expect(log_data[:src]).to eq("mailer")
       expect(log_data[:evt]).to eq("test_event")
-      expect(log_data[:ts]).to eq("2023-01-01T12:00:00.000")
+      expect(log_data[:ts]).to eq(test_time.iso8601(3))
       expect(log_data[:message_id]).to eq("test-message-id")
       expect(log_data[:mailer_class]).to eq("TestMailer")
       expect(log_data[:mailer_action]).to eq("welcome_email")
