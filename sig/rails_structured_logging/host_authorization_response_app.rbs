@@ -1,9 +1,0 @@
-module RailsStructuredLogging
-  # Host Authorization integration for structured logging of blocked hosts
-  module HostAuthorizationResponseApp
-    class << self
-      # Set up host authorization logging
-      def setup: () -> void
-    end
-  end
-end 
