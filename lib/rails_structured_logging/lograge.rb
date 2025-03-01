@@ -12,9 +12,9 @@ module RailsStructuredLogging
     class << self
       # Set up lograge for structured request logging
       def setup
-        return unless defined?(Rails) && defined?(::Lograge)
+        return unless defined?(::Rails) && defined?(::Lograge)
 
-        Rails.application.configure do
+        ::Rails.application.configure do
           config.lograge.enabled = true
           # Use a raw formatter that just returns the hash, which will then be formatted by our LogFormatter
           config.lograge.formatter = ->(data) { data }

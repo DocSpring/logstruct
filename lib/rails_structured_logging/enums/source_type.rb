@@ -2,14 +2,12 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative 'enum_helpers'
 
 module RailsStructuredLogging
   module Enums
     # Define source types as an enum
     class SourceType < T::Enum
       extend T::Sig
-      extend EnumHelpers
 
       enums do
         Rails = new(:rails)

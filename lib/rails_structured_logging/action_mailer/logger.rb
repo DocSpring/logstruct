@@ -54,7 +54,7 @@ module RailsStructuredLogging
       # Log to Rails logger with structured data
       sig { params(message: T.any(String, T::Hash[T.untyped, T.untyped]), level: Symbol).void }
       def self.log_to_rails(message, level = :info)
-        Rails.logger.public_send(level, message)
+        ::Rails.logger.public_send(level, message)
       end
     end
   end

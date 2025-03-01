@@ -58,17 +58,17 @@ module RailsStructuredLogging
       sig { params(log_data: T::Hash[Symbol, T.untyped]).void }
       def self.add_current_tags_to_log_data(log_data)
         # Get current tags from ActiveSupport::TaggedLogging if available
-        if defined?(ActiveSupport::TaggedLogging) &&
-           ActiveSupport::TaggedLogging.respond_to?(:current_tags)
-          tags = T.unsafe(ActiveSupport::TaggedLogging).current_tags
+        if defined?(::ActiveSupport::TaggedLogging) &&
+           ::ActiveSupport::TaggedLogging.respond_to?(:current_tags)
+          tags = T.unsafe(::ActiveSupport::TaggedLogging).current_tags
           log_data[:tags] = tags if tags.present?
         end
 
         # Get request_id from ActionDispatch if available
-        if defined?(ActionDispatch) && ActionDispatch.const_defined?(:Request) &&
-           ActionDispatch::Request.respond_to?(:current_request_id) &&
-           T.unsafe(ActionDispatch::Request).current_request_id.present?
-          log_data[:request_id] = T.unsafe(ActionDispatch::Request).current_request_id
+        if defined?(::ActionDispatch) && ::ActionDispatch.const_defined?(:Request) &&
+           ::ActionDispatch::Request.respond_to?(:current_request_id) &&
+           T.unsafe(::ActionDispatch::Request).current_request_id.present?
+          log_data[:request_id] = T.unsafe(::ActionDispatch::Request).current_request_id
         end
 
         # Get job_id from ActiveJob if available

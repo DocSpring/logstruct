@@ -164,9 +164,12 @@ module RailsStructuredLogging
       @logstop_email_salt = 'l0g5t0p'
       @lograge_custom_options = nil # Applications can provide a proc to extend lograge options
 
-      # Default notification callback logs to Rails.logger.info
+      # Some email delivery issues should not be considered exceptions.
+      # e.g. Postmark errors like inactive recipient, blocked address, invalid email address.
+      # You can configure this callback to send Slack notifications instead of an error report to your bug tracker.
+      # Default: Log to Rails.logger.info
       @email_error_notification_callback = ->(error, recipients, message) {
-        Rails.logger.info("Email delivery error notification: #{error.class}: #{message} Recipients: #{recipients}")
+        ::Rails.logger.info("Email delivery error notification: #{error.class}: #{message} Recipients: #{recipients}")
       }
 
       @actionmailer_integration_enabled = true # Enable ActionMailer integration by default

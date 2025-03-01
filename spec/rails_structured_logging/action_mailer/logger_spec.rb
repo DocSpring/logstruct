@@ -17,7 +17,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
   before(:each) do
     allow(RailsStructuredLogging::ActionMailer::MetadataCollection).to receive(:add_message_metadata)
     allow(RailsStructuredLogging::ActionMailer::MetadataCollection).to receive(:add_context_metadata)
-    allow(Rails).to receive(:logger).and_return(rails_logger)
+    allow(::Rails).to receive(:logger).and_return(rails_logger)
     allow(rails_logger).to receive(:info)
     allow(rails_logger).to receive(:error)
     allow(rails_logger).to receive(:debug)
@@ -71,16 +71,14 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
 
   describe ".log_to_rails" do
     it "sends log message to Rails logger with correct level" do
-      message = { key: "value" }
+      described_class.log_to_rails("test message", :info)
+      expect(rails_logger).to have_received(:info).with("test message")
 
-      expect(rails_logger).to receive(:info).with(message)
-      described_class.log_to_rails(message, :info)
+      described_class.log_to_rails("error message", :error)
+      expect(rails_logger).to have_received(:error).with("error message")
 
-      expect(rails_logger).to receive(:error).with(message)
-      described_class.log_to_rails(message, :error)
-
-      expect(rails_logger).to receive(:debug).with(message)
-      described_class.log_to_rails(message, :debug)
+      described_class.log_to_rails({ key: "value" }, :debug)
+      expect(rails_logger).to have_received(:debug).with({ key: "value" })
     end
   end
 end

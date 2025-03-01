@@ -16,14 +16,14 @@ require 'rails_structured_logging/action_mailer'
 require 'rails_structured_logging/active_job'
 require 'rails_structured_logging/enums'
 require 'rails_structured_logging/log_types'
-require 'rails_structured_logging/railtie' if defined?(Rails)
+require 'rails_structured_logging/railtie' if defined?(::Rails)
 
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to support hash input/output
 begin
   require 'active_support/tagged_logging'
 rescue LoadError
 end
-if defined?(ActiveSupport::TaggedLogging)
+if defined?(::ActiveSupport::TaggedLogging)
   require 'rails_structured_logging/monkey_patches/active_support/tagged_logging/formatter'
 end
 
@@ -49,16 +49,16 @@ module RailsStructuredLogging
     sig { void }
     def initialize
       # Set up the Rails logger formatter
-      Rails.logger.formatter = LogFormatter.new if defined?(Rails) && Rails.logger
+      ::Rails.logger.formatter = LogFormatter.new if defined?(::Rails) && ::Rails.logger
 
       # Set up the integrations
-      Lograge.setup if configuration.lograge_enabled
-      ActionMailer.setup if configuration.actionmailer_integration_enabled
-      ActiveJob.setup if configuration.activejob_integration_enabled
-      HostAuthorizationResponseApp.setup if configuration.host_authorization_enabled
-      Rack.setup(Rails.application) if defined?(Rails) && configuration.rack_middleware_enabled
-      Sidekiq.setup if configuration.sidekiq_integration_enabled
-      Shrine.setup if configuration.shrine_integration_enabled
+      RailsStructuredLogging::Lograge.setup if configuration.lograge_enabled
+      RailsStructuredLogging::ActionMailer.setup if configuration.actionmailer_integration_enabled
+      RailsStructuredLogging::ActiveJob.setup if configuration.activejob_integration_enabled
+      RailsStructuredLogging::HostAuthorizationResponseApp.setup if configuration.host_authorization_enabled
+      RailsStructuredLogging::Rack.setup(::Rails.application) if defined?(::Rails) && configuration.rack_middleware_enabled
+      RailsStructuredLogging::Sidekiq.setup if configuration.sidekiq_integration_enabled
+      RailsStructuredLogging::Shrine.setup if configuration.shrine_integration_enabled
     end
 
     sig { returns(T::Boolean) }

@@ -2,14 +2,12 @@
 # typed: strict
 
 require 'sorbet-runtime'
-require_relative 'enum_helpers'
 
 module RailsStructuredLogging
   module Enums
     # Define event types as an enum
     class EventType < T::Enum
       extend T::Sig
-      extend EnumHelpers
 
       enums do
         # General event types
