@@ -3,6 +3,11 @@
 require 'spec_helper'
 require 'rails_structured_logging/multi_error_reporter'
 
+require 'sentry-ruby'
+require 'bugsnag'
+require 'rollbar'
+require 'honeybadger'
+
 RSpec.describe RailsStructuredLogging::MultiErrorReporter do
   let(:exception) { StandardError.new("Test error") }
   let(:context) { { user_id: 123, action: "test" } }
