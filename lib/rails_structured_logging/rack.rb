@@ -7,7 +7,7 @@ rescue LoadError
 end
 
 if defined?(Rack)
-  require_relative 'rack/structured_error_handler'
+  require_relative 'rack/error_handling_middleware'
 end
 
 module RailsStructuredLogging
@@ -22,7 +22,7 @@ module RailsStructuredLogging
 
         # Add structured logging middleware for security violations and errors
         # Insert after ShowExceptions to catch IP spoofing errors
-        app.middleware.insert_after ActionDispatch::ShowExceptions, RailsStructuredLogging::Rack::StructuredErrorHandler
+        app.middleware.insert_after ActionDispatch::ShowExceptions, RailsStructuredLogging::Rack::ErrorHandlingMiddleware
       end
     end
   end

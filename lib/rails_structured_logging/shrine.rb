@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+
 begin
   require 'shrine'
 rescue LoadError
@@ -19,8 +21,9 @@ module RailsStructuredLogging
         # Create a structured log subscriber for Shrine
         shrine_log_subscriber = lambda do |event|
           payload = event.payload.except(:io, :metadata, :name).dup
-          payload[:src] = 'shrine'
-          payload[:evt] = event.name
+          payload[:src] = Constants::SRC_SHRINE
+          payload[:evt] = Constants::EVT_FILE_OPERATION
+          payload[:operation] = event.name
           payload[:duration] = event.duration
 
           # Handle record references safely
@@ -32,7 +35,7 @@ module RailsStructuredLogging
 
           # Pass the structured hash to the logger
           # If Rails.logger has our LogFormatter, it will handle JSON conversion
-          host_authorization_enabled          ::Shrine.logger.info payload
+          ::Shrine.logger.info payload
         end
 
         # Configure Shrine to use our structured log subscriber

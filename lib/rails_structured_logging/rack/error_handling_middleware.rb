@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+require_relative '../constants'
+
 module RailsStructuredLogging
   module Rack
     # Custom middleware to enhance Rails error logging with JSON format and request details
-    class HashLoggingErrorHandler
+    class ErrorHandlingMiddleware
       def initialize(app)
         @app = app
       end
@@ -17,9 +19,9 @@ module RailsStructuredLogging
         rescue ActionDispatch::RemoteIp::IpSpoofAttackError => e
           log_event(
             env,
-            event: 'security_violation',
+            event: Constants::EVT_SECURITY_VIOLATION,
             level: :warn,
-            violation_type: 'ip_spoof_attack',
+            violation_type: Constants::VIOLATION_TYPE_IP_SPOOF,
             error: e.message,
             # Can't call .remote_ip on the request because that's what raises the error.
             # Have to pass the client_ip and x_forwarded_for headers.
@@ -34,8 +36,8 @@ module RailsStructuredLogging
           log_event(
             env,
             level: :warn,
-            event: 'security_violation',
-            violation_type: 'csrf_token_error',
+            event: Constants::EVT_SECURITY_VIOLATION,
+            violation_type: Constants::VIOLATION_TYPE_CSRF,
             error: e.message
           )
           raise # Re-raise to let Rails/Sentry handle the response
@@ -44,11 +46,11 @@ module RailsStructuredLogging
           log_event(
             env,
             level: :error,
-            event: 'request_error',
+            event: Constants::EVT_REQUEST_ERROR,
             error_class: e.class.name,
             error_message: e.message
           )
-          raise # Re-raise to let Rails/Sentry handle the response
+          raise # Re-raise to let Rails/Sentry/etc. handle the response
         end
       end
 
@@ -59,8 +61,9 @@ module RailsStructuredLogging
         # if this is a remote IP spoofing attack. It's still safe to call
         # any other methods.
         request = ActionDispatch::Request.new(env)
+
         log_data = {
-          src: 'rails',
+          src: Constants::SRC_RAILS,
           evt: event,
           level: level,
           request_id: request.request_id,

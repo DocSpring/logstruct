@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+
 module RailsStructuredLogging
   # Host Authorization integration for structured logging of blocked hosts
   module HostAuthorization
@@ -8,18 +10,19 @@ module RailsStructuredLogging
       def setup
         return unless defined?(Rails) && defined?(ActionDispatch::HostAuthorization)
         return unless RailsStructuredLogging.enabled?
+        return unless RailsStructuredLogging.configuration.host_authorization_enabled
 
         # Define the response app as a separate variable to fix block alignment
-        hash_logging_response_app = lambda do |env|
+        structured_logging_response_app = lambda do |env|
           request = ActionDispatch::Request.new(env)
           blocked_hosts = env['action_dispatch.blocked_hosts']
 
           # Log the blocked host attempt as a hash
           # (converted to JSON by the Rails log formatter)
           Rails.logger.warn(
-            src: 'rails',
-            evt: 'security_violation',
-            violation_type: 'blocked_host',
+            src: Constants::SRC_RAILS,
+            evt: Constants::EVT_SECURITY_VIOLATION,
+            violation_type: Constants::VIOLATION_TYPE_BLOCKED_HOST,
             blocked_host: request.host,
             blocked_hosts: blocked_hosts,
             request_id: request.request_id,
@@ -36,7 +39,7 @@ module RailsStructuredLogging
 
         # Assign the lambda to the host_authorization config
         Rails.application.config.host_authorization = {
-          response_app: hash_logging_response_app,
+          response_app: structured_logging_response_app,
         }
       end
     end

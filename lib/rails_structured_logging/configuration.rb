@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+
 module RailsStructuredLogging
   # Configuration class for RailsStructuredLogging
   class Configuration
-    attr_accessor :enabled, :lograge_enabled, :silence_noisy_loggers, :logstop_email_salt, :lograge_custom_options, :actionmailer_integration_enabled, :host_authorization_enabled, :activejob_integration_enabled, :rack_middleware_enabled, :sidekiq_integration_enabled, :shrine_integration_enabled
+    attr_accessor :enabled, :lograge_enabled, :logstop_email_salt, :lograge_custom_options,
+                  :actionmailer_integration_enabled, :host_authorization_enabled,
+                  :activejob_integration_enabled, :rack_middleware_enabled,
+                  :sidekiq_integration_enabled, :shrine_integration_enabled
 
     def initialize
       @enabled = nil # nil means use default logic
       @lograge_enabled = true
-      @silence_noisy_loggers = true
       @logstop_email_salt = 'l0g5t0p'
       @lograge_custom_options = nil # Applications can provide a proc to extend lograge options
       @actionmailer_integration_enabled = true # Enable ActionMailer integration by default
