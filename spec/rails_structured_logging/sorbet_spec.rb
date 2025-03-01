@@ -62,9 +62,14 @@ RSpec.describe "Sorbet Type Signatures" do
     rsig { returns(String) }
     let(:test_message) { "Test message" }
 
+    rsig { returns(Time) }
+    let(:test_time) { Time.now }
+
+    rsig { returns(RailsStructuredLogging::LogFormatter) }
+    let(:formatter) { RailsStructuredLogging::LogFormatter.new }
+
     it "formats log messages" do
-      formatter = RailsStructuredLogging::LogFormatter.new
-      result = formatter.call("INFO", Time.now, nil, test_message)
+      result = formatter.call("INFO", test_time, nil, test_message)
 
       # Verify JSON formatting
       expect(result).to be_a(String)

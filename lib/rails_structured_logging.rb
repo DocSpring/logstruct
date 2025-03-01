@@ -42,22 +42,19 @@ module RailsStructuredLogging
 
       # Configure Logstop email salt
       LogstopFork.email_salt = configuration.logstop_email_salt
-
-      # Set up the integrations
-      setup_integrations if configuration.enabled
     end
 
     sig { void }
     def setup_integrations
       # Set up the Rails logger formatter
-      Rails.logger.formatter = LogFormatter.new
+      Rails.logger.formatter = LogFormatter.new if defined?(Rails) && Rails.logger
 
       # Set up the integrations
       Lograge.setup if configuration.lograge_enabled
       ActionMailer.setup if configuration.actionmailer_integration_enabled
       ActiveJob.setup if configuration.activejob_integration_enabled
       HostAuthorizationResponseApp.setup if configuration.host_authorization_enabled
-      Rack.setup(Rails.application) if configuration.rack_middleware_enabled
+      Rack.setup(Rails.application) if defined?(Rails) && configuration.rack_middleware_enabled
       Sidekiq.setup if configuration.sidekiq_integration_enabled
       Shrine.setup if configuration.shrine_integration_enabled
     end

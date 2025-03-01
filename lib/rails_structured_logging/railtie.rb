@@ -7,7 +7,7 @@ module RailsStructuredLogging
   class Railtie < Rails::Railtie
     initializer 'rails_structured_logging.setup' do |app|
       # Set up structured logging
-      RailsStructuredLogging.setup
+      RailsStructuredLogging.setup_integrations
 
       # Set up ActiveJob integration
       if RailsStructuredLogging.enabled? && RailsStructuredLogging.configuration.activejob_integration_enabled
