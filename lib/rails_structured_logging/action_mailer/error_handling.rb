@@ -1,9 +1,14 @@
 # frozen_string_literal: true
+# typed: strict
+
+require_relative '../sorbet'
 
 module RailsStructuredLogging
   module ActionMailer
     # Handles error handling for ActionMailer
     module ErrorHandling
+      include RailsStructuredLogging::TypedSig
+      extend T::Sig
       extend ActiveSupport::Concern
 
       included do
@@ -31,18 +36,22 @@ module RailsStructuredLogging
       # - log_and_report_error: Logs and reports to Sentry, but doesn't reraise
       # - log_and_reraise_error: Logs, reports to Sentry, and reraises for retry
 
+      sig { params(ex: StandardError).void }
       def log_and_ignore_error(ex)
         log_email_delivery_error(ex, notify: false, report: false, reraise: false)
       end
 
+      sig { params(ex: StandardError).void }
       def log_and_notify_error(ex)
         log_email_delivery_error(ex, notify: true, report: false, reraise: false)
       end
 
+      sig { params(ex: StandardError).void }
       def log_and_report_error(ex)
         log_email_delivery_error(ex, notify: false, report: true, reraise: false)
       end
 
+      sig { params(ex: StandardError).void }
       def log_and_reraise_error(ex)
         log_email_delivery_error(ex, notify: false, report: true, reraise: true)
       end
@@ -50,6 +59,7 @@ module RailsStructuredLogging
       private
 
       # Log when email delivery fails
+      sig { params(error: StandardError, notify: T::Boolean, report: T::Boolean, reraise: T::Boolean).void }
       def log_email_delivery_error(error, notify: false, report: true, reraise: true)
         # Skip logging for AbortDeliveryError as it's an expected case
         # when emails are intentionally not sent
@@ -68,6 +78,7 @@ module RailsStructuredLogging
       end
 
       # Generate appropriate error message based on error handling strategy
+      sig { params(error: StandardError, reraise: T::Boolean).returns(String) }
       def error_message_for(error, reraise)
         if reraise
           "#{error.class}: Email delivery error, will retry. Recipients: #{recipients(error)}"
@@ -77,6 +88,7 @@ module RailsStructuredLogging
       end
 
       # Handle error notifications, reporting, and reraising
+      sig { params(error: StandardError, notify: T::Boolean, report: T::Boolean, reraise: T::Boolean).void }
       def handle_error_notifications(error, notify, report, reraise)
         # Send notification to Slack if requested
         if notify && defined?(InternalSlackNotificationJob) && defined?(SlackChannels)
@@ -95,6 +107,7 @@ module RailsStructuredLogging
         raise error if reraise
       end
 
+      sig { params(error: StandardError).returns(String) }
       def recipients(error)
         # Extract recipient info if available
         if error.respond_to?(:recipients) && error.recipients.present?

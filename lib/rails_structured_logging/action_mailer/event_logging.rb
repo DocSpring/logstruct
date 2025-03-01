@@ -1,9 +1,14 @@
 # frozen_string_literal: true
+# typed: strict
+
+require_relative '../sorbet'
 
 module RailsStructuredLogging
   module ActionMailer
     # Handles logging of email delivery events
     module EventLogging
+      include RailsStructuredLogging::TypedSig
+      extend T::Sig
       extend ActiveSupport::Concern
 
       included do
@@ -15,11 +20,13 @@ module RailsStructuredLogging
       protected
 
       # Log when an email is about to be delivered
+      sig { void }
       def log_email_delivery
         log_mailer_event('email_delivery')
       end
 
       # Log when an email is delivered
+      sig { void }
       def log_email_delivered
         log_mailer_event('email_delivered')
       end
@@ -27,6 +34,7 @@ module RailsStructuredLogging
       private
 
       # Log a mailer event with the given event type
+      sig { params(event_type: String, level: Symbol, additional_data: T::Hash[T.untyped, T.untyped]).returns(T::Hash[String, T.untyped]) }
       def log_mailer_event(event_type, level = :info, additional_data = {})
         log_data = Logger.build_base_log_data(self, event_type)
         log_data.merge!(additional_data) if additional_data.present?

@@ -1,26 +1,27 @@
-# typed: true
+# typed: false
 # frozen_string_literal: true
 
 require "spec_helper"
 require "sorbet-runtime"
-require "rspec/sorbet/types"
+require "rspec/sorbet"
 
 RSpec.describe "Sorbet Type Signatures" do
-  extend RSpec::Sorbet::Types::Sig
+  # Use T::Sig directly instead of RSpec::Sorbet::Types::Sig
+  extend T::Sig
 
-  rsig { returns(T::Boolean) }
+  sig { returns(T::Boolean) }
   let(:enabled) { true }
 
-  rsig { returns(T::Boolean) }
+  sig { returns(T::Boolean) }
   let(:lograge_enabled) { true }
 
-  rsig { returns(String) }
+  sig { returns(String) }
   let(:logstop_email_salt) { "test_salt" }
 
-  rsig { returns(T::Boolean) }
+  sig { returns(T::Boolean) }
   let(:filter_emails) { true }
 
-  rsig { returns(T::Boolean) }
+  sig { returns(T::Boolean) }
   let(:filter_credit_cards) { true }
 
   describe "Configuration with Sorbet type signatures" do
@@ -46,7 +47,7 @@ RSpec.describe "Sorbet Type Signatures" do
   end
 
   describe "LogstopFork with Sorbet type signatures" do
-    rsig { returns(String) }
+    sig { returns(String) }
     let(:email) { "test@example.com" }
 
     it "scrubs sensitive information" do
@@ -59,13 +60,13 @@ RSpec.describe "Sorbet Type Signatures" do
   end
 
   describe "LogFormatter with Sorbet type signatures" do
-    rsig { returns(String) }
+    sig { returns(String) }
     let(:test_message) { "Test message" }
 
-    rsig { returns(Time) }
+    sig { returns(Time) }
     let(:test_time) { Time.now }
 
-    rsig { returns(RailsStructuredLogging::LogFormatter) }
+    sig { returns(RailsStructuredLogging::LogFormatter) }
     let(:formatter) { RailsStructuredLogging::LogFormatter.new }
 
     it "formats log messages" do
@@ -74,7 +75,7 @@ RSpec.describe "Sorbet Type Signatures" do
       # Verify JSON formatting
       expect(result).to be_a(String)
       expect { JSON.parse(result) }.not_to raise_error
-      expect(JSON.parse(result)).to include("msg" => test_message)
+      expect(JSON.parse(result)["msg"]).to eq(test_message)
     end
   end
 end

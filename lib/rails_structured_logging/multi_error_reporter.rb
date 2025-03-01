@@ -1,37 +1,55 @@
 # frozen_string_literal: true
+# typed: strict
+
+require_relative 'sorbet'
+require 'json'
 
 module RailsStructuredLogging
   # MultiErrorReporter provides a unified interface for reporting errors to various services
   # It automatically detects and uses available error reporting services
   # Similar to MultiJSON, it detects available adapters once and then uses the configured one
   class MultiErrorReporter
+    include RailsStructuredLogging::TypedSig
+    extend T::Sig
+
     class << self
+      extend T::Sig
+
+      # Use T.let to properly declare the class variable
+      @error_reporter = T.let(nil, T.nilable(Symbol))
+
+      sig { returns(T.nilable(Symbol)) }
       attr_reader :error_reporter
 
       # Initialize the error reporter once
+      sig { returns(Symbol) }
       def initialize_reporter
-        if defined?(Sentry)
-          @error_reporter = :sentry
-        elsif defined?(Bugsnag)
-          @error_reporter = :bugsnag
-        elsif defined?(Rollbar)
-          @error_reporter = :rollbar
-        elsif defined?(Honeybadger)
-          @error_reporter = :honeybadger
-        else
-          @error_reporter = :fallback
-        end
+        @error_reporter = T.let(
+          if defined?(::Sentry)
+            :sentry
+          elsif defined?(::Bugsnag)
+            :bugsnag
+          elsif defined?(::Rollbar)
+            :rollbar
+          elsif defined?(::Honeybadger)
+            :honeybadger
+          else
+            :fallback
+          end,
+          Symbol
+        )
       end
 
       # Report an exception to the configured error reporting service
       # @param exception [Exception] The exception to report
       # @param context [Hash] Additional context to include with the error report
       # @return [void]
+      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
         return if exception.nil?
 
         # Initialize the reporter if it hasn't been initialized yet
-        initialize_reporter unless @error_reporter
+        initialize_reporter if @error_reporter.nil?
 
         # Call the appropriate reporter method based on what's available
         case @error_reporter
@@ -51,16 +69,20 @@ module RailsStructuredLogging
       private
 
       # Report to Sentry
+      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_sentry(exception, context = {})
-        Sentry.capture_exception(exception, extra: context)
+        return unless defined?(::Sentry)
+        ::Sentry.capture_exception(exception, extra: context)
       rescue => e
         # If Sentry fails, fall back to basic logging
         fallback_logging(e, { original_exception: exception.class.name })
       end
 
       # Report to Bugsnag
+      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_bugsnag(exception, context = {})
-        Bugsnag.notify(exception) do |report|
+        return unless defined?(::Bugsnag)
+        ::Bugsnag.notify(exception) do |report|
           report.add_metadata(:context, context)
         end
       rescue => e
@@ -69,16 +91,20 @@ module RailsStructuredLogging
       end
 
       # Report to Rollbar
+      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_rollbar(exception, context = {})
-        Rollbar.error(exception, context)
+        return unless defined?(::Rollbar)
+        ::Rollbar.error(exception, context)
       rescue => e
         # If Rollbar fails, fall back to basic logging
         fallback_logging(e, { original_exception: exception.class.name })
       end
 
       # Report to Honeybadger
+      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_honeybadger(exception, context = {})
-        Honeybadger.notify(exception, context: context)
+        return unless defined?(::Honeybadger)
+        ::Honeybadger.notify(exception, context: context)
       rescue => e
         # If Honeybadger fails, fall back to basic logging
         fallback_logging(e, { original_exception: exception.class.name })
@@ -86,6 +112,7 @@ module RailsStructuredLogging
 
       # Fallback logging when no error reporting services are available
       # Writes directly to stdout to avoid potential infinite loops with Rails.logger
+      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def fallback_logging(exception, context = {})
         return if exception.nil?
 

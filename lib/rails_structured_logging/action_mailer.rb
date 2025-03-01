@@ -1,6 +1,8 @@
 # frozen_string_literal: true
+# typed: strict
 
 require_relative 'constants'
+require_relative 'sorbet'
 
 begin
   require 'action_mailer'
@@ -19,6 +21,7 @@ end
 module RailsStructuredLogging
   # ActionMailer integration for structured logging
   module ActionMailer
+    include RailsStructuredLogging::TypedSig
     extend ActiveSupport::Concern if defined?(ActiveSupport::Concern)
 
     included do
@@ -27,7 +30,10 @@ module RailsStructuredLogging
     end if defined?(ActiveSupport::Concern)
 
     class << self
+      include RailsStructuredLogging::TypedSig
+
       # Set up ActionMailer structured logging
+      sig { void }
       def setup
         return unless defined?(::ActionMailer)
         return unless RailsStructuredLogging.enabled?
@@ -49,6 +55,7 @@ module RailsStructuredLogging
       private
 
       # Set up callbacks for Rails 7.0.x
+      sig { void }
       def setup_callbacks_for_rails_7_0
         return unless defined?(::Rails)
         return if ::Rails.gem_version >= Gem::Version.new('7.1.0')
