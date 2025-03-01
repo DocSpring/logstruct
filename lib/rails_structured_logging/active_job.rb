@@ -1,14 +1,14 @@
+# typed: true
 # frozen_string_literal: true
 
 begin
-  require 'active_job/log_subscriber'
+  require "active_job"
+  require "active_job/log_subscriber"
 rescue LoadError
   # ActiveJob gem is not available, integration will be skipped
 end
 
-if defined?(::ActiveJob::LogSubscriber)
-  require_relative 'active_job/structured_log_subscriber'
-end
+require_relative "active_job/structured_log_subscriber" if defined?(::ActiveJob::LogSubscriber)
 
 module RailsStructuredLogging
   # ActiveJob integration for structured logging

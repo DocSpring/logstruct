@@ -1,9 +1,9 @@
-# frozen_string_literal: true
 # typed: strict
+# frozen_string_literal: true
 
-require 'sorbet-runtime'
-require_relative 'base'
-require_relative '../enums'
+require "sorbet-runtime"
+require_relative "base"
+require_relative "../enums"
 
 module RailsStructuredLogging
   module LogTypes
@@ -51,7 +51,7 @@ module RailsStructuredLogging
         ).void
       end
       def initialize(src:, evt:, ts: nil, msg: nil, message_id: nil, mailer_class: nil,
-                    mailer_action: nil, to: nil, cc: nil, bcc: nil, subject: nil)
+        mailer_action: nil, to: nil, cc: nil, bcc: nil, subject: nil)
         super(src: src, evt: evt, ts: ts, msg: msg)
         @message_id = message_id
         @mailer_class = mailer_class
@@ -79,7 +79,7 @@ module RailsStructuredLogging
 
     # Valid email event types
     EMAIL_EVENT_TYPES = T.let(
-      [:email_delivery, :email_delivered, :email_error].freeze,
+      %i[email_delivery email_delivered email_error].freeze,
       T::Array[Symbol]
     )
 
@@ -93,9 +93,7 @@ module RailsStructuredLogging
     end
     def self.create_email_log_data(mailer, message = nil, event_type = :email_delivery)
       # Validate event type
-      unless EMAIL_EVENT_TYPES.include?(event_type)
-        raise ArgumentError, "Invalid email event type: #{event_type}"
-      end
+      raise ArgumentError, "Invalid email event type: #{event_type}" unless EMAIL_EVENT_TYPES.include?(event_type)
 
       # Create email log data
       EmailLogData.new(
@@ -105,9 +103,9 @@ module RailsStructuredLogging
         message_id: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.message_id : nil,
         mailer_class: T.unsafe(mailer).class.name,
         mailer_action: T.unsafe(mailer).respond_to?(:action_name) ? T.unsafe(mailer).action_name : nil,
-        to: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.to).join(', ') : nil,
-        cc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.cc).join(', ') : nil,
-        bcc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.bcc).join(', ') : nil,
+        to: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.to).join(", ") : nil,
+        cc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.cc).join(", ") : nil,
+        bcc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.bcc).join(", ") : nil,
         subject: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.subject : nil
       )
     end

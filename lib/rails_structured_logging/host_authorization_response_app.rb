@@ -1,6 +1,8 @@
+# typed: true
 # frozen_string_literal: true
 
-require_relative 'enums'
+require "action_dispatch/middleware/host_authorization"
+require_relative "enums"
 
 module RailsStructuredLogging
   # Host Authorization integration for structured logging of blocked hosts
@@ -8,14 +10,13 @@ module RailsStructuredLogging
     class << self
       # Set up host authorization logging
       def setup
-        return unless defined?(::Rails) && defined?(::ActionDispatch::HostAuthorization)
         return unless RailsStructuredLogging.enabled?
         return unless RailsStructuredLogging.configuration.host_authorization_enabled
 
         # Define the response app as a separate variable to fix block alignment
         response_app = lambda do |env|
           request = ::ActionDispatch::Request.new(env)
-          blocked_hosts = env['action_dispatch.blocked_hosts']
+          blocked_hosts = env["action_dispatch.blocked_hosts"]
 
           # Log the blocked host attempt as a hash
           # (converted to JSON by the Rails log formatter)
@@ -34,7 +35,7 @@ module RailsStructuredLogging
           )
 
           # Return a 403 Forbidden response
-          [403, { 'Content-Type' => 'text/plain' }, ['Forbidden: Blocked Host']]
+          [403, {"Content-Type" => "text/plain"}, ["Forbidden: Blocked Host"]]
         end
 
         # Assign the lambda to the host_authorization config

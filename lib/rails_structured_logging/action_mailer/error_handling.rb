@@ -1,10 +1,16 @@
-# frozen_string_literal: true
 # typed: true
+# frozen_string_literal: true
 
-require_relative '../sorbet'
-require_relative '../enums'
-require_relative '../log_types'
-require_relative '../multi_error_reporter'
+begin
+  require "postmark"
+rescue LoadError
+  # postmark gem is not available, error handling will be skipped
+end
+
+require_relative "../sorbet"
+require_relative "../enums"
+require_relative "../log_types"
+require_relative "../multi_error_reporter"
 
 module RailsStructuredLogging
   module ActionMailer
@@ -22,7 +28,7 @@ module RailsStructuredLogging
         # Log and report to error reporting service by default. These errors are retried.
         rescue_from StandardError, with: :log_and_reraise_error
 
-        if defined?(Postmark)
+        if defined?(::Postmark)
           rescue_from Postmark::Error, with: :log_and_reraise_error
 
           # Errors that should be sent as a notification but not an error report (no retry)
@@ -88,15 +94,13 @@ module RailsStructuredLogging
       sig { params(error: StandardError, notify: T::Boolean, report: T::Boolean, reraise: T::Boolean).void }
       def handle_error_notifications(error, notify, report, reraise)
         # Log a notification event if requested
-        if notify
-          log_notification_event(error)
-        end
+        log_notification_event(error) if notify
 
         # Report to error reporting service if requested
         if report
           context = {
             mailer_class: self.class.name,
-            mailer_action: self.respond_to?(:action_name) ? self.action_name : nil,
+            mailer_action: respond_to?(:action_name) ? action_name : nil,
             recipients: recipients(error)
           }
           RailsStructuredLogging::MultiErrorReporter.report_exception(error, context)
@@ -119,11 +123,10 @@ module RailsStructuredLogging
       sig { params(error: StandardError).returns(String) }
       def recipients(error)
         # Extract recipient info if available
-        if error.respond_to?(:recipients) && error.respond_to?(:recipients) &&
-           T.unsafe(error).recipients.present?
-          T.unsafe(error).recipients.join(', ')
+        if error.respond_to?(:recipients) && T.unsafe(error).recipients.present?
+          T.unsafe(error).recipients.join(", ")
         else
-          'unknown'
+          "unknown"
         end
       end
     end

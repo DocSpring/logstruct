@@ -1,5 +1,15 @@
 # Development Guidelines
 
+# Setup
+
+Install Watchman (used by Sorbet):
+
+```bash
+brew install watchman
+```
+
+For other platforms: https://facebook.github.io/watchman/docs/install.html
+
 ## Code Style and Conventions
 
 ### Module References
@@ -8,19 +18,11 @@
 
   ```ruby
   # GOOD
-  if defined?(::ActionMailer)
-    # ...
-  end
-
   if defined?(::Sidekiq)
     # ...
   end
 
   # BAD
-  if defined?(ActionMailer)
-    # ...
-  end
-
   if defined?(Sidekiq)
     # ...
   end
@@ -31,6 +33,27 @@
   - Error reporting: `::Sentry`, `::Bugsnag`, `::Rollbar`, `::Honeybadger`
   - Background jobs: `::Sidekiq`
   - File uploads: `::Shrine`
+
+### Available Modules
+
+This gem doesn't work without Rails, so you can be sure that the core classes are always available. You don't need to check if these are defined:
+
+- `::Rails`
+- `::ActiveSupport`
+- `::ActionDispatch`
+- `::ActionController`
+
+However, some apps might skip certain parts of Rails and only require what they need. You must check if these are defined:
+
+- `defined?(::ActionMailer)`
+- `defined?(::ActiveJob)`
+
+And you always need to check for any third-party gems that are not part of Rails:
+
+- `defined?(::Sentry)`
+- `defined?(::Shrine)`
+- `defined?(::Postmark)`
+- etc.
 
 ### Type Safety
 

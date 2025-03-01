@@ -1,7 +1,7 @@
-# frozen_string_literal: true
 # typed: true
+# frozen_string_literal: true
 
-require_relative '../sorbet'
+require_relative "../sorbet"
 
 module RailsStructuredLogging
   module ActionMailer
@@ -58,7 +58,7 @@ module RailsStructuredLogging
         T.unsafe(::ActionMailer::MessageDelivery).class_eval do
           # Add handle_exceptions method if it doesn't exist
           unless method_defined?(:handle_exceptions)
-            def handle_exceptions(&block)
+            def handle_exceptions
               processed_mailer.handle_exceptions do
                 yield if block_given?
               end

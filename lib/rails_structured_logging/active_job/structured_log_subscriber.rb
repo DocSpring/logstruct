@@ -1,3 +1,4 @@
+# typed: true
 # frozen_string_literal: true
 
 module RailsStructuredLogging
@@ -6,12 +7,12 @@ module RailsStructuredLogging
     class StructuredLogSubscriber < ::ActiveJob::LogSubscriber
       def enqueue(event)
         job = event.payload[:job]
-        log_job_event('active_job_enqueued', job, event)
+        log_job_event("active_job_enqueued", job, event)
       end
 
       def enqueue_at(event)
         job = event.payload[:job]
-        log_job_event('active_job_enqueued_at', job, event)
+        log_job_event("active_job_enqueued_at", job, event)
       end
 
       def perform(event)
@@ -19,35 +20,33 @@ module RailsStructuredLogging
         exception = event.payload[:exception_object]
 
         if exception
-          log_job_event('active_job_failed', job, event, exception: exception)
+          log_job_event("active_job_failed", job, event, exception: exception)
         else
-          log_job_event('active_job_performed', job, event, duration: event.duration.round(2))
+          log_job_event("active_job_performed", job, event, duration: event.duration.round(2))
         end
       end
 
       def perform_start(event)
         job = event.payload[:job]
-        log_job_event('active_job_performing', job, event)
+        log_job_event("active_job_performing", job, event)
       end
 
       private
 
       def log_job_event(event_name, job, _event, additional_data = {})
         log_data = {
-          src: 'active_job',
+          src: "active_job",
           evt: event_name,
           ts: Time.current.iso8601(3),
           pid: Process.pid,
           job_id: job.job_id,
           job_class: job.class.name,
           queue_name: job.queue_name,
-          executions: job.executions,
+          executions: job.executions
         }
 
         # Format arguments if the job class allows it
-        if job.class.log_arguments? && job.arguments.any?
-          log_data[:arguments] = job.arguments.map { |arg| format(arg) }
-        end
+        log_data[:arguments] = job.arguments.map { |arg| format(arg) } if job.class.log_arguments? && job.arguments.any?
 
         # Add scheduled_at if present
         log_data[:scheduled_at] = job.scheduled_at.iso8601(3) if job.scheduled_at

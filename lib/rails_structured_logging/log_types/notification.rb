@@ -1,9 +1,9 @@
-# frozen_string_literal: true
 # typed: strict
+# frozen_string_literal: true
 
-require 'sorbet-runtime'
-require_relative 'base'
-require_relative '../enums'
+require "sorbet-runtime"
+require_relative "base"
+require_relative "../enums"
 
 module RailsStructuredLogging
   module LogTypes
@@ -51,8 +51,8 @@ module RailsStructuredLogging
         ).void
       end
       def initialize(src:, evt:, notification_type:, ts: nil, msg: nil, error_class: nil,
-                    error_message: nil, recipients: nil, user_id: nil,
-                    resource_type: nil, resource_id: nil)
+        error_message: nil, recipients: nil, user_id: nil,
+        resource_type: nil, resource_id: nil)
         super(src: src, evt: evt, ts: ts, msg: msg)
         @notification_type = notification_type
         @error_class = error_class
@@ -80,7 +80,7 @@ module RailsStructuredLogging
 
     # Helper method to create a notification log data object for email errors
     sig { params(error: StandardError, mailer: T.untyped).returns(NotificationLogData) }
-    def self.create_email_notification_log_data(error, mailer)
+    def self.create_email_notification_log_data(error, _mailer)
       # Extract error class name safely
       error_class_name = T.unsafe(error.class).name
 
@@ -117,9 +117,9 @@ module RailsStructuredLogging
     def self.extract_recipients(error)
       # Extract recipient info if available
       if error.respond_to?(:recipients) && T.unsafe(error).recipients.present?
-        T.unsafe(error).recipients.join(', ')
+        T.unsafe(error).recipients.join(", ")
       else
-        'unknown'
+        "unknown"
       end
     end
   end

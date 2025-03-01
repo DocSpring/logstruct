@@ -1,12 +1,12 @@
-# frozen_string_literal: true
 # typed: true
+# frozen_string_literal: true
 
-require_relative 'enums'
-require_relative 'log_types'
-require_relative 'sorbet'
+require_relative "enums"
+require_relative "log_types"
+require_relative "sorbet"
 
 begin
-  require 'shrine'
+  require "shrine"
 rescue LoadError
   # Shrine gem is not available, integration will be skipped
 end
@@ -46,8 +46,8 @@ module RailsStructuredLogging
 
         # Configure Shrine to use our structured log subscriber
         T.unsafe(::Shrine).plugin :instrumentation,
-                      log_events: [:upload, :exists, :download, :delete],
-                      log_subscriber: shrine_log_subscriber
+          log_events: %i[upload exists download delete],
+          log_subscriber: shrine_log_subscriber
       end
     end
   end

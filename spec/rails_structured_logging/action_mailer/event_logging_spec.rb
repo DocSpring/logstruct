@@ -1,3 +1,4 @@
+# typed: true
 # frozen_string_literal: true
 
 require "spec_helper"
@@ -8,7 +9,7 @@ require "active_support"
 RSpec.describe RailsStructuredLogging::ActionMailer::EventLogging do
   # Create a test mailer class that inherits from ::ActionMailer::Base
   let(:test_mailer_class) do
-    Class.new(::ActionMailer::Base) do
+    Class.new(ActionMailer::Base) do
       include RailsStructuredLogging::ActionMailer::EventLogging
 
       def self.name
@@ -27,9 +28,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::EventLogging do
         self
       end
 
-      def mail
-        @mail
-      end
+      attr_reader :mail
 
       def message
         mail
@@ -58,14 +57,14 @@ RSpec.describe RailsStructuredLogging::ActionMailer::EventLogging do
 
   describe "#log_email_delivery" do
     it "logs email delivery event" do
-      expect(mailer).to receive(:log_mailer_event).with('email_delivery')
+      expect(mailer).to receive(:log_mailer_event).with("email_delivery")
       mailer.send(:log_email_delivery)
     end
   end
 
   describe "#log_email_delivered" do
     it "logs email delivered event" do
-      expect(mailer).to receive(:log_mailer_event).with('email_delivered')
+      expect(mailer).to receive(:log_mailer_event).with("email_delivered")
       mailer.send(:log_email_delivered)
     end
   end
@@ -73,37 +72,37 @@ RSpec.describe RailsStructuredLogging::ActionMailer::EventLogging do
   describe "#log_mailer_event" do
     it "logs event with base data" do
       expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data)
-        .with(mailer, 'test_event')
-        .and_return({ base: 'data' })
+        .with(mailer, "test_event")
+        .and_return({base: "data"})
 
       expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
-        .with({ base: 'data' }, :info)
+        .with({base: "data"}, :info)
 
-      result = mailer.send(:log_mailer_event, 'test_event')
-      expect(result).to eq({ base: 'data' })
+      result = mailer.send(:log_mailer_event, "test_event")
+      expect(result).to eq({base: "data"})
     end
 
     it "merges additional data when provided" do
       expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data)
-        .with(mailer, 'test_event')
-        .and_return({ base: 'data' })
+        .with(mailer, "test_event")
+        .and_return({base: "data"})
 
       expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
-        .with({ base: 'data', additional: 'value' }, :info)
+        .with({base: "data", additional: "value"}, :info)
 
-      result = mailer.send(:log_mailer_event, 'test_event', :info, { additional: 'value' })
-      expect(result).to eq({ base: 'data', additional: 'value' })
+      result = mailer.send(:log_mailer_event, "test_event", :info, {additional: "value"})
+      expect(result).to eq({base: "data", additional: "value"})
     end
 
     it "uses the specified log level" do
       expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data)
-        .with(mailer, 'test_event')
-        .and_return({ base: 'data' })
+        .with(mailer, "test_event")
+        .and_return({base: "data"})
 
       expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
-        .with({ base: 'data' }, :debug)
+        .with({base: "data"}, :debug)
 
-      mailer.send(:log_mailer_event, 'test_event', :debug)
+      mailer.send(:log_mailer_event, "test_event", :debug)
     end
   end
 end

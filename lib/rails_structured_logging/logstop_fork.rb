@@ -1,6 +1,7 @@
+# typed: true
 # frozen_string_literal: true
 
-require 'digest'
+require "digest"
 
 module RailsStructuredLogging
   # Based on https://github.com/ankane/logstop
@@ -10,8 +11,6 @@ module RailsStructuredLogging
   # - Added configuration options to control what gets filtered
   module LogstopFork
     class << self
-      attr_accessor :email_salt
-
       # Scrub sensitive information from a string
       # @param msg [String] The message to scrub
       # @param scrubber [Proc] A custom scrubber to apply
@@ -21,9 +20,7 @@ module RailsStructuredLogging
         config = RailsStructuredLogging.configuration
 
         # URLs with passwords
-        if config.filter_url_passwords
-          msg.gsub!(%r{((?:\/\/|%2F%2F)[^:]+:)[^@\/]+@}, '\1[FILTERED]@')
-        end
+        msg.gsub!(%r{((?://|%2F%2F)[^:]+:)[^@/]+@}, '\1[FILTERED]@') if config.filter_url_passwords
 
         # emails
         if config.filter_emails
@@ -35,42 +32,33 @@ module RailsStructuredLogging
 
         # credit card numbers
         if config.filter_credit_cards
-          msg.gsub!(/\b[3456]\d{15}\b/, '[CREDIT_CARD]')
-          msg.gsub!(/\b[3456]\d{3}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}\b/, '[CREDIT_CARD]')
+          msg.gsub!(/\b[3456]\d{15}\b/, "[CREDIT_CARD]")
+          msg.gsub!(/\b[3456]\d{3}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}\b/, "[CREDIT_CARD]")
         end
 
         # phone numbers
-        if config.filter_phones
-          msg.gsub!(/\b\d{3}[\s-]\d{3}[\s-]\d{4}\b/, '[PHONE]')
-        end
+        msg.gsub!(/\b\d{3}[\s-]\d{3}[\s-]\d{4}\b/, "[PHONE]") if config.filter_phones
 
         # SSNs
-        if config.filter_ssns
-          msg.gsub!(/\b\d{3}[\s-]\d{2}[\s-]\d{4}\b/, '[SSN]')
-        end
+        msg.gsub!(/\b\d{3}[\s-]\d{2}[\s-]\d{4}\b/, "[SSN]") if config.filter_ssns
 
         # IPs
-        if config.filter_ips
-          msg.gsub!(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, '[IP]')
-        end
+        msg.gsub!(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/, "[IP]") if config.filter_ips
 
         # MAC addresses
-        if config.filter_macs
-          msg.gsub!(/\b[0-9a-f]{2}(:[0-9a-f]{2}){5}\b/i, '[MAC]')
-        end
+        msg.gsub!(/\b[0-9a-f]{2}(:[0-9a-f]{2}){5}\b/i, "[MAC]") if config.filter_macs
 
         # custom scrubber
-        if scrubber
-          msg = scrubber.call(msg)
-        end
+        msg = scrubber.call(msg) if scrubber
 
         msg
       end
 
+      attr_writer :email_salt
       # Get or set the email salt used for hashing emails
       # @return [String] The email salt
       def email_salt
-        @email_salt ||= 'l0g5t0p'
+        @email_salt ||= "l0g5t0p"
       end
     end
   end

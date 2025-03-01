@@ -1,8 +1,8 @@
-# frozen_string_literal: true
 # typed: strict
+# frozen_string_literal: true
 
-require 'sorbet-runtime'
-require_relative 'base'
+require "sorbet-runtime"
+require_relative "base"
 
 module RailsStructuredLogging
   module LogTypes
@@ -35,7 +35,7 @@ module RailsStructuredLogging
         ).void
       end
       def initialize(src:, evt:, ts: nil, msg: nil, error_class: nil,
-                    error_message: nil, backtrace: nil, additional_data: {})
+        error_message: nil, backtrace: nil, additional_data: {})
         super(src: src, evt: evt, ts: ts, msg: msg)
         @error_class = error_class
         @error_message = error_message

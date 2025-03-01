@@ -1,8 +1,8 @@
-# frozen_string_literal: true
 # typed: true
+# frozen_string_literal: true
 
-require_relative 'sorbet'
-require 'json'
+require_relative "sorbet"
+require "json"
 
 module RailsStructuredLogging
   # MultiErrorReporter provides a unified interface for reporting errors to various services
@@ -25,16 +25,16 @@ module RailsStructuredLogging
       sig { returns(Symbol) }
       def initialize_reporter
         @error_reporter = if defined?(::Sentry)
-                            :sentry
-                          elsif defined?(::Bugsnag)
-                            :bugsnag
-                          elsif defined?(::Rollbar)
-                            :rollbar
-                          elsif defined?(::Honeybadger)
-                            :honeybadger
-                          else
-                            :fallback
-                          end
+          :sentry
+        elsif defined?(::Bugsnag)
+          :bugsnag
+        elsif defined?(::Rollbar)
+          :rollbar
+        elsif defined?(::Honeybadger)
+          :honeybadger
+        else
+          :fallback
+        end
       end
 
       # Report an exception to the configured error reporting service
@@ -71,43 +71,47 @@ module RailsStructuredLogging
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_sentry(exception, context = {})
         return unless defined?(::Sentry)
+
         # Use the proper Sentry interface defined in the RBI
         ::Sentry.capture_exception(exception, extra: context)
       rescue => e
         # If Sentry fails, fall back to basic logging
-        fallback_logging(e, { original_exception: exception.class.name })
+        fallback_logging(e, {original_exception: exception.class.name})
       end
 
       # Report to Bugsnag
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_bugsnag(exception, context = {})
         return unless defined?(::Bugsnag)
+
         ::Bugsnag.notify(exception) do |report|
           report.add_metadata(:context, context)
         end
       rescue => e
         # If Bugsnag fails, fall back to basic logging
-        fallback_logging(e, { original_exception: exception.class.name })
+        fallback_logging(e, {original_exception: exception.class.name})
       end
 
       # Report to Rollbar
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_rollbar(exception, context = {})
         return unless defined?(::Rollbar)
+
         ::Rollbar.error(exception, context)
       rescue => e
         # If Rollbar fails, fall back to basic logging
-        fallback_logging(e, { original_exception: exception.class.name })
+        fallback_logging(e, {original_exception: exception.class.name})
       end
 
       # Report to Honeybadger
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_honeybadger(exception, context = {})
         return unless defined?(::Honeybadger)
+
         ::Honeybadger.notify(exception, context: context)
       rescue => e
         # If Honeybadger fails, fall back to basic logging
-        fallback_logging(e, { original_exception: exception.class.name })
+        fallback_logging(e, {original_exception: exception.class.name})
       end
 
       # Fallback logging when no error reporting services are available
@@ -118,8 +122,8 @@ module RailsStructuredLogging
 
         # Create a structured log entry
         log_data = {
-          src: 'rails',
-          evt: 'error',
+          src: "rails",
+          evt: "error",
           error_class: exception.class.name,
           error_message: exception.message,
           backtrace: exception.backtrace&.take(20)

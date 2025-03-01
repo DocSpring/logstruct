@@ -1,14 +1,12 @@
+# typed: true
 # frozen_string_literal: true
 
 begin
-  require 'sidekiq'
+  require "sidekiq"
 rescue LoadError
   # Sidekiq gem is not available, integration will be skipped
 end
-
-if defined?(::Sidekiq)
-  require_relative 'sidekiq/formatter'
-end
+require_relative "sidekiq/formatter" if defined?(::Sidekiq)
 
 module RailsStructuredLogging
   # Sidekiq integration for structured logging

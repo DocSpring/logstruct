@@ -1,3 +1,4 @@
+# typed: true
 # frozen_string_literal: true
 
 require "spec_helper"
@@ -8,7 +9,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::MetadataCollection do
 
   describe ".add_message_metadata" do
     context "when message is available" do
-      before(:each) do
+      before do
         allow(message).to receive_messages(
           to: ["test@example.com"],
           cc: nil,
@@ -46,7 +47,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::MetadataCollection do
       let(:account) { double("Account", id: 123) }
       let(:user) { double("User", id: 456) }
 
-      before(:each) do
+      before do
         allow(mailer).to receive(:instance_variable_defined?).with(:@account).and_return(true)
         allow(mailer).to receive(:instance_variable_defined?).with(:@user).and_return(true)
         allow(mailer).to receive(:instance_variable_get).with(:@account).and_return(account)
@@ -63,7 +64,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::MetadataCollection do
     end
 
     context "when instance variables are not defined" do
-      before(:each) do
+      before do
         allow(mailer).to receive(:instance_variable_defined?).with(:@account).and_return(false)
         allow(mailer).to receive(:instance_variable_defined?).with(:@user).and_return(false)
       end
@@ -72,14 +73,14 @@ RSpec.describe RailsStructuredLogging::ActionMailer::MetadataCollection do
         log_data = {}
         described_class.extract_ids_to_log_data(mailer, log_data)
 
-        expect(log_data).to_not have_key(:account_id)
-        expect(log_data).to_not have_key(:user_id)
+        expect(log_data).not_to have_key(:account_id)
+        expect(log_data).not_to have_key(:user_id)
       end
     end
   end
 
   describe ".add_current_tags_to_log_data" do
-    before(:each) do
+    before do
       # Mock ActiveSupport::TaggedLogging
       stub_const("ActiveSupport::TaggedLogging", Class.new)
       allow(ActiveSupport::TaggedLogging).to receive(:respond_to?).with(:current_tags).and_return(true)

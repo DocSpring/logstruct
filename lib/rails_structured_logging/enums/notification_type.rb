@@ -1,7 +1,7 @@
-# frozen_string_literal: true
 # typed: strict
+# frozen_string_literal: true
 
-require 'sorbet-runtime'
+require "sorbet-runtime"
 
 module RailsStructuredLogging
   module Enums

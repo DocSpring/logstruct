@@ -1,13 +1,13 @@
-# frozen_string_literal: true
 # typed: true
+# frozen_string_literal: true
 
-require_relative 'enums'
-require_relative 'sorbet'
+require_relative "enums"
+require_relative "sorbet"
 
 begin
-  require 'action_mailer'
+  require "action_mailer"
 rescue LoadError
-  # ActionMailer gem is not available, integration will be skipped
+  # actionmailer gem is not available, integration will be skipped
 end
 
 if defined?(::ActionMailer)
@@ -36,7 +36,7 @@ module RailsStructuredLogging
 
         # Silence default ActionMailer logs (we use our own structured logging)
         # This is required because we replace the logging using our own callbacks
-        ::ActionMailer::Base.logger = ::Logger.new('/dev/null') if defined?(::ActionMailer::Base)
+        ::ActionMailer::Base.logger = ::Logger.new(File::NULL) if defined?(::ActionMailer::Base)
 
         # Include our modules directly into ::ActionMailer::Base
         ::ActiveSupport.on_load(:action_mailer) do
@@ -53,8 +53,7 @@ module RailsStructuredLogging
       # Set up callbacks for Rails 7.0.x
       sig { void }
       def setup_callbacks_for_rails_7_0
-        return unless defined?(::Rails)
-        return if ::Rails.gem_version >= Gem::Version.new('7.1.0')
+        return if ::Rails.gem_version >= Gem::Version.new("7.1.0")
 
         # Include the callbacks module in ::ActionMailer::Base
         ::ActiveSupport.on_load(:action_mailer) do

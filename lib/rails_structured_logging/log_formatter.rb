@@ -1,12 +1,13 @@
+# typed: true
 # frozen_string_literal: true
 
-require 'logger'
-require 'active_support/core_ext/object/blank'
-require 'json'
-require 'globalid'
-require_relative 'param_filters'
-require_relative 'logstop_fork'
-require_relative 'multi_error_reporter'
+require "logger"
+require "active_support/core_ext/object/blank"
+require "json"
+require "globalid"
+require_relative "param_filters"
+require_relative "logstop_fork"
+require_relative "multi_error_reporter"
 
 module RailsStructuredLogging
   # Formatter for structured logging that outputs logs as JSON
@@ -20,14 +21,10 @@ module RailsStructuredLogging
     # Add tagged method to support ActiveSupport::TaggedLogging
     def tagged(*tags)
       new_tags = tags.flatten
-      if new_tags.any?
-        current_tags.concat(new_tags)
-      end
+      current_tags.concat(new_tags) if new_tags.any?
       yield self
     ensure
-      if new_tags.any?
-        current_tags.pop(new_tags.size)
-      end
+      current_tags.pop(new_tags.size) if new_tags.any?
     end
 
     # Add clear_tags! method to support ActiveSupport::TaggedLogging
@@ -57,7 +54,7 @@ module RailsStructuredLogging
           # Check if this key should be filtered
           result[key] = if ParamFilters.should_filter_json_data?(key)
             # Filter the value
-            { _filtered: ParamFilters.summarize_json_attribute(value) }
+            {_filtered: ParamFilters.summarize_json_attribute(value)}
           else
             # Process the value normally
             format_values(value)
@@ -70,20 +67,18 @@ module RailsStructuredLogging
         result = arg.map { |value| format_values(value) }
 
         # Filter large arrays
-        if result.size > 10
-          result = result.take(10) + ["... and #{result.size - 10} more items"]
-        end
+        result = result.take(10) + ["... and #{result.size - 10} more items"] if result.size > 10
 
         result
       when GlobalID::Identification
         begin
           arg.to_global_id.to_s
-        rescue StandardError
+        rescue
           begin
             "#{arg.class.name}(##{arg.id})"
-          rescue StandardError => e
+          rescue => e
             MultiErrorReporter.report_exception(e)
-            '[GlobalID Error]'
+            "[GlobalID Error]"
           end
         end
       when String
@@ -91,7 +86,7 @@ module RailsStructuredLogging
       else
         arg
       end
-    rescue StandardError => e
+    rescue => e
       MultiErrorReporter.report_exception(e)
       arg
     end
@@ -100,22 +95,20 @@ module RailsStructuredLogging
       @format_recursion_counter = 0
 
       # Use standardized field names
-      data = msg.is_a?(Hash) ? msg.dup : { msg: msg.to_s }
+      data = msg.is_a?(Hash) ? msg.dup : {msg: msg.to_s}
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = format_values(data)
 
       # Add standard fields if not already present
-      data[:src] ||= 'rails'
-      data[:evt] ||= 'log'
+      data[:src] ||= "rails"
+      data[:evt] ||= "log"
       data[:ts] ||= time.iso8601(3)
       data[:level] = severity.downcase
       data[:progname] = progname if progname.present?
 
       # Scrub any string messages
-      if data[:msg].is_a?(String)
-        data[:msg] = scrub_string(data[:msg])
-      end
+      data[:msg] = scrub_string(data[:msg]) if data[:msg].is_a?(String)
 
       generate_json(data)
     end

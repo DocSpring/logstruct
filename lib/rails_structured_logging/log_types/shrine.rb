@@ -1,9 +1,9 @@
-# frozen_string_literal: true
 # typed: strict
+# frozen_string_literal: true
 
-require 'sorbet-runtime'
-require_relative 'base'
-require_relative '../enums'
+require "sorbet-runtime"
+require_relative "base"
+require_relative "../enums"
 
 module RailsStructuredLogging
   module LogTypes
@@ -56,8 +56,8 @@ module RailsStructuredLogging
         ).void
       end
       def initialize(src:, evt:, operation:, ts: nil, msg: nil, duration: nil,
-                    uploader: nil, record_id: nil, record_class: nil,
-                    storage: nil, location: nil, io_size: nil)
+        uploader: nil, record_id: nil, record_class: nil,
+        storage: nil, location: nil, io_size: nil)
         super(src: src, evt: evt, ts: ts, msg: msg)
         @operation = operation
         @duration = duration
@@ -87,7 +87,7 @@ module RailsStructuredLogging
 
     # Valid Shrine event types
     SHRINE_EVENT_TYPES = T.let(
-      [:upload, :download, :open, :exists, :delete, :metadata].freeze,
+      %i[upload download open exists delete metadata].freeze,
       T::Array[Symbol]
     )
 
@@ -101,9 +101,7 @@ module RailsStructuredLogging
     end
     def self.create_shrine_log_data(event_name, duration, payload)
       # Validate event name
-      unless SHRINE_EVENT_TYPES.include?(event_name)
-        raise ArgumentError, "Invalid Shrine event type: #{event_name}"
-      end
+      raise ArgumentError, "Invalid Shrine event type: #{event_name}" unless SHRINE_EVENT_TYPES.include?(event_name)
 
       # Extract record info safely
       record_id = nil

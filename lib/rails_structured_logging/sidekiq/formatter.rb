@@ -1,5 +1,5 @@
-# frozen_string_literal: true
 # typed: true
+# frozen_string_literal: true
 
 module RailsStructuredLogging
   module Sidekiq
@@ -7,15 +7,15 @@ module RailsStructuredLogging
     class Formatter < ::Sidekiq::Logger::Formatters::Base
       def call(severity, time, _program_name, message)
         hash = {
-          src: 'sidekiq',
+          src: "sidekiq",
           ts: time.utc.iso8601(3),
           pid: ::Process.pid,
           tid: tid,
           lvl: severity,
-          msg: message,
+          msg: message
         }
         c = ::Sidekiq::Context.current
-        hash['ctx'] = c unless c.empty?
+        hash["ctx"] = c unless c.empty?
 
         # Return the hash to be processed by the JSON formatter
         ::Sidekiq.dump_json(hash) << "\n"

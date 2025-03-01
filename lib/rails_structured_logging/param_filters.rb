@@ -1,3 +1,4 @@
+# typed: true
 # frozen_string_literal: true
 
 module RailsStructuredLogging
@@ -56,30 +57,30 @@ module RailsStructuredLogging
         when Array
           summarize_array(data)
         else
-          { _class: data.class.name }
+          {_class: data.class.name}
         end
       end
 
       # Summarize a hash for logging
       def summarize_hash(hash)
-        return { _class: 'Hash', _empty: true } if hash.empty?
+        return {_class: "Hash", _empty: true} if hash.empty?
 
         {
-          _class: 'Hash',
+          _class: "Hash",
           _bytes: hash.to_json.size,
           _keys: hash.keys.map(&:to_sym).take(10),
-          _keys_count: hash.keys.size,
+          _keys_count: hash.keys.size
         }
       end
 
       # Summarize an array for logging
       def summarize_array(array)
-        return { _class: 'Array', _empty: true } if array.empty?
+        return {_class: "Array", _empty: true} if array.empty?
 
         {
-          _class: 'Array',
+          _class: "Array",
           _count: array.size,
-          _bytes: array.to_json.size,
+          _bytes: array.to_json.size
         }
       end
     end

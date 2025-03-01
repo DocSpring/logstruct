@@ -1,4 +1,7 @@
+# typed: true
 # frozen_string_literal: true
+
+require "active_support/tagged_logging"
 
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to support hash inputs
 # This allows us to pass structured data to the logger and have tags incorporated
@@ -9,7 +12,7 @@ module ActiveSupport
       # Override the call method to handle hash inputs
       def call(severity, time, progname, data)
         # Convert data to a hash if it's not already one
-        data = { msg: data.to_s } unless data.is_a?(Hash)
+        data = {msg: data.to_s} unless data.is_a?(Hash)
 
         # Add current tags to the hash if present
         tags = current_tags
@@ -23,6 +26,6 @@ module ActiveSupport
 end
 
 # Apply the monkey patch if ActiveSupport::TaggedLogging::Formatter exists
-if defined?(::ActiveSupport::TaggedLogging)
-  ::ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
+if defined?(ActiveSupport::TaggedLogging)
+  ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
 end

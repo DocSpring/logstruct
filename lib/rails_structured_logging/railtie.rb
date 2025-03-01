@@ -1,11 +1,12 @@
+# typed: true
 # frozen_string_literal: true
 
-require 'rails'
+require "rails"
 
 module RailsStructuredLogging
   # Railtie to integrate with Rails
   class Railtie < ::Rails::Railtie
-    initializer 'rails_structured_logging.setup' do |app|
+    initializer "rails_structured_logging.setup" do |app|
       # Set up ActiveJob integration
       if RailsStructuredLogging.enabled? && RailsStructuredLogging.configuration.activejob_integration_enabled
         ::ActiveSupport.on_load(:active_job) do

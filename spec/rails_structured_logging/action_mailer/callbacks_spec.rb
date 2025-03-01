@@ -1,3 +1,4 @@
+# typed: true
 # frozen_string_literal: true
 
 require "spec_helper"
@@ -90,7 +91,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
     # Test integration with ActionMailer::MessageDelivery
     context "when integrated with ActionMailer::MessageDelivery" do
       it "adds the handle_exceptions method to MessageDelivery" do
-        expect(::ActionMailer::MessageDelivery.instance_methods).to include(:handle_exceptions)
+        expect(ActionMailer::MessageDelivery.instance_methods).to include(:handle_exceptions)
       end
 
       it "calls run_callbacks on the processed mailer" do
@@ -104,11 +105,10 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
         expect(message_double).to receive(:deliver)
 
         # Create a MessageDelivery with the correct arguments
-        delivery = ::ActionMailer::MessageDelivery.new(test_mailer_class, :test_method)
+        delivery = ActionMailer::MessageDelivery.new(test_mailer_class, :test_method)
 
         # Mock the methods to return our doubles
-        allow(delivery).to receive(:processed_mailer).and_return(mailer_double)
-        allow(delivery).to receive(:message).and_return(message_double)
+        allow(delivery).to receive_messages(processed_mailer: mailer_double, message: message_double)
 
         # Call deliver_now which should trigger the callbacks
         delivery.deliver_now
@@ -119,7 +119,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_ve
   describe ".patch_message_delivery" do
     it "patches MessageDelivery with deliver_now and deliver_now! methods" do
       # Create a MessageDelivery with the correct arguments
-      message_delivery = ::ActionMailer::MessageDelivery.new(Class.new, :test_method)
+      message_delivery = ActionMailer::MessageDelivery.new(Class.new, :test_method)
 
       # Verify the methods were patched
       expect(message_delivery).to respond_to(:deliver_now)

@@ -1,3 +1,4 @@
+# typed: true
 # frozen_string_literal: true
 
 require "spec_helper"
@@ -8,7 +9,7 @@ require "active_support"
 RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
   # Define a test mailer class that inherits from ::ActionMailer::Base
   let(:test_mailer_class) do
-    Class.new(::ActionMailer::Base) do
+    Class.new(ActionMailer::Base) do
       # We need to include the module to test it
       include RailsStructuredLogging::ActionMailer::ErrorHandling
 
@@ -28,9 +29,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
         self
       end
 
-      def mail
-        @mail
-      end
+      attr_reader :mail
 
       def message
         mail
@@ -64,7 +63,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_ignore_error" do
     it "logs the error but does not raise it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error, notify: false, report: false, reraise: false).and_call_original
+      expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error, notify: false, report: false,
+        reraise: false).and_call_original
       allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
       # Should not raise an error
@@ -74,7 +74,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_notify_error" do
     it "logs the error with notify flag and does not raise it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: true, report: false, reraise: false).and_call_original
+      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: true, report: false,
+        reraise: false).and_call_original
       allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
       # Should not raise an error
@@ -84,7 +85,8 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_report_error" do
     it "logs the error with report flag and does not raise it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: false).and_call_original
+      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true,
+        reraise: false).and_call_original
       allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
       # Should not raise an error
@@ -94,13 +96,16 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
   describe "#log_and_reraise_error" do
     it "logs the error and reraises it" do
-      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true, reraise: true).and_call_original
+      expect(mailer).to receive(:log_email_delivery_error).with(standard_error, notify: false, report: true,
+        reraise: true).and_call_original
 
       # We need to allow handle_error_notifications to be called and actually reraise the error
       expect(mailer).to receive(:handle_error_notifications).with(standard_error, false, true, true).and_call_original
 
       # Should raise the error
-      expect { mailer.send(:log_and_reraise_error, standard_error) }.to raise_error(StandardError, "Standard error message")
+      expect do
+        mailer.send(:log_and_reraise_error, standard_error)
+      end.to raise_error(StandardError, "Standard error message")
     end
   end
 
@@ -161,16 +166,17 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
 
     context "when reraise is true" do
       it "reraises the error" do
-        expect {
+        expect do
           mailer.send(:handle_error_notifications, standard_error, false, false, true)
-        }.to raise_error(StandardError, "Standard error message")
+        end.to raise_error(StandardError, "Standard error message")
       end
     end
   end
 
   describe "#log_notification_event" do
     it "logs a notification with structured data" do
-      expect(RailsStructuredLogging::LogTypes).to receive(:create_email_notification_log_data).with(standard_error, mailer).and_call_original
+      expect(RailsStructuredLogging::LogTypes).to receive(:create_email_notification_log_data).with(standard_error,
+        mailer).and_call_original
       expect(Rails.logger).to receive(:info)
 
       mailer.send(:log_notification_event, standard_error)
