@@ -1,6 +1,6 @@
 # Rails Structured Logging
 
-Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile and you're good to go. We support all the gems you already use. (If not, open a PR!)
+Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile, configure it, and you're good to go. We support all the gems you already use. (If not, open a PR!)
 
 ## Features
 
@@ -52,6 +52,46 @@ Or install it yourself as:
 $ gem install rails_structured_logging
 ```
 
+## Configuration and Initialization
+
+Rails Structured Logging is designed to be highly opinionated and work out of the box with minimal configuration. However, you must initialize it in your application:
+
+### In a Rails Application
+
+Add the following to your `config/initializers/rails_structured_logging.rb`:
+
+```ruby
+# Configure the gem
+RailsStructuredLogging.configure do |config|
+  # Enable or disable specific integrations
+  config.lograge_enabled = true
+  config.actionmailer_integration_enabled = true
+  config.activejob_integration_enabled = true
+  config.sidekiq_integration_enabled = true
+  config.shrine_integration_enabled = true
+  config.rack_middleware_enabled = true
+  config.host_authorization_enabled = true
+
+  # Configure sensitive data scrubbing
+  config.logstop_email_salt = ENV['LOGSTOP_EMAIL_SALT']
+
+  # Other configuration options...
+end
+
+# Set up all integrations
+RailsStructuredLogging.initialize
+```
+
+### Important Note on Integration
+
+Once initialized, the gem automatically includes its modules into the appropriate base classes:
+
+- `ActionMailer::Base` automatically includes error handling and event logging modules
+- `ActiveJob::Base` automatically includes job logging modules
+- No manual inclusion of modules is required in your application code
+
+This opinionated approach ensures consistent logging across your entire application with minimal setup.
+
 ## Usage
 
 ### Basic Logging
@@ -91,7 +131,7 @@ end
 
 ### ActionMailer Integration
 
-The gem automatically integrates with ActionMailer by including the necessary module into `ActionMailer::Base`. This integration is enabled by default but can be configured.
+The gem automatically integrates with ActionMailer by including the necessary modules into `ActionMailer::Base`. This integration is enabled by default but can be configured.
 
 When enabled, the integration will automatically:
 
@@ -99,6 +139,8 @@ When enabled, the integration will automatically:
 - Log when emails are successfully delivered
 - Log and handle errors during email delivery
 - Provide delivery callbacks for Rails 7.0.x (backported from Rails 7.1)
+
+**You do not need to manually include any modules in your mailer classes.** The gem handles this automatically when you call `RailsStructuredLogging.initialize`.
 
 #### ActionMailer Delivery Callbacks
 

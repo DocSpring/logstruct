@@ -7,5 +7,6 @@ railtie
 referer
 Rollbar
 rsig
+Sidekiq
 ssns
 yardoc

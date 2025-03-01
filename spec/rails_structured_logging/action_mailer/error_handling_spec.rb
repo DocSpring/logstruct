@@ -9,7 +9,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
   # Define a test mailer class that inherits from ActionMailer::Base
   let(:test_mailer_class) do
     Class.new(ActionMailer::Base) do
-      include RailsStructuredLogging::ActionMailer::ErrorHandling
+      # No need to manually include modules - the gem should do this automatically
 
       def self.name
         "TestMailer"
@@ -71,6 +71,10 @@ RSpec.describe RailsStructuredLogging::ActionMailer::ErrorHandling do
   let(:postmark_inactive_error) { Postmark::InactiveRecipientError.new("Inactive recipient", ["inactive@example.com"]) }
 
   before do
+    # Set up the ActionMailer integration
+    RailsStructuredLogging::ActionMailer.setup
+
+    # Mock the logger methods
     allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_structured_error)
     allow(Rails.logger).to receive(:info)
     allow(RailsStructuredLogging::MultiErrorReporter).to receive(:report_exception)

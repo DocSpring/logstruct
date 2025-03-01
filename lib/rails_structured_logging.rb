@@ -47,7 +47,7 @@ module RailsStructuredLogging
     end
 
     sig { void }
-    def setup_integrations
+    def initialize
       # Set up the Rails logger formatter
       Rails.logger.formatter = LogFormatter.new if defined?(Rails) && Rails.logger
 
