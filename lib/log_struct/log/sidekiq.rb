@@ -14,7 +14,7 @@ module LogStruct
       # Common fields
       const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Sidekiq, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
-      const :ts, Time, default: T.unsafe(-> { Time.current })
+      const :ts, Time, factory: -> { Time.now }
       const :msg, T.nilable(String), default: nil
 
       # Sidekiq-specific fields

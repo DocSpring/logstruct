@@ -11376,10 +11376,10 @@ class ActiveSupport::Testing::SimpleStubs
   # Stubs object.method_name with the given block
   # If the method is already stubbed, remove that stub
   # so that removing this stub will restore the original implementation.
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   target = Time.zone.local(2004, 11, 24, 1, 4, 44)
   #   simple_stubs.stub_object(Time, :now) { at(target.to_i) }
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   # source://activesupport//lib/active_support/testing/time_helpers.rb#24
   def stub_object(object, method_name, &block); end
@@ -11494,20 +11494,20 @@ module ActiveSupport::Testing::TimeHelpers
 
   # Calls +travel_to+ with +Time.now+.
   #
-  #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+  #   Time.now # => Sun, 09 Jul 2017 15:34:49 EST -05:00
   #   freeze_time
   #   sleep(1)
-  #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+  #   Time.now # => Sun, 09 Jul 2017 15:34:49 EST -05:00
   #
   # This method also accepts a block, which will return the current time back to its original
   # state at the end of the block:
   #
-  #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+  #   Time.now # => Sun, 09 Jul 2017 15:34:49 EST -05:00
   #   freeze_time do
   #     sleep(1)
   #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
   #   end
-  #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
+  #   Time.now # => Sun, 09 Jul 2017 15:34:50 EST -05:00
   #
   # source://activesupport//lib/active_support/testing/time_helpers.rb#234
   def freeze_time(&block); end
@@ -11516,20 +11516,20 @@ module ActiveSupport::Testing::TimeHelpers
   # stubbing +Time.now+, +Date.today+, and +DateTime.now+. The stubs are automatically removed
   # at the end of the test.
   #
-  #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   travel 1.day
-  #   Time.current     # => Sun, 10 Nov 2013 15:34:49 EST -05:00
+  #   Time.now     # => Sun, 10 Nov 2013 15:34:49 EST -05:00
   #   Date.current     # => Sun, 10 Nov 2013
-  #   DateTime.current # => Sun, 10 Nov 2013 15:34:49 -0500
+  #   DateTime.now # => Sun, 10 Nov 2013 15:34:49 -0500
   #
   # This method also accepts a block, which will return the current time back to its original
   # state at the end of the block:
   #
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   travel 1.day do
   #     User.create.created_at # => Sun, 10 Nov 2013 15:34:49 EST -05:00
   #   end
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   # source://activesupport//lib/active_support/testing/time_helpers.rb#93
   def travel(duration, &block); end
@@ -11537,26 +11537,26 @@ module ActiveSupport::Testing::TimeHelpers
   # Returns the current time back to its original state, by removing the stubs added by
   # +travel+, +travel_to+, and +freeze_time+.
   #
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44)
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   #   travel_back
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   # This method also accepts a block, which brings the stubs back at the end of the block:
   #
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44)
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   #   travel_back do
-  #     Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #     Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   end
   #
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   # source://activesupport//lib/active_support/testing/time_helpers.rb#208
   def travel_back; end
@@ -11565,20 +11565,20 @@ module ActiveSupport::Testing::TimeHelpers
   # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
   # The stubs are automatically removed at the end of the test.
   #
-  #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44)
-  #   Time.current     # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now     # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #   Date.current     # => Wed, 24 Nov 2004
-  #   DateTime.current # => Wed, 24 Nov 2004 01:04:44 -0500
+  #   DateTime.now # => Wed, 24 Nov 2004 01:04:44 -0500
   #
   # Dates are taken as their timestamp at the beginning of the day in the
-  # application time zone. <tt>Time.current</tt> returns said timestamp,
+  # application time zone. <tt>Time.now</tt> returns said timestamp,
   # and <tt>Time.now</tt> its equivalent in the system time zone. Similarly,
   # <tt>Date.current</tt> returns a date equal to the argument, and
   # <tt>Date.today</tt> the date according to <tt>Time.now</tt>, which may
   # be different. (Note that you rarely want to deal with <tt>Time.now</tt>,
   # or <tt>Date.today</tt>, in order to honor the application time zone
-  # please always use <tt>Time.current</tt> and <tt>Date.current</tt>.)
+  # please always use <tt>Time.now</tt> and <tt>Date.current</tt>.)
   #
   # Note that the usec for the time passed will be set to 0 to prevent rounding
   # errors with external services, like MySQL (which will round instead of floor,
@@ -11587,11 +11587,11 @@ module ActiveSupport::Testing::TimeHelpers
   # This method also accepts a block, which will return the current time back to its original
   # state at the end of the block:
   #
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44) do
-  #     Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #     Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #   end
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   # source://activesupport//lib/active_support/testing/time_helpers.rb#128
   def travel_to(date_or_time); end
@@ -11599,26 +11599,26 @@ module ActiveSupport::Testing::TimeHelpers
   # Returns the current time back to its original state, by removing the stubs added by
   # +travel+, +travel_to+, and +freeze_time+.
   #
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44)
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   #   travel_back
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   # This method also accepts a block, which brings the stubs back at the end of the block:
   #
-  #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #   Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #
   #   travel_to Time.zone.local(2004, 11, 24, 1, 4, 44)
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   #   travel_back do
-  #     Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
+  #     Time.now # => Sat, 09 Nov 2013 15:34:49 EST -05:00
   #   end
   #
-  #   Time.current # => Wed, 24 Nov 2004 01:04:44 EST -05:00
+  #   Time.now # => Wed, 24 Nov 2004 01:04:44 EST -05:00
   #
   # source://activesupport//lib/active_support/testing/time_helpers.rb#208
   def unfreeze_time; end
@@ -12166,7 +12166,7 @@ class ActiveSupport::TimeWithZone
   # Returns an instance of DateTime with the timezone's UTC offset
   #
   #   Time.zone.now.to_datetime                         # => Tue, 18 Aug 2015 02:32:20 +0000
-  #   Time.current.in_time_zone('Hawaii').to_datetime   # => Mon, 17 Aug 2015 16:32:20 -1000
+  #   Time.now.in_time_zone('Hawaii').to_datetime   # => Mon, 17 Aug 2015 16:32:20 -1000
   #
   # source://activesupport//lib/active_support/time_with_zone.rb#488
   def to_datetime; end
@@ -13902,7 +13902,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 0:00.
   #
-  #   now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
+  #   now = DateTime.now # => Thu, 18 Jun 2015 15:23:13 +0000
   #   now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#125
@@ -13915,7 +13915,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 0:00.
   #
-  #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+  #   now = DateTime.now # => Fri, 10 Jul 2015 18:41:29 +0000
   #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#139
@@ -13936,7 +13936,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 0:00.
   #
-  #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+  #   now = DateTime.now # => Fri, 10 Jul 2015 18:41:29 +0000
   #   now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#169
@@ -13955,7 +13955,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 23:59:59.
   #
-  #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+  #   now = DateTime.now # => Fri, 10 Jul 2015 18:41:29 +0000
   #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#154
@@ -13989,7 +13989,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 0:00.
   #
-  #   now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
+  #   now = DateTime.now # => Thu, 18 Jun 2015 15:23:13 +0000
   #   now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#125
@@ -14002,7 +14002,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 0:00.
   #
-  #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+  #   now = DateTime.now # => Fri, 10 Jul 2015 18:41:29 +0000
   #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#139
@@ -14023,7 +14023,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 0:00.
   #
-  #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+  #   now = DateTime.now # => Fri, 10 Jul 2015 18:41:29 +0000
   #   now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#169
@@ -14059,7 +14059,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects will have a time set to 23:59:59.
   #
-  #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+  #   now = DateTime.now # => Fri, 10 Jul 2015 18:41:29 +0000
   #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#154
@@ -14165,7 +14165,7 @@ module DateAndTime::Calculations
   #
   # +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
   #
-  #   now = DateTime.current # => Thu, 07 May 2015 13:31:16 +0000
+  #   now = DateTime.now # => Thu, 07 May 2015 13:31:16 +0000
   #   now.next_week      # => Mon, 11 May 2015 00:00:00 +0000
   #
   # source://activesupport//lib/active_support/core_ext/date_and_time/calculations.rb#190

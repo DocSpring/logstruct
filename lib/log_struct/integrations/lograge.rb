@@ -26,7 +26,7 @@ module LogStruct
                 Log::Request.new(
                   src: LogSource::Rails,
                   evt: LogEvent::Request,
-                  ts: T.cast(Time.current, Time),
+                  ts: T.cast(Time.now, Time),
                   msg: nil,
                   http_method: data[:method],
                   path: data[:path],

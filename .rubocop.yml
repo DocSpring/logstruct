@@ -27,7 +27,7 @@ Layout/MultilineMethodArgumentLineBreaks:
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
 
-# We use UTC for all timestamps, no timezones required
+# We use UTC for all timestamps, no timezones required for logs
 Rails/TimeZone:
   Enabled: false
 

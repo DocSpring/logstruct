@@ -38,7 +38,7 @@ module LogStruct
           log_data = {
             src: "active_job",
             evt: event_name,
-            ts: Time.current.iso8601(3),
+            ts: Time.now.iso8601(3),
             pid: Process.pid,
             job_id: job.job_id,
             job_class: job.class.to_s,

@@ -15,7 +15,7 @@ module LogStruct
       const :msg, String
       const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Rails, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent, default: T.let(LogStruct::LogEvent::Log, LogStruct::LogEvent)
-      const :ts, Time, default: T.unsafe(-> { Time.current })
+      const :ts, Time, factory: -> { Time.now }
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }

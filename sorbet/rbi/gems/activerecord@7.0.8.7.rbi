@@ -25278,7 +25278,7 @@ module ActiveRecord::Persistence
   # Updates the attributes directly in the database issuing an UPDATE SQL
   # statement and sets them in the receiver:
   #
-  #   user.update_columns(last_request_at: Time.current)
+  #   user.update_columns(last_request_at: Time.now)
   #
   # This is the fastest way to update attributes because it goes straight to
   # the database, but take into account that in consequence the regular update
