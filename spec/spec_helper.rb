@@ -12,7 +12,7 @@ require "debug"
 require "rails"
 require "active_support/all"
 
-require "rails_structured_logging"
+require "logstruct"
 
 # Require support files
 Dir[File.join(File.dirname(__FILE__), "support/**/*.rb")].sort.each { |f| require f }
@@ -28,10 +28,10 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  # Reset RailsStructuredLogging configuration before each test
+  # Reset LogStruct configuration before each test
   config.before do
     T.bind(self, RSpec::Core::ExampleGroup)
-    RailsStructuredLogging.configuration = RailsStructuredLogging::Configuration.new
+    LogStruct.configuration = LogStruct::Configuration.new
 
     # Mock Rails.logger
     logger_double = double("Logger")

@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in rails_structured_logging.gemspec
+# Specify your gem's dependencies in logstruct.gemspec
 gemspec
 
 ruby File.read(File.expand_path(".ruby-version", __dir__)).strip

@@ -1,10 +1,10 @@
-# Migration Guide: JSON Logging to RailsStructuredLogging
+# Migration Guide: JSON Logging to LogStruct
 
-This guide outlines the steps to migrate from the existing JSON logging implementation to the new RailsStructuredLogging gem.
+This guide outlines the steps to migrate from the existing JSON logging implementation to the new LogStruct gem.
 
 ## Overview
 
-The RailsStructuredLogging gem consolidates all structured logging functionality that was previously scattered across various initializers and libraries in the main application. This migration involves:
+The LogStruct gem consolidates all structured logging functionality that was previously scattered across various initializers and libraries in the main application. This migration involves:
 
 1. Replacing the `JSON_LOGGING_ENABLED` flag with the gem's configuration system
 2. Migrating custom param filters and sensitive data handling
@@ -16,7 +16,7 @@ The RailsStructuredLogging gem consolidates all structured logging functionality
 Add the gem to your Gemfile:
 
 ```ruby
-gem 'rails_structured_logging'
+gem 'logstruct'
 ```
 
 And run:
@@ -27,11 +27,11 @@ bundle install
 
 ## Step 2: Create a Configuration Initializer
 
-Create a new initializer at `config/initializers/rails_structured_logging.rb`:
+Create a new initializer at `config/initializers/logstruct.rb`:
 
 ```ruby
-# config/initializers/rails_structured_logging.rb
-RailsStructuredLogging.configure do |config|
+# config/initializers/logstruct.rb
+LogStruct.configure do |config|
   # Enable structured logging (replaces JSON_LOGGING_ENABLED)
   config.enabled = Rails.env.production? || Rails.env.test? || ENV['JSON_LOGGING'] == 'true'
 
@@ -102,8 +102,8 @@ end
 If you have application-specific JSON column filtering rules in `JSONLogParamFilters`, you'll need to extend the gem's `ParamFilters` class:
 
 ```ruby
-# config/initializers/rails_structured_logging_param_filters.rb
-RailsStructuredLogging::ParamFilters.configure do
+# config/initializers/logstruct_param_filters.rb
+LogStruct::ParamFilters.configure do
   # Add your application-specific filtered JSON columns
   @filtered_json_columns = {
     accounts: %i[default_template_settings],
@@ -172,14 +172,14 @@ end
 
 ### Replace Direct References to JSON_LOGGING_ENABLED
 
-Search for all instances of `JSON_LOGGING_ENABLED` in your codebase and replace them with `RailsStructuredLogging.enabled?`.
+Search for all instances of `JSON_LOGGING_ENABLED` in your codebase and replace them with `LogStruct.enabled?`.
 
 For example, in `app/jobs/internal_slack_notification_job.rb`:
 
 ```ruby
 def perform(options)
   if Rails.env.development?
-    if RailsStructuredLogging.enabled?
+    if LogStruct.enabled?
       Rails.logger.info(
         message: 'Called InternalSlackNotificationJob perform',
         options: options
@@ -207,8 +207,8 @@ The following initializers can be removed as their functionality is now provided
 In `config/initializers/_sidekiq.rb`, replace the custom formatter with the gem's formatter:
 
 ```ruby
-if RailsStructuredLogging.enabled?
-  config.logger.formatter = RailsStructuredLogging::Sidekiq::Formatter.new
+if LogStruct.enabled?
+  config.logger.formatter = LogStruct::Sidekiq::Formatter.new
 end
 ```
 
@@ -217,10 +217,10 @@ end
 In `config/initializers/shrine.rb`, replace the custom log subscriber with the gem's implementation:
 
 ```ruby
-if RailsStructuredLogging.enabled?
+if LogStruct.enabled?
   Shrine.plugin :instrumentation,
                 log_events: [:upload, :exists, :download, :delete],
-                log_subscriber: RailsStructuredLogging::Shrine.log_subscriber
+                log_subscriber: LogStruct::Shrine.log_subscriber
 else
   Shrine.plugin :instrumentation
 end
@@ -258,6 +258,6 @@ If you notice performance degradation:
 
 ## Additional Resources
 
-- [RailsStructuredLogging README](https://github.com/docspring/rails_structured_logging/blob/main/README.md)
+- [LogStruct README](https://github.com/docspring/logstruct/blob/main/README.md)
 - [Lograge Documentation](https://github.com/roidrage/lograge)
-- [Logstop (vendored fork) Documentation](https://github.com/docspring/rails_structured_logging/blob/main/lib/rails_structured_logging/logstop_fork.rb)
+- [Logstop (vendored fork) Documentation](https://github.com/docspring/logstruct/blob/main/lib/logstruct/logstop_fork.rb)

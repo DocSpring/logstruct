@@ -36,7 +36,7 @@ RSpec.describe "Sorbet Types" do
     end
 
     it "configures the gem with type-checked methods" do
-      RailsStructuredLogging.configure do |config|
+      LogStruct.configure do |config|
         config.enabled = enabled
         config.lograge_enabled = lograge_enabled
         config.logstop_email_salt = logstop_email_salt
@@ -45,8 +45,8 @@ RSpec.describe "Sorbet Types" do
       end
 
       # Verify configuration was applied
-      expect(RailsStructuredLogging.enabled?).to be true
-      configuration = RailsStructuredLogging.configuration
+      expect(LogStruct.enabled?).to be true
+      configuration = LogStruct.configuration
       expect(configuration.enabled).to eq(enabled)
       expect(configuration.lograge_enabled).to eq(lograge_enabled)
       expect(configuration.logstop_email_salt).to eq(logstop_email_salt)
@@ -61,7 +61,7 @@ RSpec.describe "Sorbet Types" do
     let(:email) { "test@example.com" }
 
     it "scrubs sensitive information" do
-      result = RailsStructuredLogging::LogstopFork.scrub(email)
+      result = LogStruct::LogstopFork.scrub(email)
 
       # Verify email was scrubbed
       expect(result).not_to include(email)
@@ -78,8 +78,8 @@ RSpec.describe "Sorbet Types" do
     rsig { returns(Time) }
     let(:test_time) { Time.now }
 
-    rsig { returns(RailsStructuredLogging::LogFormatter) }
-    let(:formatter) { RailsStructuredLogging::LogFormatter.new }
+    rsig { returns(LogStruct::LogFormatter) }
+    let(:formatter) { LogStruct::LogFormatter.new }
 
     it "formats log messages" do
       result = formatter.call("INFO", test_time, nil, test_message)

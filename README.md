@@ -37,7 +37,7 @@ The following table lists the gems that Rails Structured Logging integrates with
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'rails_structured_logging'
+gem 'logstruct'
 ```
 
 And then execute:
@@ -49,7 +49,7 @@ $ bundle install
 Or install it yourself as:
 
 ```bash
-$ gem install rails_structured_logging
+$ gem install logstruct
 ```
 
 ## Configuration and Initialization
@@ -58,11 +58,11 @@ Rails Structured Logging is designed to be highly opinionated and work out of th
 
 ### In a Rails Application
 
-Add the following to your `config/initializers/rails_structured_logging.rb`:
+Add the following to your `config/initializers/logstruct.rb`:
 
 ```ruby
 # Configure the gem
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   # Enable or disable specific integrations
   config.lograge_enabled = true
   config.actionmailer_integration_enabled = true
@@ -79,7 +79,7 @@ RailsStructuredLogging.configure do |config|
 end
 
 # Set up all integrations
-RailsStructuredLogging.initialize
+LogStruct.initialize
 ```
 
 ### Important Note on Integration
@@ -140,7 +140,7 @@ When enabled, the integration will automatically:
 - Log and handle errors during email delivery
 - Provide delivery callbacks for Rails 7.0.x (backported from Rails 7.1)
 
-**You do not need to manually include any modules in your mailer classes.** The gem handles this automatically when you call `RailsStructuredLogging.initialize`.
+**You do not need to manually include any modules in your mailer classes.** The gem handles this automatically when you call `LogStruct.initialize`.
 
 #### ActionMailer Delivery Callbacks
 
@@ -180,7 +180,7 @@ These callbacks are automatically enabled for Rails 7.0.x and are not needed for
 You can disable the ActionMailer integration in your configuration if needed:
 
 ```ruby
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   config.actionmailer_integration_enabled = false
 end
 ```
@@ -197,7 +197,7 @@ The gem automatically integrates with ActiveJob to provide structured logging fo
 You can disable this integration in your configuration if needed:
 
 ```ruby
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   config.activejob_integration_enabled = false
 end
 ```
@@ -213,7 +213,7 @@ The gem automatically integrates with Sidekiq to provide structured logging for 
 This integration is enabled by default but can be disabled:
 
 ```ruby
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   config.sidekiq_integration_enabled = false
 end
 ```
@@ -230,7 +230,7 @@ The gem automatically integrates with Shrine to provide structured logging for f
 This integration is enabled by default but can be disabled:
 
 ```ruby
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   config.shrine_integration_enabled = false
 end
 ```
@@ -247,7 +247,7 @@ The gem includes a Rack middleware that enhances error logging with structured d
 The middleware is automatically inserted after `ActionDispatch::ShowExceptions` to ensure it can catch IP spoofing errors. This feature is enabled by default but can be disabled:
 
 ```ruby
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   config.rack_middleware_enabled = false
 end
 ```
@@ -263,7 +263,7 @@ The gem provides structured logging for blocked host attempts when using Rails' 
 This feature is enabled by default but can be disabled:
 
 ```ruby
-RailsStructuredLogging.configure do |config|
+LogStruct.configure do |config|
   config.host_authorization_enabled = false
 end
 ```
@@ -311,8 +311,8 @@ For more information on using Sorbet with RBS annotations, see the [Sorbet docum
 You can configure the gem in an initializer:
 
 ```ruby
-# config/initializers/rails_structured_logging.rb
-RailsStructuredLogging.configure do |config|
+# config/initializers/logstruct.rb
+LogStruct.configure do |config|
   # Enable or disable structured logging (defaults to true in production)
   config.enabled = true
 

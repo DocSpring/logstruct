@@ -67,7 +67,7 @@ class RSpec::ExampleGroups::SorbetTypes::LogFormatterWithSorbetTypeSignatures < 
 end
 
 module RSpec::ExampleGroups::SorbetTypes::LogFormatterWithSorbetTypeSignatures::LetDefinitions
-  sig { returns(::RailsStructuredLogging::LogFormatter) }
+  sig { returns(::LogStruct::LogFormatter) }
   def formatter; end
 
   sig { returns(::String) }
