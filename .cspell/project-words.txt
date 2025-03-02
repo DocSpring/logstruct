@@ -2,7 +2,9 @@ ankane
 autorun
 bindir
 Bugsnag
+bytesize
 carrierwave
+creds
 dalli
 Honeybadger
 Logstop

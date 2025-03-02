@@ -74,8 +74,8 @@ LogStruct.configure do |config|
   config.host_authorization_enabled = true
 
   # Email hash settings
-  config.email_hash_salt = "test"
-  config.email_hash_length = 12
+  config.hash_salt = "test"
+  config.hash_length = 12
 end
 
 # Load all test support files

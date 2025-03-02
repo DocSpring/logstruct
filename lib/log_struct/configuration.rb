@@ -4,86 +4,172 @@
 module LogStruct
   # Configuration class for LogStruct
   class Configuration
-    # Define typed attributes
+    module CustomHandlers
+      LogScrubbing = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
+      ExceptionReporting = T.type_alias {
+        T.proc.params(
+          error: StandardError,
+          context: T::Hash[Symbol, T.untyped]
+        ).void
+      }
+    end
+
+    # Enable or disable LogStruct
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :enabled
 
+    # -------------------------------------------------------------------------------------
+    # Integrations
+    # -------------------------------------------------------------------------------------
+
+    # Enable or disable Lograge integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :lograge_enabled
 
+    # Custom options for Lograge
+    # Default: nil
     sig { returns(T.nilable(T.proc.params(event: ActiveSupport::Notifications::Event, options: T.untyped).returns(T.untyped))) }
     attr_accessor :lograge_custom_options
-    # New configuration options for exception reporting and notifications
 
-    ExceptionReportingHandler = T.type_alias {
-      T.proc.params(
-        error: StandardError,
-        context: T::Hash[Symbol, T.untyped]
-      ).void
-    }
-    sig { returns(ExceptionReportingHandler) }
+    # Custom handler for exception reporting
+    # Default: nil
+    sig { returns(CustomHandlers::ExceptionReporting) }
     attr_accessor :exception_reporting_handler
 
-    # Integration flags
+    # Enable or disable ActionMailer integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :actionmailer_integration_enabled
 
+    # Enable or disable host authorization logging
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :host_authorization_enabled
 
+    # Enable or disable ActiveJob integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :activejob_integration_enabled
 
+    # Enable or disable Rack middleware
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :rack_middleware_enabled
 
+    # Enable or disable Sidekiq integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :sidekiq_integration_enabled
 
+    # Enable or disable Shrine integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :shrine_integration_enabled
 
+    # Enable or disable ActiveStorage integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :active_storage_integration_enabled
 
+    # Enable or disable CarrierWave integration
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :carrierwave_integration_enabled
 
+    # -------------------------------------------------------------------------------------
+    # Param filtering options
+    # -------------------------------------------------------------------------------------
+
+    # Keys that should be filtered in nested structures such as request params and job arguments.
+    # Filtered data includes information about Hashes and Arrays.
+    #
+    # { _filtered: {
+    #     _class: "Hash",                # Class of the filtered value
+    #     _bytes: 1234,                  # Length of JSON string in bytes
+    #     _keys_count: 3,                # Number of keys in the hash
+    #     _keys: [:key1, :key2, :key3],  # First 10 keys in the hash
+    #   }
+    # }
+    #
+    # Default: [:password, :password_confirmation, :pass, :pw, :token, :secret,
+    #           :credentials, :creds, :auth, :authentication, :authorization]
+    #
+    sig { returns(T::Array[Symbol]) }
+    attr_reader :filtered_keys
+
+    sig { params(value: T.untyped).returns(T::Array[Symbol]) }
+    def filtered_keys=(value)
+      @filtered_keys = Array(value).map { |v| v.to_s.downcase.to_sym }.freeze
+    end
+
+    # Keys where string values should include an SHA256 hash.
+    # Useful for tracing emails across requests (e.g. sign in, sign up) while protecting privacy.
+    # Default: [:email, :email_address]
+    sig { returns(T::Array[Symbol]) }
+    attr_reader :filtered_keys_with_string_hash
+
+    sig { params(value: T.untyped).returns(T::Array[Symbol]) }
+    def filtered_keys_with_string_hash=(value)
+      @filtered_keys_with_string_hash = Array(value).map { |v| v.to_s.downcase.to_sym }.freeze
+    end
+
+    # Hash salt for SHA256 hashing (typically used for email addresses)
+    # Used for both param filters and string scrubbing
+    # Default: "l0g5t0p"
     sig { returns(String) }
-    attr_accessor :email_hash_salt
+    attr_accessor :hash_salt
 
+    # Hash length for SHA256 hashing (typically used for email addresses)
+    # Used for both param filters and string scrubbing
+    # Default: 12
     sig { returns(Integer) }
-    attr_accessor :email_hash_length
+    attr_accessor :hash_length
 
-    LogScrubbingHandler = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
-    sig { returns(LogScrubbingHandler) }
-    attr_accessor :log_scrubbing_handler
+    # -------------------------------------------------------------------------------------
+    # Filtering options for all strings, including plain logs, error messages, etc.
+    # -------------------------------------------------------------------------------------
 
-    # Filtering options
+    # Filter email addresses
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :filter_emails
 
+    # Filter URL passwords
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :filter_url_passwords
 
+    # Filter credit card numbers
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :filter_credit_cards
 
+    # Filter phone numbers
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :filter_phones
 
+    # Filter social security numbers
+    # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :filter_ssns
 
+    # Filter IP addresses
+    # Default: false
     sig { returns(T::Boolean) }
     attr_accessor :filter_ips
 
+    # Filter MAC addresses
+    # Default: false
     sig { returns(T::Boolean) }
     attr_accessor :filter_macs
 
-    # Param filtering options
-    sig { returns(T::Array[Symbol]) }
-    attr_accessor :filtered_keys
+    # Custom log scrubbing handler for any additional string scrubbing
+    # Default: nil
+    sig { returns(CustomHandlers::LogScrubbing) }
+    attr_accessor :log_scrubbing_handler
 
     sig { void }
     def initialize
@@ -107,7 +193,7 @@ module LogStruct
         # Log using the structured format
         ::Rails.logger.error(exception_data)
       },
-        ExceptionReportingHandler)
+        CustomHandlers::ExceptionReporting)
 
       @actionmailer_integration_enabled = T.let(true, T::Boolean) # Enable ActionMailer integration by default
       @host_authorization_enabled = T.let(true, T::Boolean) # Enable host authorization logging by default
@@ -150,12 +236,19 @@ module LogStruct
       ].freeze,
         T::Array[Symbol])
 
+      # Keys that should be hashed rather than completely filtered
+      # By default, we hash email and email_address fields
+      @filtered_keys_with_string_hash = T.let(%i[
+        email email_address
+      ].freeze,
+        T::Array[Symbol])
+
       # Log scrubbing options
       # (The LogScrubber class is a vendored fork of https://github.com/ankane/logstop)
-      @log_scrubbing_handler = T.let(nil, LogScrubbingHandler)
+      @log_scrubbing_handler = T.let(nil, CustomHandlers::LogScrubbing)
       @filter_emails = T.let(true, T::Boolean) # Filter email addresses by default
-      @email_hash_salt = T.let("l0g5t0p", String)
-      @email_hash_length = T.let(12, Integer)
+      @hash_salt = T.let("l0g5t0p", String)
+      @hash_length = T.let(12, Integer)
       @filter_url_passwords = T.let(true, T::Boolean) # Filter passwords in URLs by default
       @filter_credit_cards = T.let(true, T::Boolean) # Filter credit card numbers by default
       @filter_phones = T.let(true, T::Boolean) # Filter phone numbers by default
