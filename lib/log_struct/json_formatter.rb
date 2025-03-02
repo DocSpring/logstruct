@@ -103,7 +103,7 @@ module LogStruct
       arg
     end
 
-    sig { params(severity: String, time: Time, progname: String, log_value: T.untyped).returns(String) }
+    sig { params(severity: String, time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
       # Handle different types of log values
       data = case log_value

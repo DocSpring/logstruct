@@ -31,9 +31,8 @@ RSpec.configure do |config|
   # Reset LogStruct configuration before each test
   config.before do
     T.bind(self, RSpec::Core::ExampleGroup)
-    LogStruct.configuration = Configuration.new
 
-    # Mock Rails.logger
+    # Mock Rails.logger for testing
     logger_double = double("Logger")
     allow(logger_double).to receive(:info)
     allow(logger_double).to receive(:error)
