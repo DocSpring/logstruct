@@ -62,7 +62,7 @@ module LogStruct
           # Create structured log data
           log_data = Log::CarrierWave.new(
             src: LogSource::CarrierWave,
-            evt: LogEvent::CarrierWave,
+            evt: LogEvent::FileOperation,
             operation: operation,
             storage: storage.to_s,
             file_id: identifier,

@@ -10,6 +10,7 @@ module LogStruct
     # Shrine log entry for structured logging
     class Shrine < T::Struct
       include LogInterface
+      include LogSerialization
 
       # Common fields
       const :src, LogSource, default: T.let(LogSource::Shrine, LogSource)
@@ -31,17 +32,11 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        # Create a hash with all the struct's properties
-        hash = {
-          src: src.serialize,
-          evt: evt.serialize,
-          ts: ts.iso8601(3),
-          msg: msg
-        }
+        hash = common_serialize
 
         # Add file-specific fields if they're present
         hash[:storage] = storage if storage
-        hash[:operation] = operation if operation
+        hash[:op] = operation if operation
         hash[:file_id] = file_id if file_id
         hash[:filename] = filename if filename
         hash[:mime_type] = mime_type if mime_type

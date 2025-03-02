@@ -10,7 +10,7 @@ module LogStruct
     # Error log entry for structured logging
     class Error < T::Struct
       include LogInterface
-
+      include LogSerialization
       # Common fields
       const :src, LogSource # Used by all sources, should not have a default.
       const :evt, LogEvent
@@ -26,13 +26,7 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        # Create a hash with all the struct's properties
-        hash = {
-          src: src.serialize,
-          evt: evt.serialize,
-          ts: ts.iso8601(3),
-          msg: msg
-        }
+        hash = common_serialize
 
         # Add error-specific fields if they're present
         hash[:err_class] = err_class if err_class

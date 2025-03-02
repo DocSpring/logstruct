@@ -4,7 +4,6 @@
 
 # typed: false
 
-module LogStruct::Integrations::ActionMailer::ErrorHandling::LogTypes; end
+module LogStruct::Integrations::ActionMailer::LogTypes; end
 module LogStruct::LogEvent::CarrierWave; end
 module LogStruct::LogEvent::Shrine; end
-module LogStruct::LogTypes; end

@@ -10,7 +10,7 @@ module LogStruct
     # Storage log entry for structured logging
     class Storage < T::Struct
       include LogInterface
-
+      include LogSerialization
       # Common fields
       const :src, LogSource, default: T.let(LogSource::Storage, LogSource)
       const :evt, LogEvent
@@ -31,13 +31,7 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        # Create a hash with all the struct's properties
-        hash = {
-          src: src.serialize,
-          evt: evt.serialize,
-          ts: ts.iso8601(3),
-          msg: msg
-        }
+        hash = common_serialize
 
         # Add file-specific fields if they're present
         hash[:storage] = storage if storage

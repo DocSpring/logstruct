@@ -10,7 +10,7 @@ module LogStruct
     # Plain log entry for structured logging
     class Plain < T::Struct
       include LogInterface
-
+      include LogSerialization
       # Common fields
       const :msg, String
       const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
@@ -20,12 +20,7 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        {
-          src: src.serialize,
-          evt: evt.serialize,
-          ts: ts.iso8601(3),
-          msg: msg
-        }
+        common_serialize
       end
     end
   end

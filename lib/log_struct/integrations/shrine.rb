@@ -22,15 +22,14 @@ module LogStruct
           # Create a structured log subscriber for Shrine
           # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
           shrine_log_subscriber = T.unsafe(lambda do |event|
-            # Extract the event name and payload
-            event.name.to_sym
             payload = event.payload.except(:io, :metadata, :name).dup
 
             # Create structured log data
             log_data = Log::Shrine.new(
               src: LogSource::Shrine,
-              evt: LogEvent::Shrine,
+              evt: LogEvent::FileOperation,
               duration: event.duration,
+              operation: event.name,
               payload: payload
             )
 
