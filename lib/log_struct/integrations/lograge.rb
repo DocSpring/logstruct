@@ -18,9 +18,30 @@ module LogStruct
 
           ::Rails.application.configure do
             config.lograge.enabled = true
-            # Use a raw formatter that just returns the hash.
-            # The hash is converted to JSON by our JSONFormatter (after filtering, etc.)
-            config.lograge.formatter = ->(data) { data }
+            # Use a raw formatter that just returns the log struct.
+            # The struct is converted to JSON by our JSONFormatter (after filtering, etc.)
+            config.lograge.formatter = T.let(
+              lambda do |data|
+                # Convert the data hash to a Log::Request struct
+                Log::Request.new(
+                  src: LogSource::Rails,
+                  evt: LogEvent::Request,
+                  ts: T.cast(Time.current, Time),
+                  msg: nil,
+                  http_method: data[:method],
+                  path: data[:path],
+                  format: data[:format],
+                  controller: data[:controller],
+                  action: data[:action],
+                  status: data[:status],
+                  duration: data[:duration],
+                  view: data[:view],
+                  db: data[:db],
+                  params: data[:params]
+                )
+              end,
+              T.proc.params(hash: T::Hash[Symbol, T.untyped]).returns(Log::Request)
+            )
 
             # Add custom options to lograge
             config.lograge.custom_options = lambda do |event|
@@ -38,8 +59,9 @@ module LogStruct
             :source_ip
           ).compact
 
-          options[:src] = Enums::SourceType::Rails
-          options[:evt] = Enums::EventType::Request
+          # We'll set these in the formatter
+          # options[:src] = LogSource::Rails
+          # options[:evt] = LogEvent::Request
 
           if event.payload[:params].present?
             options[:params] = event.payload[:params].except("controller", "action")

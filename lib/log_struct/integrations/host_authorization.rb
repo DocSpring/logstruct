@@ -21,9 +21,9 @@ module LogStruct
             # Log the blocked host attempt as a hash
             # (converted to JSON by the Rails log formatter)
             ::Rails.logger.warn(
-              src: Enums::SourceType::Rails.serialize,
-              evt: Enums::EventType::SecurityViolation.serialize,
-              violation_type: LogViolationType::BlockedHost.serialize,
+              src: LogSource::Rails,
+              evt: LogEvent::SecurityViolation,
+              violation_type: LogViolationType::BlockedHost,
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,
               request_id: request.request_id,

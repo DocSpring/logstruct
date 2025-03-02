@@ -19,9 +19,9 @@ module LogStruct
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             log_event(
               env,
-              event: Enums::EventType::SecurityViolation.serialize,
+              event: LogEvent::SecurityViolation,
               level: :warn,
-              violation_type: Enums::ViolationType::IpSpoof.serialize,
+              violation_type: LogViolationType::IpSpoof,
               error: ip_spoof_error.message,
               # Can't call .remote_ip on the request because that's what raises the error.
               # Have to pass the client_ip and x_forwarded_for headers.
@@ -36,8 +36,8 @@ module LogStruct
             log_event(
               env,
               level: :warn,
-              event: Enums::EventType::SecurityViolation.serialize,
-              violation_type: Enums::ViolationType::Csrf.serialize,
+              event: LogEvent::SecurityViolation,
+              violation_type: LogViolationType::Csrf,
               error: invalid_auth_token_error.message
             )
 
@@ -50,7 +50,7 @@ module LogStruct
             log_event(
               env,
               level: :error,
-              event: Enums::EventType::RequestError.serialize,
+              event: LogEvent::RequestError,
               error_class: error.class.to_s,
               error_message: error.message
             )
@@ -85,7 +85,7 @@ module LogStruct
           request = ::ActionDispatch::Request.new(env)
 
           log_data = {
-            src: Enums::SourceType::Rails.serialize,
+            src: LogSource::Rails,
             evt: event,
             level: level,
             request_id: request.request_id,
