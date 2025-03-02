@@ -3,6 +3,8 @@
 
 # Start SimpleCov before requiring any other files
 require "simplecov"
+require "sorbet-runtime"
+
 SimpleCov.start do
   T.bind(self, SimpleCov::Configuration)
   add_filter "test/"
@@ -27,12 +29,8 @@ require "ostruct"
 require "debug"
 require "logger"
 
-# Require Rails components
+# Require Rails
 require "rails"
-require "active_support"
-require "active_job"
-require "action_mailer"
-require "globalid"
 
 # Create a minimal Rails application for testing
 class TestApp < Rails::Application
@@ -64,55 +62,21 @@ require "logstruct"
 
 # Configure LogStruct
 LogStruct.configure do |config|
-  config.rails = true
-  config.sidekiq = true
-  config.honeybadger = true
-  config.bugsnag = true
-  config.email_hash_salt = "test"
-  config.email_hash_min_length = 5
-end
+  config.enabled = true
+  config.lograge_enabled = true
+  config.actionmailer_integration_enabled = true
+  config.activejob_integration_enabled = true
+  config.sidekiq_integration_enabled = true
+  config.shrine_integration_enabled = true
+  config.active_storage_integration_enabled = true
+  config.carrierwave_integration_enabled = true
+  config.rack_middleware_enabled = true
+  config.host_authorization_enabled = true
 
-# Sorbet type checking for tests
-require "sorbet-runtime"
+  # Email hash settings
+  config.email_hash_salt = "test"
+  config.email_hash_length = 12
+end
 
 # Load all test support files
 Dir[File.join(File.dirname(__FILE__), "support/**/*.rb")].sort.each { |f| require f }
-
-module TestHelper
-  extend T::Sig
-  include Minitest::Assertions
-
-  # For Minitest assertions
-  sig { returns(Integer) }
-  def assertions
-    @assertions ||= T.let(0, T.nilable(Integer))
-  end
-
-  sig { params(value: Integer).returns(Integer) }
-  def assertions=(value)
-    @assertions = value
-  end
-
-  # Helper to create a structured log and verify its contents
-  sig { params(log_data: T::Hash[Symbol, T.untyped], blk: T.nilable(T.proc.params(arg0: T::Hash[Symbol, T.untyped]).void)).returns(T::Hash[Symbol, T.untyped]) }
-  def create_log(log_data = {}, &blk)
-    log = {
-      timestamp: Time.now.utc.iso8601(3),
-      uuid: "123e4567-e89b-12d3-a456-426614174000"
-    }.merge(log_data)
-
-    yield log if Kernel.block_given?
-
-    log
-  end
-
-  sig { params(klass: T.class_of(Object), obj: T.untyped).void }
-  def assert_instance_of_with_msg(klass, obj)
-    assert_instance_of klass, obj, "Expected #{obj.inspect} to be an instance of #{klass}"
-  end
-
-  sig { params(collection: T.untyped, obj: T.untyped).void }
-  def assert_includes_with_msg(collection, obj)
-    assert_includes collection, obj, "Expected #{collection.inspect} to include #{obj.inspect}"
-  end
-end

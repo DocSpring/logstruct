@@ -5,8 +5,6 @@ require "test_helper"
 
 module LogStruct
   class LogScrubberTest < Minitest::Test
-    include TestHelper
-
     def setup
       # Save original configuration
       @original_config = LogStruct.configuration

@@ -27,9 +27,11 @@ module LogStruct
     sig { params(configuration: Configuration).void }
     attr_writer :configuration
 
-    sig { returns(Configuration) }
-    def configure
-      yield(configuration) if block_given?
+    # Configure with a required block
+    sig { params(blk: T.proc.params(config: Configuration).void).returns(Configuration) }
+    def configure(&blk)
+      yield(configuration)
+      configuration
     end
 
     sig { returns(T::Boolean) }
@@ -37,7 +39,4 @@ module LogStruct
       configuration.enabled
     end
   end
-
-  # Initialize with defaults
-  configure
 end

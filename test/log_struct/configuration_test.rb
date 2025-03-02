@@ -5,8 +5,6 @@ require "test_helper"
 
 module LogStruct
   class ConfigurationTest < Minitest::Test
-    include TestHelper
-
     def setup
       @config = Configuration.new
     end

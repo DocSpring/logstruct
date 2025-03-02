@@ -1,55 +1,21 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 module LogStruct
-  # This class contains configuration for filtering sensitive data in logs
+  # This class contains methods for filtering sensitive data in logs
   # It is used by JSONFormatter to determine which keys should be filtered
   class ParamFilters
     class << self
-      attr_accessor :filtered_keys, :filtered_json_columns, :ignored_json_columns, :ignored_tables
-
-      # Initialize default configuration
-      def configure
-        # Default sensitive keys that should always be filtered
-        @filtered_keys = %i[
-          password password_confirmation token secret
-          credentials auth authentication authorization
-          credit_card ssn social_security
-        ].freeze
-
-        # JSON/JSONB columns that should be filtered from logs
-        # These are columns that might contain sensitive or large data
-        # Format: { model_name => [columns_to_filter] }
-        @filtered_json_columns = {}.freeze
-
-        # JSON/JSONB columns that should be excluded from filtering
-        # These are columns that don't need filtering (e.g., attachment data)
-        # Format: { model_name => [columns_to_exclude] }
-        @ignored_json_columns = {}.freeze
-
-        # Tables to exclude entirely from JSON column filtering
-        @ignored_tables = [].freeze
-
-        # Allow custom configuration
-        yield(self) if block_given?
-
-        # Cache the flattened list of columns to filter for performance
-        @all_columns_to_filter = @filtered_json_columns.values.flatten.sort.uniq.freeze
-      end
+      extend T::Sig
 
       # Check if a key should be filtered based on our defined sensitive keys
+      sig { params(key: T.any(String, Symbol)).returns(T::Boolean) }
       def should_filter_key?(key)
-        @filtered_keys.include?(key.to_s.downcase.to_sym)
-      end
-
-      # Check if a key should be filtered based on our defined column names
-      # This method is called with the key name, not the data itself
-      def should_filter_json_data?(key)
-        # Check if the key matches any of our columns to filter
-        @all_columns_to_filter.include?(key.to_sym)
+        LogStruct.configuration.filtered_keys.include?(key.to_s.downcase.to_sym)
       end
 
       # Create a simple summary of JSON data for logging
+      sig { params(data: T.untyped).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_json_attribute(data)
         case data
         when Hash
@@ -62,18 +28,20 @@ module LogStruct
       end
 
       # Summarize a hash for logging
+      sig { params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_hash(hash)
         return {_class: "Hash", _empty: true} if hash.empty?
 
         {
           _class: "Hash",
-          _bytes: hash.to_json.size,
+          _keys_count: hash.keys.size,
           _keys: hash.keys.map(&:to_sym).take(10),
-          _keys_count: hash.keys.size
+          _bytes: hash.to_json.size
         }
       end
 
       # Summarize an array for logging
+      sig { params(array: T::Array[T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_array(array)
         return {_class: "Array", _empty: true} if array.empty?
 
@@ -84,8 +52,5 @@ module LogStruct
         }
       end
     end
-
-    # Initialize with default configuration
-    configure
   end
 end

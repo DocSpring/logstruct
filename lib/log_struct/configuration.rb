@@ -81,6 +81,10 @@ module LogStruct
     sig { returns(T::Boolean) }
     attr_accessor :filter_macs
 
+    # Param filtering options
+    sig { returns(T::Array[Symbol]) }
+    attr_accessor :filtered_keys
+
     sig { void }
     def initialize
       @enabled = T.let(true, T::Boolean)
@@ -113,6 +117,38 @@ module LogStruct
       @shrine_integration_enabled = T.let(true, T::Boolean) # Enable Shrine integration by default
       @active_storage_integration_enabled = T.let(true, T::Boolean) # Enable ActiveStorage integration by default
       @carrierwave_integration_enabled = T.let(true, T::Boolean) # Enable CarrierWave integration by default
+
+      # Param filtering configuration - Keys that should be filtered in
+      # nested structures such as request params and job arguments.
+      # Examples:
+      #
+      # { _filtered: {
+      #     _class: "Hash",                # Class of the filtered value
+      #     _bytes: 1234,                  # Length of JSON string in bytes
+      #     _keys_count: 3,                # Number of keys in the hash
+      #     _keys: [:key1, :key2, :key3],  # First 10 keys in the hash
+      #   }
+      # }
+      #
+      # { _filtered: {
+      #     _class: "Array",               # Class of the filtered value
+      #     _count: 3,                     # Number of items in the array
+      #     _bytes: 1234,                  # Length of JSON string in bytes
+      #   }
+      # }
+      #
+      # { _filtered: {
+      #     _class: "String",              # Class of the filtered value
+      #     _bytes: 12,                    # Length of the string in bytes
+      #     _hash: "abcd1234567890"        # Short SHA256 hash, opt-in only for specific keys (e.g. emails)
+      #   }
+      # }
+      @filtered_keys = T.let(%i[
+        password password_confirmation pass pw token secret
+        credentials auth authentication authorization
+        credit_card ssn social_security
+      ].freeze,
+        T::Array[Symbol])
 
       # Log scrubbing options
       # (The LogScrubber class is a vendored fork of https://github.com/ankane/logstop)
