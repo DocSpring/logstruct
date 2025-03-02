@@ -13,7 +13,7 @@ module LogStruct
         # Set up Rack middleware for structured error logging
         def setup(app)
           return unless LogStruct.enabled?
-          return unless LogStruct.configuration.rack_middleware_enabled
+          return unless LogStruct.config.rack_middleware_enabled
 
           # Add structured logging middleware for security violations and errors
           # Need to insert after ShowExceptions to catch IP spoofing errors

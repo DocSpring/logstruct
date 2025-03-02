@@ -15,7 +15,7 @@ module LogStruct
   module Integrations
     sig { void }
     def self.setup_integrations
-      config = LogStruct.configuration
+      config = LogStruct.config
 
       Integrations::Lograge.setup if config.lograge_enabled
       Integrations::ActionMailer.setup if config.actionmailer_integration_enabled

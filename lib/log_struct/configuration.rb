@@ -112,6 +112,7 @@ module LogStruct
       # This is used in a few cases where it makes sense to report an exception
       # while allowing the code to continue without crashing. This is especially important for
       # logging-related errors where we need to print valid JSON even if something goes wrong.
+      # e.g. a crash or infinite loop while filtering and scrubbing log data.
       @report_exception_handler = T.let(lambda { |error, context|
         exception_data = LogStruct::Log::Exception.from_exception(
           LogStruct::LogSource::App,

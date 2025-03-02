@@ -11,7 +11,7 @@ module LogStruct
         # Set up host authorization logging
         def setup
           return unless LogStruct.enabled?
-          return unless LogStruct.configuration.host_authorization_enabled
+          return unless LogStruct.config.host_authorization_enabled
 
           # Define the response app as a separate variable to fix block alignment
           response_app = lambda do |env|

@@ -17,7 +17,7 @@ module LogStruct
       sig { params(msg: String).returns(String) }
       def scrub(msg)
         msg = msg.to_s.dup
-        config = LogStruct.configuration
+        config = LogStruct.config
 
         # URLs with passwords
         msg.gsub!(%r{((?://|%2F%2F)[^:]+:)[^@/]+@}, '\1[FILTERED]@') if config.filter_url_passwords

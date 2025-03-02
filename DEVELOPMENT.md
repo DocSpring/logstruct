@@ -125,7 +125,6 @@ module LogStruct::Integrations::ActionMailer::ErrorHandling
 
   # Instance methods available to including classes
   def log_and_ignore_exception; end
-  def log_and_notify_error; end
   def log_and_report_exception; end
   def log_and_reraise_exception; end
 

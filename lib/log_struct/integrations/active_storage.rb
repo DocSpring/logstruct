@@ -17,7 +17,7 @@ module LogStruct
         def setup
           return unless defined?(::ActiveStorage)
           return unless LogStruct.enabled?
-          return unless LogStruct.configuration.active_storage_integration_enabled
+          return unless LogStruct.config.active_storage_integration_enabled
 
           # Subscribe to ActiveStorage service events
           ActiveSupport::Notifications.subscribe(/service/) do |event|
@@ -31,7 +31,7 @@ module LogStruct
         sig { params(event: ActiveSupport::Notifications::Event).void }
         def process_active_storage_event(event)
           return unless LogStruct.enabled?
-          return unless LogStruct.configuration.active_storage_integration_enabled
+          return unless LogStruct.config.active_storage_integration_enabled
 
           # Extract event data
           event_name = event.name.to_s

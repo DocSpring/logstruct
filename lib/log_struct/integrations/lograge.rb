@@ -97,7 +97,7 @@ module LogStruct
 
         # Apply custom options from the application's configuration
         def apply_custom_options(event, options)
-          custom_options_proc = LogStruct.configuration.lograge_custom_options
+          custom_options_proc = LogStruct.config.lograge_custom_options
           return unless custom_options_proc&.respond_to?(:call)
 
           # Call the proc with the event and options
