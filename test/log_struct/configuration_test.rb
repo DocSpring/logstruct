@@ -4,7 +4,7 @@
 require "test_helper"
 
 module LogStruct
-  class ConfigurationTest < Minitest::Test
+  class ConfigurationTest < ActiveSupport::TestCase
     def setup
       @config = Configuration.new
     end
@@ -32,8 +32,8 @@ module LogStruct
       assert_not @config.filter_macs
 
       # Test default values for other settings
-      assert_equal "l0g5t0p", @config.email_hash_salt
-      assert_equal 12, @config.email_hash_length
+      assert_equal "l0g5t0p", @config.hash_salt
+      assert_equal 12, @config.hash_length
       assert_nil @config.lograge_custom_options
       assert_nil @config.string_scrubbing_handler
     end
@@ -112,13 +112,13 @@ module LogStruct
 
     def test_email_hash_settings
       # Test changing email hash settings
-      @config.email_hash_salt = "custom_salt"
+      @config.hash_salt = "custom_salt"
 
-      assert_equal "custom_salt", @config.email_hash_salt
+      assert_equal "custom_salt", @config.hash_salt
 
-      @config.email_hash_length = 8
+      @config.hash_length = 16
 
-      assert_equal 8, @config.email_hash_length
+      assert_equal 16, @config.hash_length
     end
   end
 end

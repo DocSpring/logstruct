@@ -4,7 +4,7 @@
 require "test_helper"
 
 module LogStruct
-  class MultiErrorReporterTest < Minitest::Test
+  class MultiErrorReporterTest < ActiveSupport::TestCase
     def setup
       # Create a test exception and context
       @exception = StandardError.new("Test error")

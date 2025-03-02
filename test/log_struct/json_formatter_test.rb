@@ -4,7 +4,7 @@
 require "test_helper"
 
 module LogStruct
-  class JSONFormatterTest < Minitest::Test
+  class JSONFormatterTest < ActiveSupport::TestCase
     def setup
       @formatter = JSONFormatter.new
       @severity = "INFO"

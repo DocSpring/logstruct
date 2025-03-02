@@ -15,11 +15,12 @@ end
 require "minitest/autorun"
 require "minitest/reporters"
 
-# Use pretty reporters for better output
+# Use pretty reporters with minimal output
 Minitest::Reporters.use! [
   Minitest::Reporters::DefaultReporter.new(
     color: true,
-    detailed_skip: false
+    detailed_skip: false,
+    verbose: false
   )
 ]
 
@@ -44,7 +45,7 @@ class TestApp < Rails::Application
 
   config.eager_load = false
   config.logger = T.let(
-    Logger.new($stdout).tap { |logger| logger.level = Logger::FATAL },
+    Logger.new(Rails.root.join("log/test.log").to_s).tap { |logger| logger.level = Logger::DEBUG },
     Logger
   )
 

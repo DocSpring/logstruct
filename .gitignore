@@ -10,6 +10,7 @@
 *.gem
 /node_modules/
 /plans/
+/log/
 
 # rspec failure tracking
 .rspec_status
