@@ -5,23 +5,31 @@ require "spec_helper"
 require "rspec"
 require "rspec/sorbet/types"
 
-RSpec.describe "Sorbet Type Signatures" do
+RSpec.describe "Sorbet Types" do
+  T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes))
   extend RSpec::Sorbet::Types::Sig
 
   rsig { returns(T::Boolean) }
   let(:enabled) { true }
-  # rsig { returns(T::Boolean) }
+
+  rsig { returns(T::Boolean) }
   let(:lograge_enabled) { true }
-  # rsig { returns(String) }
+
+  rsig { returns(String) }
   let(:logstop_email_salt) { "test_salt" }
-  # rsig { returns(T::Boolean) }
+
+  rsig { returns(T::Boolean) }
   let(:filter_emails) { true }
-  # rsig { returns(T::Boolean) }
+
+  rsig { returns(T::Boolean) }
   let(:filter_credit_cards) { true }
+
+  it "passes typechecking for the enabled variable" do
+    expect(enabled).to be true
+  end
 
   describe "Configuration with Sorbet type signatures" do
     it "configures the gem with type-checked methods" do
-      # Configure the gem directly using our let variables
       RailsStructuredLogging.configure do |config|
         config.enabled = enabled
         config.lograge_enabled = lograge_enabled
@@ -42,6 +50,7 @@ RSpec.describe "Sorbet Type Signatures" do
   end
 
   describe "LogstopFork with Sorbet type signatures" do
+    T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes::LogstopForkWithSorbetTypeSignatures))
     rsig { returns(String) }
     let(:email) { "test@example.com" }
 
@@ -55,12 +64,15 @@ RSpec.describe "Sorbet Type Signatures" do
   end
 
   describe "LogFormatter with Sorbet type signatures" do
-    # rsig { returns(String) }
-    let(:test_message) { "Test message" }
-    # rsig { returns(Time) }
-    let(:test_time) { Time.now }
-    # rsig { returns(RailsStructuredLogging::LogFormatter) }
+    T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes::LogFormatterWithSorbetTypeSignatures))
 
+    rsig { returns(String) }
+    let(:test_message) { "Test message" }
+
+    rsig { returns(Time) }
+    let(:test_time) { Time.now }
+
+    rsig { returns(RailsStructuredLogging::LogFormatter) }
     let(:formatter) { RailsStructuredLogging::LogFormatter.new }
 
     it "formats log messages" do

@@ -40,6 +40,7 @@ gem "sidekiq", "~> 7.2", require: false
 
 group :development, :test do
   gem "debug"
+  gem "listen", require: false
   gem "rspec"
   gem "rspec-sorbet-types"
   gem "solargraph", require: false

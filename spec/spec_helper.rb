@@ -3,6 +3,8 @@
 
 require "rspec"
 require "rspec/sorbet/types"
+
+require "sorbet-runtime"
 require "json"
 require "ostruct"
 require "debug"
@@ -29,6 +31,7 @@ RSpec.configure do |config|
 
   # Reset RailsStructuredLogging configuration before each test
   config.before do
+    T.bind(self, RSpec::Core::ExampleGroup)
     RailsStructuredLogging.configuration = RailsStructuredLogging::Configuration.new
 
     # Mock Rails.logger

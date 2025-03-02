@@ -13,8 +13,10 @@ AllCops:
     - node_modules/**/*
     - public/**/*
     - vendor/**/*
-    - sorbet/**/*
     - tmp/**/*
+    - sorbet/dsl/**/*
+    - sorbet/gems/**/*
+    - sorbet/annotations/**/*
   SuggestExtensions:
     rubocop-rails: false
 
@@ -26,6 +28,9 @@ Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
 
 RSpec/BeforeAfterAll:
+  Enabled: false
+# We use rsig defs for each let
+RSpec/ScatteredLet:
   Enabled: false
 RSpec/MultipleExpectations:
   Enabled: false
@@ -47,3 +52,12 @@ RSpec/StubbedMock:
 Performance/OpenStruct:
   Exclude:
     - spec/**/*
+
+# Sorbet RBI Rules
+# ----------------------------------
+Style/SingleLineMethods:
+  Exclude:
+    - sorbet/**/*
+Style/EmptyMethod:
+  Exclude:
+    - sorbet/**/*

@@ -1,8 +1,6 @@
 # typed: true
 
 module RailsStructuredLogging::ActionMailer::ErrorHandling
-  extend T::Helpers
-
   # Tell Sorbet that we are including this module into ActionMailer::Base
   # and we have the rescue_from class methods available
   requires_ancestor { ::ActionMailer::Base }
