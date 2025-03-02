@@ -62,6 +62,7 @@ And you always need to check for any third-party gems that are not part of Rails
 - **NEVER use `T.unsafe` calls**. Instead, properly type your code or use appropriate type assertions with `T.let` or `T.cast` when absolutely necessary.
 - `T.untyped` is generally ok for Hash values when they come from unknown sources.
 - When dealing with external libraries, create proper type signatures or use extension methods rather than resorting to `T.unsafe`.
+- **NEVER use `class.name`** anywhere - this is a Sorbet quirk that hides the `name` method from all base classes. Prefer just using Classes themselves as the type. `"#{class}"` will automatically call `.to_s`. Similarly, `to_json` will automatically call `.to_s` - but you can call `.to_s` manually if you really need it.
 
 ### Testing
 

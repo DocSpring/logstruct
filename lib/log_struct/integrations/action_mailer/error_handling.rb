@@ -111,8 +111,7 @@ module LogStruct
           notification_data = Log::Error.new(
             src: LogSource::Mailer,
             evt: LogEvent::Notification,
-            msg: "Email delivery error: #{error.message}",
-            err_class: error.class,
+            err_class: "#{error.class}",
             err_msg: error.message,
             backtrace: error.backtrace,
             data: {
