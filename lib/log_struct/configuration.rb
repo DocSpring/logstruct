@@ -31,6 +31,16 @@ module LogStruct
     sig { returns(ErrorNotificationCallbackType) }
     attr_accessor :email_error_notification_callback
 
+    # New configuration options for exception reporting and notifications
+    ReportExceptionProcType = T.type_alias {
+      T.proc.params(
+        error: StandardError,
+        context: T::Hash[Symbol, T.untyped]
+      ).void
+    }
+    sig { returns(ReportExceptionProcType) }
+    attr_accessor :report_exception_handler
+
     # Integration flags
     sig { returns(T::Boolean) }
     attr_accessor :actionmailer_integration_enabled
@@ -98,6 +108,21 @@ module LogStruct
         )
       },
         ErrorNotificationCallbackType)
+
+      # This is used in a few cases where it makes sense to report an exception
+      # while allowing the code to continue without crashing. This is especially important for
+      # logging-related errors where we need to print valid JSON even if something goes wrong.
+      @report_exception_handler = T.let(lambda { |error, context|
+        exception_data = LogStruct::Log::Exception.from_exception(
+          LogStruct::LogSource::App,
+          LogStruct::LogEvent::Error,
+          error,
+          context
+        )
+        # Log using the structured format
+        ::Rails.logger.error(exception_data)
+      },
+        ReportExceptionProcType)
 
       @actionmailer_integration_enabled = T.let(true, T::Boolean) # Enable ActionMailer integration by default
       @host_authorization_enabled = T.let(true, T::Boolean) # Enable host authorization logging by default

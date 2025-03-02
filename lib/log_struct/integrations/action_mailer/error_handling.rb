@@ -1,12 +1,6 @@
 # typed: true
 # frozen_string_literal: true
 
-begin
-  require "postmark"
-rescue LoadError
-  # postmark gem is not available, error handling will be skipped
-end
-
 module LogStruct
   module Integrations
     module ActionMailer
@@ -14,48 +8,32 @@ module LogStruct
       module ErrorHandling
         extend ActiveSupport::Concern
 
+        # NOTE: rescue_from handlers are checked in reverse order.
+        # If you add any custom handlers to your own ApplicationMailer,
+        # they will be checked first. (Put the most specific error classes at the end.)
+
         included do
-          # NOTE: rescue_from handlers are checked in reverse order.
-          # The handler that was defined last is checked first, so put
-          # more specific handlers at the end.
-          # -------------------------------------------------------------
-          # Log and report to error reporting service by default. These errors are retried.
-          rescue_from StandardError, with: :log_and_reraise_error
-
-          if defined?(::Postmark)
-            rescue_from Postmark::Error, with: :log_and_reraise_error
-
-            # Errors that should be sent as a notification but not an error report (no retry)
-            rescue_from Postmark::InactiveRecipientError, with: :log_and_notify_error
-            rescue_from Postmark::InvalidEmailRequestError, with: :log_and_notify_error
-          end
+          # Log and reraise by default. These errors are retried.
+          rescue_from StandardError, with: :log_and_reraise_exception
         end
 
         protected
 
-        # Error handling methods with different behaviors:
-        # - log_and_ignore_error: Just logs the error without reporting or retrying
-        # - log_and_notify_error: Logs and sends a notification, but doesn't report to error service or reraise
-        # - log_and_report_error: Logs and reports to error service, but doesn't reraise
-        # - log_and_reraise_error: Logs, reports to error service, and reraises for retry
-
+        # Just log the error without reporting or retrying
         sig { params(ex: StandardError).void }
-        def log_and_ignore_error(ex)
+        def log_and_ignore_exception(ex)
           log_email_delivery_error(ex, notify: false, report: false, reraise: false)
         end
 
+        # Log and report to error service, but doesn't reraise.
         sig { params(ex: StandardError).void }
-        def log_and_notify_error(ex)
-          log_email_delivery_error(ex, notify: true, report: false, reraise: false)
-        end
-
-        sig { params(ex: StandardError).void }
-        def log_and_report_error(ex)
+        def log_and_report_exception(ex)
           log_email_delivery_error(ex, notify: false, report: true, reraise: false)
         end
 
+        # Log, report to error service, and reraise for retry
         sig { params(ex: StandardError).void }
-        def log_and_reraise_error(ex)
+        def log_and_reraise_exception(ex)
           log_email_delivery_error(ex, notify: false, report: true, reraise: true)
         end
 
@@ -97,7 +75,20 @@ module LogStruct
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }
-            MultiErrorReporter.report_exception(error, context)
+
+            # Create an exception log for structured logging
+            exception_data = Log::Exception.from_exception(
+              LogSource::Mailer,
+              LogEvent::Error,
+              error,
+              context
+            )
+
+            # Log the exception with structured data
+            Rails.logger.error(exception_data)
+
+            # Call the report_exception proc
+            LogStruct.config.report_exception.call(error, context)
           end
 
           # Re-raise the error if requested
@@ -108,21 +99,19 @@ module LogStruct
         sig { params(error: StandardError).void }
         def log_notification_event(error)
           # Create an error log data object
-          notification_data = Log::Error.new(
-            src: LogSource::Mailer,
-            evt: LogEvent::Notification,
-            err_class: "#{error.class}",
-            err_msg: error.message,
-            backtrace: error.backtrace,
-            data: {
+          exception_data = Log::Exception.from_exception(
+            LogSource::Mailer,
+            LogEvent::Error,
+            error,
+            {
               mailer: self.class,
               action: action_name,
               recipients: recipients(error)
             }
           )
 
-          # Log at info level since this is a notification, not an error
-          Rails.logger.info(notification_data)
+          # Log the error at info level since it's not a critical error
+          Rails.logger.info(exception_data)
         end
 
         sig { params(error: StandardError).returns(String) }

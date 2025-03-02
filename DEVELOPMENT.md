@@ -124,10 +124,10 @@ module LogStruct::Integrations::ActionMailer::ErrorHandling
   requires_ancestor { ActionMailer::Base }
 
   # Instance methods available to including classes
-  def log_and_ignore_error; end
+  def log_and_ignore_exception; end
   def log_and_notify_error; end
-  def log_and_report_error; end
-  def log_and_reraise_error; end
+  def log_and_report_exception; end
+  def log_and_reraise_exception; end
 
   # For class methods added via extend
   module ClassMethods
