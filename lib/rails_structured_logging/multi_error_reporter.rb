@@ -72,7 +72,7 @@ module RailsStructuredLogging
         ::Sentry.capture_exception(exception, extra: context)
       rescue => e
         # If Sentry fails, fall back to basic logging
-        fallback_logging(e, {original_exception: exception.class.name})
+        fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
       # Report to Bugsnag
@@ -85,7 +85,7 @@ module RailsStructuredLogging
         end
       rescue => e
         # If Bugsnag fails, fall back to basic logging
-        fallback_logging(e, {original_exception: exception.class.name})
+        fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
       # Report to Rollbar
@@ -96,7 +96,7 @@ module RailsStructuredLogging
         ::Rollbar.error(exception, context)
       rescue => e
         # If Rollbar fails, fall back to basic logging
-        fallback_logging(e, {original_exception: exception.class.name})
+        fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
       # Report to Honeybadger
@@ -107,7 +107,7 @@ module RailsStructuredLogging
         ::Honeybadger.notify(exception, context: context)
       rescue => e
         # If Honeybadger fails, fall back to basic logging
-        fallback_logging(e, {original_exception: exception.class.name})
+        fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
       # Fallback logging when no error reporting services are available
@@ -120,7 +120,7 @@ module RailsStructuredLogging
         log_data = {
           src: "rails",
           evt: "error",
-          error_class: exception.class.name,
+          error_class: exception.class.to_s,
           error_message: exception.message,
           backtrace: exception.backtrace&.take(20)
         }

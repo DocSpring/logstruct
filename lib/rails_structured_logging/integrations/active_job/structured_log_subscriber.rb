@@ -41,7 +41,7 @@ module RailsStructuredLogging
             ts: Time.current.iso8601(3),
             pid: Process.pid,
             job_id: job.job_id,
-            job_class: job.class.name,
+            job_class: job.class.to_s,
             queue_name: job.queue_name,
             executions: job.executions
           }
@@ -58,7 +58,7 @@ module RailsStructuredLogging
           # Add exception details if present
           if additional_data[:exception]
             exception = additional_data[:exception]
-            log_data[:error_class] = exception.class.name
+            log_data[:error_class] = exception.class.to_s
             log_data[:error_message] = exception.message
             log_data[:backtrace] = exception.backtrace&.first(5)
           end

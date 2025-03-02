@@ -121,7 +121,7 @@ begin
 rescue => e
   Rails.logger.error "Error during user login: #{e.message}"
   Rails.logger.error({
-    error: e.class.name,
+    error: e.class.to_s,
     message: e.message,
     backtrace: e.backtrace.first(5),
     user_id: user&.id

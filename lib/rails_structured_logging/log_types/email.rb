@@ -95,7 +95,7 @@ module RailsStructuredLogging
         evt: event_type,
         msg: message,
         message_id: T.unsafe(mailer).respond_to?(:message) ? T.unsafe(mailer).message&.message_id : nil,
-        mailer_class: T.unsafe(mailer).class.name,
+        mailer_class: T.unsafe(mailer).class.to_s,
         mailer_action: T.unsafe(mailer).respond_to?(:action_name) ? T.unsafe(mailer).action_name : nil,
         to: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.to).join(", ") : nil,
         cc: T.unsafe(mailer).respond_to?(:message) ? Array(T.unsafe(mailer).message&.cc).join(", ") : nil,

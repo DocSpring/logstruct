@@ -103,7 +103,7 @@ module RailsStructuredLogging
       if payload.dig(:options, :record).present?
         record = payload[:options][:record]
         record_id = record.respond_to?(:id) ? record.id : nil
-        record_class = record.class.name
+        record_class = record.class.to_s
       end
 
       # Create Shrine log data

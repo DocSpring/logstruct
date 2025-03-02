@@ -57,7 +57,7 @@ module RailsStructuredLogging
         when Array
           summarize_array(data)
         else
-          {_class: data.class.name}
+          {_class: data.class.to_s}
         end
       end
 

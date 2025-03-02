@@ -73,7 +73,7 @@ module RailsStructuredLogging
           arg.to_global_id.to_s
         rescue
           begin
-            "#{arg.class.name}(##{arg.id})"
+            "#{arg.class}(##{arg.id})"
           rescue => e
             MultiErrorReporter.report_exception(e)
             "[GlobalID Error]"

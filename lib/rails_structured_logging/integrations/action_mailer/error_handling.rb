@@ -93,7 +93,7 @@ module RailsStructuredLogging
           # Report to error reporting service if requested
           if report
             context = {
-              mailer_class: self.class.name,
+              mailer_class: self.class.to_s,
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }

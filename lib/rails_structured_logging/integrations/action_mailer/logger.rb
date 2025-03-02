@@ -17,7 +17,7 @@ module RailsStructuredLogging
             evt: event_type,
             ts: Time.current.iso8601(3),
             message_id: extract_message_id(mailer),
-            mailer_class: mailer.class.name,
+            mailer_class: mailer.class.to_s,
             mailer_action: mailer.respond_to?(:action_name) ? mailer.action_name : nil
           }
 
