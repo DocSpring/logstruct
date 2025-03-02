@@ -7,6 +7,7 @@ module RailsStructuredLogging
     class EventType < T::Enum
       enums do
         # General event types
+        Request = new(:request)
         SecurityViolation = new(:security_violation)
         RequestError = new(:request_error)
         JobExecution = new(:job_execution)

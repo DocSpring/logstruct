@@ -11,6 +11,8 @@ module RailsStructuredLogging
   # - Added configuration options to control what gets filtered
   module LogstopFork
     class << self
+      EMAIL_HASH_LENGTH = 12
+
       # Scrub sensitive information from a string
       # @param msg [String] The message to scrub
       # @param scrubber [Proc] A custom scrubber to apply
@@ -25,8 +27,8 @@ module RailsStructuredLogging
         # emails
         if config.filter_emails
           msg.gsub!(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i) do |match|
-            email_hash = Digest::SHA256.hexdigest("#{match}#{email_salt}")
-            "[EMAIL:#{email_hash[0..7]}]"
+            email_hash = Digest::SHA256.hexdigest("#{match}#{config.logstop_email_salt}")
+            "[EMAIL:#{email_hash[0..EMAIL_HASH_LENGTH]}]"
           end
         end
 
@@ -52,13 +54,6 @@ module RailsStructuredLogging
         msg = scrubber.call(msg) if scrubber
 
         msg
-      end
-
-      attr_writer :email_salt
-      # Get or set the email salt used for hashing emails
-      # @return [String] The email salt
-      def email_salt
-        @email_salt ||= "l0g5t0p"
       end
     end
   end

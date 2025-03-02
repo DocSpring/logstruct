@@ -1,9 +1,8 @@
 # typed: true
 # frozen_string_literal: true
 
-require "sorbet-runtime"
-
 # Core files
+require "rails_structured_logging/sorbet"
 require "rails_structured_logging/version"
 require "rails_structured_logging/enums"
 require "rails_structured_logging/log_types"
@@ -39,26 +38,6 @@ module RailsStructuredLogging
     def configure
       self.configuration ||= Configuration.new
       yield(configuration) if block_given?
-
-      # Configure Logstop email salt
-      LogstopFork.email_salt = configuration.logstop_email_salt
-    end
-
-    sig { void }
-    def initialize
-      # Set up the Rails logger formatter
-      ::Rails.logger.formatter = LogFormatter.new
-
-      # Set up the integrations
-      RailsStructuredLogging::Lograge.setup if configuration.lograge_enabled
-      RailsStructuredLogging::ActionMailer.setup if configuration.actionmailer_integration_enabled
-      RailsStructuredLogging::ActiveJob.setup if configuration.activejob_integration_enabled
-      RailsStructuredLogging::HostAuthorizationResponseApp.setup if configuration.host_authorization_enabled
-      if configuration.rack_middleware_enabled
-        RailsStructuredLogging::Rack.setup(::Rails.application)
-      end
-      RailsStructuredLogging::Sidekiq.setup if configuration.sidekiq_integration_enabled
-      RailsStructuredLogging::Shrine.setup if configuration.shrine_integration_enabled
     end
 
     sig { returns(T::Boolean) }
