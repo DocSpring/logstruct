@@ -67,6 +67,6 @@ class RSpec::ExampleGroups::LogStructMultiErrorReporter::ReportException::WithDi
 end
 
 module RSpec::ExampleGroups::LogStructMultiErrorReporter::ReportException::WithDisabledReporters::LetDefinitions
-  sig { returns(T.nilable(::LogStruct::Enums::ErrorTracker)) }
+  sig { returns(T.nilable(::LogStruct::ErrorReporter)) }
   def reporter; end
 end

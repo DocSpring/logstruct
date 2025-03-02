@@ -14,7 +14,7 @@ module LogStruct
       # Common fields
       const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Job, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
-      const :ts, Time, default: T.unsafe(-> { Time.zone.now })
+      const :ts, Time, default: T.unsafe(-> { Time.current })
       const :msg, T.nilable(String), default: nil
 
       # Job-specific fields

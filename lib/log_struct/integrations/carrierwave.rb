@@ -27,27 +27,27 @@ module LogStruct
       # Methods to add logging to CarrierWave operations
       module LoggingMethods
         def store!(file = nil)
-          start_time = Time.zone.now
+          start_time = Time.current
           result = super
-          duration = (Time.zone.now - start_time) * 1000 # Convert to milliseconds
+          duration = (Time.current - start_time) * 1000 # Convert to milliseconds
 
           log_operation("store", file, duration)
           result
         end
 
         def retrieve_from_store!(identifier)
-          start_time = Time.zone.now
+          start_time = Time.current
           result = super
-          duration = (Time.zone.now - start_time) * 1000 # Convert to milliseconds
+          duration = (Time.current - start_time) * 1000 # Convert to milliseconds
 
           log_operation("retrieve", {identifier: identifier}, duration)
           result
         end
 
         def remove!
-          start_time = Time.zone.now
+          start_time = Time.current
           result = super
-          duration = (Time.zone.now - start_time) * 1000 # Convert to milliseconds
+          duration = (Time.current - start_time) * 1000 # Convert to milliseconds
 
           log_operation("remove", {identifier: identifier}, duration)
           result

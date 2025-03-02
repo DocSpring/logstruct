@@ -14,7 +14,7 @@ module LogStruct
       # Common fields
       const :src, LogStruct::LogSource # Used by all sources, should not have a default.
       const :evt, LogStruct::LogEvent
-      const :ts, Time, default: T.unsafe(-> { Time.zone.now })
+      const :ts, Time, default: T.unsafe(-> { Time.current })
       const :msg, T.nilable(String), default: nil
 
       # Error-specific fields
