@@ -9,6 +9,8 @@ require_relative "log_source"
 require_relative "log_event"
 require_relative "logstop_fork"
 require_relative "log_entries"
+require_relative "param_filters"
+require_relative "multi_error_reporter"
 
 module LogStruct
   # Formatter for structured logging that outputs logs as JSON

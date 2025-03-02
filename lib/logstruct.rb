@@ -5,12 +5,7 @@
 require "log_struct/sorbet"
 require "log_struct/version"
 require "log_struct/configuration"
-
-require "log_struct/enums"
-require "log_struct/log_types"
 require "log_struct/log_formatter"
-require "log_struct/multi_error_reporter"
-require "log_struct/param_filters"
 require "log_struct/railtie"
 
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to support hash input/output
