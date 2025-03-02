@@ -3,6 +3,7 @@ Bugsnag
 Honeybadger
 Logstop
 metaprogramming
+nilable
 progname
 railtie
 rdoc

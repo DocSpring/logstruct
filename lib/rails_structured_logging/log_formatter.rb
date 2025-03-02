@@ -5,11 +5,15 @@ require "logger"
 require "active_support/core_ext/object/blank"
 require "json"
 require "globalid"
+require_relative "log_source"
+require_relative "log_event"
 
 module RailsStructuredLogging
   # Formatter for structured logging that outputs logs as JSON
   # This is a port of the existing JSONLogFormatter with some improvements
   class LogFormatter < Logger::Formatter
+    extend T::Sig
+
     # Format ActiveJob arguments safely, similar to how Rails does it internally
     # Also scrubs sensitive information using LogstopFork
     LogValueType = T.type_alias {
@@ -21,18 +25,10 @@ module RailsStructuredLogging
         String,
         Integer,
         Float,
-        Symbol
+        Symbol,
+        RailsStructuredLogging::LogSource,
+        RailsStructuredLogging::LogEvent
       )
-    }
-
-    LogHashType = T.type_alias {
-      T::Hash[Symbol, T.any(
-        T::Boolean,
-        T::Hash[T.untyped, T.untyped],
-        T::Array[T.untyped],
-        GlobalID::Identification,
-        String,
-      {symbol1: Type1, symbol2: Type2}
     }
 
     # Can call Rails.logger.info with either a structured hash or a plain string
@@ -50,7 +46,7 @@ module RailsStructuredLogging
     end
 
     # Add tagged method to support ActiveSupport::TaggedLogging
-    sig { params(tags: T::Array[String]).returns(LogFormatter) }
+    sig { params(tags: T::Array[String]).returns(T.untyped) }
     def tagged(*tags)
       new_tags = tags.flatten
       current_tags.concat(new_tags) if new_tags.any?
@@ -71,7 +67,7 @@ module RailsStructuredLogging
       RailsStructuredLogging::LogstopFork.scrub(string)
     end
 
-    sig { params(arg: LogValueType, recursion_depth: Integer).returns(LogValueType) }
+    sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
     def format_values(arg, recursion_depth: 0)
       # Prevent infinite recursion in case any args have circular references
       # or are too deeply nested. Just return args.
@@ -118,6 +114,8 @@ module RailsStructuredLogging
             "[GLOBALID_ERROR]"
           end
         end
+      when RailsStructuredLogging::LogSource, RailsStructuredLogging::LogEvent
+        arg.serialize
       when String
         scrub_string(arg)
       else
@@ -128,10 +126,10 @@ module RailsStructuredLogging
       arg
     end
 
-    sig { params(severity: String, time: Time, progname: String, msg: LogValueType).returns(String) }
+    sig { params(severity: String, time: Time, progname: String, log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
       # Use standardized field names
-      data = T.let(msg.is_a?(Hash) ? msg.dup : {msg: msg.to_s}, LogValueType)
+      data = log_value.is_a?(Hash) ? log_value.dup : {msg: log_value.to_s}
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = format_values(data)
