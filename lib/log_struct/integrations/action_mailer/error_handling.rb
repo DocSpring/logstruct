@@ -97,7 +97,7 @@ module LogStruct
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }
-            LogStruct::MultiErrorReporter.report_exception(error, context)
+            MultiErrorReporter.report_exception(error, context)
           end
 
           # Re-raise the error if requested
@@ -108,7 +108,7 @@ module LogStruct
         sig { params(error: StandardError).void }
         def log_notification_event(error)
           # Create an error log data object
-          notification_data = LogStruct::Log::Error.new(
+          notification_data = Log::Error.new(
             src: LogSource::Mailer,
             evt: LogEvent::Notification,
             msg: "Email delivery error: #{error.message}",

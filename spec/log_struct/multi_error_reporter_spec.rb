@@ -16,7 +16,7 @@ module LogStruct
 
     before do
       # Reset the error reporter before each test
-      LogStruct::MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
+      MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
 
       # Stub stdout to capture output
       allow($stdout).to receive(:puts)
@@ -45,12 +45,12 @@ module LogStruct
 
           it "reports the exception to Sentry" do
             expect(Sentry).to receive(:capture_exception).with(exception, extra: context)
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
+            MultiErrorReporter.report_exception(exception, context)
           end
 
           it "initializes the reporter to use Sentry" do
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
-            expect(LogStruct::MultiErrorReporter.error_reporter).to eq(
+            MultiErrorReporter.report_exception(exception, context)
+            expect(MultiErrorReporter.error_reporter).to eq(
               ErrorReporter::Sentry
             )
           end
@@ -62,7 +62,7 @@ module LogStruct
 
             it "falls back to stdout logging" do
               expect($stdout).to receive(:puts).with(kind_of(String))
-              LogStruct::MultiErrorReporter.report_exception(exception, context)
+              MultiErrorReporter.report_exception(exception, context)
             end
           end
         end
@@ -83,12 +83,12 @@ module LogStruct
           it "reports the exception to Bugsnag" do
             expect(Bugsnag).to receive(:notify).with(exception)
             expect(report).to receive(:add_metadata).with(:context, context)
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
+            MultiErrorReporter.report_exception(exception, context)
           end
 
           it "initializes the reporter to use Bugsnag" do
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
-            expect(LogStruct::MultiErrorReporter.error_reporter).to eq(
+            MultiErrorReporter.report_exception(exception, context)
+            expect(MultiErrorReporter.error_reporter).to eq(
               ErrorReporter::Bugsnag
             )
           end
@@ -103,12 +103,12 @@ module LogStruct
 
           it "reports the exception to Rollbar" do
             expect(Rollbar).to receive(:error).with(exception, context)
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
+            MultiErrorReporter.report_exception(exception, context)
           end
 
           it "initializes the reporter to use Rollbar" do
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
-            expect(LogStruct::MultiErrorReporter.error_reporter).to eq(
+            MultiErrorReporter.report_exception(exception, context)
+            expect(MultiErrorReporter.error_reporter).to eq(
               ErrorReporter::Rollbar
             )
           end
@@ -123,12 +123,12 @@ module LogStruct
 
           it "reports the exception to Honeybadger" do
             expect(Honeybadger).to receive(:notify).with(exception, context: context)
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
+            MultiErrorReporter.report_exception(exception, context)
           end
 
           it "initializes the reporter to use Honeybadger" do
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
-            expect(LogStruct::MultiErrorReporter.error_reporter).to eq(
+            MultiErrorReporter.report_exception(exception, context)
+            expect(MultiErrorReporter.error_reporter).to eq(
               ErrorReporter::Honeybadger
             )
           end
@@ -143,7 +143,7 @@ module LogStruct
               json_output = output
             end
 
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
+            MultiErrorReporter.report_exception(exception, context)
 
             parsed_output = JSON.parse(json_output || "", symbolize_names: true)
             expect(parsed_output[:src]).to eq("rails")
@@ -154,8 +154,8 @@ module LogStruct
           end
 
           it "initializes the reporter to use fallback" do
-            LogStruct::MultiErrorReporter.report_exception(exception, context)
-            expect(LogStruct::MultiErrorReporter.error_reporter).to eq(:fallback)
+            MultiErrorReporter.report_exception(exception, context)
+            expect(MultiErrorReporter.error_reporter).to eq(:fallback)
           end
         end
       end
@@ -174,7 +174,7 @@ module LogStruct
           expect(Rollbar).not_to receive(:error)
           expect(Honeybadger).not_to receive(:notify)
 
-          LogStruct::MultiErrorReporter.report_exception(exception, context)
+          MultiErrorReporter.report_exception(exception, context)
         end
       end
     end

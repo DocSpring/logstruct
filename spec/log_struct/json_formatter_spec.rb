@@ -5,7 +5,7 @@ require "spec_helper"
 
 module LogStruct
   RSpec.describe JSONFormatter do
-    subject(:formatter) { LogStruct::JSONFormatter.new }
+    subject(:formatter) { JSONFormatter.new }
 
     let(:severity) { "INFO" }
     let(:time) { Time.utc(2023, 1, 1, 12, 0, 0) }
@@ -37,11 +37,11 @@ module LogStruct
 
         it "applies LogstopFork scrubbing to the message" do
           # Use real LogstopFork scrubbing
-          allow(LogStruct::LogstopFork).to receive(:scrub).and_call_original
+          allow(LogstopFork).to receive(:scrub).and_call_original
           email_message = "Email: user@example.com"
           result = JSON.parse(formatter.call(severity, time, progname, email_message))
           expect(result["msg"]).not_to include("user@example.com")
-          expect(LogStruct::LogstopFork).to have_received(:scrub).at_least(:once)
+          expect(LogstopFork).to have_received(:scrub).at_least(:once)
         end
       end
 
@@ -71,11 +71,11 @@ module LogStruct
         end
 
         it "applies LogstopFork scrubbing to string message fields" do
-          allow(LogStruct::LogstopFork).to receive(:scrub).and_call_original
+          allow(LogstopFork).to receive(:scrub).and_call_original
           email_message = {msg: "Email: user@example.com"}
           result = JSON.parse(formatter.call(severity, time, progname, email_message))
           expect(result["msg"]).not_to include("user@example.com")
-          expect(LogStruct::LogstopFork).to have_received(:scrub).at_least(:once)
+          expect(LogstopFork).to have_received(:scrub).at_least(:once)
         end
       end
 
@@ -118,7 +118,7 @@ module LogStruct
 
           # The second error is what triggers MultiErrorReporter
           allow(broken_user).to receive(:id).and_raise(StandardError.new("Can't get ID"))
-          allow(LogStruct::MultiErrorReporter).to receive(:report_exception)
+          allow(MultiErrorReporter).to receive(:report_exception)
 
           message = {
             src: "active_job",
@@ -127,7 +127,7 @@ module LogStruct
 
           result = JSON.parse(formatter.call(severity, time, progname, message))
           expect(result["arguments"][0]).to eq("[GlobalID Error]")
-          expect(LogStruct::MultiErrorReporter).to have_received(:report_exception)
+          expect(MultiErrorReporter).to have_received(:report_exception)
         end
       end
     end

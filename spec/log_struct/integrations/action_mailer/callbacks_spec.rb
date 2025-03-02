@@ -11,14 +11,14 @@ module LogStruct
     RSpec.describe Callbacks, if: Rails.gem_version < Gem::Version.new("7.1.0") do
       # Apply the patch before running tests
       before(:all) do
-        LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery
+        Integrations::ActionMailer::Callbacks.patch_message_delivery
       end
 
       describe "delivery callbacks" do
         # Define a test mailer class for testing callbacks using Class.new
         let(:test_mailer_class) do
           Class.new do
-            include LogStruct::Integrations::ActionMailer::Callbacks
+            include Integrations::ActionMailer::Callbacks
 
             attr_reader :before_called, :after_called, :around_before_called, :around_after_called
 

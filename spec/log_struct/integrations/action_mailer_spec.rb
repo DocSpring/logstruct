@@ -21,7 +21,7 @@ module LogStruct
           allow(::ActionMailer::Base).to receive(:include)
 
           # For Rails 7.0 callback setup
-          allow(LogStruct::Integrations::ActionMailer).to receive(:setup_callbacks_for_rails_7_0) if Rails.gem_version < Gem::Version.new("7.1.0")
+          allow(Integrations::ActionMailer).to receive(:setup_callbacks_for_rails_7_0) if Rails.gem_version < Gem::Version.new("7.1.0")
         end
 
         it "sets up ActionMailer integration" do
@@ -29,14 +29,14 @@ module LogStruct
           expect(::ActionMailer::Base).to receive(:logger=)
 
           # Expect ::ActionMailer::Base to include our module
-          expect(::ActionMailer::Base).to receive(:include).with(LogStruct::Integrations::ActionMailer)
+          expect(::ActionMailer::Base).to receive(:include).with(Integrations::ActionMailer)
 
           # Expect callbacks to be set up for Rails 7.0 if needed
           if Rails.gem_version < Gem::Version.new("7.1.0")
-            expect(LogStruct::Integrations::ActionMailer).to receive(:setup_callbacks_for_rails_7_0)
+            expect(Integrations::ActionMailer).to receive(:setup_callbacks_for_rails_7_0)
           end
 
-          LogStruct::Integrations::ActionMailer.setup
+          Integrations::ActionMailer.setup
         end
 
         context "when structured logging is disabled" do
@@ -48,7 +48,7 @@ module LogStruct
             expect(::ActionMailer::Base).not_to receive(:logger=)
             expect(::ActionMailer::Base).not_to receive(:include)
 
-            LogStruct::Integrations::ActionMailer.setup
+            Integrations::ActionMailer.setup
           end
         end
 
@@ -63,7 +63,7 @@ module LogStruct
             expect(::ActionMailer::Base).not_to receive(:logger=)
             expect(::ActionMailer::Base).not_to receive(:include)
 
-            LogStruct::Integrations::ActionMailer.setup
+            Integrations::ActionMailer.setup
           end
         end
       end
@@ -77,14 +77,14 @@ module LogStruct
           allow(::ActionMailer::Base).to receive(:include)
 
           # Allow Callbacks module to patch MessageDelivery
-          allow(LogStruct::Integrations::ActionMailer::Callbacks).to receive(:patch_message_delivery)
+          allow(Integrations::ActionMailer::Callbacks).to receive(:patch_message_delivery)
         end
 
         it "includes Callbacks module and patches MessageDelivery" do
-          expect(::ActionMailer::Base).to receive(:include).with(LogStruct::Integrations::ActionMailer::Callbacks)
-          expect(LogStruct::Integrations::ActionMailer::Callbacks).to receive(:patch_message_delivery)
+          expect(::ActionMailer::Base).to receive(:include).with(Integrations::ActionMailer::Callbacks)
+          expect(Integrations::ActionMailer::Callbacks).to receive(:patch_message_delivery)
 
-          LogStruct::Integrations::ActionMailer.send(:setup_callbacks_for_rails_7_0)
+          Integrations::ActionMailer.send(:setup_callbacks_for_rails_7_0)
         end
       end
     end

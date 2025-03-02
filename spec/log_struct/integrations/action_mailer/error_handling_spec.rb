@@ -10,7 +10,7 @@ module LogStruct
       let(:test_mailer_class) do
         Class.new(::ActionMailer::Base) do
           # We need to include the module to test it
-          include LogStruct::Integrations::ActionMailer::ErrorHandling
+          include Integrations::ActionMailer::ErrorHandling
 
           def self.name
             "TestMailer"
@@ -43,9 +43,9 @@ module LogStruct
 
       before do
         # Mock the logger methods
-        allow(LogStruct::Integrations::ActionMailer::Logger).to receive(:log_structured_error)
+        allow(Integrations::ActionMailer::Logger).to receive(:log_structured_error)
         allow(Rails.logger).to receive(:info)
-        allow(LogStruct::MultiErrorReporter).to receive(:report_exception)
+        allow(MultiErrorReporter).to receive(:report_exception)
       end
 
       describe "rescue handlers" do
@@ -120,7 +120,7 @@ module LogStruct
         context "with standard error" do
           it "logs the error and handles notifications" do
             expect(mailer).to receive(:error_message_for).with(standard_error, true).and_call_original
-            expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:log_structured_error)
+            expect(Integrations::ActionMailer::Logger).to receive(:log_structured_error)
             expect(mailer).to receive(:handle_error_notifications).with(standard_error, false, true, true)
 
             mailer.send(:log_email_delivery_error, standard_error)
@@ -160,7 +160,7 @@ module LogStruct
 
         context "when report is true" do
           it "reports to error reporting service" do
-            expect(LogStruct::MultiErrorReporter).to receive(:report_exception).with(
+            expect(MultiErrorReporter).to receive(:report_exception).with(
               standard_error,
               hash_including(
                 mailer_class: "TestMailer",
@@ -182,7 +182,7 @@ module LogStruct
 
       describe "#log_notification_event" do
         it "logs a notification with structured data" do
-          expect(LogStruct::LogTypes).to receive(:create_email_notification_log_data).with(standard_error,
+          expect(LogTypes).to receive(:create_email_notification_log_data).with(standard_error,
             mailer).and_call_original
           expect(Rails.logger).to receive(:info)
 

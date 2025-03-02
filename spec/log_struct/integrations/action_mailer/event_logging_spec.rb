@@ -9,7 +9,7 @@ module LogStruct
       # Create a test mailer class that inherits from ::ActionMailer::Base
       let(:test_mailer_class) do
         Class.new(::ActionMailer::Base) do
-          include LogStruct::Integrations::ActionMailer::EventLogging
+          include Integrations::ActionMailer::EventLogging
 
           def self.name
             "TestMailer"
@@ -38,8 +38,8 @@ module LogStruct
       let(:mailer) { test_mailer_class.new.welcome_email }
 
       before do
-        allow(LogStruct::Integrations::ActionMailer::Logger).to receive(:build_base_log_data).and_return({})
-        allow(LogStruct::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
+        allow(Integrations::ActionMailer::Logger).to receive(:build_base_log_data).and_return({})
+        allow(Integrations::ActionMailer::Logger).to receive(:log_to_rails)
       end
 
       describe "callbacks" do
@@ -70,11 +70,11 @@ module LogStruct
 
       describe "#log_mailer_event" do
         it "logs event with base data" do
-          expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
+          expect(Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
             .with(mailer, "test_event")
             .and_return({base: "data"})
 
-          expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
+          expect(Integrations::ActionMailer::Logger).to receive(:log_to_rails)
             .with({base: "data"}, :info)
 
           result = mailer.send(:log_mailer_event, "test_event")
@@ -82,11 +82,11 @@ module LogStruct
         end
 
         it "merges additional data when provided" do
-          expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
+          expect(Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
             .with(mailer, "test_event")
             .and_return({base: "data"})
 
-          expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
+          expect(Integrations::ActionMailer::Logger).to receive(:log_to_rails)
             .with({base: "data", additional: "value"}, :info)
 
           result = mailer.send(:log_mailer_event, "test_event", :info, {additional: "value"})
@@ -94,11 +94,11 @@ module LogStruct
         end
 
         it "uses the specified log level" do
-          expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
+          expect(Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
             .with(mailer, "test_event")
             .and_return({base: "data"})
 
-          expect(LogStruct::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
+          expect(Integrations::ActionMailer::Logger).to receive(:log_to_rails)
             .with({base: "data"}, :debug)
 
           mailer.send(:log_mailer_event, "test_event", :debug)

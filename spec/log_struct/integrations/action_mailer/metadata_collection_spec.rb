@@ -22,7 +22,7 @@ module LogStruct
 
           it "adds message metadata to log data" do
             log_data = {}
-            LogStruct::Integrations::ActionMailer::MetadataCollection.add_message_metadata(mailer, log_data)
+            MetadataCollection.add_message_metadata(mailer, log_data)
 
             expect(log_data[:recipient_count]).to eq(1)
             expect(log_data[:has_attachments]).to be(true)
@@ -35,7 +35,7 @@ module LogStruct
 
           it "adds default message metadata to log data" do
             log_data = {}
-            LogStruct::Integrations::ActionMailer::MetadataCollection.add_message_metadata(mailer, log_data)
+            MetadataCollection.add_message_metadata(mailer, log_data)
 
             expect(log_data[:recipient_count]).to eq(0)
             expect(log_data[:has_attachments]).to be(false)
@@ -58,7 +58,7 @@ module LogStruct
 
           it "extracts account and user IDs to log data" do
             log_data = {}
-            LogStruct::Integrations::ActionMailer::MetadataCollection.extract_ids_to_log_data(mailer, log_data)
+            MetadataCollection.extract_ids_to_log_data(mailer, log_data)
 
             expect(log_data[:account_id]).to eq(123)
             expect(log_data[:user_id]).to eq(456)
@@ -73,7 +73,7 @@ module LogStruct
 
           it "handles missing instance variables gracefully" do
             log_data = {}
-            LogStruct::Integrations::ActionMailer::MetadataCollection.extract_ids_to_log_data(mailer, log_data)
+            MetadataCollection.extract_ids_to_log_data(mailer, log_data)
 
             expect(log_data).not_to have_key(:account_id)
             expect(log_data).not_to have_key(:user_id)
@@ -83,26 +83,14 @@ module LogStruct
 
       describe ".add_current_tags_to_log_data" do
         before do
-          # Mock ActiveSupport::TaggedLogging
-          stub_const("ActiveSupport::TaggedLogging", Class.new)
-          allow(ActiveSupport::TaggedLogging).to receive(:respond_to?).with(:current_tags).and_return(true)
-          allow(ActiveSupport::TaggedLogging).to receive(:current_tags).and_return(%w[tag1 tag2])
-
-          # Mock ActionDispatch::Request
-          stub_const("ActionDispatch", Module.new)
-          stub_const("ActionDispatch::Request", Class.new)
-          allow(ActionDispatch::Request).to receive(:respond_to?).with(:current_request_id).and_return(true)
-          allow(ActionDispatch::Request).to receive(:current_request_id).and_return("request-123")
-
-          # Mock ActiveJob::Logging
-          stub_const("ActiveJob::Logging", Module.new)
-          allow(ActiveJob::Logging).to receive(:respond_to?).with(:job_id).and_return(true)
-          allow(ActiveJob::Logging).to receive(:job_id).and_return("job-456")
+          allow(::ActiveSupport::TaggedLogging).to receive(:current_tags).and_return(%w[tag1 tag2])
+          allow(::ActionDispatch::Request).to receive(:current_request_id).and_return("request-123")
+          allow(::ActiveJob::Logging).to receive(:job_id).and_return("job-456")
         end
 
         it "adds available tags to log data" do
           log_data = {}
-          LogStruct::Integrations::ActionMailer::MetadataCollection.add_current_tags_to_log_data(log_data)
+          MetadataCollection.add_current_tags_to_log_data(log_data)
 
           expect(log_data[:tags]).to eq(%w[tag1 tag2])
           expect(log_data[:request_id]).to eq("request-123")

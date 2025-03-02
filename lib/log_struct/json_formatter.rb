@@ -115,7 +115,7 @@ module LogStruct
         log_value.dup
       else
         # Create a Plain struct with the message and then serialize it
-        plain = LogStruct::Log::Plain.new(
+        plain = Log::Plain.new(
           msg: log_value.to_s,
           ts: time
         )

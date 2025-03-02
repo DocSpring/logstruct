@@ -40,7 +40,7 @@ module LogStruct
           service = payload[:service] || "unknown"
 
           # Create structured log data
-          log_data = LogStruct::Log::Storage.new(
+          log_data = Log::Storage.new(
             src: LogSource::Storage,
             evt: LogEvent::Storage,
             operation: operation,

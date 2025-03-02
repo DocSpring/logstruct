@@ -60,7 +60,7 @@ module LogStruct
           return unless LogStruct.configuration.carrierwave_integration_enabled
 
           # Create structured log data
-          log_data = LogStruct::Log::CarrierWave.new(
+          log_data = Log::CarrierWave.new(
             src: LogSource::CarrierWave,
             evt: LogEvent::CarrierWave,
             operation: operation,
