@@ -30,6 +30,34 @@ module LogStruct
       const :ip, T.nilable(String), default: nil
       const :params, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :headers, T.nilable(T::Hash[String, T.untyped]), default: nil
+
+      # Convert the log entry to a hash for serialization
+      sig { override.returns(T::Hash[Symbol, T.untyped]) }
+      def serialize
+        # Create a hash with all the struct's properties
+        hash = {
+          src: src.serialize,
+          evt: evt.serialize,
+          ts: ts.iso8601(3),
+          msg: msg
+        }
+
+        # Add request-specific fields if they're present
+        hash[:method] = method if method
+        hash[:path] = path if path
+        hash[:format] = format if format
+        hash[:controller] = controller if controller
+        hash[:action] = action if action
+        hash[:status] = status if status
+        hash[:duration] = duration if duration
+        hash[:view] = view if view
+        hash[:db] = db if db
+        hash[:ip] = ip if ip
+        hash[:params] = params if params
+        hash[:headers] = headers if headers
+
+        hash
+      end
     end
   end
 end

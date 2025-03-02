@@ -1,6 +1,8 @@
-# Rails Structured Logging
+# LogStruct
 
-Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile, configure it, and you're good to go. We support all the gems you already use. (If not, open a PR!)
+Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile and add an initializer to configure it. Now your Rails app prints beautiful JSON logs to STDOUT. They're easy to search and filter, you can turn them into metrics and alerts, and they're great for building dashboards in CloudWatch, Grafana, or Datadog.
+
+We support all your other gems too, like Sidekiq, Sentry, Shrine, Postmark, and more. (And if not, please open a PR!)
 
 ## Features
 
@@ -20,7 +22,7 @@ Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfil
 
 ## Supported Gems and Versions
 
-The following table lists the gems that Rails Structured Logging integrates with and their supported versions:
+The following table lists the gems that LogStruct integrates with and their supported versions:
 
 | Gem          | Supported Versions | Notes                          |
 | ------------ | ------------------ | ------------------------------ |
@@ -54,7 +56,7 @@ $ gem install logstruct
 
 ## Configuration and Initialization
 
-Rails Structured Logging is designed to be highly opinionated and work out of the box with minimal configuration. However, you must initialize it in your application:
+LogStruct is designed to be highly opinionated and work out of the box with minimal configuration. However, you first need to initialize it in your application and set up some basic configuration.
 
 ### In a Rails Application
 
@@ -72,8 +74,8 @@ LogStruct.configure do |config|
   config.rack_middleware_enabled = true
   config.host_authorization_enabled = true
 
-  # Configure sensitive data scrubbing
-  config.logstop_email_salt = ENV['LOGSTOP_EMAIL_SALT']
+  # Salt for SHA256 hashes in filtered email addresses
+  config.email_hashing_salt = ENV['email_hashing_salt']
 
   # Other configuration options...
 end
@@ -128,6 +130,77 @@ rescue => e
   })
 end
 ```
+
+### Logging Approaches
+
+LogStruct provides multiple ways to log data, accommodating both dynamic Ruby-style logging and strictly typed approaches:
+
+#### The Ruby Way (Dynamic)
+
+You can use the standard Ruby approach to logging, which is flexible and requires minimal setup:
+
+```ruby
+# Log a simple string
+Rails.logger.info "User signed in"
+
+# Log a number
+Rails.logger.info 42
+
+# Log a boolean
+Rails.logger.info true
+
+# Log a hash with custom fields
+Rails.logger.info({
+  event: "user_login",
+  user_id: 123,
+  ip_address: "192.168.1.1",
+  custom_field: "any value you want"
+})
+```
+
+This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.
+
+#### The Typed Approach (Using Structs)
+
+For applications that benefit from strict type checking (especially those using Sorbet), LogStruct provides typed struct classes:
+
+```ruby
+# Create a typed request log entry
+request_log = LogStruct::LogEntries::Request.new(
+  src: LogStruct::LogSource::Rails,
+  evt: LogStruct::LogEvent::Request,
+  method: "GET",
+  path: "/users",
+  controller: "UsersController",
+  action: "index",
+  status: 200,
+  duration: 45.2
+)
+
+# Log the typed struct
+Rails.logger.info(request_log)
+
+# Create a typed error log entry
+error_log = LogStruct::LogEntries::Error.new(
+  src: LogStruct::LogSource::Rails,
+  evt: LogStruct::LogEvent::Exception,
+  error_class: "ArgumentError",
+  message: "Invalid parameter",
+  backtrace: exception.backtrace&.first(10)
+)
+
+# Log the typed error
+Rails.logger.error(error_log)
+```
+
+This approach provides several benefits:
+
+- Type checking at development time
+- Consistent log structure
+- IDE autocompletion for available fields
+- Documentation of the expected fields for each log type
+
+Both approaches produce the same JSON output format, so you can choose the style that best fits your application's needs and development philosophy.
 
 ### ActionMailer Integration
 
@@ -338,7 +411,7 @@ LogStruct.configure do |config|
   config.host_authorization_enabled = true
 
   # Configure the email salt used by Logstop for email hashing
-  config.logstop_email_salt = 'custom_salt'
+  config.email_hashing_salt = 'custom_salt'
 
   # Logstop filtering options
   config.filter_emails = true        # Filter email addresses (default: true)

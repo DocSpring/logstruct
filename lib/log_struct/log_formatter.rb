@@ -8,6 +8,7 @@ require "globalid"
 require_relative "log_source"
 require_relative "log_event"
 require_relative "logstop_fork"
+require_relative "log_entries"
 
 module LogStruct
   # Formatter for structured logging that outputs logs as JSON
@@ -47,8 +48,8 @@ module LogStruct
     end
 
     # Add tagged method to support ActiveSupport::TaggedLogging
-    sig { params(tags: T::Array[String]).returns(T.untyped) }
-    def tagged(*tags)
+    sig { params(tags: T::Array[String], blk: T.proc.params(formatter: LogFormatter).void).returns(T.untyped) }
+    def tagged(*tags, &blk)
       new_tags = tags.flatten
       current_tags.concat(new_tags) if new_tags.any?
       yield self
@@ -129,8 +130,18 @@ module LogStruct
 
     sig { params(severity: String, time: Time, progname: String, log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
-      # Use standardized field names
-      data = log_value.is_a?(Hash) ? log_value.dup : {msg: log_value.to_s}
+      # Handle different types of log values
+      data = case log_value
+      when T::Struct
+        # Convert T::Struct to a hash
+        log_value.serialize
+      when Hash
+        # Use hash as is
+        log_value.dup
+      else
+        # Wrap anything else in a hash with a msg key
+        {msg: log_value.to_s}
+      end
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = format_values(data)

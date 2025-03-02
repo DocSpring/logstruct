@@ -3,6 +3,7 @@
 
 require_relative "log_source"
 require_relative "log_event"
+require_relative "log_violation_type"
 require_relative "log_entries/log_entry_interface"
 require_relative "log_entries/error"
 require_relative "log_entries/email"

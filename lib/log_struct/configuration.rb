@@ -12,7 +12,7 @@ module LogStruct
     attr_accessor :lograge_enabled
 
     sig { returns(String) }
-    attr_accessor :logstop_email_salt
+    attr_accessor :email_hashing_salt
 
     LogScrubberProcType = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
     sig { returns(LogScrubberProcType) }
@@ -76,7 +76,7 @@ module LogStruct
     def initialize
       @enabled = T.let(true, T::Boolean)
       @lograge_enabled = T.let(true, T::Boolean)
-      @logstop_email_salt = T.let("l0g5t0p", String)
+      @email_hashing_salt = T.let("l0g5t0p", String)
       @log_scrubber = T.let(nil, LogScrubberProcType)
 
       # Applications can provide a proc to extend lograge options

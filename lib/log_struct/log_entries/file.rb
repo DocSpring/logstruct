@@ -26,6 +26,30 @@ module LogStruct
       const :size, T.nilable(Integer), default: nil
       const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
+
+      # Convert the log entry to a hash for serialization
+      sig { override.returns(T::Hash[Symbol, T.untyped]) }
+      def serialize
+        # Create a hash with all the struct's properties
+        hash = {
+          src: src.serialize,
+          evt: evt.serialize,
+          ts: ts.iso8601(3),
+          msg: msg
+        }
+
+        # Add file-specific fields if they're present
+        hash[:storage] = storage if storage
+        hash[:operation] = operation if operation
+        hash[:file_id] = file_id if file_id
+        hash[:filename] = filename if filename
+        hash[:mime_type] = mime_type if mime_type
+        hash[:size] = size if size
+        hash[:metadata] = metadata if metadata
+        hash[:duration] = duration if duration
+
+        hash
+      end
     end
   end
 end

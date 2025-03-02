@@ -25,7 +25,7 @@ module LogStruct
         # emails
         if config.filter_emails
           msg.gsub!(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i) do |match|
-            email_hash = Digest::SHA256.hexdigest("#{match}#{config.logstop_email_salt}")
+            email_hash = Digest::SHA256.hexdigest("#{match}#{config.email_hashing_salt}")
             "[EMAIL:#{email_hash[0..EMAIL_HASH_LENGTH]}]"
           end
         end
