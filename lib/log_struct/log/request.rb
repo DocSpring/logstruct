@@ -18,7 +18,8 @@ module LogStruct
       const :msg, T.nilable(String), default: nil
 
       # Request-specific fields
-      const :method, T.nilable(String), default: nil
+      # `method` is a reserved word, so we use a `http_method` prop but set `method` in the log JSON
+      const :http_method, T.nilable(String), default: nil
       const :path, T.nilable(String), default: nil
       const :format, T.nilable(String), default: nil
       const :controller, T.nilable(String), default: nil
@@ -42,7 +43,7 @@ module LogStruct
         }
 
         # Add request-specific fields if they're present
-        hash[:method] = method if method
+        hash[:method] = http_method if http_method
         hash[:path] = path if path
         hash[:format] = format if format
         hash[:controller] = controller if controller

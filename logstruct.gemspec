@@ -34,5 +34,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "lograge", ">= 0.11"
   spec.add_dependency "rails", ">= 7.0"
+
   spec.metadata["rubygems_mfa_required"] = "true"
 end

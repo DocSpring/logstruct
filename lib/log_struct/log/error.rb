@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_entry_interface"
+require_relative "log_interface"
 require_relative "../log_source"
 require_relative "../log_event"
 
@@ -12,7 +12,7 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource # Used by all sources, should not have a default.
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil

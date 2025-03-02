@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_entry_interface"
+require_relative "log_interface"
 require_relative "../log_source"
 require_relative "../log_event"
 
