@@ -88,11 +88,11 @@ LogStruct.initialize
 
 Once initialized, the gem automatically includes its modules into the appropriate base classes:
 
-- `ActionMailer::Base` automatically includes error handling and event logging modules
-- `ActiveJob::Base` automatically includes job logging modules
-- No manual inclusion of modules is required in your application code
-
-This opinionated approach ensures consistent logging across your entire application with minimal setup.
+- `ActiveSupport::TaggedLogging` is patched to support both Hashes and Strings
+- `ActionMailer::Base` includes error handling and event logging modules
+- We configure `Lograge` for request logging
+- A Rack middleware is inserted to catch and log errors, including security violations (IP spoofing, CSRF, blocked hosts, etc.)
+- Structured logging is set up for ActiveJob, Sidekiq, Shrine, etc.
 
 ## Usage
 
@@ -106,7 +106,8 @@ Rails.logger.info "User signed in"
 
 # Log structured data
 Rails.logger.info({
-  event: "user_login",
+  src: "rails",
+  evt: "user_login",
   user_id: user.id,
   ip_address: request.remote_ip
 })
@@ -117,18 +118,13 @@ Rails.logger.tagged("Authentication") do
   Rails.logger.info({ user_id: user.id, ip_address: request.remote_ip })
 end
 
-# Log exceptions
-begin
-  # some code that might raise an exception
-rescue => e
-  Rails.logger.error "Error during user login: #{e.message}"
-  Rails.logger.error({
-    error: e.class.to_s,
-    message: e.message,
-    backtrace: e.backtrace.first(5),
-    user_id: user&.id
-  })
-end
+# Or you can use our type-safe log entry structs. (Sorbet not required.)
+request_log = LogStruct::Log::Request.new(
+  src: LogStruct::LogSource::Rails,
+  evt: LogStruct::LogEvent::Request,
+  user_id: user.id,
+  ip_address: request.remote_ip
+)
 ```
 
 ### Logging Approaches
