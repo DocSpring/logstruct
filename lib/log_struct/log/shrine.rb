@@ -18,14 +18,13 @@ module LogStruct
       const :ts, Time, factory: -> { Time.now }
       const :msg, T.nilable(String), default: nil
 
-      # File-specific fields
+      # Shrine-specific fields
       const :storage, T.nilable(String), default: nil
-      const :operation, T.nilable(String), default: nil
-      const :file_id, T.nilable(String), default: nil
-      const :filename, T.nilable(String), default: nil
-      const :mime_type, T.nilable(String), default: nil
-      const :size, T.nilable(Integer), default: nil
-      const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
+      const :location, T.nilable(String), default: nil
+      const :upload_options, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
+      const :download_options, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
+      const :options, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
+      const :uploader, T.nilable(String), default: nil
       const :duration, T.nilable(Float), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
@@ -34,14 +33,13 @@ module LogStruct
       def serialize
         hash = common_serialize
 
-        # Add file-specific fields if they're present
+        # Add Shrine-specific fields if they're present
         hash[:storage] = storage if storage
-        hash[:op] = operation if operation
-        hash[:file_id] = file_id if file_id
-        hash[:filename] = filename if filename
-        hash[:mime_type] = mime_type if mime_type
-        hash[:size] = size if size
-        hash[:metadata] = metadata if metadata
+        hash[:location] = location if location
+        hash[:upload_options] = upload_options if upload_options
+        hash[:download_options] = download_options if download_options
+        hash[:options] = options if options
+        hash[:uploader] = uploader if uploader
         hash[:duration] = duration if duration
 
         # Merge any additional data

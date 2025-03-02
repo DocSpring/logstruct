@@ -16,7 +16,6 @@ module LogStruct
       const :src, LogSource, default: T.let(LogSource::CarrierWave, LogSource)
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
-      const :msg, T.nilable(String), default: nil
 
       # File-specific fields
       const :storage, T.nilable(String), default: nil

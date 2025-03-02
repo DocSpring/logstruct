@@ -14,8 +14,13 @@ module LogStruct
       RequestError = new(:request_error)
       JobExecution = new(:job_execution)
       Storage = new(:storage)
-      FileOperation = new(:file_operation)
       Notification = new(:notification)
+
+      # File storage event types (Shrine, CarrierWave, ActiveStorage)
+      Upload = new(:upload)
+      Download = new(:download)
+      Delete = new(:delete)
+      Exists = new(:exists)
 
       # Email Event Types
       Delivery = new(:delivery)

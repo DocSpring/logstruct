@@ -11,13 +11,14 @@ module LogStruct
     class Notification < T::Struct
       include LogInterface
       include LogSerialization
+
       # Common fields
       const :src, LogSource, default: T.let(LogSource::App, LogSource)
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
-      const :msg, T.nilable(String), default: nil
 
       # Notification-specific fields
+      const :msg, T.nilable(String), default: nil
       const :name, T.nilable(String), default: nil
       const :type, T.nilable(String), default: nil
       const :duration, T.nilable(Float), default: nil
@@ -28,7 +29,7 @@ module LogStruct
       def serialize
         hash = common_serialize
 
-        # Add notification-specific fields if they're present
+        hash[:msg] = msg if msg
         hash[:name] = name if name
         hash[:type] = type if type
         hash[:duration] = duration if duration

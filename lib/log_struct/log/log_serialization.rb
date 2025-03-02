@@ -13,14 +13,11 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def common_serialize
-        # Create a hash with all the struct's properties
-        hash = {
+        {
           src: src.serialize,
           evt: evt.serialize,
           ts: ts.iso8601(3)
         }
-        hash[:msg] = msg if msg
-        hash
       end
     end
   end

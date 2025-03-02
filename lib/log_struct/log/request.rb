@@ -18,7 +18,8 @@ module LogStruct
       const :msg, T.nilable(String), default: nil
 
       # Request-specific fields
-      # `method` is a reserved word, so we use a `http_method` prop but set `method` in the log JSON
+      # NOTE: `method` is a reserved word, so we use a `http_method`
+      # prop while setting `method` in the log JSON
       const :http_method, T.nilable(String), default: nil
       const :path, T.nilable(String), default: nil
       const :format, T.nilable(String), default: nil

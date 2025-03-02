@@ -11,11 +11,11 @@ module LogStruct
     class Email < T::Struct
       include LogInterface
       include LogSerialization
+
       # Common fields
       const :src, LogSource, default: T.let(LogSource::Mailer, LogSource)
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
-      const :msg, T.nilable(String), default: nil
 
       # Email-specific fields
       const :to, T.nilable(T.any(String, T::Array[String])), default: nil

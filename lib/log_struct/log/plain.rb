@@ -12,15 +12,17 @@ module LogStruct
       include LogInterface
       include LogSerialization
       # Common fields
-      const :msg, String
       const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
       const :evt, LogEvent, default: T.let(LogEvent::Log, LogEvent)
       const :ts, Time, factory: -> { Time.now }
 
+      # Log message
+      const :msg, String
+
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        common_serialize
+        common_serialize.merge(msg: msg)
       end
     end
   end

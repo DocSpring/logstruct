@@ -16,7 +16,6 @@ module LogStruct
       const :src, LogSource, default: T.let(LogSource::Sidekiq, LogSource)
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
-      const :msg, T.nilable(String), default: nil
 
       # Sidekiq-specific fields
       const :job_id, T.nilable(String), default: nil

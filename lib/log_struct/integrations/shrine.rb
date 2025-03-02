@@ -24,13 +24,32 @@ module LogStruct
           shrine_log_subscriber = T.unsafe(lambda do |event|
             payload = event.payload.except(:io, :metadata, :name).dup
 
+            # Map event name to LogEvent type
+            event_type = case event.name
+            when :upload then LogEvent::Upload
+            when :download then LogEvent::Download
+            when :delete then LogEvent::Delete
+            when :exists then LogEvent::Exists
+            else LogEvent::Storage
+            end
+
+            # Extract common fields from payload
+            storage = payload[:storage]&.to_s
+            location = payload[:location]
+            uploader = payload[:uploader]
+
             # Create structured log data
             log_data = Log::Shrine.new(
               src: LogSource::Shrine,
-              evt: LogEvent::FileOperation,
+              evt: event_type,
               duration: event.duration,
-              operation: event.name,
-              payload: payload
+              storage: storage,
+              location: location,
+              uploader: uploader,
+              upload_options: payload[:upload_options],
+              download_options: payload[:download_options],
+              options: payload[:options],
+              data: payload.except(:storage, :location, :uploader, :upload_options, :download_options, :options)
             )
 
             # Pass the structured hash to the logger

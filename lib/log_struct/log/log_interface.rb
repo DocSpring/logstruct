@@ -23,10 +23,6 @@ module LogStruct
       def ts
       end
 
-      sig { abstract.returns(T.nilable(String)) }
-      def msg
-      end
-
       # Convert the log entry to a hash for serialization
       sig { abstract.returns(T::Hash[Symbol, T.untyped]) }
       def serialize

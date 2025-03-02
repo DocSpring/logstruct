@@ -11,11 +11,11 @@ module LogStruct
     class Error < T::Struct
       include LogInterface
       include LogSerialization
+
       # Common fields
       const :src, LogSource # Used by all sources, should not have a default.
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
-      const :msg, T.nilable(String), default: nil
 
       # Error-specific fields
       const :err_class, T.nilable(String), default: nil
