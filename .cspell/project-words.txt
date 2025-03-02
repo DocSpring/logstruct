@@ -11,6 +11,7 @@ progname
 railtie
 rdoc
 referer
+reraise
 reraises
 Rescuable
 Rollbar

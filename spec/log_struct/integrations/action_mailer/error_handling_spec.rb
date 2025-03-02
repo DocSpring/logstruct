@@ -182,8 +182,12 @@ module LogStruct
 
       describe "#log_notification_event" do
         it "logs a notification with structured data" do
-          expect(LogTypes).to receive(:create_email_notification_log_data).with(standard_error,
-            mailer).and_call_original
+          expect(Log::Error).to receive(:new).with(
+            hash_including(
+              src: LogSource::Mailer,
+              evt: LogEvent::Notification
+            )
+          ).and_call_original
           expect(Rails.logger).to receive(:info)
 
           mailer.send(:log_notification_event, standard_error)

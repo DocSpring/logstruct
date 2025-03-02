@@ -13,7 +13,6 @@ module LogStruct
       SecurityViolation = new(:security_violation)
       RequestError = new(:request_error)
       JobExecution = new(:job_execution)
-      Storage = new(:storage)
       Notification = new(:notification)
 
       # File storage event types (Shrine, CarrierWave, ActiveStorage)
@@ -21,6 +20,8 @@ module LogStruct
       Download = new(:download)
       Delete = new(:delete)
       Exists = new(:exists)
+      # Generic storage event type
+      Storage = new(:storage)
 
       # Email Event Types
       Delivery = new(:delivery)

@@ -59,7 +59,8 @@ And you always need to check for any third-party gems that are not part of Rails
 
 - Use Sorbet type annotations for all methods
 - Ensure all files have the appropriate `# typed:` annotation
-- Use `T.unsafe` when necessary, but try to minimize its usage
+- **NEVER use `T.unsafe` calls**. Instead, properly type your code or use appropriate type assertions with `T.let` or `T.cast` when absolutely necessary.
+- When dealing with external libraries, create proper type signatures or use extension methods rather than resorting to `T.unsafe`.
 
 ### Testing
 
@@ -84,9 +85,56 @@ And you always need to check for any third-party gems that are not part of Rails
   ```
 
 - Regenerate the todo.rbi file:
+
   ```bash
   bundle exec tapioca todo
   ```
+
+- Keep all type definitions up to date by regularly running:
+  ```bash
+  bundle exec tapioca gems --all
+  bundle exec tapioca annotations
+  bundle exec tapioca dsl
+  ```
+
+### Custom Type Overrides
+
+- Place all custom type overrides in `sorbet/rbi/overrides/` directory
+- These overrides take precedence over auto-generated RBI files
+- Use overrides to fix incorrect type signatures from gems or to add missing type information
+- Never modify the auto-generated RBI files directly
+
+### Typing Included Modules, Concerns, and Helpers
+
+When typing modules that are included in other classes (like concerns, helpers, etc.), use the following approach:
+
+1. Create an RBI file in `sorbet/rbi/overrides/` that mirrors the module's path
+2. Use `requires_ancestor` to specify that a class includes a module
+3. For class methods added via `extend`, declare them in a separate `ClassMethods` module
+
+Example from `sorbet/rbi/overrides/log_struct/integrations/action_mailer/error_handling.rbi`:
+
+```ruby
+# typed: strict
+
+# This tells Sorbet that any class including ErrorHandling will have these methods
+module LogStruct::Integrations::ActionMailer::ErrorHandling
+  requires_ancestor { ActionMailer::Base }
+
+  # Instance methods available to including classes
+  def log_and_ignore_error; end
+  def log_and_notify_error; end
+  def log_and_report_error; end
+  def log_and_reraise_error; end
+
+  # For class methods added via extend
+  module ClassMethods
+    def some_class_method; end
+  end
+end
+```
+
+This approach ensures proper type checking without using `T.unsafe`.
 
 ### Automatic RBI Generation for Specs
 
