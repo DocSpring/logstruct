@@ -7,7 +7,7 @@ module RailsStructuredLogging
   module ActionMailer
     # Handles structured logging for ActionMailer
     module Logger
-      include RailsStructuredLogging::TypedSig
+      include TypedSig
       extend T::Sig
 
       # Build base log data common to all logging methods

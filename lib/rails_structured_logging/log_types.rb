@@ -1,16 +1,6 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "sorbet-runtime"
-require_relative "log_types/base"
-require_relative "log_types/notification"
-require_relative "log_types/email"
-require_relative "log_types/error"
-require_relative "log_types/shrine"
-
-module RailsStructuredLogging
-  # Type definitions for structured logging
-  module LogTypes
-    # This file serves as an entry point for all log type definitions
-  end
+Dir.glob(File.expand_path("log_types/*.rb", __dir__)).sort.each do |file|
+  require_relative file
 end

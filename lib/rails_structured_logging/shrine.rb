@@ -15,7 +15,7 @@ module RailsStructuredLogging
   # Shrine integration for structured logging
   module Shrine
     class << self
-      include RailsStructuredLogging::TypedSig
+      include TypedSig
       extend T::Sig
 
       # Set up Shrine structured logging

@@ -1,8 +1,6 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "sorbet-runtime"
-
 module RailsStructuredLogging
   # Define source types as an enum
   class SourceType < T::Enum

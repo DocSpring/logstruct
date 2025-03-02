@@ -7,7 +7,7 @@ module RailsStructuredLogging
   module ActionMailer
     # Backport of the *_deliver callbacks from Rails 7.1
     module Callbacks
-      include RailsStructuredLogging::TypedSig
+      include TypedSig
       extend T::Sig
       extend ::ActiveSupport::Concern
 

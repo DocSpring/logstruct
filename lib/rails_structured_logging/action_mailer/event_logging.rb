@@ -7,7 +7,7 @@ module RailsStructuredLogging
   module ActionMailer
     # Handles logging of email delivery events
     module EventLogging
-      include RailsStructuredLogging::TypedSig
+      include TypedSig
       extend T::Sig
       extend ActiveSupport::Concern
 

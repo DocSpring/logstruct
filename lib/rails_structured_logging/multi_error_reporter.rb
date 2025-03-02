@@ -1,39 +1,45 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require_relative "sorbet"
 require "json"
+
+%w[sentry-ruby bugsnag rollbar honeybadger].each do |gem|
+  require gem
+rescue LoadError
+  # If none of these gems are not available we'll fall back to Rails.logger
+end
 
 module RailsStructuredLogging
   # MultiErrorReporter provides a unified interface for reporting errors to various services
   # It automatically detects and uses available error reporting services
   # Similar to MultiJSON, it detects available adapters once and then uses the configured one
   class MultiErrorReporter
-    include RailsStructuredLogging::TypedSig
+    include TypedSig
     extend T::Sig
 
     # Use T.let to properly declare the class variable at the class level
-    @error_reporter = T.let(nil, T.nilable(Symbol))
+    @error_reporter = T.let(Enums::ErrorTracker::Logger, Enums::ErrorTracker)
 
     class << self
       extend T::Sig
 
-      sig { returns(T.nilable(Symbol)) }
+      sig { returns(Enums::ErrorTracker) }
       attr_reader :error_reporter
 
       # Initialize the error reporter once
-      sig { returns(Symbol) }
+      sig { returns(Enums::ErrorTracker) }
       def initialize_reporter
         @error_reporter = if defined?(::Sentry)
-          :sentry
+          Enums::ErrorTracker::Sentry
         elsif defined?(::Bugsnag)
-          :bugsnag
+          Enums::ErrorTracker::Bugsnag
         elsif defined?(::Rollbar)
-          :rollbar
+          Enums::ErrorTracker::Rollbar
         elsif defined?(::Honeybadger)
-          :honeybadger
+          Enums::ErrorTracker::Honeybadger
         else
-          :fallback
+          Enums::ErrorTracker::Logger
         end
       end
 
@@ -43,10 +49,6 @@ module RailsStructuredLogging
       # @return [void]
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
-        # We still keep this check for backward compatibility with existing code
-        # but the type signature ensures that exception should never be nil
-        return if exception.nil?
-
         # Initialize the reporter if it hasn't been initialized yet
         @error_reporter ||= initialize_reporter
 

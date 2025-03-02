@@ -2,10 +2,6 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "rails"
-require "action_mailer"
-require "action_mailer/message_delivery"
-require "active_support"
 
 # Test the backported callbacks from Rails 7.1.x
 # Only need to run these tests if we're using Rails < 7.1.0
@@ -13,7 +9,7 @@ require "active_support"
 RSpec.describe RailsStructuredLogging::ActionMailer::Callbacks, if: Rails.gem_version < Gem::Version.new("7.1.0") do
   # Apply the patch before running tests
   before(:all) do
-    described_class.patch_message_delivery
+    RailsStructuredLogging::ActionMailer::Callbacks.patch_message_delivery
   end
 
   describe "delivery callbacks" do

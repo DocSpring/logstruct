@@ -16,7 +16,7 @@ module RailsStructuredLogging
   module ActionMailer
     # Handles error handling for ActionMailer
     module ErrorHandling
-      include RailsStructuredLogging::TypedSig
+      include TypedSig
       extend T::Sig
       extend ActiveSupport::Concern
 

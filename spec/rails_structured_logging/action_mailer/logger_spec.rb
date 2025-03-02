@@ -29,7 +29,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
       test_time = Time.new(2023, 1, 1, 12, 0, 0)
       allow(Time).to receive(:current).and_return(test_time)
 
-      log_data = described_class.build_base_log_data(mailer, "test_event")
+      log_data = RailsStructuredLogging::ActionMailer::Logger.build_base_log_data(mailer, "test_event")
 
       expect(log_data[:src]).to eq("mailer")
       expect(log_data[:evt]).to eq("test_event")
@@ -43,7 +43,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
       expect(RailsStructuredLogging::ActionMailer::MetadataCollection).to receive(:add_message_metadata)
       expect(RailsStructuredLogging::ActionMailer::MetadataCollection).to receive(:add_context_metadata)
 
-      described_class.build_base_log_data(mailer, "test_event")
+      RailsStructuredLogging::ActionMailer::Logger.build_base_log_data(mailer, "test_event")
     end
   end
 
@@ -52,33 +52,33 @@ RSpec.describe RailsStructuredLogging::ActionMailer::Logger do
     let(:message) { "Error message for logging" }
 
     it "logs structured error information" do
-      expect(described_class).to receive(:build_base_log_data).with(mailer, "email_error").and_call_original
-      expect(described_class).to receive(:log_to_rails).with(kind_of(Hash), :error)
+      expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data).with(mailer, "email_error").and_call_original
+      expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails).with(kind_of(Hash), :error)
 
-      described_class.log_structured_error(mailer, error, message)
+      RailsStructuredLogging::ActionMailer::Logger.log_structured_error(mailer, error, message)
     end
 
     it "includes error information in log data" do
-      allow(described_class).to receive(:log_to_rails) do |log_data, level|
+      allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails) do |log_data, level|
         expect(level).to eq(:error)
         expect(log_data[:error_class]).to eq("StandardError")
         expect(log_data[:error_message]).to eq("Test error")
         expect(log_data[:msg]).to eq("Error message for logging")
       end
 
-      described_class.log_structured_error(mailer, error, message)
+      RailsStructuredLogging::ActionMailer::Logger.log_structured_error(mailer, error, message)
     end
   end
 
   describe ".log_to_rails" do
     it "sends log message to Rails logger with correct level" do
-      described_class.log_to_rails("test message", :info)
+      RailsStructuredLogging::ActionMailer::Logger.log_to_rails("test message", :info)
       expect(rails_logger).to have_received(:info).with("test message")
 
-      described_class.log_to_rails("error message", :error)
+      RailsStructuredLogging::ActionMailer::Logger.log_to_rails("error message", :error)
       expect(rails_logger).to have_received(:error).with("error message")
 
-      described_class.log_to_rails({key: "value"}, :debug)
+      RailsStructuredLogging::ActionMailer::Logger.log_to_rails({key: "value"}, :debug)
       expect(rails_logger).to have_received(:debug).with({key: "value"})
     end
   end

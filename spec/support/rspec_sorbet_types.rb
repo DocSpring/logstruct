@@ -1,7 +1,5 @@
 # typed: strict
 
-require "sorbet-runtime"
-
 # From https://github.com/FooBarWidget/rspec-sorbet-types
 # Workaround for https://github.com/sorbet/sorbet/issues/8143
 if false # rubocop:disable Lint/LiteralAsCondition

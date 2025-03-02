@@ -1,9 +1,10 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require "spec_helper"
-require "rspec"
-require "rspec/sorbet/types"
+
+# This spec file shows how we can use Sorbet type signatures in RSpec tests.
+# See: https://github.com/FooBarWidget/rspec-sorbet-types
 
 RSpec.describe "Sorbet Types" do
   T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes))
@@ -29,6 +30,11 @@ RSpec.describe "Sorbet Types" do
   end
 
   describe "Configuration with Sorbet type signatures" do
+    before do
+      # Demonstrate that typechecking works in before blocks
+      logstop_email_salt.upcase
+    end
+
     it "configures the gem with type-checked methods" do
       RailsStructuredLogging.configure do |config|
         config.enabled = enabled

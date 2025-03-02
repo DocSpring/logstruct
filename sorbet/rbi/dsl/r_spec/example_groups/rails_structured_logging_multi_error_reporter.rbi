@@ -67,12 +67,9 @@ class RSpec::ExampleGroups::RailsStructuredLoggingMultiErrorReporter < RSpec::Co
 end
 
 module RSpec::ExampleGroups::RailsStructuredLoggingMultiErrorReporter::LetDefinitions
-  sig { returns(T.untyped) }
+  sig { returns(T::Hash[T.untyped, T.untyped]) }
   def context; end
 
-  sig { returns(T.untyped) }
+  sig { returns(::StandardError) }
   def exception; end
-
-  sig { returns(T.untyped) }
-  def reporter; end
 end

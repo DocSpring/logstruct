@@ -1,14 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "enums/source_type"
-require_relative "enums/event_type"
-require_relative "enums/notification_type"
-require_relative "enums/violation_type"
-
 module RailsStructuredLogging
-  # Enums module for structured logging
-  module Enums
-    # This file serves as an entry point for all enum definitions
-  end
+  module Enums; end
+end
+
+Dir.glob(File.expand_path("enums/*.rb", __dir__)).sort.each do |file|
+  require_relative file
 end

@@ -1,12 +1,10 @@
 # typed: false
 # frozen_string_literal: true
 
-require_relative "../spec_helper"
-require "rails_structured_logging/log_formatter"
-require "rails_structured_logging/multi_error_reporter"
+require "spec_helper"
 
 RSpec.describe RailsStructuredLogging::LogFormatter do
-  subject(:formatter) { described_class.new }
+  subject(:formatter) { RailsStructuredLogging::LogFormatter.new }
 
   let(:severity) { "INFO" }
   let(:time) { Time.utc(2023, 1, 1, 12, 0, 0) }

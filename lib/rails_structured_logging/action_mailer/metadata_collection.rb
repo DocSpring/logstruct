@@ -7,7 +7,7 @@ module RailsStructuredLogging
   module ActionMailer
     # Handles collection of metadata for email logging
     module MetadataCollection
-      include RailsStructuredLogging::TypedSig
+      include TypedSig
       extend T::Sig
 
       # Add message-specific metadata to log data

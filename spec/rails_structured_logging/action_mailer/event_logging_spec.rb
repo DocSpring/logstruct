@@ -2,9 +2,6 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "rails"
-require "action_mailer"
-require "active_support"
 
 RSpec.describe RailsStructuredLogging::ActionMailer::EventLogging do
   # Create a test mailer class that inherits from ::ActionMailer::Base

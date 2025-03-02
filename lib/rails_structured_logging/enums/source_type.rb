@@ -1,14 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "sorbet-runtime"
-
 module RailsStructuredLogging
   module Enums
     # Define source types as an enum
     class SourceType < T::Enum
-      extend T::Sig
-
       enums do
         Rails = new(:rails)
         Sidekiq = new(:sidekiq)

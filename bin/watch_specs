@@ -12,6 +12,13 @@ rescue LoadError
   exit 1
 end
 
+def run_tapioca_dsl
+  puts "Running tapioca dsl..."
+  system("./bin/tapioca dsl")
+end
+
+run_tapioca_dsl
+
 puts "Starting spec file watcher..."
 puts "Watching for changes in the spec directory..."
 puts "Will run './bin/tapioca dsl' when files change."
@@ -21,10 +28,8 @@ listener = Listen.to("spec/") do |modified, added, removed|
   if (modified + added + removed).any?
     changed_files = (modified + added + removed).join(", ")
     puts "\n#{Time.now}: Changes detected in: #{changed_files}"
-    puts "Running tapioca dsl..."
 
-    # Run tapioca dsl
-    system("./bin/tapioca dsl")
+    run_tapioca_dsl
 
     puts "Tapioca dsl completed at #{Time.now}"
     puts "Watching for more changes..."

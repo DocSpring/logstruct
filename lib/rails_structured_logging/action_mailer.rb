@@ -21,7 +21,7 @@ end
 module RailsStructuredLogging
   # ActionMailer integration for structured logging
   module ActionMailer
-    include RailsStructuredLogging::TypedSig
+    include TypedSig
     extend T::Sig
 
     class << self

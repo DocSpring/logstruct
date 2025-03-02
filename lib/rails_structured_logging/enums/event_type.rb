@@ -1,14 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "sorbet-runtime"
-
 module RailsStructuredLogging
   module Enums
     # Define event types as an enum
     class EventType < T::Enum
-      extend T::Sig
-
       enums do
         # General event types
         SecurityViolation = new(:security_violation)

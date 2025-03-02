@@ -4,7 +4,6 @@
 require "rspec"
 require "rspec/sorbet/types"
 
-require "sorbet-runtime"
 require "json"
 require "ostruct"
 require "debug"

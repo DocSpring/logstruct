@@ -2,9 +2,6 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "rails"
-require "action_mailer"
-require "active_support"
 
 RSpec.describe RailsStructuredLogging::ActionMailer do
   describe ".setup" do
@@ -22,7 +19,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer do
       allow(ActionMailer::Base).to receive(:include)
 
       # For Rails 7.0 callback setup
-      allow(described_class).to receive(:setup_callbacks_for_rails_7_0) if Rails.gem_version < Gem::Version.new("7.1.0")
+      allow(RailsStructuredLogging::ActionMailer).to receive(:setup_callbacks_for_rails_7_0) if Rails.gem_version < Gem::Version.new("7.1.0")
     end
 
     it "sets up ActionMailer integration" do
@@ -30,14 +27,14 @@ RSpec.describe RailsStructuredLogging::ActionMailer do
       expect(ActionMailer::Base).to receive(:logger=)
 
       # Expect ::ActionMailer::Base to include our module
-      expect(ActionMailer::Base).to receive(:include).with(described_class)
+      expect(ActionMailer::Base).to receive(:include).with(RailsStructuredLogging::ActionMailer)
 
       # Expect callbacks to be set up for Rails 7.0 if needed
       if Rails.gem_version < Gem::Version.new("7.1.0")
-        expect(described_class).to receive(:setup_callbacks_for_rails_7_0)
+        expect(RailsStructuredLogging::ActionMailer).to receive(:setup_callbacks_for_rails_7_0)
       end
 
-      described_class.setup
+      RailsStructuredLogging::ActionMailer.setup
     end
 
     context "when structured logging is disabled" do
@@ -49,7 +46,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer do
         expect(ActionMailer::Base).not_to receive(:logger=)
         expect(ActionMailer::Base).not_to receive(:include)
 
-        described_class.setup
+        RailsStructuredLogging::ActionMailer.setup
       end
     end
 
@@ -64,7 +61,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer do
         expect(ActionMailer::Base).not_to receive(:logger=)
         expect(ActionMailer::Base).not_to receive(:include)
 
-        described_class.setup
+        RailsStructuredLogging::ActionMailer.setup
       end
     end
   end
@@ -85,7 +82,7 @@ RSpec.describe RailsStructuredLogging::ActionMailer do
       expect(ActionMailer::Base).to receive(:include).with(RailsStructuredLogging::ActionMailer::Callbacks)
       expect(RailsStructuredLogging::ActionMailer::Callbacks).to receive(:patch_message_delivery)
 
-      described_class.send(:setup_callbacks_for_rails_7_0)
+      RailsStructuredLogging::ActionMailer.send(:setup_callbacks_for_rails_7_0)
     end
   end
 end

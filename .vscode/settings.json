@@ -1,3 +1,4 @@
 {
-  "rubyLsp.formatter": "rubocop"
+  "rubyLsp.formatter": "rubocop",
+  "rubocop.safeAutocorrect": false
 }
