@@ -19,15 +19,14 @@ module LogStruct
         end
 
         # Define class methods in a separate module
-        class_methods do
+        module ClassMethods
           extend T::Sig
-          # Need to use T.unsafe for splat arguments due to Sorbet limitation
-          # See: https://sorbet.org/docs/error-reference#7019
 
           # Defines a callback that will get called right before the
           # message is sent to the delivery method.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
           def before_deliver(*filters, &blk)
+            # Use T.unsafe for splat arguments due to Sorbet limitation
             T.unsafe(self).set_callback(:deliver, :before, *filters, &blk)
           end
 
@@ -35,13 +34,45 @@ module LogStruct
           # message's delivery method is finished.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
           def after_deliver(*filters, &blk)
+            # Use T.unsafe for splat arguments due to Sorbet limitation
             T.unsafe(self).set_callback(:deliver, :after, *filters, &blk)
           end
 
           # Defines a callback that will get called around the message's deliver method.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).params(arg0: T.untyped).void)).void }
           def around_deliver(*filters, &blk)
+            # Use T.unsafe for splat arguments due to Sorbet limitation
             T.unsafe(self).set_callback(:deliver, :around, *filters, &blk)
+          end
+        end
+
+        # Module to patch ActionMailer::MessageDelivery with callback support
+        module MessageDeliveryCallbacks
+          extend T::Sig
+
+          sig { params(block: T.proc.void).returns(T.untyped) }
+          def handle_exceptions(&block)
+            processed_mailer.handle_exceptions do
+              yield
+            end
+          end
+
+          sig { returns(T.untyped) }
+          def deliver_now
+            processed_mailer.handle_exceptions do
+              processed_mailer.run_callbacks(:deliver) do
+                message.deliver
+              end
+            end
+          end
+
+          sig { returns(T.untyped) }
+          def deliver_now!
+            processed_mailer.handle_exceptions do
+              processed_mailer.run_callbacks(:deliver) do
+                message.deliver!
+              end
+            end
           end
         end
 
@@ -50,35 +81,9 @@ module LogStruct
           # Return early if we've already patched
           return true if @patched_message_delivery
 
-          # Use T.unsafe only for the class_eval call since this is metaprogramming
-          # that Sorbet can't statically analyze
-          ::ActionMailer::MessageDelivery.class_eval do
-            # Add handle_exceptions method if it doesn't exist
-            unless method_defined?(:handle_exceptions)
-              def handle_exceptions
-                processed_mailer.handle_exceptions do
-                  yield if block_given?
-                end
-              end
-            end
-
-            # Override deliver_now to run callbacks
-            def deliver_now
-              processed_mailer.handle_exceptions do
-                processed_mailer.run_callbacks(:deliver) do
-                  message.deliver
-                end
-              end
-            end
-
-            # Override deliver_now! to run callbacks
-            def deliver_now!
-              processed_mailer.handle_exceptions do
-                processed_mailer.run_callbacks(:deliver) do
-                  message.deliver!
-                end
-              end
-            end
+          # Only prepend our module if handle_exceptions method doesn't exist
+          unless ::ActionMailer::MessageDelivery.method_defined?(:handle_exceptions)
+            ::ActionMailer::MessageDelivery.prepend(MessageDeliveryCallbacks)
           end
 
           # Mark as patched so we don't do it again
