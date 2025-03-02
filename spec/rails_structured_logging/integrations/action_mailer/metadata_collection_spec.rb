@@ -21,7 +21,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
         it "adds message metadata to log data" do
           log_data = {}
-          RailsStructuredLogging::ActionMailer::MetadataCollection.add_message_metadata(mailer, log_data)
+          RailsStructuredLogging::Integrations::ActionMailer::MetadataCollection.add_message_metadata(mailer, log_data)
 
           expect(log_data[:recipient_count]).to eq(1)
           expect(log_data[:has_attachments]).to be(true)
@@ -34,7 +34,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
         it "adds default message metadata to log data" do
           log_data = {}
-          RailsStructuredLogging::ActionMailer::MetadataCollection.add_message_metadata(mailer, log_data)
+          RailsStructuredLogging::Integrations::ActionMailer::MetadataCollection.add_message_metadata(mailer, log_data)
 
           expect(log_data[:recipient_count]).to eq(0)
           expect(log_data[:has_attachments]).to be(false)
@@ -57,7 +57,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
         it "extracts account and user IDs to log data" do
           log_data = {}
-          RailsStructuredLogging::ActionMailer::MetadataCollection.extract_ids_to_log_data(mailer, log_data)
+          RailsStructuredLogging::Integrations::ActionMailer::MetadataCollection.extract_ids_to_log_data(mailer, log_data)
 
           expect(log_data[:account_id]).to eq(123)
           expect(log_data[:user_id]).to eq(456)
@@ -72,7 +72,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
         it "handles missing instance variables gracefully" do
           log_data = {}
-          RailsStructuredLogging::ActionMailer::MetadataCollection.extract_ids_to_log_data(mailer, log_data)
+          RailsStructuredLogging::Integrations::ActionMailer::MetadataCollection.extract_ids_to_log_data(mailer, log_data)
 
           expect(log_data).not_to have_key(:account_id)
           expect(log_data).not_to have_key(:user_id)
@@ -101,7 +101,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
       it "adds available tags to log data" do
         log_data = {}
-        RailsStructuredLogging::ActionMailer::MetadataCollection.add_current_tags_to_log_data(log_data)
+        RailsStructuredLogging::Integrations::ActionMailer::MetadataCollection.add_current_tags_to_log_data(log_data)
 
         expect(log_data[:tags]).to eq(%w[tag1 tag2])
         expect(log_data[:request_id]).to eq("request-123")

@@ -29,12 +29,14 @@ module RailsStructuredLogging
 
           # Silence default ActionMailer logs (we use our own structured logging)
           # This is required because we replace the logging using our own callbacks
-          ::ActionMailer::Base.logger = ::Logger.new(File::NULL) if defined?(::ActionMailer::Base)
+          if defined?(::ActionMailer::Base)
+            ::ActionMailer::Base.logger = ::Logger.new(File::NULL)
+          end
 
           # Include our modules directly into ::ActionMailer::Base
           ::ActiveSupport.on_load(:action_mailer) do
-            include RailsStructuredLogging::ActionMailer::EventLogging
-            include RailsStructuredLogging::ActionMailer::ErrorHandling
+            include Integrations::ActionMailer::EventLogging
+            include Integrations::ActionMailer::ErrorHandling
           end
 
           # Set up callbacks for Rails 7.0.x (not needed for Rails 7.1+)
@@ -50,11 +52,11 @@ module RailsStructuredLogging
 
           # Include the callbacks module in ::ActionMailer::Base
           ::ActiveSupport.on_load(:action_mailer) do
-            include RailsStructuredLogging::ActionMailer::Callbacks
+            include Integrations::ActionMailer::Callbacks
           end
 
           # Patch MessageDelivery to run the callbacks
-          RailsStructuredLogging::ActionMailer::Callbacks.patch_message_delivery
+          Integrations::ActionMailer::Callbacks.patch_message_delivery
         end
       end
     end

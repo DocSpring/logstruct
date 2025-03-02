@@ -51,7 +51,7 @@ module RailsStructuredLogging
               env,
               level: :error,
               event: Enums::EventType::RequestError.serialize,
-              error_class: error.class.name,
+              error_class: error.class.to_s,
               error_message: error.message
             )
 

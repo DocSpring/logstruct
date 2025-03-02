@@ -8,7 +8,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
     # Create a test mailer class that inherits from ::ActionMailer::Base
     let(:test_mailer_class) do
       Class.new(ActionMailer::Base) do
-        include RailsStructuredLogging::ActionMailer::EventLogging
+        include RailsStructuredLogging::Integrations::ActionMailer::EventLogging
 
         def self.name
           "TestMailer"
@@ -37,8 +37,8 @@ module RailsStructuredLogging::Integrations::ActionMailer
     let(:mailer) { test_mailer_class.new.welcome_email }
 
     before do
-      allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data).and_return({})
-      allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
+      allow(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:build_base_log_data).and_return({})
+      allow(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
     end
 
     describe "callbacks" do
@@ -69,11 +69,11 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
     describe "#log_mailer_event" do
       it "logs event with base data" do
-        expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
           .with(mailer, "test_event")
           .and_return({base: "data"})
 
-        expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
           .with({base: "data"}, :info)
 
         result = mailer.send(:log_mailer_event, "test_event")
@@ -81,11 +81,11 @@ module RailsStructuredLogging::Integrations::ActionMailer
       end
 
       it "merges additional data when provided" do
-        expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
           .with(mailer, "test_event")
           .and_return({base: "data"})
 
-        expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
           .with({base: "data", additional: "value"}, :info)
 
         result = mailer.send(:log_mailer_event, "test_event", :info, {additional: "value"})
@@ -93,11 +93,11 @@ module RailsStructuredLogging::Integrations::ActionMailer
       end
 
       it "uses the specified log level" do
-        expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:build_base_log_data)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:build_base_log_data)
           .with(mailer, "test_event")
           .and_return({base: "data"})
 
-        expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_to_rails)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:log_to_rails)
           .with({base: "data"}, :debug)
 
         mailer.send(:log_mailer_event, "test_event", :debug)

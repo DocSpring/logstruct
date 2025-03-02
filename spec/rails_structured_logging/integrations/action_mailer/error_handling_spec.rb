@@ -9,7 +9,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
     let(:test_mailer_class) do
       Class.new(ActionMailer::Base) do
         # We need to include the module to test it
-        include RailsStructuredLogging::ActionMailer::ErrorHandling
+        include RailsStructuredLogging::Integrations::ActionMailer::ErrorHandling
 
         def self.name
           "TestMailer"
@@ -42,7 +42,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
 
     before do
       # Mock the logger methods
-      allow(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_structured_error)
+      allow(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:log_structured_error)
       allow(Rails.logger).to receive(:info)
       allow(RailsStructuredLogging::MultiErrorReporter).to receive(:report_exception)
     end
@@ -111,7 +111,7 @@ module RailsStructuredLogging::Integrations::ActionMailer
       context "with standard error" do
         it "logs the error and handles notifications" do
           expect(mailer).to receive(:error_message_for).with(standard_error, true).and_call_original
-          expect(RailsStructuredLogging::ActionMailer::Logger).to receive(:log_structured_error)
+          expect(RailsStructuredLogging::Integrations::ActionMailer::Logger).to receive(:log_structured_error)
           expect(mailer).to receive(:handle_error_notifications).with(standard_error, false, true, true)
 
           mailer.send(:log_email_delivery_error, standard_error)

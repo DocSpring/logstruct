@@ -26,7 +26,7 @@ module RailsStructuredLogging
             ::ActiveJob::LogSubscriber.detach_from :active_job
 
             # Attach our structured formatter
-            RailsStructuredLogging::ActiveJob::StructuredLogSubscriber.attach_to :active_job
+            Integrations::ActiveJob::StructuredLogSubscriber.attach_to :active_job
           end
         end
       end

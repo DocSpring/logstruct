@@ -20,7 +20,7 @@ module RailsStructuredLogging::Integrations
         allow(::ActionMailer::Base).to receive(:include)
 
         # For Rails 7.0 callback setup
-        allow(RailsStructuredLogging::ActionMailer).to receive(:setup_callbacks_for_rails_7_0) if Rails.gem_version < Gem::Version.new("7.1.0")
+        allow(RailsStructuredLogging::Integrations::ActionMailer).to receive(:setup_callbacks_for_rails_7_0) if Rails.gem_version < Gem::Version.new("7.1.0")
       end
 
       it "sets up ActionMailer integration" do
@@ -28,14 +28,14 @@ module RailsStructuredLogging::Integrations
         expect(::ActionMailer::Base).to receive(:logger=)
 
         # Expect ::ActionMailer::Base to include our module
-        expect(::ActionMailer::Base).to receive(:include).with(RailsStructuredLogging::ActionMailer)
+        expect(::ActionMailer::Base).to receive(:include).with(RailsStructuredLogging::Integrations::ActionMailer)
 
         # Expect callbacks to be set up for Rails 7.0 if needed
         if Rails.gem_version < Gem::Version.new("7.1.0")
-          expect(RailsStructuredLogging::ActionMailer).to receive(:setup_callbacks_for_rails_7_0)
+          expect(RailsStructuredLogging::Integrations::ActionMailer).to receive(:setup_callbacks_for_rails_7_0)
         end
 
-        RailsStructuredLogging::ActionMailer.setup
+        RailsStructuredLogging::Integrations::ActionMailer.setup
       end
 
       context "when structured logging is disabled" do
@@ -47,7 +47,7 @@ module RailsStructuredLogging::Integrations
           expect(::ActionMailer::Base).not_to receive(:logger=)
           expect(::ActionMailer::Base).not_to receive(:include)
 
-          RailsStructuredLogging::ActionMailer.setup
+          RailsStructuredLogging::Integrations::ActionMailer.setup
         end
       end
 
@@ -62,7 +62,7 @@ module RailsStructuredLogging::Integrations
           expect(::ActionMailer::Base).not_to receive(:logger=)
           expect(::ActionMailer::Base).not_to receive(:include)
 
-          RailsStructuredLogging::ActionMailer.setup
+          RailsStructuredLogging::Integrations::ActionMailer.setup
         end
       end
     end
@@ -76,14 +76,14 @@ module RailsStructuredLogging::Integrations
         allow(::ActionMailer::Base).to receive(:include)
 
         # Allow Callbacks module to patch MessageDelivery
-        allow(RailsStructuredLogging::ActionMailer::Callbacks).to receive(:patch_message_delivery)
+        allow(RailsStructuredLogging::Integrations::ActionMailer::Callbacks).to receive(:patch_message_delivery)
       end
 
       it "includes Callbacks module and patches MessageDelivery" do
-        expect(::ActionMailer::Base).to receive(:include).with(RailsStructuredLogging::ActionMailer::Callbacks)
-        expect(RailsStructuredLogging::ActionMailer::Callbacks).to receive(:patch_message_delivery)
+        expect(::ActionMailer::Base).to receive(:include).with(RailsStructuredLogging::Integrations::ActionMailer::Callbacks)
+        expect(RailsStructuredLogging::Integrations::ActionMailer::Callbacks).to receive(:patch_message_delivery)
 
-        RailsStructuredLogging::ActionMailer.send(:setup_callbacks_for_rails_7_0)
+        RailsStructuredLogging::Integrations::ActionMailer.send(:setup_callbacks_for_rails_7_0)
       end
     end
   end
