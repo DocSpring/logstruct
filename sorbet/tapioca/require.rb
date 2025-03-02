@@ -2,11 +2,7 @@
 # frozen_string_literal: true
 
 # Add your extra requires here (`bin/tapioca require` can be used to bootstrap this list)
-require "rspec"
-require "rspec/mocks"
-
-# We type-check our tests
-require_relative "../../spec/spec_helper"
+require_relative "../../test/test_helper"
 
 require "rails/all"
 require "rails/generators"

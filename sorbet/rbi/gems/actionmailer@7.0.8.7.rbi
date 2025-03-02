@@ -1262,7 +1262,7 @@ class ActionMailer::Base < ::AbstractController::Base
     # source://activesupport/7.0.8.7/lib/active_support/configurable.rb#114
     def relative_url_root=(value); end
 
-    # source://activesupport/7.0.8.7/lib/active_support/rescuable.rb#13
+    def rescue_from(*args); end
     def rescue_handlers; end
 
     # source://activesupport/7.0.8.7/lib/active_support/rescuable.rb#13
@@ -1362,8 +1362,6 @@ end
 # source://actionmailer//lib/action_mailer/base.rb#0
 module ActionMailer::Base::HelperMethods
   include ::ActionMailer::MailHelper
-  include ::ActionText::ContentHelper
-  include ::ActionText::TagHelper
 
   # source://actionpack/7.0.8.7/lib/abstract_controller/caching/fragments.rb#31
   def combined_fragment_cache_key(*args, **_arg1, &block); end
@@ -1762,6 +1760,8 @@ class ActionMailer::MessageDelivery
   #
   # source://actionmailer//lib/action_mailer/message_delivery.rb#107
   def deliver_now!; end
+
+  def handle_exceptions; end
 
   # Returns the resulting Mail::Message
   #

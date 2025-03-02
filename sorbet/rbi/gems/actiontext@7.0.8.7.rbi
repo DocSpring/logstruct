@@ -692,28 +692,6 @@ module ActionText::ContentHelper
   end
 end
 
-class ActionText::EncryptedRichText < ::ActionText::RichText
-  include ::ActionText::EncryptedRichText::GeneratedAttributeMethods
-  include ::ActionText::EncryptedRichText::GeneratedAssociationMethods
-
-  class << self
-    # source://activemodel/7.0.8.7/lib/active_model/validations.rb#52
-    def _validators; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/attributes.rb#11
-    def attributes_to_define_after_schema_loads; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/enum.rb#116
-    def defined_enums; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/encryption/encryptable_record.rb#11
-    def encrypted_attributes; end
-  end
-end
-
-module ActionText::EncryptedRichText::GeneratedAssociationMethods; end
-module ActionText::EncryptedRichText::GeneratedAttributeMethods; end
-
 # source://actiontext//lib/action_text/encryption.rb#4
 module ActionText::Encryption
   # source://actiontext//lib/action_text/encryption.rb#12
@@ -943,22 +921,6 @@ module ActionText::PlainTextConversion
   def remove_trailing_newlines(text); end
 end
 
-class ActionText::Record < ::ActiveRecord::Base
-  include ::ActionText::Record::GeneratedAttributeMethods
-  include ::ActionText::Record::GeneratedAssociationMethods
-
-  class << self
-    # source://activemodel/7.0.8.7/lib/active_model/validations.rb#52
-    def _validators; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/enum.rb#116
-    def defined_enums; end
-  end
-end
-
-module ActionText::Record::GeneratedAssociationMethods; end
-module ActionText::Record::GeneratedAttributeMethods; end
-
 # source://actiontext//lib/action_text/rendering.rb#7
 module ActionText::Rendering
   extend ::ActiveSupport::Concern
@@ -974,119 +936,6 @@ module ActionText::Rendering::ClassMethods
   # source://actiontext//lib/action_text/rendering.rb#17
   def with_renderer(renderer); end
 end
-
-class ActionText::RichText < ::ActionText::Record
-  include ::ActionText::RichText::GeneratedAttributeMethods
-  include ::ActionText::RichText::GeneratedAssociationMethods
-
-  # source://activerecord/7.0.8.7/lib/active_record/autosave_association.rb#160
-  def autosave_associated_records_for_embeds_attachments(*args); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/autosave_association.rb#160
-  def autosave_associated_records_for_embeds_blobs(*args); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/autosave_association.rb#160
-  def autosave_associated_records_for_record(*args); end
-
-  def blank?(*_arg0, **_arg1, &_arg2); end
-  def empty?(*_arg0, **_arg1, &_arg2); end
-  def nil?(*_arg0, **_arg1, &_arg2); end
-  def present?(*_arg0, **_arg1, &_arg2); end
-  def to_plain_text; end
-  def to_s(*_arg0, **_arg1, &_arg2); end
-  def to_trix_html; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/autosave_association.rb#160
-  def validate_associated_records_for_embeds_attachments(*args); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/autosave_association.rb#160
-  def validate_associated_records_for_embeds_blobs(*args); end
-
-  class << self
-    # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
-    def __callbacks; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/reflection.rb#11
-    def _reflections; end
-
-    # source://activemodel/7.0.8.7/lib/active_model/validations.rb#52
-    def _validators; end
-
-    # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#53
-    def attachment_reflections; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/attributes.rb#11
-    def attributes_to_define_after_schema_loads; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/enum.rb#116
-    def defined_enums; end
-
-    # source://activerecord/7.0.8.7/lib/active_record/scoping/named.rb#174
-    def with_attached_embeds(*args, **_arg1); end
-  end
-end
-
-module ActionText::RichText::EmbedsAttachmentsAssociationExtension
-  # source://activestorage/7.0.8.7/lib/active_storage/attached/model.rb#165
-  def purge; end
-
-  # source://activestorage/7.0.8.7/lib/active_storage/attached/model.rb#171
-  def purge_later; end
-
-  private
-
-  # source://activestorage/7.0.8.7/lib/active_storage/attached/model.rb#178
-  def deprecate(action); end
-end
-
-module ActionText::RichText::GeneratedAssociationMethods
-  # source://activestorage/7.0.8.7/lib/active_storage/attached/model.rb#134
-  def embeds; end
-
-  # source://activestorage/7.0.8.7/lib/active_storage/attached/model.rb#139
-  def embeds=(attachables); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/collection_association.rb#62
-  def embeds_attachment_ids; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/collection_association.rb#72
-  def embeds_attachment_ids=(ids); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/association.rb#103
-  def embeds_attachments; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/association.rb#111
-  def embeds_attachments=(value); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/collection_association.rb#62
-  def embeds_blob_ids; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/collection_association.rb#72
-  def embeds_blob_ids=(ids); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/association.rb#103
-  def embeds_blobs; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/association.rb#111
-  def embeds_blobs=(value); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/association.rb#103
-  def record; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/association.rb#111
-  def record=(value); end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/belongs_to.rb#132
-  def record_changed?; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/belongs_to.rb#136
-  def record_previously_changed?; end
-
-  # source://activerecord/7.0.8.7/lib/active_record/associations/builder/singular_association.rb#19
-  def reload_record; end
-end
-
-module ActionText::RichText::GeneratedAttributeMethods; end
 
 # source://actiontext//lib/action_text/serialization.rb#4
 module ActionText::Serialization

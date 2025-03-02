@@ -42,11 +42,12 @@ group :development, :test do
   gem "dalli"
   gem "debug"
   gem "listen", require: false
-  gem "rspec-sorbet-types"
-  gem "rspec"
+  gem "minitest", "~> 5.20"
+  gem "minitest-reporters", "~> 1.6"
+  gem "simplecov", "~> 0.22", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
-  gem "rubocop-rspec", require: false
+  gem "rubocop-minitest", require: false
   gem "rubocop-sorbet", require: false
   gem "rubocop", require: false
   gem "solargraph", require: false

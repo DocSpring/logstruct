@@ -9324,42 +9324,6 @@ class ActionDispatch::DebugLocks
   def render_details(req); end
 end
 
-# source://actionpack//lib/action_dispatch/middleware/debug_view.rb#9
-class ActionDispatch::DebugView < ::ActionView::Base
-  # @return [DebugView] a new instance of DebugView
-  #
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#12
-  def initialize(assigns); end
-
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#18
-  def compiled_method_container; end
-
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#42
-  def debug_hash(object); end
-
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#34
-  def debug_headers(headers); end
-
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#22
-  def debug_params(params); end
-
-  # @return [Boolean]
-  #
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#60
-  def params_valid?; end
-
-  # @return [Boolean]
-  #
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#56
-  def protect_against_forgery?; end
-
-  # source://actionpack//lib/action_dispatch/middleware/debug_view.rb#46
-  def render(*_arg0); end
-end
-
-# source://actionpack//lib/action_dispatch/middleware/debug_view.rb#10
-ActionDispatch::DebugView::RESCUES_TEMPLATE_PATH = T.let(T.unsafe(nil), String)
-
 # source://actionpack//lib/action_dispatch/middleware/exception_wrapper.rb#7
 class ActionDispatch::ExceptionWrapper
   # @return [ExceptionWrapper] a new instance of ExceptionWrapper

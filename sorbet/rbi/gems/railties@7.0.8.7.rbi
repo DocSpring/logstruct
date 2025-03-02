@@ -23,7 +23,6 @@ module Rails
     # source://railties//lib/rails.rb#38
     def app_class=(_arg0); end
 
-    # source://railties//lib/rails.rb#39
     def application; end
 
     # Sets the attribute application
@@ -61,8 +60,6 @@ module Rails
     #   Rails.env # => "development"
     #   Rails.env.development? # => true
     #   Rails.env.production? # => false
-    #
-    # source://railties//lib/rails.rb#72
     def env; end
 
     # Sets the Rails environment.
@@ -108,8 +105,6 @@ module Rails
     def initialized?(*_arg0, **_arg1, &_arg2); end
 
     # Returns the value of attribute logger.
-    #
-    # source://railties//lib/rails.rb#38
     def logger; end
 
     # Sets the attribute logger
@@ -133,8 +128,6 @@ module Rails
     #
     #   Rails.root
     #     # => #<Pathname:/Users/someuser/some/path/project>
-    #
-    # source://railties//lib/rails.rb#63
     def root; end
 
     # Returns the currently loaded version of Rails as a string.
@@ -4715,46 +4708,6 @@ module Rails::Info
   end
 end
 
-# source://railties//lib/rails/info_controller.rb#6
-class Rails::InfoController < ::Rails::ApplicationController
-  # source://railties//lib/rails/info_controller.rb#12
-  def index; end
-
-  # source://railties//lib/rails/info_controller.rb#16
-  def properties; end
-
-  # source://railties//lib/rails/info_controller.rb#21
-  def routes; end
-
-  private
-
-  # source://actionview/7.0.8.7/lib/action_view/layouts.rb#328
-  def _layout(lookup_context, formats); end
-
-  # source://railties//lib/rails/info_controller.rb#8
-  def _layout_from_proc; end
-
-  # source://railties//lib/rails/info_controller.rb#36
-  def match_route; end
-
-  # source://railties//lib/rails/info_controller.rb#40
-  def with_leading_slash(path); end
-
-  class << self
-    # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
-    def __callbacks; end
-
-    # source://actionview/7.0.8.7/lib/action_view/layouts.rb#209
-    def _layout; end
-
-    # source://actionview/7.0.8.7/lib/action_view/layouts.rb#210
-    def _layout_conditions; end
-
-    # source://actionpack/7.0.8.7/lib/action_controller/metal.rb#210
-    def middleware_stack; end
-  end
-end
-
 # source://railties//lib/rails/initializable.rb#6
 module Rails::Initializable
   mixes_in_class_methods ::Rails::Initializable::ClassMethods
@@ -4843,67 +4796,6 @@ end
 module Rails::LineFiltering
   # source://railties//lib/rails/test_unit/line_filtering.rb#7
   def run(reporter, options = T.unsafe(nil)); end
-end
-
-# source://railties//lib/rails/mailers_controller.rb#5
-class Rails::MailersController < ::Rails::ApplicationController
-  # source://railties//lib/rails/mailers_controller.rb#16
-  def index; end
-
-  # source://railties//lib/rails/mailers_controller.rb#21
-  def preview; end
-
-  private
-
-  # source://actionview/7.0.8.7/lib/action_view/layouts.rb#328
-  def _layout(lookup_context, formats); end
-
-  # source://railties//lib/rails/mailers_controller.rb#80
-  def find_part(format); end
-
-  # source://railties//lib/rails/mailers_controller.rb#68
-  def find_preferred_part(*formats); end
-
-  # source://railties//lib/rails/mailers_controller.rb#56
-  def find_preview; end
-
-  # source://railties//lib/rails/mailers_controller.rb#92
-  def locale_query(locale); end
-
-  # source://railties//lib/rails/mailers_controller.rb#88
-  def part_query(mime_type); end
-
-  # source://railties//lib/rails/mailers_controller.rb#96
-  def set_locale(&block); end
-
-  # @return [Boolean]
-  #
-  # source://railties//lib/rails/mailers_controller.rb#52
-  def show_previews?; end
-
-  class << self
-    # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
-    def __callbacks; end
-
-    # source://actionpack/7.0.8.7/lib/abstract_controller/helpers.rb#11
-    def _helper_methods; end
-
-    # source://actionpack/7.0.8.7/lib/action_controller/metal.rb#210
-    def middleware_stack; end
-  end
-end
-
-# source://railties//lib/rails/mailers_controller.rb#0
-module Rails::MailersController::HelperMethods
-  include ::ActionText::ContentHelper
-  include ::ActionText::TagHelper
-  include ::ActionController::Base::HelperMethods
-
-  # source://railties//lib/rails/mailers_controller.rb#12
-  def locale_query(*args, **_arg1, &block); end
-
-  # source://railties//lib/rails/mailers_controller.rb#12
-  def part_query(*args, **_arg1, &block); end
 end
 
 # source://railties//lib/rails/paths.rb#6

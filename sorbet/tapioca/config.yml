@@ -17,8 +17,8 @@ gem:
     - rubocop-ast
     - rubocop-performance
     - rubocop-rails
-    - rubocop-rspec
     - rubocop-sorbet
+    - rubocop-minitest
     - ruby-progressbar
     - solargraph
     - spoom

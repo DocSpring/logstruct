@@ -160,7 +160,6 @@ module Rails
     # source://railties/7.0.8.7/lib/rails.rb#38
     def app_class=(_arg0); end
 
-    # source://railties/7.0.8.7/lib/rails.rb#39
     def application; end
 
     # source://railties/7.0.8.7/lib/rails.rb#37
@@ -181,7 +180,6 @@ module Rails
     # source://railties/7.0.8.7/lib/rails.rb#46
     def configuration; end
 
-    # source://railties/7.0.8.7/lib/rails.rb#72
     def env; end
 
     # source://railties/7.0.8.7/lib/rails.rb#79
@@ -202,7 +200,6 @@ module Rails
     # source://railties/7.0.8.7/lib/rails.rb#43
     def initialized?(*_arg0, **_arg1, &_arg2); end
 
-    # source://railties/7.0.8.7/lib/rails.rb#38
     def logger; end
 
     # source://railties/7.0.8.7/lib/rails.rb#38
@@ -211,7 +208,6 @@ module Rails
     # source://railties/7.0.8.7/lib/rails.rb#119
     def public_path; end
 
-    # source://railties/7.0.8.7/lib/rails.rb#63
     def root; end
 
     # source://railties/7.0.8.7/lib/rails/version.rb#7

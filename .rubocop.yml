@@ -1,6 +1,6 @@
 require:
   - standard
-  - rubocop-rspec
+  - rubocop-minitest
   - rubocop-rails
   - rubocop-performance
   - rubocop-sorbet
@@ -15,6 +15,7 @@ AllCops:
     - public/**/*
     - vendor/**/*
     - tmp/**/*
+    - spec/**/*
     - sorbet/rbi/dsl/**/*
     - sorbet/rbi/gems/**/*
     - sorbet/rbi/annotations/**/*
@@ -32,33 +33,6 @@ Rails/TimeZone:
   Enabled: false
 # We don't use ApplicationMailer in this gem
 Rails/ApplicationMailer:
-  Enabled: false
-
-RSpec:
-  Enabled: true # enable rubocop-rspec cops
-RSpec/DescribedClass:
-  EnforcedStyle: explicit # Much nicer for typechecking
-RSpec/DescribeClass:
-  Enabled: false # ignore missing comments on classes
-RSpec/BeforeAfterAll:
-  Enabled: false
-RSpec/ScatteredLet: # We use rsig defs for each let
-  Enabled: false
-RSpec/MultipleExpectations:
-  Enabled: false
-RSpec/ExampleLength:
-  Enabled: false
-RSpec/MultipleMemoizedHelpers:
-  Enabled: false
-RSpec/SubjectStub:
-  Enabled: false
-RSpec/MessageSpies:
-  Enabled: false
-RSpec/NestedGroups:
-  Enabled: false
-RSpec/VerifiedDoubles:
-  Enabled: false
-RSpec/StubbedMock:
   Enabled: false
 
 Performance/OpenStruct:

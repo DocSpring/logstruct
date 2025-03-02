@@ -17,6 +17,9 @@ module ActiveJob
 end
 
 class ActiveJob::Base
+  include ::Sidekiq::Job::Options
+  extend ::Sidekiq::Job::Options::ClassMethods
+
   # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
   def __callbacks; end
 
@@ -129,7 +132,6 @@ class ActiveJob::Base
     # source://activejob/7.0.8.7/lib/active_job/logging.rb#12
     def log_arguments?; end
 
-    # source://activejob/7.0.8.7/lib/active_job/logging.rb#11
     def logger; end
 
     # source://activejob/7.0.8.7/lib/active_job/logging.rb#11

@@ -875,7 +875,6 @@ class ActionView::Base
   include ::ActionView::Helpers::NumberHelper
   include ::ActionView::Helpers::RenderingHelper
   include ::ActionView::Helpers
-  include ::ActionCable::Helpers::ActionCableHelper
   extend ::ActionView::Helpers::UrlHelper::ClassMethods
   extend ::ActionView::Helpers::SanitizeHelper::ClassMethods
 
@@ -1041,12 +1040,6 @@ class ActionView::Base
 
     # source://actionview//lib/action_view/helpers/translation_helper.rb#18
     def debug_missing_translation=(val); end
-
-    # source://actionview//lib/action_view/helpers/form_helper.rb#2730
-    def default_form_builder; end
-
-    # source://actionview//lib/action_view/helpers/form_helper.rb#2730
-    def default_form_builder=(val); end
 
     # source://actionview//lib/action_view/base.rb#157
     def default_formats; end
