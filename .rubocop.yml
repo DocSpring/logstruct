@@ -1,6 +1,7 @@
 require:
   - standard
   - rubocop-rspec
+  - rubocop-rails
   - rubocop-performance
   - rubocop-sorbet
 

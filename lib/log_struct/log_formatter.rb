@@ -8,7 +8,7 @@ require "globalid"
 require_relative "log_source"
 require_relative "log_event"
 require_relative "logstop_fork"
-require_relative "log_entries"
+require_relative "log"
 require_relative "param_filters"
 require_relative "multi_error_reporter"
 
@@ -17,31 +17,6 @@ module LogStruct
   # This is a port of the existing JSONLogFormatter with some improvements
   class LogFormatter < Logger::Formatter
     extend T::Sig
-
-    # Format ActiveJob arguments safely, similar to how Rails does it internally
-    # Also scrubs sensitive information using LogstopFork
-    LogValueType = T.type_alias {
-      T.any(
-        T::Boolean,
-        T::Hash[T.untyped, T.untyped],
-        T::Array[T.untyped],
-        GlobalID::Identification,
-        String,
-        Integer,
-        Float,
-        Symbol,
-        LogStruct::LogSource,
-        LogStruct::LogEvent
-      )
-    }
-
-    # Can call Rails.logger.info with either a structured hash or a plain string
-    LogDataType = T.type_alias {
-      T.any(
-        String,
-        T::Hash[T.untyped, T.untyped]
-      )
-    }
 
     # Add current_tags method to support ActiveSupport::TaggedLogging
     sig { returns(T::Array[String]) }
@@ -141,8 +116,14 @@ module LogStruct
         # Use hash as is
         log_value.dup
       else
-        # Wrap anything else in a hash with a msg key
-        {msg: log_value.to_s}
+        # Create a Log struct with the message and then serialize it
+        log = LogStruct::Log::Log.new(
+          msg: log_value.to_s,
+          src: "rails",
+          evt: "log",
+          ts: time.iso8601(3)
+        )
+        log.serialize
       end
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments

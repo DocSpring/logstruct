@@ -27,7 +27,7 @@ module LogStruct::Integrations::ActionMailer
 
     describe ".build_base_log_data" do
       it "builds base log data with correct structure" do
-        test_time = Time.new(2023, 1, 1, 12, 0, 0)
+        test_time = Time.zone.local(2023, 1, 1, 12, 0, 0)
         allow(Time).to receive(:current).and_return(test_time)
 
         log_data = LogStruct::Integrations::ActionMailer::Logger.build_base_log_data(mailer, "test_event")

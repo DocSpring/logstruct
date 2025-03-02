@@ -23,7 +23,7 @@ module LogStruct
           # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
           shrine_log_subscriber = T.unsafe(lambda do |event|
             # Extract the event name and payload
-            event_name = event.name.to_sym
+            event.name.to_sym
             payload = event.payload.except(:io, :metadata, :name).dup
 
             # Create structured log data

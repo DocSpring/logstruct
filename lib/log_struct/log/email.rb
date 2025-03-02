@@ -14,7 +14,7 @@ module LogStruct
       # Common fields
       const :src, LogStruct::LogSource
       const :evt, LogStruct::LogEvent
-      const :ts, Time, default: T.unsafe(-> { Time.now })
+      const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
 
       # Email-specific fields

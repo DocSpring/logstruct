@@ -16,6 +16,7 @@ gem:
     - rubocop
     - rubocop-ast
     - rubocop-performance
+    - rubocop-rails
     - rubocop-rspec
     - rubocop-sorbet
     - ruby-progressbar

@@ -59,7 +59,7 @@ module LogStruct
         # Process headers from the event payload
         def process_headers(event, options)
           headers = event.payload[:headers]
-          return unless headers.present?
+          return if headers.blank?
 
           options[:user_agent] = headers["HTTP_USER_AGENT"]
           options[:content_type] = headers["CONTENT_TYPE"]

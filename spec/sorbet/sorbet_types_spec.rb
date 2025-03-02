@@ -76,7 +76,7 @@ RSpec.describe "Sorbet Types" do
     let(:test_message) { "Test message" }
 
     rsig { returns(Time) }
-    let(:test_time) { Time.now }
+    let(:test_time) { Time.zone.now }
 
     rsig { returns(LogStruct::LogFormatter) }
     let(:formatter) { LogStruct::LogFormatter.new }

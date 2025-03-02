@@ -49,6 +49,7 @@ group :development, :test do
   gem "sorbet-runtime", require: false
   gem "standard", ">= 1.35.1", require: false
   gem "rubocop", require: false
+  gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-sorbet", require: false
