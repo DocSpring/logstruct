@@ -16,13 +16,7 @@ require "minitest/autorun"
 require "minitest/reporters"
 
 # Use pretty reporters with minimal output
-Minitest::Reporters.use! [
-  Minitest::Reporters::DefaultReporter.new(
-    color: true,
-    detailed_skip: false,
-    verbose: false
-  )
-]
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new(color: true)
 
 # Require standard libraries
 require "json"
