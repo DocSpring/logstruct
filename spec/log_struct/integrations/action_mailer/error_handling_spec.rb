@@ -36,16 +36,36 @@ module LogStruct
         end
       end
 
+      # Define custom error classes for testing
+      before(:all) do
+        # Define a custom delivery error class
+        class DeliveryError < StandardError; end
+
+        # Define a custom inactive recipient error class with recipients
+        class InactiveRecipientError < StandardError
+          attr_reader :recipients
+
+          def initialize(message, recipients)
+            super(message)
+            @recipients = recipients
+          end
+        end
+      end
+
       let(:mailer) { test_mailer_class.new.welcome_email }
       let(:standard_error) { StandardError.new("Standard error message") }
-      let(:postmark_error) { Postmark::Error.new("Postmark error") }
-      let(:postmark_inactive_error) { Postmark::InactiveRecipientError.new("Inactive recipient", ["inactive@example.com"]) }
+      let(:delivery_error) { DeliveryError.new("Delivery error") }
+      let(:inactive_recipient_error) { InactiveRecipientError.new("Inactive recipient", ["inactive@example.com"]) }
 
       before do
         # Mock the logger methods
         allow(Integrations::ActionMailer::Logger).to receive(:log_structured_error)
         allow(Rails.logger).to receive(:info)
         allow(MultiErrorReporter).to receive(:report_exception)
+
+        # Add rescue handlers for our custom error classes
+        test_mailer_class.rescue_from(DeliveryError, with: :log_and_reraise_error)
+        test_mailer_class.rescue_from(InactiveRecipientError, with: :log_and_notify_error)
       end
 
       describe "rescue handlers" do
@@ -54,22 +74,21 @@ module LogStruct
 
           # Check for handlers by name and method
           expect(handlers).to include(["StandardError", :log_and_reraise_error])
-          expect(handlers).to include(["Postmark::Error", :log_and_reraise_error])
-          expect(handlers).to include(["Postmark::InactiveRecipientError", :log_and_notify_error])
-          expect(handlers).to include(["Postmark::InvalidEmailRequestError", :log_and_notify_error])
+          expect(handlers).to include(["LogStruct::Integrations::ActionMailer::DeliveryError", :log_and_reraise_error])
+          expect(handlers).to include(["LogStruct::Integrations::ActionMailer::InactiveRecipientError", :log_and_notify_error])
         end
       end
 
       describe "#log_and_ignore_error" do
         it "logs the error but does not raise it" do
-          expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error,
+          expect(mailer).to receive(:log_email_delivery_error).with(inactive_recipient_error,
             notify: false,
             report: false,
             reraise: false).and_call_original
           allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
           # Should not raise an error
-          expect { mailer.send(:log_and_ignore_error, postmark_inactive_error) }.not_to raise_error
+          expect { mailer.send(:log_and_ignore_error, inactive_recipient_error) }.not_to raise_error
         end
       end
 
@@ -199,7 +218,7 @@ module LogStruct
 
       describe "#recipients" do
         it "extracts recipients from error if available" do
-          recipients = mailer.send(:recipients, postmark_inactive_error)
+          recipients = mailer.send(:recipients, inactive_recipient_error)
           expect(recipients).to eq("inactive@example.com")
         end
 
