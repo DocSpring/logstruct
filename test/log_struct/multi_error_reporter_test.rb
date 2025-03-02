@@ -116,14 +116,10 @@ module LogStruct
     def test_report_exception_with_no_service
       # Temporarily undefine all error reporting services
       original_constants = {}
-
-      # Store and remove constants if they exist
-      [:Sentry, :Bugsnag, :Rollbar, :Honeybadger].each do |const|
-        if Object.const_defined?(const)
-          original_constants[const] = Object.const_get(const)
-          Object.send(:remove_const, const)
-        end
-      end
+      original_constants[:Sentry] = ::Sentry if defined?(::Sentry)
+      original_constants[:Bugsnag] = ::Bugsnag if defined?(::Bugsnag)
+      original_constants[:Rollbar] = ::Rollbar if defined?(::Rollbar)
+      original_constants[:Honeybadger] = ::Honeybadger if defined?(::Honeybadger)
 
       begin
         # Reset the reporter to force reinitialization

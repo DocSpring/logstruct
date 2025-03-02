@@ -31,6 +31,7 @@ require "logger"
 
 # Require Rails
 require "rails"
+require "active_support/test_case"
 
 # Create a minimal Rails application for testing
 class TestApp < Rails::Application

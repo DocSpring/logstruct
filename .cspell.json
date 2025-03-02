@@ -15,8 +15,5 @@
       "addWords": false
     }
   ],
-  "dictionaries": [
-    "project-words",
-    "lockfile-words"
-  ]
+  "dictionaries": ["project-words", "lockfile-words"]
 }

@@ -39,8 +39,13 @@ Performance/OpenStruct:
   Exclude:
     - spec/**/*
 
+# Testing
+# ------------------------------------------------------------------------------
+Minitest/MultipleAssertions:
+  Enabled: false
+
 # Sorbet RBI Rules
-# ----------------------------------
+# ------------------------------------------------------------------------------
 Style/SingleLineMethods:
   Exclude:
     - sorbet/**/*

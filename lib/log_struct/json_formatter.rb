@@ -60,7 +60,7 @@ module LogStruct
           # Check if this key should be filtered
           result[key] = if recursion_depth >= 1 && ParamFilters.should_filter_key?(key)
             # Filter the value
-            {_filtered: ParamFilters.summarize_json_attribute(value, key)}
+            {_filtered: ParamFilters.summarize_json_attribute(key, value)}
           else
             # Process the value normally
             process_values(value, recursion_depth: recursion_depth + 1)

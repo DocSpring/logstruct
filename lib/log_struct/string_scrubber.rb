@@ -11,13 +11,14 @@ module LogStruct
   # - Uses configuration options from LogStruct.config
   module StringScrubber
     class << self
-      URL_PASSWORD_REGEX = %r{((?://|%2F%2F)[^:]+:)[^@/]+@}
-      URL_PASSWORD_REPLACEMENT = '\1[FILTERED]@'
+      # Also supports URL-encoded URLs like https%3A%2F%2Fuser%3Asecret%40example.com
+      URL_PASSWORD_REGEX = /((?:\/\/|%2F%2F)[^\s\/]+(?::|%3A))[^\s\/]+(@|%40)/
+      URL_PASSWORD_REPLACEMENT = '\1[FILTERED]\2'
 
       EMAIL_REGEX = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i
 
-      CREDIT_CARD_SHORT_REGEX = /\b[3456]\d{15}\b/
-      CREDIT_CARD_LONG_REGEX = /\b[3456]\d{3}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}\b/
+      CREDIT_CARD_REGEX_SHORT = /\b[3456]\d{15}\b/
+      CREDIT_CARD_REGEX_DELIMITERS = /\b[3456]\d{3}[\s-]\d{4}[\s-]\d{4}[\s-]\d{4}\b/
       CREDIT_CARD_REPLACEMENT = "[CREDIT_CARD]"
 
       PHONE_REGEX = /\b\d{3}[\s-]\d{3}[\s-]\d{4}\b/
@@ -51,8 +52,8 @@ module LogStruct
 
         # Credit card numbers
         if config.filter_credit_cards
-          msg.gsub!(CREDIT_CARD_SHORT_REGEX, CREDIT_CARD_REPLACEMENT)
-          msg.gsub!(CREDIT_CARD_LONG_REGEX, CREDIT_CARD_REPLACEMENT)
+          msg.gsub!(CREDIT_CARD_REGEX_SHORT, CREDIT_CARD_REPLACEMENT)
+          msg.gsub!(CREDIT_CARD_REGEX_DELIMITERS, CREDIT_CARD_REPLACEMENT)
         end
 
         # Phone numbers

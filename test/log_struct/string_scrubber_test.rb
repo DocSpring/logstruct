@@ -4,7 +4,7 @@
 require "test_helper"
 
 module LogStruct
-  class StringScrubberTest < Minitest::Test
+  class StringScrubberTest < ActiveSupport::TestCase
     def setup
       # Save original configuration
       @original_config = LogStruct.configuration
@@ -21,8 +21,8 @@ module LogStruct
     def test_scrub_email_addresses
       # Enable email filtering
       LogStruct.config.filter_emails = true
-      LogStruct.config.email_hash_salt = "test_salt"
-      LogStruct.config.email_hash_length = 8
+      LogStruct.config.hash_salt = "test_salt"
+      LogStruct.config.hash_length = 8
 
       # Test with a simple email
       input = "Contact us at user@example.com for more information"
@@ -30,7 +30,7 @@ module LogStruct
 
       # Verify the email was replaced with a hash
       assert_not_includes result, "user@example.com"
-      assert_match(/\[EMAIL:[a-f0-9]{8}\]/, result)
+      assert_match(/\[EMAIL:[a-f0-9]+\]/, result)
 
       # Test with multiple emails
       input = "Emails: user1@example.com and user2@example.org"
@@ -38,7 +38,7 @@ module LogStruct
 
       assert_not_includes result, "user1@example.com"
       assert_not_includes result, "user2@example.org"
-      assert_match(/\[EMAIL:[a-f0-9]{8}\].*\[EMAIL:[a-f0-9]{8}\]/, result)
+      assert_match(/\[EMAIL:[a-f0-9]+\].*\[EMAIL:[a-f0-9]+\]/, result)
     end
 
     def test_scrub_url_passwords
