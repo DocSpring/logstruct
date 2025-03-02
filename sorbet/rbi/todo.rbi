@@ -4,17 +4,7 @@
 
 # typed: false
 
-module LogStruct::Integrations::ActionMailer::ApplicationMailer; end
 module LogStruct::Integrations::ActionMailer::ErrorHandling::LogTypes; end
-module LogStruct::Integrations::HostAuthorization::Enums::EventType::SecurityViolation; end
-module LogStruct::Integrations::HostAuthorization::Enums::SourceType::Rails; end
-module LogStruct::Integrations::Lograge::Enums::EventType::Request; end
-module LogStruct::Integrations::Lograge::Enums::SourceType::Rails; end
-module LogStruct::Integrations::Rack::ErrorHandlingMiddleware::Enums::EventType::RequestError; end
-module LogStruct::Integrations::Rack::ErrorHandlingMiddleware::Enums::EventType::SecurityViolation; end
-module LogStruct::Integrations::Rack::ErrorHandlingMiddleware::Enums::SourceType::Rails; end
-module LogStruct::Integrations::Rack::ErrorHandlingMiddleware::Enums::ViolationType::Csrf; end
-module LogStruct::Integrations::Rack::ErrorHandlingMiddleware::Enums::ViolationType::IpSpoof; end
 module LogStruct::LogEvent::CarrierWave; end
 module LogStruct::LogEvent::Shrine; end
 module LogStruct::LogTypes; end

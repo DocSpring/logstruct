@@ -107,8 +107,20 @@ module LogStruct
         # Log a notification event that can be picked up by external systems
         sig { params(error: StandardError).void }
         def log_notification_event(error)
-          # Create a notification log data object
-          notification_data = LogTypes.create_email_notification_log_data(error, self)
+          # Create an error log data object
+          notification_data = LogStruct::Log::Error.new(
+            src: LogSource::Mailer,
+            evt: LogEvent::Notification,
+            msg: "Email delivery error: #{error.message}",
+            err_class: error.class,
+            err_msg: error.message,
+            backtrace: error.backtrace,
+            data: {
+              mailer: self.class,
+              action: action_name,
+              recipients: recipients(error)
+            }
+          )
 
           # Log at info level since this is a notification, not an error
           Rails.logger.info(notification_data)

@@ -12,8 +12,8 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource # Used by all sources, should not have a default.
-      const :evt, LogStruct::LogEvent
+      const :src, LogSource # Used by all sources, should not have a default.
+      const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
       const :msg, T.nilable(String), default: nil
 

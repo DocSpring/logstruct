@@ -7,7 +7,7 @@ module LogStruct::Integrations::ActionMailer
   RSpec.describe ErrorHandling do
     # Define a test mailer class that inherits from ::ActionMailer::Base
     let(:test_mailer_class) do
-      Class.new(ApplicationMailer) do
+      Class.new(::ActionMailer::Base) do
         # We need to include the module to test it
         include LogStruct::Integrations::ActionMailer::ErrorHandling
 

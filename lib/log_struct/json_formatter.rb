@@ -91,7 +91,7 @@ module LogStruct
             "[GLOBALID_ERROR]"
           end
         end
-      when LogStruct::LogSource, LogStruct::LogEvent
+      when LogSource, LogEvent
         arg.serialize
       when String
         scrub_string(arg)

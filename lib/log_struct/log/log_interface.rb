@@ -11,11 +11,11 @@ module LogStruct
       interface!
 
       # Common required fields for all log types
-      sig { abstract.returns(LogStruct::LogSource) }
+      sig { abstract.returns(LogSource) }
       def src
       end
 
-      sig { abstract.returns(LogStruct::LogEvent) }
+      sig { abstract.returns(LogEvent) }
       def evt
       end
 

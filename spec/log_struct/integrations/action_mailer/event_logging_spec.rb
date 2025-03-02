@@ -7,7 +7,7 @@ module LogStruct::Integrations::ActionMailer
   RSpec.describe EventLogging do
     # Create a test mailer class that inherits from ::ActionMailer::Base
     let(:test_mailer_class) do
-      Class.new(ApplicationMailer) do
+      Class.new(::ActionMailer::Base) do
         include LogStruct::Integrations::ActionMailer::EventLogging
 
         def self.name

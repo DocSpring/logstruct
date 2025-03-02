@@ -13,8 +13,8 @@ module LogStruct
 
       # Common fields
       const :msg, String
-      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Rails, LogStruct::LogSource)
-      const :evt, LogStruct::LogEvent, default: T.let(LogStruct::LogEvent::Log, LogStruct::LogEvent)
+      const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
+      const :evt, LogEvent, default: T.let(LogEvent::Log, LogEvent)
       const :ts, Time, factory: -> { Time.now }
 
       # Convert the log entry to a hash for serialization

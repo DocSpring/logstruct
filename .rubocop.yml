@@ -30,6 +30,9 @@ Bundler/DuplicatedGem:
 # We use UTC for all timestamps, no timezones required for logs
 Rails/TimeZone:
   Enabled: false
+# We don't use ApplicationMailer in this gem
+Rails/ApplicationMailer:
+  Enabled: false
 
 RSpec:
   Enabled: true # enable rubocop-rspec cops
