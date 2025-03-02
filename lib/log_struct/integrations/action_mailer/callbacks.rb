@@ -18,28 +18,30 @@ module LogStruct
           define_callbacks :deliver, skip_after_callbacks_if_terminated: true
         end
 
+        # Define class methods in a separate module
         class_methods do
+          extend T::Sig
+          # Need to use T.unsafe for splat arguments due to Sorbet limitation
+          # See: https://sorbet.org/docs/error-reference#7019
+
           # Defines a callback that will get called right before the
           # message is sent to the delivery method.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
           def before_deliver(*filters, &blk)
-            # This will be handled by ActiveSupport::Callbacks at runtime
-            set_callback(:deliver, :before, *filters, &blk)
+            T.unsafe(self).set_callback(:deliver, :before, *filters, &blk)
           end
 
           # Defines a callback that will get called right after the
           # message's delivery method is finished.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
           def after_deliver(*filters, &blk)
-            # This will be handled by ActiveSupport::Callbacks at runtime
-            set_callback(:deliver, :after, *filters, &blk)
+            T.unsafe(self).set_callback(:deliver, :after, *filters, &blk)
           end
 
           # Defines a callback that will get called around the message's deliver method.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).params(arg0: T.untyped).void)).void }
           def around_deliver(*filters, &blk)
-            # This will be handled by ActiveSupport::Callbacks at runtime
-            set_callback(:deliver, :around, *filters, &blk)
+            T.unsafe(self).set_callback(:deliver, :around, *filters, &blk)
           end
         end
 
