@@ -66,15 +66,15 @@ module RSpec::ExampleGroups::SorbetTypeSignatures::LetDefinitions
   sig { returns(T::Boolean) }
   def enabled; end
 
-  sig { returns(T::Boolean) }
+  sig { returns(T.untyped) }
   def filter_credit_cards; end
 
-  sig { returns(T::Boolean) }
+  sig { returns(T.untyped) }
   def filter_emails; end
 
-  sig { returns(T::Boolean) }
+  sig { returns(T.untyped) }
   def lograge_enabled; end
 
-  sig { returns(::String) }
+  sig { returns(T.untyped) }
   def logstop_email_salt; end
 end

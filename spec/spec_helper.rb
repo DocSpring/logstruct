@@ -1,8 +1,8 @@
 # typed: true
 # frozen_string_literal: true
 
-require "rails_structured_logging"
-require "sorbet-runtime"
+require "rspec"
+require "rspec/sorbet/types"
 require "json"
 require "ostruct"
 require "debug"
@@ -10,6 +10,8 @@ require "debug"
 # Set up a minimal Rails environment for testing
 require "rails"
 require "active_support/all"
+
+require "rails_structured_logging"
 
 # Require support files
 Dir[File.join(File.dirname(__FILE__), "support/**/*.rb")].sort.each { |f| require f }

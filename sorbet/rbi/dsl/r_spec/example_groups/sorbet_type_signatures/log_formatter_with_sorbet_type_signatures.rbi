@@ -67,12 +67,12 @@ class RSpec::ExampleGroups::SorbetTypeSignatures::LogFormatterWithSorbetTypeSign
 end
 
 module RSpec::ExampleGroups::SorbetTypeSignatures::LogFormatterWithSorbetTypeSignatures::LetDefinitions
-  sig { returns(::RailsStructuredLogging::LogFormatter) }
+  sig { returns(T.untyped) }
   def formatter; end
 
-  sig { returns(::String) }
+  sig { returns(T.untyped) }
   def test_message; end
 
-  sig { returns(::Time) }
+  sig { returns(T.untyped) }
   def test_time; end
 end

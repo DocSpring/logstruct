@@ -1,0 +1,49 @@
+require:
+  - standard
+  - rubocop-rspec
+  - rubocop-performance
+  - rubocop-sorbet
+
+inherit_gem:
+  standard: config/base.yml
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - node_modules/**/*
+    - public/**/*
+    - vendor/**/*
+    - sorbet/**/*
+    - tmp/**/*
+  SuggestExtensions:
+    rubocop-rails: false
+
+RSpec:
+  Enabled: true # enable rubocop-rspec cops
+RSpec/DescribeClass:
+  Enabled: false # ignore missing comments on classes
+Bundler/DuplicatedGem:
+  Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
+
+RSpec/BeforeAfterAll:
+  Enabled: false
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/ExampleLength:
+  Enabled: false
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+RSpec/SubjectStub:
+  Enabled: false
+RSpec/MessageSpies:
+  Enabled: false
+RSpec/NestedGroups:
+  Enabled: false
+RSpec/VerifiedDoubles:
+  Enabled: false
+RSpec/StubbedMock:
+  Enabled: false
+
+Performance/OpenStruct:
+  Exclude:
+    - spec/**/*

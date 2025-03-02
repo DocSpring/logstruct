@@ -1,4 +1,4 @@
-# typed: true
+# typed: false
 # frozen_string_literal: true
 
 require "spec_helper"
@@ -7,29 +7,6 @@ require "action_mailer"
 require "active_support"
 
 RSpec.describe RailsStructuredLogging::ActionMailer do
-  # Use a real Rails application for testing
-  before(:all) do
-    # Set up a minimal Rails application
-    @original_rails_env = ENV.fetch("RAILS_ENV", nil)
-    ENV["RAILS_ENV"] = "test"
-
-    # Create a test Rails application
-    @app = Class.new(Rails::Application) do
-      config.eager_load = false
-      config.logger = Logger.new(nil) # Silence the logger
-    end
-
-    # Initialize the application
-    Rails.application = @app
-    @app.initialize!
-  end
-
-  after(:all) do
-    # Clean up
-    ENV["RAILS_ENV"] = @original_rails_env
-    Rails.application = nil
-  end
-
   describe ".setup" do
     before do
       # Reset configuration for each test

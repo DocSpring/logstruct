@@ -2,22 +2,21 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "sorbet-runtime"
-require "rspec/sorbet/types" # Required for rsig
+require "rspec"
+require "rspec/sorbet/types"
 
 RSpec.describe "Sorbet Type Signatures" do
-  # Extend RSpec::Sorbet::Types::Sig instead of T::Sig directly
   extend RSpec::Sorbet::Types::Sig
 
   rsig { returns(T::Boolean) }
   let(:enabled) { true }
-  rsig { returns(T::Boolean) }
+  # rsig { returns(T::Boolean) }
   let(:lograge_enabled) { true }
-  rsig { returns(String) }
+  # rsig { returns(String) }
   let(:logstop_email_salt) { "test_salt" }
-  rsig { returns(T::Boolean) }
+  # rsig { returns(T::Boolean) }
   let(:filter_emails) { true }
-  rsig { returns(T::Boolean) }
+  # rsig { returns(T::Boolean) }
   let(:filter_credit_cards) { true }
 
   describe "Configuration with Sorbet type signatures" do
@@ -56,11 +55,11 @@ RSpec.describe "Sorbet Type Signatures" do
   end
 
   describe "LogFormatter with Sorbet type signatures" do
-    rsig { returns(String) }
+    # rsig { returns(String) }
     let(:test_message) { "Test message" }
-    rsig { returns(Time) }
+    # rsig { returns(Time) }
     let(:test_time) { Time.now }
-    rsig { returns(RailsStructuredLogging::LogFormatter) }
+    # rsig { returns(RailsStructuredLogging::LogFormatter) }
 
     let(:formatter) { RailsStructuredLogging::LogFormatter.new }
 

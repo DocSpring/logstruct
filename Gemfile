@@ -40,16 +40,15 @@ gem "sidekiq", "~> 7.2", require: false
 
 group :development, :test do
   gem "debug"
-  gem "rspec", require: false
-  gem "rspec-sorbet-types", require: false
-  # gem 'rubocop', require: false
-  # gem 'rubocop-rake', require: false
-  # gem 'rubocop-rspec', require: false
-  # gem 'rubocop-sorbet', require: false
+  gem "rspec"
+  gem "rspec-sorbet-types"
   gem "solargraph", require: false
   gem "sorbet", require: false
   gem "sorbet-runtime", require: false
   gem "standard", ">= 1.35.1", require: false
-  gem "standard-sorbet", require: false
+  gem "rubocop", require: false
+  gem "rubocop-rspec", require: false
+  gem "rubocop-performance", require: false
+  gem "rubocop-sorbet", require: false
   gem "tapioca", require: false
 end
