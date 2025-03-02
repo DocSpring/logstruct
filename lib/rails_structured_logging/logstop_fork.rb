@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require "digest"
@@ -14,10 +14,8 @@ module RailsStructuredLogging
       EMAIL_HASH_LENGTH = 12
 
       # Scrub sensitive information from a string
-      # @param msg [String] The message to scrub
-      # @param scrubber [Proc] A custom scrubber to apply
-      # @return [String] The scrubbed message
-      def scrub(msg, scrubber: nil)
+      sig { params(msg: String).returns(String) }
+      def scrub(msg)
         msg = msg.to_s.dup
         config = RailsStructuredLogging.configuration
 
@@ -51,7 +49,8 @@ module RailsStructuredLogging
         msg.gsub!(/\b[0-9a-f]{2}(:[0-9a-f]{2}){5}\b/i, "[MAC]") if config.filter_macs
 
         # custom scrubber
-        msg = scrubber.call(msg) if scrubber
+        custom_log_scrubber = config.log_scrubber
+        msg = custom_log_scrubber.call(msg) if !custom_log_scrubber.nil?
 
         msg
       end

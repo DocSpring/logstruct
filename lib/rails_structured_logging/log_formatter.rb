@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require "logger"
@@ -11,6 +11,7 @@ module RailsStructuredLogging
   # This is a port of the existing JSONLogFormatter with some improvements
   class LogFormatter < Logger::Formatter
     # Add current_tags method to support ActiveSupport::TaggedLogging
+    sig { returns(T::Array[String]) }
     def current_tags
       Thread.current[:activesupport_tagged_logging_tags] ||= []
     end
@@ -26,10 +27,12 @@ module RailsStructuredLogging
     end
 
     # Add clear_tags! method to support ActiveSupport::TaggedLogging
+    sig { void }
     def clear_tags!
       Thread.current[:activesupport_tagged_logging_tags] = []
     end
 
+    sig { params(string: String).returns(String) }
     def scrub_string(string)
       # Use our LogstopFork module to scrub sensitive information from strings
       RailsStructuredLogging::LogstopFork.scrub(string)
@@ -37,6 +40,19 @@ module RailsStructuredLogging
 
     # Format ActiveJob arguments safely, similar to how Rails does it internally
     # Also scrubs sensitive information using LogstopFork
+    LogValueType = T.type_alias {
+      T.any(
+        T::Boolean,
+        T::Hash[T.untyped, T.untyped],
+        T::Array[T.untyped],
+        GlobalID::Identification,
+        String,
+        Integer,
+        Float,
+        Symbol
+      )
+    }
+    sig { params(arg: LogValueType).returns(LogValueType) }
     def format_values(arg)
       @format_recursion_counter ||= 0
       # Prevent infinite recursion, just return args with no modifications
@@ -70,13 +86,18 @@ module RailsStructuredLogging
         result
       when GlobalID::Identification
         begin
-          arg.to_global_id.to_s
+          arg.to_global_id
         rescue
           begin
-            "#{arg.class}(##{arg.id})"
+            case arg
+            when ActiveRecord::Base
+              "#{arg.class}(##{arg.id})"
+            else
+              arg
+            end
           rescue => e
             MultiErrorReporter.report_exception(e)
-            "[GlobalID Error]"
+            "[GLOBALID_ERROR]"
           end
         end
       when String
@@ -89,11 +110,12 @@ module RailsStructuredLogging
       arg
     end
 
+    sig { params(severity: String, time: Time, progname: String, msg: T.any(String, T::Hash[T.untyped, T.untyped])).returns(String) }
     def call(severity, time, progname, msg)
       @format_recursion_counter = 0
 
       # Use standardized field names
-      data = msg.is_a?(Hash) ? msg.dup : {msg: msg.to_s}
+      data = T.let(msg.is_a?(Hash) ? msg.dup : {msg: msg.to_s}, T::Hash[T.untyped, T.untyped])
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = format_values(data)
@@ -113,6 +135,7 @@ module RailsStructuredLogging
 
     # Output as JSON with a newline. We mock this method in tests so we can
     # inspect the data right before it gets turned into a JSON string.
+    sig { params(data: T::Hash[T.untyped, T.untyped]).returns(String) }
     def generate_json(data)
       "#{data.to_json}\n"
     end

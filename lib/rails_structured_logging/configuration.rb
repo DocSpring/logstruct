@@ -14,6 +14,10 @@ module RailsStructuredLogging
     sig { returns(String) }
     attr_accessor :logstop_email_salt
 
+    LogScrubberProcType = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
+    sig { returns(LogScrubberProcType) }
+    attr_accessor :log_scrubber
+
     sig { returns(T.nilable(T.proc.params(event: ActiveSupport::Notifications::Event, options: T.untyped).returns(T.untyped))) }
     attr_accessor :lograge_custom_options
 
@@ -73,6 +77,7 @@ module RailsStructuredLogging
       @enabled = T.let(true, T::Boolean)
       @lograge_enabled = T.let(true, T::Boolean)
       @logstop_email_salt = T.let("l0g5t0p", String)
+      @log_scrubber = T.let(nil, LogScrubberProcType)
 
       # Applications can provide a proc to extend lograge options
       @lograge_custom_options = nil
