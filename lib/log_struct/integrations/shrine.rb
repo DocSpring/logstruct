@@ -29,27 +29,32 @@ module LogStruct
             when :upload then LogEvent::Upload
             when :download then LogEvent::Download
             when :delete then LogEvent::Delete
-            when :exists then LogEvent::Exists
-            else LogEvent::Storage
+            when :metadata then LogEvent::Metadata
+            # ActiveStorage uses 'exist', so we use that for consistency
+            when :exists then LogEvent::Exist
+            else LogEvent::Unknown
             end
-
-            # Extract common fields from payload
-            storage = payload[:storage]&.to_s
-            location = payload[:location]
-            uploader = payload[:uploader]
 
             # Create structured log data
             log_data = Log::Shrine.new(
               src: LogSource::Shrine,
               evt: event_type,
               duration: event.duration,
-              storage: storage,
-              location: location,
-              uploader: uploader,
+              storage: payload[:storage],
+              location: payload[:location],
+              uploader: payload[:uploader],
               upload_options: payload[:upload_options],
               download_options: payload[:download_options],
               options: payload[:options],
-              data: payload.except(:storage, :location, :uploader, :upload_options, :download_options, :options)
+              # Data is flattened by the JSON formatter
+              data: payload.except(
+                :storage,
+                :location,
+                :uploader,
+                :upload_options,
+                :download_options,
+                :options
+              )
             )
 
             # Pass the structured hash to the logger

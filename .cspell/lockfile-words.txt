@@ -172,7 +172,7 @@ rack-test
 rails
 rails-dom-testing
 rails-html-sanitizer
-rails_structured_logging
+logstruct
 railties
 rainbow
 rake

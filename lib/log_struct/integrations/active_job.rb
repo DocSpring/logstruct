@@ -8,7 +8,7 @@ rescue LoadError
   # ActiveJob gem is not available, integration will be skipped
 end
 
-require_relative "active_job/structured_log_subscriber" if defined?(::ActiveJob::LogSubscriber)
+require_relative "active_job/log_subscriber" if defined?(::ActiveJob::LogSubscriber)
 
 module LogStruct
   module Integrations
@@ -26,7 +26,7 @@ module LogStruct
             ::ActiveJob::LogSubscriber.detach_from :active_job
 
             # Attach our structured formatter
-            Integrations::ActiveJob::StructuredLogSubscriber.attach_to :active_job
+            Integrations::ActiveJob::LogSubscriber.attach_to :active_job
           end
         end
       end

@@ -68,7 +68,7 @@ module LogStruct
           when :upload then LogEvent::Upload
           when :download then LogEvent::Download
           when :delete then LogEvent::Delete
-          else LogEvent::Storage
+          else LogEvent::Unknown
           end
 
           # Create structured log data

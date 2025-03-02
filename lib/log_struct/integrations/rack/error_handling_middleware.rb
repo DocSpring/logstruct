@@ -19,7 +19,7 @@ module LogStruct
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             log_event(
               env,
-              event: LogEvent::SecurityViolation,
+              event: LogEvent::Security,
               level: :warn,
               violation_type: LogViolationType::IpSpoof,
               error: ip_spoof_error.message,
@@ -36,7 +36,7 @@ module LogStruct
             log_event(
               env,
               level: :warn,
-              event: LogEvent::SecurityViolation,
+              event: LogEvent::Security,
               violation_type: LogViolationType::Csrf,
               error: invalid_auth_token_error.message
             )

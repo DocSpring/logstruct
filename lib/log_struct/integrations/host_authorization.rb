@@ -22,7 +22,7 @@ module LogStruct
             # (converted to JSON by the Rails log formatter)
             ::Rails.logger.warn(
               src: LogSource::Rails,
-              evt: LogEvent::SecurityViolation,
+              evt: LogEvent::Security,
               violation_type: LogViolationType::BlockedHost,
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,

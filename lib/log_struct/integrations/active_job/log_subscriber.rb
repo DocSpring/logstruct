@@ -4,8 +4,8 @@
 module LogStruct
   module Integrations
     module ActiveJob
-      # Custom LogSubscriber for ActiveJob that outputs logs in structured format
-      class StructuredLogSubscriber < ::ActiveJob::LogSubscriber
+      # Structured logging for ActiveJob
+      class LogSubscriber < ::ActiveJob::LogSubscriber
         def enqueue(event)
           job = event.payload[:job]
           log_job_event("active_job_enqueued", job, event)

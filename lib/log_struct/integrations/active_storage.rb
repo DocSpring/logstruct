@@ -1,56 +1,65 @@
 # typed: true
 # frozen_string_literal: true
 
-begin
-  require "active_storage"
-rescue LoadError
-  # ActiveStorage may not be available, integration will be skipped
-end
+require_relative "../log_source"
+require_relative "../log_event"
+require_relative "../log/storage"
 
 module LogStruct
   module Integrations
-    # ActiveStorage integration for structured logging
+    # Integration for ActiveStorage structured logging
     module ActiveStorage
       class << self
         # Set up ActiveStorage structured logging
-        sig { void }
         def setup
           return unless defined?(::ActiveStorage)
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.active_storage_integration_enabled
 
-          # Subscribe to ActiveStorage service events
-          ActiveSupport::Notifications.subscribe(/service/) do |event|
-            process_active_storage_event(event)
+          # Subscribe to all ActiveStorage service events
+          ::ActiveSupport::Notifications.subscribe(/service_.*\.active_storage/) do |*args|
+            process_active_storage_event(::ActiveSupport::Notifications::Event.new(*args))
           end
         end
 
         private
 
-        # Process ActiveStorage service events and log them
-        sig { params(event: ActiveSupport::Notifications::Event).void }
+        # Process ActiveStorage events and create structured logs
         def process_active_storage_event(event)
           return unless LogStruct.enabled?
           return unless LogStruct.config.active_storage_integration_enabled
 
-          # Extract event data
-          event_name = event.name.to_s
-          operation = event_name.split(".").last
-          payload = event.payload.dup
+          payload = event.payload
+          # Extract operation from event name (e.g., "service_upload.active_storage" -> "upload")
+          operation = event.name.split(".").first.sub("service_", "")
           service = payload[:service] || "unknown"
+
+          # Map operation to appropriate event type
+          event_type = case operation
+          when "upload" then LogEvent::Upload
+          when "download", "streaming_download", "download_chunk" then LogEvent::Download
+          when "delete", "delete_prefixed" then LogEvent::Delete
+          when "exist" then LogEvent::Exist
+          else LogEvent::Unknown
+          end
 
           # Create structured log data
           log_data = Log::Storage.new(
             src: LogSource::Storage,
-            evt: LogEvent::Storage,
+            evt: event_type,
             operation: operation,
-            service: service,
-            key: payload[:key],
-            checksum: payload[:checksum],
-            byte_size: payload[:byte_size],
-            content_type: payload[:content_type],
+            storage: service,
+            file_id: payload[:key],
+            mime_type: payload[:content_type],
+            size: payload[:byte_size],
             metadata: payload[:metadata],
-            duration: event.duration
+            duration: event.duration,
+            # Store additional fields in the data hash (flattened by JSON formatter)
+            data: {
+              checksum: payload[:checksum],
+              exist: payload[:exist],
+              url: payload[:url],
+              prefix: payload[:prefix],
+              range: payload[:range]
+            }.compact # Remove nil values
           )
 
           # Log the structured data

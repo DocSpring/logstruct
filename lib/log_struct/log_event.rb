@@ -8,20 +8,23 @@ module LogStruct
       # Plain log message (e.g. calling Rails.logger.info with a string)
       Log = new(:log)
 
-      # Rails and Rails-related event types
+      # Request logs (from Lograge)
       Request = new(:request)
-      SecurityViolation = new(:security_violation)
+      # Request error logs (from Rack::ErrorHandlingMiddleware)
       RequestError = new(:request_error)
+      # Security logs (from HostAuthorization - IP spoof, CSRF, blocked hosts, etc.)
+      Security = new(:security)
+      # Job execution logs (from ActiveJob)
       JobExecution = new(:job_execution)
+      # Notification logs (from ActiveSupport::Notifications)
       Notification = new(:notification)
 
       # File storage event types (Shrine, CarrierWave, ActiveStorage)
       Upload = new(:upload)
       Download = new(:download)
       Delete = new(:delete)
-      Exists = new(:exists)
-      # Generic storage event type
-      Storage = new(:storage)
+      Metadata = new(:metadata)
+      Exist = new(:exist) # ActiveStorage: exist, Shrine: exists
 
       # Email Event Types
       Delivery = new(:delivery)
@@ -29,6 +32,9 @@ module LogStruct
 
       # Error event types
       Error = new(:error)
+
+      # Fallback for unknown event types
+      Unknown = new(:unknown)
     end
   end
 end
