@@ -5,8 +5,10 @@ module LogStruct
   # Define log event types as an enum
   class LogEvent < T::Enum
     enums do
-      # General event types
+      # Plain log message (e.g. calling Rails.logger.info with a string)
       Log = new(:log)
+
+      # LogStruct Event Types
       Request = new(:request)
       SecurityViolation = new(:security_violation)
       RequestError = new(:request_error)
@@ -14,10 +16,10 @@ module LogStruct
       FileOperation = new(:file_operation)
       Notification = new(:notification)
 
-      # Email event types
-      EmailDelivery = new(:email_delivery)
-      EmailDelivered = new(:email_delivered)
-      EmailError = new(:email_error)
+      # Email Event Types
+      EmailDelivery = new(:delivery)
+      EmailDelivered = new(:delivered)
+      EmailError = new(:error)
 
       # Error event types
       Error = new(:error)
