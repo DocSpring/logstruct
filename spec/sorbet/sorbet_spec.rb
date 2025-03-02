@@ -20,11 +20,7 @@ RSpec.describe "Sorbet Type Signatures" do
   rsig { returns(T::Boolean) }
   let(:filter_credit_cards) { true }
 
-
-
-
-
-  describe   "Configuration with Sorbet type signatures" do
+  describe "Configuration with Sorbet type signatures" do
     it "configures the gem with type-checked methods" do
       # Configure the gem directly using our let variables
       RailsStructuredLogging.configure do |config|
@@ -62,12 +58,11 @@ RSpec.describe "Sorbet Type Signatures" do
   describe "LogFormatter with Sorbet type signatures" do
     rsig { returns(String) }
     let(:test_message) { "Test message" }
-    let(:test_time) { Time.now }
-    let(:formatter) { RailsStructuredLogging::LogFormatter.new }
-
     rsig { returns(Time) }
-
+    let(:test_time) { Time.now }
     rsig { returns(RailsStructuredLogging::LogFormatter) }
+
+    let(:formatter) { RailsStructuredLogging::LogFormatter.new }
 
     it "formats log messages" do
       result = formatter.call("INFO", test_time, nil, test_message)

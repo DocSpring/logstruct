@@ -5,7 +5,7 @@
 # Please instead update this file by running `bin/tapioca gem activejob`.
 
 
-# source://activejob//lib/active_job/log_subscriber.rb#6
+# source://activejob//lib/active_job/gem_version.rb#3
 module ActiveJob
   extend ::ActiveSupport::Autoload
 

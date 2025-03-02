@@ -13,78 +13,60 @@ module RailsStructuredLogging
     sig { returns(T.nilable(T::Boolean)) }
     attr_accessor :enabled
 
-    sig { params(value: T.nilable(T::Boolean)).void }
     sig { returns(T::Boolean) }
     attr_accessor :lograge_enabled
 
-    sig { params(value: T::Boolean).void }
     sig { returns(String) }
     attr_accessor :logstop_email_salt
 
-    sig { params(value: String).void }
     sig { returns(T.nilable(T.proc.params(event: T.untyped, options: T.untyped).returns(T.untyped))) }
     attr_accessor :lograge_custom_options
 
     # Notification callback for email delivery errors
-    sig { params(value: T.nilable(T.proc.params(event: T.untyped, options: T.untyped).returns(T.untyped))).void }
-    sig { returns(T.nilable(T.proc.params(error: StandardError, recipients: String, message: String).void)) }
+    sig { returns(T.nilable(T.proc.params(event: T.untyped, options: T.untyped).returns(T.untyped))) }
     attr_accessor :email_error_notification_callback
 
     # Integration flags
-    sig { params(value: T.nilable(T.proc.params(error: StandardError, recipients: String, message: String).void)).void }
     sig { returns(T::Boolean) }
     attr_accessor :actionmailer_integration_enabled
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :host_authorization_enabled
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :activejob_integration_enabled
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :rack_middleware_enabled
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :sidekiq_integration_enabled
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :shrine_integration_enabled
 
     # Filtering options
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_emails
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_url_passwords
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_credit_cards
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_phones
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_ssns
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_ips
 
-    sig { params(value: T::Boolean).void }
     sig { returns(T::Boolean) }
     attr_accessor :filter_macs
 
-    sig { params(value: T::Boolean).void }
     sig { void }
     def initialize
       @enabled = nil # nil means use default logic

@@ -5960,10 +5960,10 @@ class ActionController::ParamsWrapper::Options < ::Struct
   # source://actionpack//lib/action_controller/metal/params_wrapper.rb#108
   def include; end
 
-  # source://mutex_m/0.2.0/lib/mutex_m.rb#91
+  # source://mutex_m/0.3.0/lib/mutex_m.rb#96
   def lock; end
 
-  # source://mutex_m/0.2.0/lib/mutex_m.rb#81
+  # source://mutex_m/0.3.0/lib/mutex_m.rb#86
   def locked?; end
 
   # Returns the value of attribute model
@@ -5980,13 +5980,13 @@ class ActionController::ParamsWrapper::Options < ::Struct
   # source://actionpack//lib/action_controller/metal/params_wrapper.rb#141
   def name; end
 
-  # source://mutex_m/0.2.0/lib/mutex_m.rb#76
+  # source://mutex_m/0.3.0/lib/mutex_m.rb#81
   def synchronize(&block); end
 
-  # source://mutex_m/0.2.0/lib/mutex_m.rb#86
+  # source://mutex_m/0.3.0/lib/mutex_m.rb#91
   def try_lock; end
 
-  # source://mutex_m/0.2.0/lib/mutex_m.rb#96
+  # source://mutex_m/0.3.0/lib/mutex_m.rb#101
   def unlock; end
 
   private
@@ -8066,7 +8066,7 @@ class ActionController::UrlGenerationError < ::ActionController::ActionControlle
   def routes; end
 end
 
-# source://actionpack//lib/action_dispatch.rb#37
+# source://actionpack//lib/action_dispatch/middleware/host_authorization.rb#3
 module ActionDispatch
   extend ::ActiveSupport::Autoload
 

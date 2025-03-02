@@ -2,15 +2,25 @@ gem:
   # Add your `gem` command parameters here:
   #
   exclude:
+    - ast
     - crass
     - debug
+    - diff-lcs
+    - language_server-protocol
+    - lint_roller
+    - method_source
     - prism
     - racc
     - rbi
     - rdoc
     - rubocop
-    - rubocop-rspec
+    - rubocop-ast
+    - rubocop-sorbet
+    - solargraph
+    - ruby-progressbar
     - spoom
+    - standard
+    - standard-sorbet
     - tapioca
     - thor
     - yard

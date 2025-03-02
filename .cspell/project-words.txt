@@ -12,5 +12,6 @@ Rescuable
 Rollbar
 rsig
 Sidekiq
+solargraph
 ssns
 yardoc

@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require "rack"
-require "action_dispatch/show_exceptions"
+require "action_dispatch/middleware/show_exceptions"
 require_relative "rack/error_handling_middleware"
 
 module RailsStructuredLogging
