@@ -3,19 +3,17 @@
 
 require_relative "error_reporter"
 
-%w[sentry-ruby bugsnag rollbar honeybadger].each do |gem|
-  require gem
+%w[sentry-ruby bugsnag rollbar honeybadger].any? do |gem_name|
+  require gem_name
+  true
 rescue LoadError
   # If none of these gems are not available we'll fall back to Rails.logger
 end
 
-# MultiErrorReporter provides a unified interface for reporting errors to various services
-# It automatically detects and uses available error reporting services
-# Similar to MultiJSON, it detects available adapters once and then uses the configured one
-#
-# NOTE: MultiErrorReporter is used for cases where an error should be reported
-# but the operation should be allowed to continue.
-# The gems continue to operate normally.
+# MultiErrorReporter provides a unified interface for reporting errors to various services.
+# You can also configure your own error reporter by setting LogStruct.config.exception_reporting_handler.
+# NOTE: This is used for cases where an error should be reported
+# but the operation should be allowed to continue (e.g. scrubbing log data.)
 module LogStruct
   class MultiErrorReporter
     # Use T.let to properly declare the class variable at the class level
