@@ -4,7 +4,9 @@
 # Add your extra requires here (`bin/tapioca require` can be used to bootstrap this list)
 require "rspec"
 require "rspec/mocks"
-# require "rspec/rails" # Uncomment if using Rails integration tests
+
+# We type-check our tests too so need to require spec_helper
+require "spec_helper"
 
 # Rails components
 require "active_model"

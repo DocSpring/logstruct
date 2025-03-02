@@ -67,7 +67,7 @@ class RSpec::ExampleGroups::LogStructMultiErrorReporter::ReportException::WithDi
 end
 
 module RSpec::ExampleGroups::LogStructMultiErrorReporter::ReportException::WithDisabledReporters::WhenBugsnagIsAvailable::LetDefinitions
-  sig { returns(T.untyped) }
+  sig { returns(T.nilable(::RSpec::Mocks::Double)) }
   def report; end
 
   sig { returns(T.untyped) }

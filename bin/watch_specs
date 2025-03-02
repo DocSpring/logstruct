@@ -27,11 +27,11 @@ puts "Press Ctrl-C to stop."
 listener = Listen.to("spec/") do |modified, added, removed|
   if (modified + added + removed).any?
     changed_files = (modified + added + removed).join(", ")
-    puts "\n#{Time.current}: Changes detected in: #{changed_files}"
+    puts "\n#{Time.now}: Changes detected in: #{changed_files}"
 
     run_tapioca_dsl
 
-    puts "Tapioca dsl completed at #{Time.current}"
+    puts "Tapioca dsl completed at #{Time.now}"
     puts "Watching for more changes..."
   end
 end

@@ -29,6 +29,11 @@ Layout/MultilineMethodArgumentLineBreaks:
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
 
+Rails/TimeZone:
+  Enabled: true
+  Exclude:
+    - bin/**/*
+
 RSpec:
   Enabled: true # enable rubocop-rspec cops
 RSpec/DescribedClass:

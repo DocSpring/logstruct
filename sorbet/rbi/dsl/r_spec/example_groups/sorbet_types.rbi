@@ -33,6 +33,9 @@ class RSpec::ExampleGroups::SorbetTypes < RSpec::Core::ExampleGroup
 end
 
 module RSpec::ExampleGroups::SorbetTypes::LetDefinitions
+  sig { returns(::String) }
+  def email_hashing_salt; end
+
   sig { returns(T::Boolean) }
   def enabled; end
 
@@ -44,7 +47,4 @@ module RSpec::ExampleGroups::SorbetTypes::LetDefinitions
 
   sig { returns(T::Boolean) }
   def lograge_enabled; end
-
-  sig { returns(::String) }
-  def logstop_email_salt; end
 end
