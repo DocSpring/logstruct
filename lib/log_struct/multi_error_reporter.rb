@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "json"
+require_relative "error_reporter"
 
 %w[sentry-ruby bugsnag rollbar honeybadger].each do |gem|
   require gem
@@ -9,43 +9,41 @@ rescue LoadError
   # If none of these gems are not available we'll fall back to Rails.logger
 end
 
+# MultiErrorReporter provides a unified interface for reporting errors to various services
+# It automatically detects and uses available error reporting services
+# Similar to MultiJSON, it detects available adapters once and then uses the configured one
+#
+# NOTE: MultiErrorReporter is used for cases where an error should be reported
+# but the operation should be allowed to continue.
+# The gems continue to operate normally.
 module LogStruct
-  # MultiErrorReporter provides a unified interface for reporting errors to various services
-  # It automatically detects and uses available error reporting services
-  # Similar to MultiJSON, it detects available adapters once and then uses the configured one
   class MultiErrorReporter
     # Use T.let to properly declare the class variable at the class level
-    @error_reporter = T.let(Enums::ErrorTracker::Logger, Enums::ErrorTracker)
+    @error_reporter = T.let(ErrorReporter::RailsLogger, ErrorReporter)
 
     class << self
-      sig { returns(Enums::ErrorTracker) }
+      sig { returns(ErrorReporter) }
       attr_reader :error_reporter
 
       # Initialize the error reporter once
-      sig { returns(Enums::ErrorTracker) }
+      sig { returns(ErrorReporter) }
       def initialize_reporter
         @error_reporter = if defined?(::Sentry)
-          Enums::ErrorTracker::Sentry
+          ErrorReporter::Sentry
         elsif defined?(::Bugsnag)
-          Enums::ErrorTracker::Bugsnag
+          ErrorReporter::Bugsnag
         elsif defined?(::Rollbar)
-          Enums::ErrorTracker::Rollbar
+          ErrorReporter::Rollbar
         elsif defined?(::Honeybadger)
-          Enums::ErrorTracker::Honeybadger
+          ErrorReporter::Honeybadger
         else
-          Enums::ErrorTracker::Logger
+          ErrorReporter::RailsLogger
         end
       end
 
       # Report an exception to the configured error reporting service
-      # @param exception [Exception] The exception to report
-      # @param context [Hash] Additional context to include with the error report
-      # @return [void]
       sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
-        # Initialize the reporter if it hasn't been initialized yet
-        @error_reporter ||= initialize_reporter
-
         # Call the appropriate reporter method based on what's available
         case @error_reporter
         when :sentry
@@ -71,7 +69,6 @@ module LogStruct
         # Use the proper Sentry interface defined in the RBI
         ::Sentry.capture_exception(exception, extra: context)
       rescue => e
-        # If Sentry fails, fall back to basic logging
         fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
@@ -84,7 +81,6 @@ module LogStruct
           report.add_metadata(:context, context)
         end
       rescue => e
-        # If Bugsnag fails, fall back to basic logging
         fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
@@ -95,7 +91,6 @@ module LogStruct
 
         ::Rollbar.error(exception, context)
       rescue => e
-        # If Rollbar fails, fall back to basic logging
         fallback_logging(e, {original_exception: exception.class.to_s})
       end
 
@@ -106,7 +101,6 @@ module LogStruct
 
         ::Honeybadger.notify(exception, context: context)
       rescue => e
-        # If Honeybadger fails, fall back to basic logging
         fallback_logging(e, {original_exception: exception.class.to_s})
       end
 

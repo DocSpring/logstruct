@@ -29,8 +29,9 @@ end
 gem "bigdecimal"
 gem "mutex_m"
 
-# Optional dependencies for type checking
+# Supported integrations
 gem "bugsnag", "~> 6.26", require: false
+gem "carrierwave", "~> 3.0", require: false
 gem "honeybadger", "~> 5.4", require: false
 gem "postmark", "~> 1.25", require: false
 gem "rollbar", "~> 3.4", require: false

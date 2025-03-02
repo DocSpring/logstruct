@@ -50,6 +50,12 @@ module LogStruct
     sig { returns(T::Boolean) }
     attr_accessor :shrine_integration_enabled
 
+    sig { returns(T::Boolean) }
+    attr_accessor :active_storage_integration_enabled
+
+    sig { returns(T::Boolean) }
+    attr_accessor :carrierwave_integration_enabled
+
     # Filtering options
     sig { returns(T::Boolean) }
     attr_accessor :filter_emails
@@ -99,6 +105,8 @@ module LogStruct
       @rack_middleware_enabled = T.let(true, T::Boolean) # Enable Rack middleware for error logging by default
       @sidekiq_integration_enabled = T.let(true, T::Boolean) # Enable Sidekiq integration by default
       @shrine_integration_enabled = T.let(true, T::Boolean) # Enable Shrine integration by default
+      @active_storage_integration_enabled = T.let(true, T::Boolean) # Enable ActiveStorage integration by default
+      @carrierwave_integration_enabled = T.let(true, T::Boolean) # Enable CarrierWave integration by default
 
       # Data scrubbing options (we include a fork of Logstop in this gem)
       @filter_emails = T.let(true, T::Boolean) # Filter email addresses by default

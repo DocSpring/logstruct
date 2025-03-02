@@ -8,6 +8,8 @@ require_relative "integrations/action_mailer"
 require_relative "integrations/lograge"
 require_relative "integrations/shrine"
 require_relative "integrations/sidekiq"
+require_relative "integrations/active_storage"
+require_relative "integrations/carrierwave"
 
 module LogStruct
   module Integrations
@@ -22,6 +24,8 @@ module LogStruct
       Integrations::HostAuthorization.setup if config.host_authorization_enabled
       Integrations::Rack.setup(::Rails.application) if config.rack_middleware_enabled
       Integrations::Shrine.setup if config.shrine_integration_enabled
+      Integrations::ActiveStorage.setup if config.active_storage_integration_enabled
+      Integrations::CarrierWave.setup if config.carrierwave_integration_enabled
     end
   end
 end

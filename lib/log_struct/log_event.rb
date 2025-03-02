@@ -8,11 +8,12 @@ module LogStruct
       # Plain log message (e.g. calling Rails.logger.info with a string)
       Log = new(:log)
 
-      # LogStruct Event Types
+      # Rails and Rails-related event types
       Request = new(:request)
       SecurityViolation = new(:security_violation)
       RequestError = new(:request_error)
       JobExecution = new(:job_execution)
+      Storage = new(:storage)
       FileOperation = new(:file_operation)
       Notification = new(:notification)
 
@@ -25,6 +26,11 @@ module LogStruct
       Error = new(:error)
       Exception = new(:exception)
       Warning = new(:warning)
+
+      # Third-party gem event types
+      Shrine = new(:shrine)
+      CarrierWave = new(:carrierwave)
+      Sidekiq = new(:sidekiq)
     end
   end
 end
