@@ -18,13 +18,13 @@ module RailsStructuredLogging
         # Try to process the request
         begin
           @app.call(env)
-        rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => e
+        rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
           log_event(
             env,
             event: Enums::EventType::SecurityViolation.serialize,
             level: :warn,
             violation_type: Enums::ViolationType::IpSpoof.serialize,
-            error: e.message,
+            error: ip_spoof_error.message,
             # Can't call .remote_ip on the request because that's what raises the error.
             # Have to pass the client_ip and x_forwarded_for headers.
             client_ip: env["HTTP_CLIENT_IP"],
@@ -33,33 +33,33 @@ module RailsStructuredLogging
 
           # Return a custom response for IP spoofing instead of raising
           [403, {"Content-Type" => "text/plain"}, ["Forbidden: IP Spoofing Detected"]]
-        rescue ::ActionController::InvalidAuthenticityToken => e
+        rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
           # Handle CSRF token errors
           log_event(
             env,
             level: :warn,
             event: Enums::EventType::SecurityViolation.serialize,
             violation_type: Enums::ViolationType::Csrf.serialize,
-            error: e.message
+            error: invalid_auth_token_error.message
           )
 
           # Report to error reporting service and re-raise
           context = extract_request_context(env)
-          MultiErrorReporter.report_exception(e, context)
+          MultiErrorReporter.report_exception(invalid_auth_token_error, context)
           raise # Re-raise to let Rails handle the response
-        rescue => e
+        rescue => error
           # Log other exceptions with request context
           log_event(
             env,
             level: :error,
             event: Enums::EventType::RequestError.serialize,
-            error_class: e.class.name,
-            error_message: e.message
+            error_class: error.class.name,
+            error_message: error.message
           )
 
           # Report to error reporting service and re-raise
           context = extract_request_context(env)
-          MultiErrorReporter.report_exception(e, context)
+          MultiErrorReporter.report_exception(error, context)
           raise # Re-raise to let Rails handle the response
         end
       end
@@ -75,9 +75,9 @@ module RailsStructuredLogging
           user_agent: request.user_agent,
           referer: request.referer
         }
-      rescue => e
+      rescue => error
         # If we can't extract request context, return minimal info
-        {error_extracting_context: e.message}
+        {error_extracting_context: error.message}
       end
 
       def log_event(env, event:, level:, client_ip: nil, **custom_fields)

@@ -9,7 +9,15 @@ require "active_support/tagged_logging"
 module ActiveSupport
   module TaggedLogging
     module FormatterExtension
-      # Override the call method to handle hash inputs
+      include RailsStructuredLogging::TypedSig
+      extend T::Sig
+      extend T::Helpers
+      requires_ancestor { ::ActiveSupport::TaggedLogging::Formatter }
+
+      # Override the call method to support hash input/output, and wrap
+      # plain strings in a Hash under a `msg` key.
+      # The data is then passed to our custom log formatter that transforms it
+      # into a JSON string before logging.
       def call(severity, time, progname, data)
         # Convert data to a hash if it's not already one
         data = {msg: data.to_s} unless data.is_a?(Hash)
@@ -25,7 +33,4 @@ module ActiveSupport
   end
 end
 
-# Apply the monkey patch if ActiveSupport::TaggedLogging::Formatter exists
-if defined?(ActiveSupport::TaggedLogging)
-  ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
-end
+ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
