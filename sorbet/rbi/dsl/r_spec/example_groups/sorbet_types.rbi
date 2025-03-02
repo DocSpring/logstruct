@@ -34,7 +34,7 @@ end
 
 module RSpec::ExampleGroups::SorbetTypes::LetDefinitions
   sig { returns(::String) }
-  def email_hashing_salt; end
+  def email_hash_salt; end
 
   sig { returns(T::Boolean) }
   def enabled; end

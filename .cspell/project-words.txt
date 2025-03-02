@@ -1,3 +1,4 @@
+ankane
 bindir
 Bugsnag
 carrierwave

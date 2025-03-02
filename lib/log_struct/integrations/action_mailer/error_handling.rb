@@ -88,7 +88,7 @@ module LogStruct
             Rails.logger.error(exception_data)
 
             # Call the report_exception proc
-            LogStruct.config.report_exception_handler.call(error, context)
+            LogStruct.config.exception_reporting_handler.call(error, context)
           end
 
           # Re-raise the error if requested

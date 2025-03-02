@@ -35,13 +35,13 @@ module LogStruct
           expect(result["progname"]).to eq(progname)
         end
 
-        it "applies LogstopFork scrubbing to the message" do
-          # Use real LogstopFork scrubbing
-          allow(LogstopFork).to receive(:scrub).and_call_original
+        it "applies LogScrubber scrubbing to the message" do
+          # Use real LogScrubber scrubbing
+          allow(LogScrubber).to receive(:scrub).and_call_original
           email_message = "Email: user@example.com"
           result = JSON.parse(formatter.call(severity, time, progname, email_message))
           expect(result["msg"]).not_to include("user@example.com")
-          expect(LogstopFork).to have_received(:scrub).at_least(:once)
+          expect(LogScrubber).to have_received(:scrub).at_least(:once)
         end
       end
 
@@ -70,12 +70,12 @@ module LogStruct
           expect(result["ts"]).to eq("custom_time")
         end
 
-        it "applies LogstopFork scrubbing to string message fields" do
-          allow(LogstopFork).to receive(:scrub).and_call_original
+        it "applies LogScrubber scrubbing to string message fields" do
+          allow(LogScrubber).to receive(:scrub).and_call_original
           email_message = {msg: "Email: user@example.com"}
           result = JSON.parse(formatter.call(severity, time, progname, email_message))
           expect(result["msg"]).not_to include("user@example.com")
-          expect(LogstopFork).to have_received(:scrub).at_least(:once)
+          expect(LogScrubber).to have_received(:scrub).at_least(:once)
         end
       end
 

@@ -52,7 +52,6 @@ And you always need to check for any third-party gems that are not part of Rails
 
 - `defined?(::Sentry)`
 - `defined?(::Shrine)`
-- `defined?(::Postmark)`
 - etc.
 
 ### Type Safety

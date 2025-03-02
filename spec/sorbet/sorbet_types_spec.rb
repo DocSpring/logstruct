@@ -17,7 +17,7 @@ RSpec.describe "Sorbet Types" do
   let(:lograge_enabled) { true }
 
   rsig { returns(String) }
-  let(:email_hashing_salt) { "test_salt" }
+  let(:email_hash_salt) { "test_salt" }
 
   rsig { returns(T::Boolean) }
   let(:filter_emails) { true }
@@ -32,14 +32,14 @@ RSpec.describe "Sorbet Types" do
   describe "Configuration with Sorbet type signatures" do
     before do
       # Demonstrate that typechecking works in before blocks
-      email_hashing_salt.upcase
+      email_hash_salt.upcase
     end
 
     it "configures the gem with type-checked methods" do
       LogStruct.configure do |config|
         config.enabled = enabled
         config.lograge_enabled = lograge_enabled
-        config.email_hashing_salt = email_hashing_salt
+        config.email_hash_salt = email_hash_salt
         config.filter_emails = filter_emails
         config.filter_credit_cards = filter_credit_cards
       end
@@ -49,19 +49,19 @@ RSpec.describe "Sorbet Types" do
       configuration = LogStruct.configuration
       expect(configuration.enabled).to eq(enabled)
       expect(configuration.lograge_enabled).to eq(lograge_enabled)
-      expect(configuration.email_hashing_salt).to eq(email_hashing_salt)
+      expect(configuration.email_hash_salt).to eq(email_hash_salt)
       expect(configuration.filter_emails).to eq(filter_emails)
       expect(configuration.filter_credit_cards).to eq(filter_credit_cards)
     end
   end
 
-  describe "LogstopFork with Sorbet type signatures" do
-    T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes::LogstopForkWithSorbetTypeSignatures))
+  describe "LogScrubber with Sorbet type signatures" do
+    T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes::LogScrubberWithSorbetTypeSignatures))
     rsig { returns(String) }
     let(:email) { "test@example.com" }
 
     it "scrubs sensitive information" do
-      result = LogStruct::LogstopFork.scrub(email)
+      result = LogStruct::LogScrubber.scrub(email)
 
       # Verify email was scrubbed
       expect(result).not_to include(email)

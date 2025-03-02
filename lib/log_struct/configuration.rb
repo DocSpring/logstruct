@@ -11,35 +11,18 @@ module LogStruct
     sig { returns(T::Boolean) }
     attr_accessor :lograge_enabled
 
-    sig { returns(String) }
-    attr_accessor :email_hashing_salt
-
-    LogScrubberProcType = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
-    sig { returns(LogScrubberProcType) }
-    attr_accessor :log_scrubber
-
     sig { returns(T.nilable(T.proc.params(event: ActiveSupport::Notifications::Event, options: T.untyped).returns(T.untyped))) }
     attr_accessor :lograge_custom_options
-
-    ErrorNotificationCallbackType = T.type_alias {
-      T.proc.params(
-        error: StandardError,
-        recipients: T::Array[String],
-        message: String
-      ).void
-    }
-    sig { returns(ErrorNotificationCallbackType) }
-    attr_accessor :email_error_notification_callback
-
     # New configuration options for exception reporting and notifications
-    ReportExceptionProcType = T.type_alias {
+
+    ExceptionReportingHandler = T.type_alias {
       T.proc.params(
         error: StandardError,
         context: T::Hash[Symbol, T.untyped]
       ).void
     }
-    sig { returns(ReportExceptionProcType) }
-    attr_accessor :report_exception_handler
+    sig { returns(ExceptionReportingHandler) }
+    attr_accessor :exception_reporting_handler
 
     # Integration flags
     sig { returns(T::Boolean) }
@@ -65,6 +48,16 @@ module LogStruct
 
     sig { returns(T::Boolean) }
     attr_accessor :carrierwave_integration_enabled
+
+    sig { returns(String) }
+    attr_accessor :email_hash_salt
+
+    sig { returns(Integer) }
+    attr_accessor :email_hash_length
+
+    LogScrubbingHandler = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
+    sig { returns(LogScrubbingHandler) }
+    attr_accessor :log_scrubbing_handler
 
     # Filtering options
     sig { returns(T::Boolean) }
@@ -92,28 +85,15 @@ module LogStruct
     def initialize
       @enabled = T.let(true, T::Boolean)
       @lograge_enabled = T.let(true, T::Boolean)
-      @email_hashing_salt = T.let("l0g5t0p", String)
-      @log_scrubber = T.let(nil, LogScrubberProcType)
 
       # Applications can provide a proc to extend lograge options
       @lograge_custom_options = nil
-
-      # Some email delivery issues should not be considered exceptions.
-      # e.g. Postmark errors like inactive recipient, blocked address, invalid email address.
-      # You can configure this callback to send Slack notifications instead of an error report to your bug tracker.
-      # Default: Log to Rails.logger.info
-      @email_error_notification_callback = T.let(lambda { |error, recipients, message|
-        ::Rails.logger.info(
-          "Email delivery error notification: #{error.class}: #{message} Recipients: #{recipients}"
-        )
-      },
-        ErrorNotificationCallbackType)
 
       # This is used in a few cases where it makes sense to report an exception
       # while allowing the code to continue without crashing. This is especially important for
       # logging-related errors where we need to print valid JSON even if something goes wrong.
       # e.g. a crash or infinite loop while filtering and scrubbing log data.
-      @report_exception_handler = T.let(lambda { |error, context|
+      @exception_reporting_handler = T.let(lambda { |error, context|
         exception_data = LogStruct::Log::Exception.from_exception(
           LogStruct::LogSource::App,
           LogStruct::LogEvent::Error,
@@ -123,7 +103,7 @@ module LogStruct
         # Log using the structured format
         ::Rails.logger.error(exception_data)
       },
-        ReportExceptionProcType)
+        ExceptionReportingHandler)
 
       @actionmailer_integration_enabled = T.let(true, T::Boolean) # Enable ActionMailer integration by default
       @host_authorization_enabled = T.let(true, T::Boolean) # Enable host authorization logging by default
@@ -134,8 +114,12 @@ module LogStruct
       @active_storage_integration_enabled = T.let(true, T::Boolean) # Enable ActiveStorage integration by default
       @carrierwave_integration_enabled = T.let(true, T::Boolean) # Enable CarrierWave integration by default
 
-      # Data scrubbing options (we include a fork of Logstop in this gem)
+      # Log scrubbing options
+      # (The LogScrubber class is a vendored fork of https://github.com/ankane/logstop)
+      @log_scrubbing_handler = T.let(nil, LogScrubbingHandler)
       @filter_emails = T.let(true, T::Boolean) # Filter email addresses by default
+      @email_hash_salt = T.let("l0g5t0p", String)
+      @email_hash_length = T.let(12, Integer)
       @filter_url_passwords = T.let(true, T::Boolean) # Filter passwords in URLs by default
       @filter_credit_cards = T.let(true, T::Boolean) # Filter credit card numbers by default
       @filter_phones = T.let(true, T::Boolean) # Filter phone numbers by default

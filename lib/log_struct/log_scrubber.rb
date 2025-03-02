@@ -4,15 +4,13 @@
 require "digest"
 
 module LogStruct
-  # Based on https://github.com/ankane/logstop
+  # LogScrubber is a fork of logstop by @ankane: https://github.com/ankane/logstop
   # Changes:
-  # - Show which type of data was filtered
-  # - Include an SHA256 hash for emails so that requests can be traced
-  # - Added configuration options to control what gets filtered
-  module LogstopFork
+  # - Shows which type of data was filtered
+  # - Includes an SHA256 hash with filtered emails for request tracing
+  # - Uses configuration options from LogStruct.config
+  module LogScrubber
     class << self
-      EMAIL_HASH_LENGTH = 12
-
       # Scrub sensitive information from a string
       sig { params(msg: String).returns(String) }
       def scrub(msg)
@@ -25,8 +23,8 @@ module LogStruct
         # emails
         if config.filter_emails
           msg.gsub!(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i) do |match|
-            email_hash = Digest::SHA256.hexdigest("#{match}#{config.email_hashing_salt}")
-            "[EMAIL:#{email_hash[0..EMAIL_HASH_LENGTH]}]"
+            email_hash = Digest::SHA256.hexdigest("#{match}#{config.email_hash_salt}")
+            "[EMAIL:#{email_hash[0..config.email_hash_length]}]"
           end
         end
 
@@ -49,8 +47,8 @@ module LogStruct
         msg.gsub!(/\b[0-9a-f]{2}(:[0-9a-f]{2}){5}\b/i, "[MAC]") if config.filter_macs
 
         # custom scrubber
-        custom_log_scrubber = config.log_scrubber
-        msg = custom_log_scrubber.call(msg) if !custom_log_scrubber.nil?
+        custom_log_scrubbing_handler = config.log_scrubbing_handler
+        msg = custom_log_scrubbing_handler.call(msg) if !custom_log_scrubbing_handler.nil?
 
         msg
       end
