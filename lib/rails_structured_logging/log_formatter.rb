@@ -16,12 +16,13 @@ module RailsStructuredLogging
     end
 
     # Add tagged method to support ActiveSupport::TaggedLogging
+    sig { params(tags: T::Array[String]).returns(LogFormatter) }
     def tagged(*tags)
       new_tags = tags.flatten
       current_tags.concat(new_tags) if new_tags.any?
       yield self
     ensure
-      current_tags.pop(new_tags.size) if new_tags.any?
+      current_tags.pop(new_tags.size) if new_tags&.any?
     end
 
     # Add clear_tags! method to support ActiveSupport::TaggedLogging

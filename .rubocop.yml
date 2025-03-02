@@ -20,6 +20,11 @@ AllCops:
   SuggestExtensions:
     rubocop-rails: false
 
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: true
+Layout/MultilineMethodArgumentLineBreaks:
+  Enabled: true
+
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
 
