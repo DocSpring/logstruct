@@ -733,6 +733,193 @@ ActiveSupport::Cache::FileStore::FILEPATH_MAX_SIZE = T.let(T.unsafe(nil), Intege
 # source://activesupport//lib/active_support/cache/file_store.rb#19
 ActiveSupport::Cache::FileStore::GITKEEP_FILES = T.let(T.unsafe(nil), Array)
 
+# A cache store implementation which stores data in Memcached:
+# https://memcached.org
+#
+# This is currently the most popular cache store for production websites.
+#
+# Special features:
+# - Clustering and load balancing. One can specify multiple memcached servers,
+#   and MemCacheStore will load balance between all available servers. If a
+#   server goes down, then MemCacheStore will ignore it until it comes back up.
+#
+# MemCacheStore implements the Strategy::LocalCache strategy which implements
+# an in-memory cache inside of a block.
+#
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#28
+class ActiveSupport::Cache::MemCacheStore < ::ActiveSupport::Cache::Store
+  include ::ActiveSupport::Cache::Strategy::LocalCache
+  include ::ActiveSupport::Cache::MemCacheStore::DupLocalCache
+
+  # Creates a new MemCacheStore object, with the given memcached server
+  # addresses. Each address is either a host name, or a host-with-port string
+  # in the form of "host_name:port". For example:
+  #
+  #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
+  #
+  # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
+  # MemCacheStore will connect to localhost:11211 (the default memcached port).
+  #
+  # @return [MemCacheStore] a new instance of MemCacheStore
+  #
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#109
+  def initialize(*addresses); end
+
+  # Clear the entire cache on all memcached servers. This method should
+  # be used with care when shared cache is being used.
+  #
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#75
+  def clear(**options); end
+
+  # Decrement a cached value. This method uses the memcached decr atomic
+  # operator and can only be used on values written with the +:raw+ option.
+  # Calling it on a value not stored with +:raw+ will initialize that value
+  # to zero.
+  #
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#100
+  def decrement(name, amount = T.unsafe(nil), **options); end
+
+  # Increment a cached value. This method uses the memcached incr atomic
+  # operator and can only be used on values written with the +:raw+ option.
+  # Calling it on a value not stored with +:raw+ will initialize that value
+  # to zero.
+  #
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#93
+  def increment(name, amount = T.unsafe(nil), **options); end
+
+  # Get the statistics from the memcached servers.
+  #
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#180
+  def stats; end
+
+  private
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#229
+  def default_coder; end
+
+  # Delete an entry from the cache.
+  #
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#147
+  def delete_entry(key, **_arg1); end
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#307
+  def deserialize_entry(payload, raw: T.unsafe(nil), **_arg2); end
+
+  # Memcache keys are binaries. So we need to force their encoding to binary
+  # before applying the regular expression to ensure we are escaping all
+  # characters properly.
+  #
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#297
+  def normalize_key(key, options); end
+
+  # Read an entry from the cache.
+  #
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#234
+  def read_entry(key, **options); end
+
+  # Reads multiple entries from the cache implementation.
+  #
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#122
+  def read_multi_entries(keys, **options); end
+
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#108
+  def read_serialized_entry(key, raw: T.unsafe(nil), **options); end
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#315
+  def rescue_error_with(fallback); end
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#286
+  def serialize_entry(entry, raw: T.unsafe(nil), **options); end
+
+  # Write an entry to the cache.
+  #
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#245
+  def write_entry(key, entry, **options); end
+
+  # source://activesupport//lib/active_support/cache/strategy/local_cache.rb#138
+  def write_serialized_entry(key, payload, **_arg2); end
+
+  class << self
+    # Creates a new Dalli::Client instance with specified addresses and options.
+    # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
+    # - ENV["MEMCACHE_SERVERS"] (if defined)
+    # - "127.0.0.1:11211"        (otherwise)
+    #
+    #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
+    #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["127.0.0.1:11211"], @options={}, @ring=nil>
+    #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
+    #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
+    #
+    # source://activesupport//lib/active_support/cache/mem_cache_store.rb#87
+    def build_mem_cache(*addresses); end
+
+    # Advertise cache versioning support.
+    #
+    # @return [Boolean]
+    #
+    # source://activesupport//lib/active_support/cache/mem_cache_store.rb#30
+    def supports_cache_versioning?; end
+  end
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#185
+module ActiveSupport::Cache::MemCacheStore::Coders
+  class << self
+    # source://activesupport//lib/active_support/cache/mem_cache_store.rb#187
+    def [](version); end
+  end
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#199
+module ActiveSupport::Cache::MemCacheStore::Coders::Loader
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#200
+  def load(payload); end
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#209
+module ActiveSupport::Cache::MemCacheStore::Coders::Rails61Coder
+  include ::ActiveSupport::Cache::MemCacheStore::Coders::Loader
+  extend ::ActiveSupport::Cache::MemCacheStore::Coders::Loader
+  extend ::ActiveSupport::Cache::MemCacheStore::Coders::Rails61Coder
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#213
+  def dump(entry); end
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#217
+  def dump_compressed(entry, threshold); end
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#222
+module ActiveSupport::Cache::MemCacheStore::Coders::Rails70Coder
+  include ::ActiveSupport::Cache::Coders::Loader
+  include ::ActiveSupport::Cache::Coders::Rails70Coder
+  include ::ActiveSupport::Cache::MemCacheStore::Coders::Loader
+  extend ::ActiveSupport::Cache::Coders::Loader
+  extend ::ActiveSupport::Cache::Coders::Rails70Coder
+  extend ::ActiveSupport::Cache::MemCacheStore::Coders::Loader
+  extend ::ActiveSupport::Cache::MemCacheStore::Coders::Rails70Coder
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#36
+module ActiveSupport::Cache::MemCacheStore::DupLocalCache
+  private
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#64
+  def local_cache; end
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#37
+class ActiveSupport::Cache::MemCacheStore::DupLocalCache::DupLocalStore
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#45
+  def fetch_entry(key); end
+
+  # source://activesupport//lib/active_support/cache/mem_cache_store.rb#38
+  def write_entry(_key, entry); end
+end
+
+# source://activesupport//lib/active_support/cache/mem_cache_store.rb#76
+ActiveSupport::Cache::MemCacheStore::ESCAPE_KEY_CHARS = T.let(T.unsafe(nil), Regexp)
+
 # A cache store implementation which stores everything into memory in the
 # same process. If you're running multiple Ruby on Rails server processes
 # (which is the case if you're using Phusion Passenger or puma clustered mode),
@@ -11267,6 +11454,20 @@ class ActiveSupport::Testing::SimpleStubs::Stub < ::Struct
   end
 end
 
+# source://activesupport//lib/active_support/testing/stream.rb#5
+module ActiveSupport::Testing::Stream
+  private
+
+  # source://activesupport//lib/active_support/testing/stream.rb#23
+  def capture(stream); end
+
+  # source://activesupport//lib/active_support/testing/stream.rb#17
+  def quietly(&block); end
+
+  # source://activesupport//lib/active_support/testing/stream.rb#7
+  def silence_stream(stream); end
+end
+
 # Logs a "PostsControllerTest: test name" heading before each test to
 # make test.log easier to search and follow along with.
 #
@@ -15833,6 +16034,43 @@ class Integer < ::Numeric
   # source://activesupport//lib/active_support/core_ext/integer/time.rb#10
   def months; end
 
+  # Check whether the integer is evenly divisible by the argument.
+  #
+  #   0.multiple_of?(0)  # => true
+  #   6.multiple_of?(5)  # => false
+  #   10.multiple_of?(2) # => true
+  #
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/core_ext/integer/multiple.rb#9
+  def multiple_of?(number); end
+
+  # Ordinal returns the suffix used to denote the position
+  # in an ordered sequence such as 1st, 2nd, 3rd, 4th.
+  #
+  #   1.ordinal     # => "st"
+  #   2.ordinal     # => "nd"
+  #   1002.ordinal  # => "nd"
+  #   1003.ordinal  # => "rd"
+  #   -11.ordinal   # => "th"
+  #   -1001.ordinal # => "st"
+  #
+  # source://activesupport//lib/active_support/core_ext/integer/inflections.rb#28
+  def ordinal; end
+
+  # Ordinalize turns a number into an ordinal string used to denote the
+  # position in an ordered sequence such as 1st, 2nd, 3rd, 4th.
+  #
+  #   1.ordinalize     # => "1st"
+  #   2.ordinalize     # => "2nd"
+  #   1002.ordinalize  # => "1002nd"
+  #   1003.ordinalize  # => "1003rd"
+  #   -11.ordinalize   # => "-11th"
+  #   -1001.ordinalize # => "-1001st"
+  #
+  # source://activesupport//lib/active_support/core_ext/integer/inflections.rb#15
+  def ordinalize; end
+
   # source://activesupport//lib/active_support/core_ext/numeric/deprecated_conversions.rb#5
   def to_s(format = T.unsafe(nil), options = T.unsafe(nil)); end
 
@@ -15855,7 +16093,19 @@ Integer::GMP_VERSION = T.let(T.unsafe(nil), String)
 
 # source://activesupport//lib/active_support/core_ext/kernel/reporting.rb#3
 module Kernel
+  # class_eval on an object acts like +singleton_class.class_eval+.
+  #
+  # source://activesupport//lib/active_support/core_ext/kernel/singleton_class.rb#5
+  def class_eval(*args, &block); end
+
   private
+
+  # A shortcut to define a toplevel concern, not within a module.
+  #
+  # See Module::Concerning for more.
+  #
+  # source://activesupport//lib/active_support/core_ext/kernel/concern.rb#11
+  def concern(topic, &module_definition); end
 
   # Sets $VERBOSE to +true+ for the duration of the block and back to its
   # original value afterwards.
@@ -15894,6 +16144,13 @@ module Kernel
   def with_warnings(flag); end
 
   class << self
+    # A shortcut to define a toplevel concern, not within a module.
+    #
+    # See Module::Concerning for more.
+    #
+    # source://activesupport//lib/active_support/core_ext/kernel/concern.rb#11
+    def concern(topic, &module_definition); end
+
     # Sets $VERBOSE to +true+ for the duration of the block and back to its
     # original value afterwards.
     #
@@ -17641,17 +17898,32 @@ end
 class Pathname
   # source://activesupport//lib/active_support/core_ext/object/json.rb#223
   def as_json(options = T.unsafe(nil)); end
+
+  # Returns the receiver if the named file exists otherwise returns +nil+.
+  # <tt>pathname.existence</tt> is equivalent to
+  #
+  #    pathname.exist? ? pathname : nil
+  #
+  # For example, something like
+  #
+  #   content = pathname.read if pathname.exist?
+  #
+  # becomes
+  #
+  #   content = pathname.existence&.read
+  #
+  # @return [Pathname]
+  #
+  # source://activesupport//lib/active_support/core_ext/pathname/existence.rb#18
+  def existence; end
 end
 
 module Process
   extend ::ConnectionPool::ForkTracker
   extend ::RedisClient::PIDCache::CoreExt
+  extend ::Dalli::PIDCache::CoreExt
   extend ::ActiveSupport::ForkTracker::ModernCoreExt
-
-  class << self
-    # source://activesupport//lib/active_support/fork_tracker.rb#6
-    def _fork; end
-  end
+  extend ::FFI::ModernForkTracking
 end
 
 # source://activesupport//lib/active_support/core_ext/object/json.rb#234
@@ -17720,6 +17992,46 @@ class Regexp
   # source://activesupport//lib/active_support/core_ext/regexp.rb#11
   def multiline?; end
 end
+
+# source://activesupport//lib/active_support/core_ext/securerandom.rb#5
+module SecureRandom
+  class << self
+    # SecureRandom.base36 generates a random base36 string in lowercase.
+    #
+    # The argument _n_ specifies the length of the random string to be generated.
+    #
+    # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
+    # This method can be used over +base58+ if a deterministic case key is necessary.
+    #
+    # The result will contain alphanumeric characters in lowercase.
+    #
+    #   p SecureRandom.base36 # => "4kugl2pdqmscqtje"
+    #   p SecureRandom.base36(24) # => "77tmhrhjfvfdwodq8w7ev2m7"
+    #
+    # source://activesupport//lib/active_support/core_ext/securerandom.rb#38
+    def base36(n = T.unsafe(nil)); end
+
+    # SecureRandom.base58 generates a random base58 string.
+    #
+    # The argument _n_ specifies the length of the random string to be generated.
+    #
+    # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
+    #
+    # The result may contain alphanumeric characters except 0, O, I, and l.
+    #
+    #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
+    #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
+    #
+    # source://activesupport//lib/active_support/core_ext/securerandom.rb#19
+    def base58(n = T.unsafe(nil)); end
+  end
+end
+
+# source://activesupport//lib/active_support/core_ext/securerandom.rb#7
+SecureRandom::BASE36_ALPHABET = T.let(T.unsafe(nil), Array)
+
+# source://activesupport//lib/active_support/core_ext/securerandom.rb#6
+SecureRandom::BASE58_ALPHABET = T.let(T.unsafe(nil), Array)
 
 # source://activesupport//lib/active_support/core_ext/object/duplicable.rb#62
 module Singleton
@@ -17892,6 +18204,18 @@ class String
   # source://activesupport//lib/active_support/core_ext/string/inflections.rb#162
   def demodulize; end
 
+  # The inverse of <tt>String#include?</tt>. Returns true if the string
+  # does not include the other string.
+  #
+  #   "hello".exclude? "lo" # => false
+  #   "hello".exclude? "ol" # => true
+  #   "hello".exclude? ?h   # => false
+  #
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/core_ext/string/exclude.rb#10
+  def exclude?(string); end
+
   # Returns the first character. If a limit is supplied, returns a substring
   # from the beginning of the string until it reaches the limit value. If the
   # given limit is greater than or equal to the string length, returns a copy of self.
@@ -17973,6 +18297,45 @@ class String
   #
   # source://activesupport//lib/active_support/core_ext/string/zones.rb#9
   def in_time_zone(zone = T.unsafe(nil)); end
+
+  # Indents the lines in the receiver:
+  #
+  #   <<EOS.indent(2)
+  #   def some_method
+  #     some_code
+  #   end
+  #   EOS
+  #   # =>
+  #     def some_method
+  #       some_code
+  #     end
+  #
+  # The second argument, +indent_string+, specifies which indent string to
+  # use. The default is +nil+, which tells the method to make a guess by
+  # peeking at the first indented line, and fallback to a space if there is
+  # none.
+  #
+  #   "  foo".indent(2)        # => "    foo"
+  #   "foo\n\t\tbar".indent(2) # => "\t\tfoo\n\t\t\t\tbar"
+  #   "foo".indent(2, "\t")    # => "\t\tfoo"
+  #
+  # While +indent_string+ is typically one space or tab, it may be any string.
+  #
+  # The third argument, +indent_empty_lines+, is a flag that says whether
+  # empty lines should be indented. Default is false.
+  #
+  #   "foo\n\nbar".indent(2)            # => "  foo\n\n  bar"
+  #   "foo\n\nbar".indent(2, nil, true) # => "  foo\n  \n  bar"
+  #
+  # source://activesupport//lib/active_support/core_ext/string/indent.rb#42
+  def indent(amount, indent_string = T.unsafe(nil), indent_empty_lines = T.unsafe(nil)); end
+
+  # Same as +indent+, except it indents the receiver in-place.
+  #
+  # Returns the indented string, or +nil+ if there was nothing to indent.
+  #
+  # source://activesupport//lib/active_support/core_ext/string/indent.rb#7
+  def indent!(amount, indent_string = T.unsafe(nil), indent_empty_lines = T.unsafe(nil)); end
 
   # Wraps the current string in the ActiveSupport::StringInquirer class,
   # which gives you a prettier way to test for equality.
@@ -18181,6 +18544,28 @@ class String
   #
   # source://activesupport//lib/active_support/core_ext/string/filters.rb#21
   def squish!; end
+
+  # Strips indentation in heredocs.
+  #
+  # For example in
+  #
+  #   if options[:usage]
+  #     puts <<-USAGE.strip_heredoc
+  #       This command does such and such.
+  #
+  #       Supported options are:
+  #         -h         This message
+  #         ...
+  #     USAGE
+  #   end
+  #
+  # the user would see the usage message aligned against the left margin.
+  #
+  # Technically, it looks for the least indented non-empty line
+  # in the whole string, and removes that amount of leading whitespace.
+  #
+  # source://activesupport//lib/active_support/core_ext/string/strip.rb#22
+  def strip_heredoc; end
 
   # Creates the name of a table like Rails does for models to table names. This method
   # uses the +pluralize+ method on the last word in the string.

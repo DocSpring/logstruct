@@ -35,7 +35,7 @@ module LogStruct
             )
 
             # Pass the structured hash to the logger
-            # If Rails.logger has our LogFormatter, it will handle JSON conversion
+            # If Rails.logger has our JSONFormatter, it will handle JSON conversion
             ::Shrine.logger.info log_data
           end)
 

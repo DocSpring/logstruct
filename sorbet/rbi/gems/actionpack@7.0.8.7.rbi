@@ -926,6 +926,17 @@ module AbstractController::Logger
   include ::ActiveSupport::Benchmarkable
 end
 
+# source://actionpack//lib/abstract_controller/railties/routes_helpers.rb#6
+module AbstractController::Railties; end
+
+# source://actionpack//lib/abstract_controller/railties/routes_helpers.rb#7
+module AbstractController::Railties::RoutesHelpers
+  class << self
+    # source://actionpack//lib/abstract_controller/railties/routes_helpers.rb#8
+    def with(routes, include_path_helpers = T.unsafe(nil)); end
+  end
+end
+
 # source://actionpack//lib/abstract_controller/rendering.rb#17
 module AbstractController::Rendering
   extend ::ActiveSupport::Concern
@@ -2210,6 +2221,9 @@ end
 
 # source://actionpack//lib/action_controller/base.rb#0
 module ActionController::Base::HelperMethods
+  include ::ActionText::ContentHelper
+  include ::ActionText::TagHelper
+
   # source://actionpack//lib/action_controller/metal/flash.rb#39
   def alert(*args, **_arg1, &block); end
 
@@ -6037,6 +6051,18 @@ module ActionController::PermissionsPolicy::ClassMethods
   #
   # source://actionpack//lib/action_controller/metal/permissions_policy.rb#26
   def permissions_policy(**options, &block); end
+end
+
+# source://actionpack//lib/action_controller/railtie.rb#11
+class ActionController::Railtie < ::Rails::Railtie; end
+
+# source://actionpack//lib/action_controller/railties/helpers.rb#4
+module ActionController::Railties; end
+
+# source://actionpack//lib/action_controller/railties/helpers.rb#5
+module ActionController::Railties::Helpers
+  # source://actionpack//lib/action_controller/railties/helpers.rb#6
+  def inherited(klass); end
 end
 
 # source://actionpack//lib/action_controller/metal/redirecting.rb#4
@@ -18727,6 +18753,23 @@ class ActionDispatch::Session::CookieStore::SessionId
   def cookie_value; end
 end
 
+# A session store that uses MemCache to implement storage.
+#
+# ==== Options
+# * <tt>expire_after</tt>  - The length of time a session will be stored before automatically expiring.
+#
+# source://actionpack//lib/action_dispatch/middleware/session/mem_cache_store.rb#17
+class ActionDispatch::Session::MemCacheStore < ::Rack::Session::Dalli
+  include ::ActionDispatch::Session::Compatibility
+  include ::ActionDispatch::Session::StaleSessionCheck
+  include ::ActionDispatch::Session::SessionObject
+
+  # @return [MemCacheStore] a new instance of MemCacheStore
+  #
+  # source://actionpack//lib/action_dispatch/middleware/session/mem_cache_store.rb#22
+  def initialize(app, options = T.unsafe(nil)); end
+end
+
 # source://actionpack//lib/action_dispatch/middleware/session/abstract_store.rb#69
 module ActionDispatch::Session::SessionObject
   # @return [Boolean]
@@ -18980,6 +19023,11 @@ ActionPack::VERSION::STRING = T.let(T.unsafe(nil), String)
 
 # source://actionpack//lib/action_pack/gem_version.rb#12
 ActionPack::VERSION::TINY = T.let(T.unsafe(nil), Integer)
+
+module ActionView::RoutingUrlFor
+  include ::ActionDispatch::Routing::PolymorphicRoutes
+  include ::ActionDispatch::Routing::UrlFor
+end
 
 # source://actionpack//lib/action_dispatch/http/mime_type.rb#5
 module Mime

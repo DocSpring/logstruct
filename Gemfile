@@ -30,28 +30,29 @@ gem "bigdecimal"
 gem "mutex_m"
 
 # Supported integrations
-gem "bugsnag", "~> 6.26", require: false
-gem "carrierwave", "~> 3.0", require: false
-gem "honeybadger", "~> 5.4", require: false
-gem "postmark", "~> 1.25", require: false
-gem "rollbar", "~> 3.4", require: false
-gem "sentry-ruby", "~> 5.15", require: false
-gem "shrine", "~> 3.5", require: false
-gem "sidekiq", "~> 7.2", require: false
+gem "bugsnag", "~> 6.26"
+gem "carrierwave", "~> 3.0"
+gem "honeybadger", "~> 5.4"
+gem "postmark", "~> 1.25"
+gem "rollbar", "~> 3.4"
+gem "sentry-ruby", "~> 5.15"
+gem "shrine", "~> 3.5"
+gem "sidekiq", "~> 7.2"
 
 group :development, :test do
+  gem "dalli"
   gem "debug"
   gem "listen", require: false
-  gem "rspec"
   gem "rspec-sorbet-types"
-  gem "solargraph", require: false
-  gem "sorbet", require: false
-  gem "sorbet-runtime", require: false
-  gem "standard", ">= 1.35.1", require: false
-  gem "rubocop", require: false
+  gem "rspec"
+  gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
   gem "rubocop-rspec", require: false
-  gem "rubocop-performance", require: false
   gem "rubocop-sorbet", require: false
+  gem "rubocop", require: false
+  gem "solargraph", require: false
+  gem "sorbet"
+  gem "thor"
+  gem "standard", ">= 1.35.1", require: false
   gem "tapioca", require: false
 end

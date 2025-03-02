@@ -165,6 +165,7 @@ class ActiveJob::Base
   include ::ActiveJob::Logging
   include ::ActiveJob::Timezones
   include ::ActiveJob::Translation
+  include ::Sidekiq::Job::Options
   include ::ActiveJob::TestHelper::TestQueueAdapter
   extend ::ActiveJob::Core::ClassMethods
   extend ::ActiveJob::QueueAdapter::ClassMethods
@@ -177,6 +178,7 @@ class ActiveJob::Base
   extend ::ActiveSupport::DescendantsTracker
   extend ::ActiveJob::Callbacks::ClassMethods
   extend ::ActiveJob::Exceptions::ClassMethods
+  extend ::Sidekiq::Job::Options::ClassMethods
   extend ::ActiveJob::TestHelper::TestQueueAdapter::ClassMethods
 
   # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
@@ -1777,6 +1779,11 @@ module ActiveJob::QueuePriority::ClassMethods
     def default_priority=(val); end
   end
 end
+
+# = Active Job Railtie
+#
+# source://activejob//lib/active_job/railtie.rb#8
+class ActiveJob::Railtie < ::Rails::Railtie; end
 
 # Raised when an unsupported argument type is set as a job argument. We
 # currently support String, Integer, Float, NilClass, TrueClass, FalseClass,

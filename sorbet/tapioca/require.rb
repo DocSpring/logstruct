@@ -5,25 +5,12 @@
 require "rspec"
 require "rspec/mocks"
 
-# We type-check our tests too so need to require spec_helper
-require "spec_helper"
+# We type-check our tests
+require_relative "../../spec/spec_helper"
 
-# Rails components
-require "active_model"
-require "active_model/error"
-require "active_record"
-require "active_record/connection_adapters/abstract/schema_statements"
-require "active_record/connection_adapters/abstract/database_statements"
-require "active_support/concern"
-require "action_mailer"
-require "action_mailer/base"
-
-# Optional dependencies
+require "rails/all"
+require "rails/generators"
+require "rails/generators/app_base"
 require "sidekiq"
+require "sidekiq/api"
 require "sidekiq/logger"
-require "shrine"
-require "sentry-ruby"
-require "bugsnag"
-require "rollbar"
-require "honeybadger"
-require "postmark"

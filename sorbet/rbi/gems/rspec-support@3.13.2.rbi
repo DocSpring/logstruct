@@ -189,6 +189,12 @@ module RSpec::Support
     def require_rspec_core(f); end
 
     # source://rspec-support//lib/rspec/support.rb#25
+    def require_rspec_expectations(f); end
+
+    # source://rspec-support//lib/rspec/support.rb#25
+    def require_rspec_matchers(f); end
+
+    # source://rspec-support//lib/rspec/support.rb#25
     def require_rspec_mocks(f); end
 
     # source://rspec-support//lib/rspec/support.rb#25

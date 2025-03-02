@@ -875,6 +875,7 @@ class ActionView::Base
   include ::ActionView::Helpers::NumberHelper
   include ::ActionView::Helpers::RenderingHelper
   include ::ActionView::Helpers
+  include ::ActionCable::Helpers::ActionCableHelper
   extend ::ActionView::Helpers::UrlHelper::ClassMethods
   extend ::ActionView::Helpers::SanitizeHelper::ClassMethods
 
@@ -5252,6 +5253,8 @@ class ActionView::Helpers::FormBuilder
   # source://actionview//lib/action_view/helpers/form_helper.rb#2007
   def range_field(method, options = T.unsafe(nil)); end
 
+  def rich_text_area(method, options = T.unsafe(nil)); end
+
   # source://actionview//lib/action_view/helpers/form_helper.rb#2007
   def search_field(method, options = T.unsafe(nil)); end
 
@@ -6783,6 +6786,8 @@ module ActionView::Helpers::FormHelper
   #
   # source://actionview//lib/action_view/helpers/form_helper.rb#1570
   def range_field(object_name, method, options = T.unsafe(nil)); end
+
+  def rich_text_area(object_name, method, options = T.unsafe(nil)); end
 
   # Returns an input of type "search" for accessing a specified attribute (identified by +method+) on an object
   # assigned to the template (identified by +object_name+). Inputs of type "search" may be styled differently by
@@ -12705,6 +12710,16 @@ class ActionView::PathSet
   def typecast(paths); end
 end
 
+# = Action View Railtie
+#
+# source://actionview//lib/action_view/railtie.rb#8
+class ActionView::Railtie < ::Rails::Engine
+  class << self
+    # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
+    def __callbacks; end
+  end
+end
+
 # RecordIdentifier encapsulates methods used by various ActionView helpers
 # to associate records with DOM elements.
 #
@@ -13828,6 +13843,11 @@ end
 
 # source://actionview//lib/action_view/routing_url_for.rb#6
 module ActionView::RoutingUrlFor
+  include ::ActionDispatch::Routing::PolymorphicRoutes
+
+  # source://actionpack/7.0.8.7/lib/action_dispatch/routing/url_for.rb#97
+  def default_url_options=(val); end
+
   # Returns the URL for the set of +options+ provided. This takes the
   # same options as +url_for+ in Action Controller (see the
   # documentation for ActionDispatch::Routing::UrlFor#url_for). Note that by default
@@ -13925,6 +13945,11 @@ module ActionView::RoutingUrlFor
   #
   # source://actionview//lib/action_view/routing_url_for.rb#134
   def optimize_routes_generation?; end
+
+  class << self
+    # source://actionpack/7.0.8.7/lib/action_dispatch/routing/url_for.rb#97
+    def default_url_options=(val); end
+  end
 end
 
 # source://actionview//lib/action_view/buffers.rb#41
@@ -14908,6 +14933,7 @@ class ActionView::TestCase < ::ActiveSupport::TestCase
   include ::ActionView::Helpers::RenderingHelper
   include ::ActionView::Helpers
   include ::ActiveSupport::Testing::ConstantLookup
+  include ::ActionDispatch::Routing::UrlFor
   include ::ActionView::RoutingUrlFor
   include ::ActionView::TestCase::Behavior
   extend ::AbstractController::Helpers::ClassMethods
@@ -14970,6 +14996,7 @@ module ActionView::TestCase::Behavior
   include ::ActionDispatch::Routing::PolymorphicRoutes
   include ::ActionView::ModelNaming
   include ::ActionView::RecordIdentifier
+  include ::ActionDispatch::Routing::UrlFor
   include ::ActionView::RoutingUrlFor
   extend ::ActiveSupport::Concern
   include GeneratedInstanceMethods

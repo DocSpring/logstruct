@@ -1,6 +1,7 @@
 bindir
 Bugsnag
 carrierwave
+dalli
 Honeybadger
 Logstop
 LogStruct

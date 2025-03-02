@@ -5,7 +5,7 @@
 require "log_struct/sorbet"
 require "log_struct/version"
 require "log_struct/configuration"
-require "log_struct/log_formatter"
+require "log_struct/json_formatter"
 require "log_struct/railtie"
 
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to support hash input/output
@@ -22,6 +22,7 @@ module LogStruct
     def configuration
       @configuration ||= Configuration.new
     end
+    alias_method :config, :configuration
 
     sig { params(configuration: Configuration).void }
     attr_writer :configuration

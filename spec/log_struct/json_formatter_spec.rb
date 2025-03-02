@@ -3,8 +3,8 @@
 
 require "spec_helper"
 
-RSpec.describe LogStruct::LogFormatter do
-  subject(:formatter) { LogStruct::LogFormatter.new }
+RSpec.describe LogStruct::JSONFormatter do
+  subject(:formatter) { LogStruct::JSONFormatter.new }
 
   let(:severity) { "INFO" }
   let(:time) { Time.utc(2023, 1, 1, 12, 0, 0) }

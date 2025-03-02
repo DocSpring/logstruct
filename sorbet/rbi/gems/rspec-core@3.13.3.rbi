@@ -6272,6 +6272,12 @@ module RSpec::Core::HashImitatable
   def compact!(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def compact_blank(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def compact_blank!(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
   def compare_by_identity(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
@@ -6309,6 +6315,12 @@ module RSpec::Core::HashImitatable
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def deep_transform_keys!(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def deep_transform_values(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def deep_transform_values!(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def default(*args, &block); end
@@ -6380,6 +6392,12 @@ module RSpec::Core::HashImitatable
   def except!(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def exclude?(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def excluding(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
   def extract!(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
@@ -6434,7 +6452,19 @@ module RSpec::Core::HashImitatable
   def has_value?(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def in_order_of(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
   def include?(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def including(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def index_by(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def index_with(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def inject(*args, &block); end
@@ -6461,6 +6491,9 @@ module RSpec::Core::HashImitatable
   def length(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def many?(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
   def map(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
@@ -6468,6 +6501,9 @@ module RSpec::Core::HashImitatable
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def max_by(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def maximum(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def member?(*args, &block); end
@@ -6483,6 +6519,9 @@ module RSpec::Core::HashImitatable
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def min_by(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def minimum(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def minmax(*args, &block); end
@@ -6501,6 +6540,12 @@ module RSpec::Core::HashImitatable
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def partition(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def pick(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def pluck(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def rassoc(*args, &block); end
@@ -6558,6 +6603,9 @@ module RSpec::Core::HashImitatable
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def slice_when(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def sole(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def sort(*args, &block); end
@@ -6651,6 +6699,9 @@ module RSpec::Core::HashImitatable
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def with_indifferent_access(*args, &block); end
+
+  # source://rspec-core//lib/rspec/core/metadata.rb#367
+  def without(*args, &block); end
 
   # source://rspec-core//lib/rspec/core/metadata.rb#367
   def zip(*args, &block); end

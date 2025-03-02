@@ -3,7 +3,7 @@
 
 module LogStruct
   # This class contains configuration for filtering sensitive data in logs
-  # It is used by LogFormatter to determine which keys should be filtered
+  # It is used by JSONFormatter to determine which keys should be filtered
   class ParamFilters
     class << self
       attr_accessor :filtered_keys, :filtered_json_columns, :ignored_json_columns, :ignored_tables

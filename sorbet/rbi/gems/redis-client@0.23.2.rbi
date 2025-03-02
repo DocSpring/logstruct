@@ -8,7 +8,9 @@
 module Process
   extend ::ConnectionPool::ForkTracker
   extend ::RedisClient::PIDCache::CoreExt
+  extend ::Dalli::PIDCache::CoreExt
   extend ::ActiveSupport::ForkTracker::ModernCoreExt
+  extend ::FFI::ModernForkTracking
 end
 
 # source://redis-client//lib/redis_client/version.rb#3

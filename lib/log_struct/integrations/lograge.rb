@@ -19,7 +19,7 @@ module LogStruct
           ::Rails.application.configure do
             config.lograge.enabled = true
             # Use a raw formatter that just returns the hash.
-            # The hash is converted to JSON by our LogFormatter (after filtering, etc.)
+            # The hash is converted to JSON by our JSONFormatter (after filtering, etc.)
             config.lograge.formatter = ->(data) { data }
 
             # Add custom options to lograge

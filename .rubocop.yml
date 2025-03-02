@@ -15,11 +15,9 @@ AllCops:
     - public/**/*
     - vendor/**/*
     - tmp/**/*
-    - sorbet/dsl/**/*
-    - sorbet/gems/**/*
-    - sorbet/annotations/**/*
-  SuggestExtensions:
-    rubocop-rails: false
+    - sorbet/rbi/dsl/**/*
+    - sorbet/rbi/gems/**/*
+    - sorbet/rbi/annotations/**/*
 
 Layout/MultilineHashKeyLineBreaks:
   Enabled: true

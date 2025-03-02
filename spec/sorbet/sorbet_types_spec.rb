@@ -69,8 +69,8 @@ RSpec.describe "Sorbet Types" do
     end
   end
 
-  describe "LogFormatter with Sorbet type signatures" do
-    T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes::LogFormatterWithSorbetTypeSignatures))
+  describe "JSONFormatter with Sorbet type signatures" do
+    T.bind(self, T.class_of(RSpec::ExampleGroups::SorbetTypes::JSONFormatterWithSorbetTypeSignatures))
 
     rsig { returns(String) }
     let(:test_message) { "Test message" }
@@ -78,8 +78,8 @@ RSpec.describe "Sorbet Types" do
     rsig { returns(Time) }
     let(:test_time) { Time.zone.now }
 
-    rsig { returns(LogStruct::LogFormatter) }
-    let(:formatter) { LogStruct::LogFormatter.new }
+    rsig { returns(LogStruct::JSONFormatter) }
+    let(:formatter) { LogStruct::JSONFormatter.new }
 
     it "formats log messages" do
       result = formatter.call("INFO", test_time, nil, test_message)

@@ -1362,6 +1362,8 @@ end
 # source://actionmailer//lib/action_mailer/base.rb#0
 module ActionMailer::Base::HelperMethods
   include ::ActionMailer::MailHelper
+  include ::ActionText::ContentHelper
+  include ::ActionText::TagHelper
 
   # source://actionpack/7.0.8.7/lib/abstract_controller/caching/fragments.rb#31
   def combined_fragment_cache_key(*args, **_arg1, &block); end
@@ -2040,6 +2042,9 @@ module ActionMailer::Previews::ClassMethods
   # source://actionmailer//lib/action_mailer/preview.rb#58
   def interceptor_class_for(interceptor); end
 end
+
+# source://actionmailer//lib/action_mailer/railtie.rb#9
+class ActionMailer::Railtie < ::Rails::Railtie; end
 
 # Provides
 # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from]

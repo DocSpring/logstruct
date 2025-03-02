@@ -25,7 +25,6 @@ gem:
     - standard
     - standard-sorbet
     - tapioca
-    - thor
     - yard
     - yard-sorbet
     - zeitwerk

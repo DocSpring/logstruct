@@ -1466,6 +1466,253 @@ module Rails::Autoloaders::Inflector
   end
 end
 
+# source://railties//lib/rails/command.rb#10
+module Rails::Command
+  include ::Rails::Command::Behavior
+  extend ::ActiveSupport::Autoload
+  extend ::Rails::Command::Behavior::ClassMethods
+
+  class << self
+    # source://railties//lib/rails/command.rb#25
+    def environment; end
+
+    # Rails finds namespaces similar to Thor, it only adds one rule:
+    #
+    # Command names must end with "_command.rb". This is required because Rails
+    # looks in load paths and loads the command just before it's going to be used.
+    #
+    #   find_by_namespace :webrat, :integration
+    #
+    # Will search for the following commands:
+    #
+    #   "webrat", "webrat:integration", "rails:webrat", "rails:webrat:integration"
+    #
+    # source://railties//lib/rails/command.rb#68
+    def find_by_namespace(namespace, command_name = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/command.rb#21
+    def hidden_commands; end
+
+    # Receives a namespace, arguments, and the behavior to invoke the command.
+    #
+    # source://railties//lib/rails/command.rb#30
+    def invoke(full_namespace, args = T.unsafe(nil), **config); end
+
+    # source://railties//lib/rails/command.rb#88
+    def print_commands; end
+
+    # Returns the root of the Rails engine or app running the command.
+    #
+    # source://railties//lib/rails/command.rb#80
+    def root; end
+
+    private
+
+    # source://railties//lib/rails/command.rb#108
+    def command_type; end
+
+    # source://railties//lib/rails/command.rb#100
+    def commands; end
+
+    # source://railties//lib/rails/command.rb#116
+    def file_lookup_paths; end
+
+    # source://railties//lib/rails/command.rb#112
+    def lookup_paths; end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/command.rb#96
+    def rails_new_with_no_path?(args); end
+  end
+end
+
+# source://railties//lib/rails/command/actions.rb#5
+module Rails::Command::Actions
+  # source://railties//lib/rails/command/actions.rb#48
+  def load_generators; end
+
+  # source://railties//lib/rails/command/actions.rb#44
+  def load_tasks; end
+
+  # source://railties//lib/rails/command/actions.rb#18
+  def require_application!; end
+
+  # source://railties//lib/rails/command/actions.rb#13
+  def require_application_and_environment!; end
+
+  # source://railties//lib/rails/command/actions.rb#26
+  def require_environment!; end
+
+  # Change to the application's path if there is no <tt>config.ru</tt> file in current directory.
+  # This allows us to run <tt>rails server</tt> from other directories, but still get
+  # the main <tt>config.ru</tt> and properly set the <tt>tmp</tt> directory.
+  #
+  # source://railties//lib/rails/command/actions.rb#9
+  def set_application_directory!; end
+end
+
+# source://railties//lib/rails/command/base.rb#13
+class Rails::Command::Base < ::Thor
+  include ::Rails::Command::Actions
+
+  # source://railties//lib/rails/command/base.rb#174
+  def help; end
+
+  class << self
+    # Use Rails' default banner.
+    #
+    # source://railties//lib/rails/command/base.rb#99
+    def banner(*_arg0); end
+
+    # Sets the base_name taking into account the current class namespace.
+    #
+    #   Rails::Command::TestCommand.base_name # => 'rails'
+    #
+    # source://railties//lib/rails/command/base.rb#106
+    def base_name; end
+
+    # Return command name without namespaces.
+    #
+    #   Rails::Command::TestCommand.command_name # => 'test'
+    #
+    # source://railties//lib/rails/command/base.rb#115
+    def command_name; end
+
+    # Default file root to place extra files a command might need, placed
+    # one folder above the command file.
+    #
+    # For a Rails::Command::TestCommand placed in <tt>rails/command/test_command.rb</tt>
+    # would return <tt>rails/test</tt>.
+    #
+    # source://railties//lib/rails/command/base.rb#135
+    def default_command_root; end
+
+    # Tries to get the description from a USAGE file one folder above the command
+    # root.
+    #
+    # source://railties//lib/rails/command/base.rb#49
+    def desc(usage = T.unsafe(nil), description = T.unsafe(nil), options = T.unsafe(nil)); end
+
+    # Returns true when the app is a Rails engine.
+    #
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/command/base.rb#43
+    def engine?; end
+
+    # source://railties//lib/rails/command/base.rb#94
+    def executable; end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/command/base.rb#38
+    def exit_on_failure?; end
+
+    # Convenience method to hide this command from the available ones when
+    # running rails command.
+    #
+    # source://railties//lib/rails/command/base.rb#70
+    def hide_command!; end
+
+    # source://railties//lib/rails/command/base.rb#74
+    def inherited(base); end
+
+    # Convenience method to get the namespace from the class name. It's the
+    # same as Thor default except that the Command at the end of the class
+    # is removed.
+    #
+    # source://railties//lib/rails/command/base.rb#60
+    def namespace(name = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/command/base.rb#82
+    def perform(command, args, config); end
+
+    # source://railties//lib/rails/command/base.rb#90
+    def printing_commands; end
+
+    # Path to lookup a USAGE description in a file.
+    #
+    # source://railties//lib/rails/command/base.rb#123
+    def usage_path; end
+
+    private
+
+    # source://railties//lib/rails/command/base.rb#155
+    def command_root_namespace; end
+
+    # Allow the command method to be called perform.
+    #
+    # source://railties//lib/rails/command/base.rb#142
+    def create_command(meth); end
+
+    # source://railties//lib/rails/command/base.rb#163
+    def namespaced_commands; end
+
+    # source://railties//lib/rails/command/base.rb#159
+    def relative_command_path; end
+  end
+end
+
+# source://railties//lib/rails/command/base.rb#17
+class Rails::Command::Base::CorrectableError < ::Rails::Command::Base::Error
+  include ::DidYouMean::Correctable
+
+  # @return [CorrectableError] a new instance of CorrectableError
+  #
+  # source://railties//lib/rails/command/base.rb#20
+  def initialize(message, key, options); end
+
+  # source://railties//lib/rails/command/base.rb#29
+  def corrections; end
+
+  # Returns the value of attribute key.
+  #
+  # source://railties//lib/rails/command/base.rb#18
+  def key; end
+
+  # Returns the value of attribute options.
+  #
+  # source://railties//lib/rails/command/base.rb#18
+  def options; end
+end
+
+# source://railties//lib/rails/command/base.rb#14
+class Rails::Command::Base::Error < ::Thor::Error; end
+
+# source://railties//lib/rails/command/behavior.rb#7
+module Rails::Command::Behavior
+  extend ::ActiveSupport::Concern
+
+  mixes_in_class_methods ::Rails::Command::Behavior::ClassMethods
+end
+
+# source://railties//lib/rails/command/behavior.rb#0
+module Rails::Command::Behavior::ClassMethods
+  # source://railties//lib/rails/command/behavior.rb#12
+  def no_color!; end
+
+  # source://railties//lib/rails/command/behavior.rb#17
+  def subclasses; end
+
+  private
+
+  # source://railties//lib/rails/command/behavior.rb#36
+  def lookup(namespaces); end
+
+  # source://railties//lib/rails/command/behavior.rb#56
+  def lookup!; end
+
+  # source://railties//lib/rails/command/behavior.rb#70
+  def namespaces_to_paths(namespaces); end
+
+  # source://railties//lib/rails/command/behavior.rb#23
+  def print_list(base, namespaces); end
+end
+
+# source://railties//lib/rails/command.rb#18
+Rails::Command::HELP_MAPPINGS = T.let(T.unsafe(nil), Array)
+
 # source://railties//lib/rails/configuration.rb#9
 module Rails::Configuration; end
 
@@ -2350,6 +2597,2091 @@ class Rails::Engine::Railties
   def each(*args, &block); end
 end
 
+# source://railties//lib/rails/generators.rb#17
+module Rails::Generators
+  include ::Rails::Command::Behavior
+  extend ::Rails::Command::Behavior::ClassMethods
+
+  # source://railties//lib/rails/generators.rb#30
+  def namespace; end
+
+  # source://railties//lib/rails/generators.rb#30
+  def namespace=(val); end
+
+  class << self
+    # source://railties//lib/rails/generators.rb#282
+    def add_generated_file(file); end
+
+    # source://railties//lib/rails/generators.rb#91
+    def after_generate_callbacks; end
+
+    # source://railties//lib/rails/generators.rb#83
+    def aliases; end
+
+    # Configure generators for API only applications. It basically hides
+    # everything that is usually browser related, such as assets and session
+    # migration generators, and completely disable helpers and assets
+    # so generators such as scaffold won't create them.
+    #
+    # source://railties//lib/rails/generators.rb#115
+    def api_only!; end
+
+    # source://railties//lib/rails/generators.rb#67
+    def configure!(config); end
+
+    # Hold configured generators fallbacks. If a plugin developer wants a
+    # generator group to fallback to another group in case of missing generators,
+    # they can add a fallback.
+    #
+    # For example, shoulda is considered a test_framework and is an extension
+    # of test_unit. However, most part of shoulda generators are similar to
+    # test_unit ones.
+    #
+    # Shoulda then can tell generators to search for test_unit generators when
+    # some of them are not available by adding a fallback:
+    #
+    #   Rails::Generators.fallbacks[:shoulda] = :test_unit
+    #
+    # source://railties//lib/rails/generators.rb#107
+    def fallbacks; end
+
+    # Rails finds namespaces similar to Thor, it only adds one rule:
+    #
+    # Generators names must end with "_generator.rb". This is required because Rails
+    # looks in load paths and loads the generator just before it's going to be used.
+    #
+    #   find_by_namespace :webrat, :rails, :integration
+    #
+    # Will search for the following generators:
+    #
+    #   "rails:webrat", "webrat:integration", "webrat"
+    #
+    # Notice that "rails:generators:webrat" could be loaded as well, what
+    # Rails looks for is the first and last parts of the namespace.
+    #
+    # source://railties//lib/rails/generators.rb#232
+    def find_by_namespace(name, base = T.unsafe(nil), context = T.unsafe(nil)); end
+
+    # Show help message with available generators.
+    #
+    # source://railties//lib/rails/generators.rb#168
+    def help(command = T.unsafe(nil)); end
+
+    # Returns an array of generator namespaces that are hidden.
+    # Generator namespaces may be hidden for a variety of reasons.
+    # Some are aliased such as "rails:migration" and can be
+    # invoked with the shorter "migration".
+    #
+    # source://railties//lib/rails/generators.rb#133
+    def hidden_namespaces; end
+
+    # source://railties//lib/rails/generators.rb#162
+    def hide_namespace(*namespaces); end
+
+    # source://railties//lib/rails/generators.rb#162
+    def hide_namespaces(*namespaces); end
+
+    # Receives a namespace, arguments, and the behavior to invoke the generator.
+    # It's used as the default entry point for generate, destroy, and update
+    # commands.
+    #
+    # source://railties//lib/rails/generators.rb#259
+    def invoke(namespace, args = T.unsafe(nil), config = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/generators.rb#30
+    def namespace; end
+
+    # source://railties//lib/rails/generators.rb#30
+    def namespace=(val); end
+
+    # source://railties//lib/rails/generators.rb#87
+    def options; end
+
+    # source://railties//lib/rails/generators.rb#189
+    def print_generators; end
+
+    # source://railties//lib/rails/generators.rb#184
+    def public_namespaces; end
+
+    # source://railties//lib/rails/generators.rb#193
+    def sorted_groups; end
+
+    # source://railties//lib/rails/generators.rb#79
+    def templates_path; end
+
+    private
+
+    # source://railties//lib/rails/generators.rb#309
+    def command_type; end
+
+    # source://railties//lib/rails/generators.rb#317
+    def file_lookup_paths; end
+
+    # Try fallbacks for the given base.
+    #
+    # source://railties//lib/rails/generators.rb#294
+    def invoke_fallbacks_for(name, base); end
+
+    # source://railties//lib/rails/generators.rb#313
+    def lookup_paths; end
+
+    # source://railties//lib/rails/generators.rb#288
+    def print_list(base, namespaces); end
+
+    # source://railties//lib/rails/generators.rb#321
+    def run_after_generate_callback; end
+  end
+end
+
+# source://railties//lib/rails/generators/actions.rb#9
+module Rails::Generators::Actions
+  # source://railties//lib/rails/generators/actions.rb#10
+  def initialize(*_arg0); end
+
+  # Add the given source to +Gemfile+
+  #
+  # If block is given, gem entries in block are wrapped into the source group.
+  #
+  #   add_source "http://gems.github.com/"
+  #
+  #   add_source "http://gems.github.com/" do
+  #     gem "rspec-rails"
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#151
+  def add_source(source, options = T.unsafe(nil), &block); end
+
+  # Adds configuration code to a Rails runtime environment.
+  #
+  # By default, adds code inside the +Application+ class in
+  # +config/application.rb+ so that it applies to all environments.
+  #
+  #   environment %(config.asset_host = "cdn.provider.com")
+  #
+  # Results in:
+  #
+  #   # config/application.rb
+  #   class Application < Rails::Application
+  #     config.asset_host = "cdn.provider.com"
+  #     # ...
+  #   end
+  #
+  # If the +:env+ option is specified, the code will be added to the
+  # corresponding file in +config/environments+ instead.
+  #
+  #   environment %(config.asset_host = "localhost:3000"), env: "development"
+  #
+  # Results in:
+  #
+  #   # config/environments/development.rb
+  #   Rails.application.configure do
+  #     config.asset_host = "localhost:3000"
+  #     # ...
+  #   end
+  #
+  # +:env+ can also be an array. In which case, the code is added to each
+  # corresponding file in +config/environments+.
+  #
+  # The code can also be specified as the return value of the block:
+  #
+  #   environment do
+  #     %(config.asset_host = "cdn.provider.com")
+  #   end
+  #
+  #   environment(nil, env: "development") do
+  #     %(config.asset_host = "localhost:3000")
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#206
+  def application(data = T.unsafe(nil), options = T.unsafe(nil)); end
+
+  # Adds configuration code to a Rails runtime environment.
+  #
+  # By default, adds code inside the +Application+ class in
+  # +config/application.rb+ so that it applies to all environments.
+  #
+  #   environment %(config.asset_host = "cdn.provider.com")
+  #
+  # Results in:
+  #
+  #   # config/application.rb
+  #   class Application < Rails::Application
+  #     config.asset_host = "cdn.provider.com"
+  #     # ...
+  #   end
+  #
+  # If the +:env+ option is specified, the code will be added to the
+  # corresponding file in +config/environments+ instead.
+  #
+  #   environment %(config.asset_host = "localhost:3000"), env: "development"
+  #
+  # Results in:
+  #
+  #   # config/environments/development.rb
+  #   Rails.application.configure do
+  #     config.asset_host = "localhost:3000"
+  #     # ...
+  #   end
+  #
+  # +:env+ can also be an array. In which case, the code is added to each
+  # corresponding file in +config/environments+.
+  #
+  # The code can also be specified as the return value of the block:
+  #
+  #   environment do
+  #     %(config.asset_host = "cdn.provider.com")
+  #   end
+  #
+  #   environment(nil, env: "development") do
+  #     %(config.asset_host = "localhost:3000")
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#206
+  def environment(data = T.unsafe(nil), options = T.unsafe(nil)); end
+
+  # Adds a +gem+ declaration to the +Gemfile+ for the specified gem.
+  #
+  #   gem "rspec", group: :test
+  #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
+  #   gem "rails", "3.0", git: "https://github.com/rails/rails"
+  #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
+  #   gem "rspec", comment: "Put this comment above the gem declaration"
+  #
+  # Note that this method only adds the gem to the +Gemfile+; it does not
+  # install the gem.
+  #
+  # ==== Options
+  #
+  # [+:version+]
+  #   The version constraints for the gem, specified as a string or an
+  #   array of strings:
+  #
+  #     gem "my_gem", version: "~> 1.1"
+  #     gem "my_gem", version: [">= 1.1", "< 2.0"]
+  #
+  #   Alternatively, can be specified as one or more arguments following the
+  #   gem name:
+  #
+  #     gem "my_gem", ">= 1.1", "< 2.0"
+  #
+  # [+:comment+]
+  #   Outputs a comment above the +gem+ declaration in the +Gemfile+.
+  #
+  #     gem "my_gem", comment: "First line.\nSecond line."
+  #
+  #   Outputs:
+  #
+  #     # First line.
+  #     # Second line.
+  #     gem "my_gem"
+  #
+  # [+:group+]
+  #   The gem group in the +Gemfile+ that the gem belongs to.
+  #
+  # [+:git+]
+  #   The URL of the git repository for the gem.
+  #
+  # Any additional options passed to this method will be appended to the
+  # +gem+ declaration in the +Gemfile+. For example:
+  #
+  #   gem "my_gem", comment: "Edge my_gem", git: "https://example.com/my_gem.git", branch: "master"
+  #
+  # Outputs:
+  #
+  #   # Edge my_gem
+  #   gem "my_gem", git: "https://example.com/my_gem.git", branch: "master"
+  #
+  # source://railties//lib/rails/generators/actions.rb#67
+  def gem(*args); end
+
+  # Wraps gem entries inside a group.
+  #
+  #   gem_group :development, :test do
+  #     gem "rspec-rails"
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#111
+  def gem_group(*names, &block); end
+
+  # Runs another generator.
+  #
+  #   generate "scaffold", "Post title:string body:text"
+  #   generate "scaffold", "Post", "title:string", "body:text"
+  #
+  # The first argument is the generator name, and the remaining arguments
+  # are joined together and passed to the generator.
+  #
+  # source://railties//lib/rails/generators/actions.rb#332
+  def generate(what, *args); end
+
+  # Runs one or more git commands.
+  #
+  #   git :init
+  #   # => runs `git init`
+  #
+  #   git add: "this.file that.rb"
+  #   # => runs `git add this.file that.rb`
+  #
+  #   git commit: "-m 'First commit'"
+  #   # => runs `git commit -m 'First commit'`
+  #
+  #   git add: "good.rb", rm: "bad.cxx"
+  #   # => runs `git add good.rb; git rm bad.cxx`
+  #
+  # source://railties//lib/rails/generators/actions.rb#237
+  def git(commands = T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/actions.rb#125
+  def github(repo, options = T.unsafe(nil), &block); end
+
+  # Creates an initializer file in +config/initializers/+. The code can be
+  # specified as an argument or as the return value of the block.
+  #
+  #   initializer "api.rb", <<~RUBY
+  #     API_KEY = "123456"
+  #   RUBY
+  #
+  #   initializer "api.rb" do
+  #     %(API_KEY = "123456")
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#319
+  def initializer(filename, data = T.unsafe(nil)); end
+
+  # Creates a file in +lib/+. The contents can be specified as an argument
+  # or as the return value of the block.
+  #
+  #   lib "foreign.rb", <<~RUBY
+  #     # Foreign code is fun
+  #   RUBY
+  #
+  #   lib "foreign.rb" do
+  #     "# Foreign code is fun"
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#275
+  def lib(filename, data = T.unsafe(nil)); end
+
+  # Runs the specified Rails command.
+  #
+  #   rails_command "db:migrate"
+  #   rails_command "db:migrate", env: "production"
+  #   rails_command "db:migrate", abort_on_failure: true
+  #   rails_command "stats", capture: true
+  #   rails_command "gems:install", sudo: true
+  #
+  # ==== Options
+  #
+  # [+:env+]
+  #   The Rails environment in which to run the command. Defaults to
+  #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
+  #
+  # [+:abort_on_failure+]
+  #   Whether to halt the generator if the command exits with a non-success
+  #   exit status.
+  #
+  # [+:capture+]
+  #   Whether to capture and return the output of the command.
+  #
+  # [+:sudo+]
+  #   Whether to run the command using +sudo+.
+  #
+  # source://railties//lib/rails/generators/actions.rb#391
+  def rails_command(command, options = T.unsafe(nil)); end
+
+  # Runs the specified Rake task.
+  #
+  #   rake "db:migrate"
+  #   rake "db:migrate", env: "production"
+  #   rake "db:migrate", abort_on_failure: true
+  #   rake "stats", capture: true
+  #   rake "gems:install", sudo: true
+  #
+  # ==== Options
+  #
+  # [+:env+]
+  #   The Rails environment in which to run the task. Defaults to
+  #   <tt>ENV["RAILS_ENV"] || "development"</tt>.
+  #
+  # [+:abort_on_failure+]
+  #   Whether to halt the generator if the task exits with a non-success
+  #   exit status.
+  #
+  # [+:capture+]
+  #   Whether to capture and return the output of the task.
+  #
+  # [+:sudo+]
+  #   Whether to run the task using +sudo+.
+  #
+  # source://railties//lib/rails/generators/actions.rb#364
+  def rake(command, options = T.unsafe(nil)); end
+
+  # Creates a Rake tasks file in +lib/tasks/+. The code can be specified as
+  # an argument or as the return value of the block.
+  #
+  #   rakefile "bootstrap.rake", <<~RUBY
+  #     task :bootstrap do
+  #       puts "Boots! Boots! Boots!"
+  #     end
+  #   RUBY
+  #
+  #   rakefile "bootstrap.rake" do
+  #     project = ask("What is the UNIX name of your project?")
+  #
+  #     <<~RUBY
+  #       namespace :#{project} do
+  #         task :bootstrap do
+  #           puts "Boots! Boots! Boots!"
+  #         end
+  #       end
+  #     RUBY
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#302
+  def rakefile(filename, data = T.unsafe(nil)); end
+
+  # Reads the given file at the source root and prints it in the console.
+  #
+  #   readme "README"
+  #
+  # source://railties//lib/rails/generators/actions.rb#442
+  def readme(path); end
+
+  # Make an entry in Rails routing file <tt>config/routes.rb</tt>
+  #
+  #   route "root 'welcome#index'"
+  #   route "root 'admin#index'", namespace: :admin
+  #
+  # source://railties//lib/rails/generators/actions.rb#409
+  def route(routing_code, namespace: T.unsafe(nil)); end
+
+  # Creates a file in +vendor/+. The contents can be specified as an
+  # argument or as the return value of the block.
+  #
+  #   vendor "foreign.rb", <<~RUBY
+  #     # Foreign code is fun
+  #   RUBY
+  #
+  #   vendor "foreign.rb" do
+  #     "# Foreign code is fun"
+  #   end
+  #
+  # source://railties//lib/rails/generators/actions.rb#258
+  def vendor(filename, data = T.unsafe(nil)); end
+
+  private
+
+  # Append string to a file with a newline if necessary
+  #
+  # source://railties//lib/rails/generators/actions.rb#516
+  def append_file_with_newline(path, str, options = T.unsafe(nil)); end
+
+  # Runs the supplied command using either "rake ..." or "rails ..."
+  # based on the executor parameter provided.
+  #
+  # source://railties//lib/rails/generators/actions.rb#461
+  def execute_command(executor, command, options = T.unsafe(nil)); end
+
+  # Add an extension to the given name based on the platform.
+  #
+  # source://railties//lib/rails/generators/actions.rb#475
+  def extify(name); end
+
+  # Indent the +Gemfile+ to the depth of @indentation
+  #
+  # source://railties//lib/rails/generators/actions.rb#503
+  def indentation; end
+
+  # Define log for backwards compatibility. If just one argument is sent,
+  # invoke say, otherwise invoke say_status. Differently from say and
+  # similarly to say_status, this method respects the quiet? option given.
+  #
+  # source://railties//lib/rails/generators/actions.rb#450
+  def log(*args); end
+
+  # source://railties//lib/rails/generators/actions.rb#522
+  def match_file(path, pattern); end
+
+  # Returns optimized string with indentation
+  #
+  # source://railties//lib/rails/generators/actions.rb#496
+  def optimize_indentation(value, amount = T.unsafe(nil)); end
+
+  # Always returns value in double quotes.
+  #
+  # source://railties//lib/rails/generators/actions.rb#484
+  def quote(value); end
+
+  # Returns optimized string with indentation
+  #
+  # source://railties//lib/rails/generators/actions.rb#496
+  def rebase_indentation(value, amount = T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/actions.rb#526
+  def route_namespace_pattern(namespace); end
+
+  # Manage +Gemfile+ indentation for a DSL action block
+  #
+  # source://railties//lib/rails/generators/actions.rb#508
+  def with_indentation(&block); end
+end
+
+# source://railties//lib/rails/generators/actions/create_migration.rb#9
+class Rails::Generators::Actions::CreateMigration < ::Thor::Actions::CreateFile
+  # source://railties//lib/rails/generators/actions/create_migration.rb#41
+  def existing_migration; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#41
+  def exists?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/actions/create_migration.rb#18
+  def identical?; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#22
+  def invoke!; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#10
+  def migration_dir; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#14
+  def migration_file_name; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#37
+  def relative_existing_migration; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#29
+  def revoke!; end
+
+  private
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#48
+  def on_conflict_behavior; end
+
+  # source://railties//lib/rails/generators/actions/create_migration.rb#69
+  def say_status(status, color, message = T.unsafe(nil)); end
+end
+
+# ActiveModel is a class to be implemented by each ORM to allow Rails to
+# generate customized controller code.
+#
+# The API has the same methods as ActiveRecord, but each method returns a
+# string that matches the ORM API.
+#
+# For example:
+#
+#   ActiveRecord::Generators::ActiveModel.find(Foo, "params[:id]")
+#   # => "Foo.find(params[:id])"
+#
+#   DataMapper::Generators::ActiveModel.find(Foo, "params[:id]")
+#   # => "Foo.get(params[:id])"
+#
+# On initialization, the ActiveModel accepts the instance name that will
+# receive the calls:
+#
+#   builder = ActiveRecord::Generators::ActiveModel.new "@foo"
+#   builder.save # => "@foo.save"
+#
+# The only exception in ActiveModel for ActiveRecord is the use of self.build
+# instead of self.new.
+#
+# source://railties//lib/rails/generators/active_model.rb#28
+class Rails::Generators::ActiveModel
+  # @return [ActiveModel] a new instance of ActiveModel
+  #
+  # source://railties//lib/rails/generators/active_model.rb#31
+  def initialize(name); end
+
+  # DELETE destroy
+  #
+  # source://railties//lib/rails/generators/active_model.rb#75
+  def destroy; end
+
+  # POST create
+  # PATCH/PUT update
+  #
+  # source://railties//lib/rails/generators/active_model.rb#70
+  def errors; end
+
+  # Returns the value of attribute name.
+  #
+  # source://railties//lib/rails/generators/active_model.rb#29
+  def name; end
+
+  # POST create
+  #
+  # source://railties//lib/rails/generators/active_model.rb#59
+  def save; end
+
+  # PATCH/PUT update
+  #
+  # source://railties//lib/rails/generators/active_model.rb#64
+  def update(params = T.unsafe(nil)); end
+
+  class << self
+    # GET index
+    #
+    # source://railties//lib/rails/generators/active_model.rb#36
+    def all(klass); end
+
+    # GET new
+    # POST create
+    #
+    # source://railties//lib/rails/generators/active_model.rb#50
+    def build(klass, params = T.unsafe(nil)); end
+
+    # GET show
+    # GET edit
+    # PATCH/PUT update
+    # DELETE destroy
+    #
+    # source://railties//lib/rails/generators/active_model.rb#44
+    def find(klass, params = T.unsafe(nil)); end
+  end
+end
+
+# source://railties//lib/rails/generators/app_base.rb#13
+class Rails::Generators::AppBase < ::Rails::Generators::Base
+  include ::Rails::Generators::Database
+  include ::Rails::Generators::AppName
+
+  # @return [AppBase] a new instance of AppBase
+  #
+  # source://railties//lib/rails/generators/app_base.rb#103
+  def initialize(positional_argv, option_argv, *_arg2); end
+
+  # source://thor/1.3.2/lib/thor/base.rb#163
+  def app_path; end
+
+  # source://thor/1.3.2/lib/thor/base.rb#163
+  def app_path=(_arg0); end
+
+  # Returns the value of attribute rails_template.
+  #
+  # source://thor/1.3.2/lib/thor/base.rb#163
+  def rails_template; end
+
+  # Sets the attribute rails_template
+  #
+  # @param value the value to set the attribute rails_template to.
+  #
+  # source://thor/1.3.2/lib/thor/base.rb#163
+  def rails_template=(_arg0); end
+
+  # source://railties//lib/rails/generators/base.rb#393
+  def shebang; end
+
+  private
+
+  # CSS processors other than Tailwind require a node-based JavaScript environment. So overwrite the normal JS default
+  # if one such processor has been specified.
+  #
+  # source://railties//lib/rails/generators/app_base.rb#351
+  def adjusted_javascript_option; end
+
+  # source://railties//lib/rails/generators/app_base.rb#144
+  def apply_rails_template; end
+
+  # source://railties//lib/rails/generators/app_base.rb#175
+  def asset_pipeline_gemfile_entry; end
+
+  # source://railties//lib/rails/generators/app_base.rb#133
+  def build(meth, *args); end
+
+  # source://railties//lib/rails/generators/app_base.rb#125
+  def builder; end
+
+  # source://railties//lib/rails/generators/app_base.rb#384
+  def bundle_command(command, env = T.unsafe(nil)); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#410
+  def bundle_install?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#377
+  def cable_gemfile_entry; end
+
+  # source://railties//lib/rails/generators/app_base.rb#201
+  def comment_if(value); end
+
+  # source://railties//lib/rails/generators/app_base.rb#137
+  def create_root; end
+
+  # source://railties//lib/rails/generators/app_base.rb#359
+  def css_gemfile_entry; end
+
+  # source://railties//lib/rails/generators/app_base.rb#163
+  def database_gemfile_entry; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#418
+  def depend_on_bootsnap?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#414
+  def depends_on_system_test?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#479
+  def empty_directory_with_keep_file(destination, config = T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/app_base.rb#401
+  def exec_bundle_command(bundle_command, command, env); end
+
+  # source://railties//lib/rails/generators/app_base.rb#110
+  def gemfile_entries; end
+
+  # source://railties//lib/rails/generators/app_base.rb#473
+  def generate_bundler_binstub; end
+
+  # source://railties//lib/rails/generators/app_base.rb#333
+  def hotwire_gemfile_entry; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#186
+  def include_all_railties?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#323
+  def javascript_gemfile_entry; end
+
+  # source://railties//lib/rails/generators/app_base.rb#318
+  def jbuilder_gemfile_entry; end
+
+  # source://railties//lib/rails/generators/app_base.rb#484
+  def keep_file(destination); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#214
+  def keeps?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#369
+  def psych_gemfile_entry; end
+
+  # source://railties//lib/rails/generators/app_base.rb#291
+  def rails_gemfile_entry; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#287
+  def rails_prerelease?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#305
+  def rails_version_specifier(gem_version = T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/app_base.rb#444
+  def run_bundle; end
+
+  # source://railties//lib/rails/generators/app_base.rb#463
+  def run_css; end
+
+  # source://railties//lib/rails/generators/app_base.rb#457
+  def run_hotwire; end
+
+  # source://railties//lib/rails/generators/app_base.rb#448
+  def run_javascript; end
+
+  # source://railties//lib/rails/generators/app_base.rb#150
+  def set_default_accessors!; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#230
+  def skip_action_mailbox?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#226
+  def skip_action_mailer?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#234
+  def skip_action_text?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#222
+  def skip_active_storage?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#238
+  def skip_dev_gems?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#246
+  def skip_propshaft?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#242
+  def skip_sprockets?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#218
+  def sqlite3?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#422
+  def target_rails_prerelease(self_command = T.unsafe(nil)); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_base.rb#345
+  def using_node?; end
+
+  # source://railties//lib/rails/generators/app_base.rb#171
+  def web_server_gemfile_entry; end
+
+  class << self
+    # source://railties//lib/rails/generators/app_base.rb#26
+    def add_shared_options_for(name); end
+
+    # source://railties//lib/rails/generators/app_base.rb#22
+    def strict_args_position; end
+  end
+end
+
+# source://railties//lib/rails/generators/app_base.rb#251
+class Rails::Generators::AppBase::GemfileEntry < ::Struct
+  # @return [GemfileEntry] a new instance of GemfileEntry
+  #
+  # source://railties//lib/rails/generators/app_base.rb#252
+  def initialize(name, version, comment, options = T.unsafe(nil), commented_out = T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/app_base.rb#276
+  def to_s; end
+
+  class << self
+    # source://railties//lib/rails/generators/app_base.rb#268
+    def floats(name, comment = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/generators/app_base.rb#256
+    def github(name, github, branch = T.unsafe(nil), comment = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/generators/app_base.rb#272
+    def path(name, path, comment = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/generators/app_base.rb#264
+    def version(name, version, comment = T.unsafe(nil)); end
+  end
+end
+
+# source://railties//lib/rails/generators/app_name.rb#5
+module Rails::Generators::AppName
+  private
+
+  # source://railties//lib/rails/generators/app_name.rb#33
+  def app_const; end
+
+  # source://railties//lib/rails/generators/app_name.rb#28
+  def app_const_base; end
+
+  # source://railties//lib/rails/generators/app_name.rb#9
+  def app_name; end
+
+  # source://railties//lib/rails/generators/app_name.rb#28
+  def camelized; end
+
+  # source://railties//lib/rails/generators/app_name.rb#21
+  def defined_app_const_base; end
+
+  # source://railties//lib/rails/generators/app_name.rb#21
+  def defined_app_const_base?; end
+
+  # source://railties//lib/rails/generators/app_name.rb#17
+  def defined_app_name; end
+
+  # source://railties//lib/rails/generators/app_name.rb#13
+  def original_app_name; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/app_name.rb#37
+  def valid_const?; end
+end
+
+# source://railties//lib/rails/generators/app_name.rb#6
+Rails::Generators::AppName::RESERVED_NAMES = T.let(T.unsafe(nil), Array)
+
+# source://railties//lib/rails/generators/base.rb#17
+class Rails::Generators::Base < ::Thor::Group
+  include ::Thor::Actions
+  include ::Rails::Generators::Actions
+  extend ::Thor::Actions::ClassMethods
+
+  private
+
+  # Check whether the given class names are already taken by user
+  # application or Ruby on Rails.
+  #
+  # source://railties//lib/rails/generators/base.rb#256
+  def class_collisions(*class_names); end
+
+  # Takes in an array of nested modules and extracts the last module
+  #
+  # source://railties//lib/rails/generators/base.rb#279
+  def extract_last_module(nesting); end
+
+  # source://railties//lib/rails/generators/base.rb#294
+  def indent(content, multiplier = T.unsafe(nil)); end
+
+  # Wrap block with namespace of current application
+  # if namespace exists and is not skipped
+  #
+  # source://railties//lib/rails/generators/base.rb#288
+  def module_namespacing(&block); end
+
+  # source://railties//lib/rails/generators/base.rb#304
+  def namespace; end
+
+  # source://railties//lib/rails/generators/base.rb#312
+  def namespace_dirs; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/base.rb#308
+  def namespaced?; end
+
+  # source://railties//lib/rails/generators/base.rb#316
+  def namespaced_path; end
+
+  # source://railties//lib/rails/generators/base.rb#299
+  def wrap_with_namespace(content); end
+
+  class << self
+    # Small macro to add ruby as an option to the generator with proper
+    # default value plus an instance helper method called shebang.
+    #
+    # source://railties//lib/rails/generators/base.rb#388
+    def add_shebang_option!; end
+
+    # Use Rails default banner.
+    #
+    # source://railties//lib/rails/generators/base.rb#321
+    def banner; end
+
+    # Sets the base_name taking into account the current class namespace.
+    #
+    # source://railties//lib/rails/generators/base.rb#326
+    def base_name; end
+
+    # Returns the base root for a common set of generators. This is used to dynamically
+    # guess the default source root.
+    #
+    # source://railties//lib/rails/generators/base.rb#228
+    def base_root; end
+
+    # Make class option aware of Rails::Generators.options and Rails::Generators.aliases.
+    #
+    # source://railties//lib/rails/generators/base.rb#209
+    def class_option(name, options = T.unsafe(nil)); end
+
+    # Returns default aliases for the option name given doing a lookup in
+    # Rails::Generators.aliases.
+    #
+    # source://railties//lib/rails/generators/base.rb#349
+    def default_aliases_for_option(name, options); end
+
+    # Returns default for the option name given doing a lookup in config.
+    #
+    # source://railties//lib/rails/generators/base.rb#354
+    def default_for_option(config, name, options, default); end
+
+    # source://railties//lib/rails/generators/base.rb#414
+    def default_generator_root; end
+
+    # Returns the default source root for a given generator. This is used internally
+    # by rails to set its generators source root. If you want to customize your source
+    # root, you should use source_root.
+    #
+    # source://railties//lib/rails/generators/base.rb#219
+    def default_source_root; end
+
+    # Returns the default value for the option name given doing a lookup in
+    # Rails::Generators.options.
+    #
+    # source://railties//lib/rails/generators/base.rb#343
+    def default_value_for_option(name, options); end
+
+    # Tries to get the description from a USAGE file one folder above the source
+    # root otherwise uses a default description.
+    #
+    # source://railties//lib/rails/generators/base.rb#41
+    def desc(description = T.unsafe(nil)); end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/generators/base.rb#29
+    def exit_on_failure?; end
+
+    # Removes the namespaces and get the generator name. For example,
+    # Rails::Generators::ModelGenerator will return "model" as generator name.
+    #
+    # source://railties//lib/rails/generators/base.rb#334
+    def generator_name; end
+
+    # Convenience method to hide this generator from the available ones when
+    # running rails generator command.
+    #
+    # source://railties//lib/rails/generators/base.rb#61
+    def hide!; end
+
+    # Invoke a generator based on the value supplied by the user to the
+    # given option named "name". A class option is created when this method
+    # is invoked and you can set a hash to customize it.
+    #
+    # ==== Examples
+    #
+    #   module Rails::Generators
+    #     class ControllerGenerator < Base
+    #       hook_for :test_framework, aliases: "-t"
+    #     end
+    #   end
+    #
+    # The example above will create a test framework option and will invoke
+    # a generator based on the user supplied value.
+    #
+    # For example, if the user invoke the controller generator as:
+    #
+    #   bin/rails generate controller Account --test-framework=test_unit
+    #
+    # The controller generator will then try to invoke the following generators:
+    #
+    #   "rails:test_unit", "test_unit:controller", "test_unit"
+    #
+    # Notice that "rails:generators:test_unit" could be loaded as well, what
+    # Rails looks for is the first and last parts of the namespace. This is what
+    # allows any test framework to hook into Rails as long as it provides any
+    # of the hooks above.
+    #
+    # ==== Options
+    #
+    # The first and last part used to find the generator to be invoked are
+    # guessed based on class invokes hook_for, as noticed in the example above.
+    # This can be customized with two options: +:in+ and +:as+.
+    #
+    # Let's suppose you are creating a generator that needs to invoke the
+    # controller generator from test unit. Your first attempt is:
+    #
+    #   class AwesomeGenerator < Rails::Generators::Base
+    #     hook_for :test_framework
+    #   end
+    #
+    # The lookup in this case for test_unit as input is:
+    #
+    #   "test_unit:awesome", "test_unit"
+    #
+    # Which is not the desired lookup. You can change it by providing the
+    # +:as+ option:
+    #
+    #   class AwesomeGenerator < Rails::Generators::Base
+    #     hook_for :test_framework, as: :controller
+    #   end
+    #
+    # And now it will look up at:
+    #
+    #   "test_unit:controller", "test_unit"
+    #
+    # Similarly, if you want it to also look up in the rails namespace, you
+    # just need to provide the +:in+ value:
+    #
+    #   class AwesomeGenerator < Rails::Generators::Base
+    #     hook_for :test_framework, in: :rails, as: :controller
+    #   end
+    #
+    # And the lookup is exactly the same as previously:
+    #
+    #   "rails:test_unit", "test_unit:controller", "test_unit"
+    #
+    # ==== Switches
+    #
+    # All hooks come with switches for user interface. If you do not want
+    # to use any test framework, you can do:
+    #
+    #   bin/rails generate controller Account --skip-test-framework
+    #
+    # Or similarly:
+    #
+    #   bin/rails generate controller Account --no-test-framework
+    #
+    # ==== Boolean hooks
+    #
+    # In some cases, you may want to provide a boolean hook. For example, webrat
+    # developers might want to have webrat available on controller generator.
+    # This can be achieved as:
+    #
+    #   Rails::Generators::ControllerGenerator.hook_for :webrat, type: :boolean
+    #
+    # Then, if you want webrat to be invoked, just supply:
+    #
+    #   bin/rails generate controller Account --webrat
+    #
+    # The hooks lookup is similar as above:
+    #
+    #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
+    #
+    # ==== Custom invocations
+    #
+    # You can also supply a block to hook_for to customize how the hook is
+    # going to be invoked. The block receives two arguments, an instance
+    # of the current class and the class to be invoked.
+    #
+    # For example, in the resource generator, the controller should be invoked
+    # with a pluralized class name. But by default it is invoked with the same
+    # name as the resource generator, which is singular. To change this, we
+    # can give a block to customize how the controller can be invoked.
+    #
+    #   hook_for :resource_controller do |instance, controller|
+    #     instance.invoke controller, [ instance.name.pluralize ]
+    #   end
+    #
+    # source://railties//lib/rails/generators/base.rb#174
+    def hook_for(*names, &block); end
+
+    # Keep hooks configuration that are used on prepare_for_invocation.
+    #
+    # source://railties//lib/rails/generators/base.rb#367
+    def hooks; end
+
+    # Cache source root and add lib/generators/base/generator/templates to
+    # source paths.
+    #
+    # source://railties//lib/rails/generators/base.rb#234
+    def inherited(base); end
+
+    # Convenience method to get the namespace from the class name. It's the
+    # same as Thor default except that the Generator at the end of the class
+    # is removed.
+    #
+    # source://railties//lib/rails/generators/base.rb#54
+    def namespace(name = T.unsafe(nil)); end
+
+    # Prepare class invocation to search on Rails namespace if a previous
+    # added hook is being used.
+    #
+    # source://railties//lib/rails/generators/base.rb#373
+    def prepare_for_invocation(name, value); end
+
+    # Remove a previously added hook.
+    #
+    #   remove_hook_for :orm
+    #
+    # source://railties//lib/rails/generators/base.rb#200
+    def remove_hook_for(*names); end
+
+    # Returns the source root for this generator using default_source_root as default.
+    #
+    # source://railties//lib/rails/generators/base.rb#34
+    def source_root(path = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/generators/base.rb#406
+    def usage_path; end
+  end
+end
+
+# source://railties//lib/rails/generators.rb#32
+Rails::Generators::DEFAULT_ALIASES = T.let(T.unsafe(nil), Hash)
+
+# source://railties//lib/rails/generators.rb#49
+Rails::Generators::DEFAULT_OPTIONS = T.let(T.unsafe(nil), Hash)
+
+# source://railties//lib/rails/generators/database.rb#5
+module Rails::Generators::Database
+  # source://railties//lib/rails/generators/database.rb#9
+  def initialize(*_arg0); end
+
+  # source://railties//lib/rails/generators/database.rb#29
+  def convert_database_option_for_jruby; end
+
+  # source://railties//lib/rails/generators/database.rb#14
+  def gem_for_database(database = T.unsafe(nil)); end
+
+  private
+
+  # source://railties//lib/rails/generators/database.rb#42
+  def mysql_socket; end
+end
+
+# source://railties//lib/rails/generators/database.rb#7
+Rails::Generators::Database::DATABASES = T.let(T.unsafe(nil), Array)
+
+# source://railties//lib/rails/generators/database.rb#6
+Rails::Generators::Database::JDBC_DATABASES = T.let(T.unsafe(nil), Array)
+
+# source://railties//lib/rails/generators/base.rb#14
+class Rails::Generators::Error < ::Thor::Error; end
+
+# source://railties//lib/rails/generators/generated_attribute.rb#7
+class Rails::Generators::GeneratedAttribute
+  # @return [GeneratedAttribute] a new instance of GeneratedAttribute
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#97
+  def initialize(name, type = T.unsafe(nil), index_type = T.unsafe(nil), attr_options = T.unsafe(nil)); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#199
+  def attachment?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#203
+  def attachments?; end
+
+  # Returns the value of attribute attr_options.
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#31
+  def attr_options; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#159
+  def column_name; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#121
+  def default; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#105
+  def field_type; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#163
+  def foreign_key?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#179
+  def has_index?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#183
+  def has_uniq_index?; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#147
+  def human_name; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#151
+  def index_name; end
+
+  # Sets the attribute index_name
+  #
+  # @param value the value to set the attribute index_name to.
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#32
+  def index_name=(_arg0); end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#215
+  def inject_index_options; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#211
+  def inject_options; end
+
+  # Returns the value of attribute name.
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#30
+  def name; end
+
+  # Sets the attribute name
+  #
+  # @param value the value to set the attribute name to.
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#30
+  def name=(_arg0); end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#219
+  def options_for_migration; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#187
+  def password_digest?; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#139
+  def plural_name; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#171
+  def polymorphic?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#167
+  def reference?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#175
+  def required?; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#195
+  def rich_text?; end
+
+  # source://railties//lib/rails/generators/generated_attribute.rb#143
+  def singular_name; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#191
+  def token?; end
+
+  # Returns the value of attribute type.
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#30
+  def type; end
+
+  # Sets the attribute type
+  #
+  # @param value the value to set the attribute type to.
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#30
+  def type=(_arg0); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/generated_attribute.rb#207
+  def virtual?; end
+
+  class << self
+    # source://railties//lib/rails/generators/generated_attribute.rb#35
+    def parse(column_definition); end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/generators/generated_attribute.rb#72
+    def reference?(type); end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/generators/generated_attribute.rb#68
+    def valid_index_type?(index_type); end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/generators/generated_attribute.rb#63
+    def valid_type?(type); end
+
+    private
+
+    # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
+    # when declaring options curly brackets should be used
+    #
+    # source://railties//lib/rails/generators/generated_attribute.rb#79
+    def parse_type_and_options(type); end
+  end
+end
+
+# source://railties//lib/rails/generators/generated_attribute.rb#10
+Rails::Generators::GeneratedAttribute::DEFAULT_TYPES = T.let(T.unsafe(nil), Array)
+
+# source://railties//lib/rails/generators/generated_attribute.rb#8
+Rails::Generators::GeneratedAttribute::INDEX_OPTIONS = T.let(T.unsafe(nil), Array)
+
+# source://railties//lib/rails/generators/generated_attribute.rb#9
+Rails::Generators::GeneratedAttribute::UNIQ_INDEX_OPTIONS = T.let(T.unsafe(nil), Array)
+
+# Holds common methods for migrations. It assumes that migrations have the
+# [0-9]*_name format and can be used by other frameworks (like Sequel)
+# just by implementing the next migration version method.
+#
+# source://railties//lib/rails/generators/migration.rb#11
+module Rails::Generators::Migration
+  extend ::ActiveSupport::Concern
+
+  mixes_in_class_methods ::Rails::Generators::Migration::ClassMethods
+
+  # source://railties//lib/rails/generators/migration.rb#35
+  def create_migration(destination, data, config = T.unsafe(nil), &block); end
+
+  # Returns the value of attribute migration_class_name.
+  #
+  # source://railties//lib/rails/generators/migration.rb#13
+  def migration_class_name; end
+
+  # Returns the value of attribute migration_file_name.
+  #
+  # source://railties//lib/rails/generators/migration.rb#13
+  def migration_file_name; end
+
+  # Returns the value of attribute migration_number.
+  #
+  # source://railties//lib/rails/generators/migration.rb#13
+  def migration_number; end
+
+  # Creates a migration template at the given destination. The difference
+  # to the default template method is that the migration version is appended
+  # to the destination file name.
+  #
+  # The migration version, migration file name, migration class name are
+  # available as instance variables in the template to be rendered.
+  #
+  #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
+  #
+  # source://railties//lib/rails/generators/migration.rb#56
+  def migration_template(source, destination, config = T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/migration.rb#39
+  def set_migration_assigns!(destination); end
+end
+
+# source://railties//lib/rails/generators/migration.rb#15
+module Rails::Generators::Migration::ClassMethods
+  # source://railties//lib/rails/generators/migration.rb#24
+  def current_migration_number(dirname); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/migration.rb#20
+  def migration_exists?(dirname, file_name); end
+
+  # source://railties//lib/rails/generators/migration.rb#16
+  def migration_lookup_at(dirname); end
+
+  # @raise [NotImplementedError]
+  #
+  # source://railties//lib/rails/generators/migration.rb#30
+  def next_migration_number(dirname); end
+end
+
+# source://railties//lib/rails/generators/model_helpers.rb#7
+module Rails::Generators::ModelHelpers
+  # source://railties//lib/rails/generators/model_helpers.rb#25
+  def initialize(args, *_options); end
+
+  # source://railties//lib/rails/generators/model_helpers.rb#19
+  def skip_warn; end
+
+  # source://railties//lib/rails/generators/model_helpers.rb#19
+  def skip_warn=(val); end
+
+  private
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/model_helpers.rb#55
+  def inflection_impossible?(name); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/model_helpers.rb#51
+  def irregular_model_name?(name); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/model_helpers.rb#47
+  def plural_model_name?(name); end
+
+  class << self
+    # source://railties//lib/rails/generators/model_helpers.rb#21
+    def included(base); end
+
+    # source://railties//lib/rails/generators/model_helpers.rb#19
+    def skip_warn; end
+
+    # source://railties//lib/rails/generators/model_helpers.rb#19
+    def skip_warn=(val); end
+  end
+end
+
+# source://railties//lib/rails/generators/model_helpers.rb#14
+Rails::Generators::ModelHelpers::INFLECTION_IMPOSSIBLE_ERROR_MESSAGE = T.let(T.unsafe(nil), String)
+
+# source://railties//lib/rails/generators/model_helpers.rb#10
+Rails::Generators::ModelHelpers::IRREGULAR_MODEL_NAME_WARN_MESSAGE = T.let(T.unsafe(nil), String)
+
+# source://railties//lib/rails/generators/model_helpers.rb#8
+Rails::Generators::ModelHelpers::PLURAL_MODEL_NAME_WARN_MESSAGE = T.let(T.unsafe(nil), String)
+
+# source://railties//lib/rails/generators/named_base.rb#8
+class Rails::Generators::NamedBase < ::Rails::Generators::Base
+  # @return [NamedBase] a new instance of NamedBase
+  #
+  # source://railties//lib/rails/generators/named_base.rb#11
+  def initialize(args, *options); end
+
+  # Returns the value of attribute file_name.
+  #
+  # source://thor/1.3.2/lib/thor/base.rb#155
+  def file_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#29
+  def js_template(source, destination); end
+
+  # source://thor/1.3.2/lib/thor/base.rb#163
+  def name; end
+
+  # source://thor/1.3.2/lib/thor/base.rb#163
+  def name=(_arg0); end
+
+  # source://railties//lib/rails/generators/named_base.rb#23
+  def template(source, *args, &block); end
+
+  private
+
+  # Tries to retrieve the application name or simply return application.
+  #
+  # source://railties//lib/rails/generators/named_base.rb#138
+  def application_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#175
+  def assign_names!(name); end
+
+  # source://railties//lib/rails/generators/named_base.rb#188
+  def attributes_names; end
+
+  # source://railties//lib/rails/generators/named_base.rb#70
+  def class_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#58
+  def class_path; end
+
+  # source://railties//lib/rails/generators/named_base.rb#105
+  def edit_helper(*_arg0, **_arg1, &_arg2); end
+
+  # source://railties//lib/rails/generators/named_base.rb#54
+  def file_path; end
+
+  # source://railties//lib/rails/generators/named_base.rb#125
+  def fixture_file_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#74
+  def human_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#82
+  def i18n_scope; end
+
+  # source://railties//lib/rails/generators/named_base.rb#97
+  def index_helper(type: T.unsafe(nil)); end
+
+  # source://railties//lib/rails/generators/named_base.rb#43
+  def inside_template; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/named_base.rb#50
+  def inside_template?; end
+
+  # source://railties//lib/rails/generators/named_base.rb#150
+  def model_resource_name(base_name = T.unsafe(nil), prefix: T.unsafe(nil)); end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/named_base.rb#200
+  def mountable_engine?; end
+
+  # source://railties//lib/rails/generators/named_base.rb#66
+  def namespaced_class_path; end
+
+  # source://railties//lib/rails/generators/named_base.rb#109
+  def new_helper(type: T.unsafe(nil)); end
+
+  # Convert attributes array into GeneratedAttribute objects.
+  #
+  # source://railties//lib/rails/generators/named_base.rb#182
+  def parse_attributes!; end
+
+  # source://railties//lib/rails/generators/named_base.rb#121
+  def plural_file_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#78
+  def plural_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#167
+  def plural_route_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#117
+  def plural_table_name; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/named_base.rb#196
+  def pluralize_table_names?; end
+
+  # source://railties//lib/rails/generators/named_base.rb#146
+  def redirect_resource_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#62
+  def regular_class_path; end
+
+  # source://railties//lib/rails/generators/named_base.rb#129
+  def route_url; end
+
+  # source://railties//lib/rails/generators/named_base.rb#101
+  def show_helper(arg = T.unsafe(nil), type: T.unsafe(nil)); end
+
+  # FIXME: We are avoiding to use alias because a bug on thor that make
+  # this method public and add it to the task list.
+  #
+  # source://railties//lib/rails/generators/named_base.rb#39
+  def singular_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#159
+  def singular_route_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#113
+  def singular_table_name; end
+
+  # source://railties//lib/rails/generators/named_base.rb#86
+  def table_name; end
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/named_base.rb#93
+  def uncountable?; end
+
+  # source://railties//lib/rails/generators/named_base.rb#133
+  def url_helper_prefix; end
+
+  class << self
+    # Add a class collisions name to be checked on class initialization. You
+    # can supply a hash with a +:prefix+ or +:suffix+ to be tested.
+    #
+    # ==== Examples
+    #
+    #   check_class_collision suffix: "Decorator"
+    #
+    # If the generator is invoked with class name Admin, it will check for
+    # the presence of "AdminDecorator".
+    #
+    # source://railties//lib/rails/generators/named_base.rb#214
+    def check_class_collision(options = T.unsafe(nil)); end
+  end
+end
+
+# Deal with controller names on scaffold and add some helpers to deal with
+# ActiveModel.
+#
+# source://railties//lib/rails/generators/resource_helpers.rb#10
+module Rails::Generators::ResourceHelpers
+  include ::Rails::Generators::ModelHelpers
+
+  # Set controller variables on initialization.
+  #
+  # source://railties//lib/rails/generators/resource_helpers.rb#17
+  def initialize(*args); end
+
+  private
+
+  # source://railties//lib/rails/generators/resource_helpers.rb#39
+  def assign_controller_names!(name); end
+
+  # source://railties//lib/rails/generators/resource_helpers.rb#50
+  def controller_class_name; end
+
+  # source://railties//lib/rails/generators/resource_helpers.rb#31
+  def controller_class_path; end
+
+  # Returns the value of attribute controller_file_name.
+  #
+  # source://railties//lib/rails/generators/resource_helpers.rb#29
+  def controller_file_name; end
+
+  # source://railties//lib/rails/generators/resource_helpers.rb#46
+  def controller_file_path; end
+
+  # source://railties//lib/rails/generators/resource_helpers.rb#54
+  def controller_i18n_scope; end
+
+  # Returns the value of attribute controller_name.
+  #
+  # source://railties//lib/rails/generators/resource_helpers.rb#29
+  def controller_name; end
+
+  # Loads the ORM::Generators::ActiveModel class. This class is responsible
+  # to tell scaffold entities how to generate a specific method for the
+  # ORM. Check Rails::Generators::ActiveModel for more information.
+  #
+  # source://railties//lib/rails/generators/resource_helpers.rb#61
+  def orm_class; end
+
+  # Initialize ORM::Generators::ActiveModel to access instance methods.
+  #
+  # source://railties//lib/rails/generators/resource_helpers.rb#77
+  def orm_instance(name = T.unsafe(nil)); end
+
+  class << self
+    # source://railties//lib/rails/generators/resource_helpers.rb#11
+    def included(base); end
+  end
+end
+
+# This class provides a TestCase for testing generators. To set up, you need
+# just to configure the destination and set which generator is being tested:
+#
+#   class AppGeneratorTest < Rails::Generators::TestCase
+#     tests AppGenerator
+#     destination File.expand_path("../tmp", __dir__)
+#   end
+#
+# If you want to ensure your destination root is clean before running each test,
+# you can set a setup callback:
+#
+#   class AppGeneratorTest < Rails::Generators::TestCase
+#     tests AppGenerator
+#     destination File.expand_path("../tmp", __dir__)
+#     setup :prepare_destination
+#   end
+#
+# source://railties//lib/rails/generators/test_case.rb#30
+class Rails::Generators::TestCase < ::ActiveSupport::TestCase
+  include ::ActiveSupport::Testing::Stream
+  include ::Rails::Generators::Testing::Behaviour
+  include ::Rails::Generators::Testing::SetupAndTeardown
+  include ::Rails::Generators::Testing::Assertions
+  include ::FileUtils::StreamUtils_
+  include ::FileUtils
+  extend ::Rails::Generators::Testing::Behaviour::ClassMethods
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#21
+  def current_path; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#21
+  def current_path=(_arg0); end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#21
+  def current_path?; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#22
+  def default_arguments; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#22
+  def default_arguments=(_arg0); end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#22
+  def default_arguments?; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#23
+  def destination_root; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#23
+  def destination_root=(_arg0); end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#23
+  def destination_root?; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#24
+  def generator_class; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#24
+  def generator_class=(_arg0); end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#24
+  def generator_class?; end
+
+  class << self
+    # source://railties//lib/rails/generators/testing/behaviour.rb#21
+    def current_path; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#21
+    def current_path=(value); end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#21
+    def current_path?; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#22
+    def default_arguments; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#22
+    def default_arguments=(value); end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#22
+    def default_arguments?; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#23
+    def destination_root; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#23
+    def destination_root=(value); end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#23
+    def destination_root?; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#24
+    def generator_class; end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#24
+    def generator_class=(value); end
+
+    # source://railties//lib/rails/generators/testing/behaviour.rb#24
+    def generator_class?; end
+  end
+end
+
+# source://railties//lib/rails/generators/testing/behaviour.rb#13
+module Rails::Generators::Testing; end
+
+# source://railties//lib/rails/generators/testing/assertions.rb#6
+module Rails::Generators::Testing::Assertions
+  # Asserts the given class method exists in the given content. This method does not detect
+  # class methods inside (class << self), only class methods which starts with "self.".
+  # When a block is given, it yields the content of the method.
+  #
+  #   assert_migration "db/migrate/create_products.rb" do |migration|
+  #     assert_class_method :up, migration do |up|
+  #       assert_match(/create_table/, up)
+  #     end
+  #   end
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#88
+  def assert_class_method(method, content, &block); end
+
+  # Asserts a given file exists. You need to supply an absolute path or a path relative
+  # to the configured destination:
+  #
+  #   assert_file "config/environment.rb"
+  #
+  # You can also give extra arguments. If the argument is a regexp, it will check if the
+  # regular expression matches the given file content. If it's a string, it compares the
+  # file with the given string:
+  #
+  #   assert_file "config/environment.rb", /initialize/
+  #
+  # Finally, when a block is given, it yields the file content:
+  #
+  #   assert_file "app/controllers/products_controller.rb" do |controller|
+  #     assert_instance_method :index, controller do |index|
+  #       assert_match(/Product\.all/, index)
+  #     end
+  #   end
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#25
+  def assert_directory(relative, *contents); end
+
+  # Asserts the given attribute type gets a proper default value:
+  #
+  #   assert_field_default_value :string, "MyString"
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#117
+  def assert_field_default_value(attribute_type, value); end
+
+  # Asserts the given attribute type gets translated to a field type
+  # properly:
+  #
+  #   assert_field_type :date, :date_select
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#110
+  def assert_field_type(attribute_type, field_type); end
+
+  # Asserts a given file exists. You need to supply an absolute path or a path relative
+  # to the configured destination:
+  #
+  #   assert_file "config/environment.rb"
+  #
+  # You can also give extra arguments. If the argument is a regexp, it will check if the
+  # regular expression matches the given file content. If it's a string, it compares the
+  # file with the given string:
+  #
+  #   assert_file "config/environment.rb", /initialize/
+  #
+  # Finally, when a block is given, it yields the file content:
+  #
+  #   assert_file "app/controllers/products_controller.rb" do |controller|
+  #     assert_instance_method :index, controller do |index|
+  #       assert_match(/Product\.all/, index)
+  #     end
+  #   end
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#25
+  def assert_file(relative, *contents); end
+
+  # Asserts the given method exists in the given content. When a block is given,
+  # it yields the content of the method.
+  #
+  #   assert_file "app/controllers/products_controller.rb" do |controller|
+  #     assert_instance_method :index, controller do |index|
+  #       assert_match(/Product\.all/, index)
+  #     end
+  #   end
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#100
+  def assert_instance_method(method, content); end
+
+  # Asserts the given method exists in the given content. When a block is given,
+  # it yields the content of the method.
+  #
+  #   assert_file "app/controllers/products_controller.rb" do |controller|
+  #     assert_instance_method :index, controller do |index|
+  #       assert_match(/Product\.all/, index)
+  #     end
+  #   end
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#100
+  def assert_method(method, content); end
+
+  # Asserts a given migration exists. You need to supply an absolute path or a
+  # path relative to the configured destination:
+  #
+  #   assert_migration "db/migrate/create_products.rb"
+  #
+  # This method manipulates the given path and tries to find any migration which
+  # matches the migration name. For example, the call above is converted to:
+  #
+  #   assert_file "db/migrate/003_create_products.rb"
+  #
+  # Consequently, assert_migration accepts the same arguments has assert_file.
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#64
+  def assert_migration(relative, *contents, &block); end
+
+  # Asserts a given file does not exist. You need to supply an absolute path or a
+  # path relative to the configured destination:
+  #
+  #   assert_no_file "config/random.rb"
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#47
+  def assert_no_directory(relative); end
+
+  # Asserts a given file does not exist. You need to supply an absolute path or a
+  # path relative to the configured destination:
+  #
+  #   assert_no_file "config/random.rb"
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#47
+  def assert_no_file(relative); end
+
+  # Asserts a given migration does not exist. You need to supply an absolute path or a
+  # path relative to the configured destination:
+  #
+  #   assert_no_migration "db/migrate/create_products.rb"
+  #
+  # source://railties//lib/rails/generators/testing/assertions.rb#74
+  def assert_no_migration(relative); end
+end
+
+# source://railties//lib/rails/generators/testing/behaviour.rb#14
+module Rails::Generators::Testing::Behaviour
+  include ::ActiveSupport::Testing::Stream
+  extend ::ActiveSupport::Concern
+  include GeneratedInstanceMethods
+
+  mixes_in_class_methods GeneratedClassMethods
+  mixes_in_class_methods ::Rails::Generators::Testing::Behaviour::ClassMethods
+
+  # Create a Rails::Generators::GeneratedAttribute by supplying the
+  # attribute type and, optionally, the attribute name:
+  #
+  #   create_generated_attribute(:string, "name")
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#85
+  def create_generated_attribute(attribute_type, name = T.unsafe(nil), index = T.unsafe(nil)); end
+
+  # Instantiate the generator.
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#77
+  def generator(args = T.unsafe(nil), options = T.unsafe(nil), config = T.unsafe(nil)); end
+
+  # Runs the generator configured for this class. The first argument is an array like
+  # command line arguments:
+  #
+  #   class AppGeneratorTest < Rails::Generators::TestCase
+  #     tests AppGenerator
+  #     destination File.expand_path("../tmp", __dir__)
+  #     setup :prepare_destination
+  #
+  #     test "database.yml is not created when skipping Active Record" do
+  #       run_generator %w(myapp --skip-active-record)
+  #       assert_no_file "config/database.yml"
+  #     end
+  #   end
+  #
+  # You can provide a configuration hash as second argument. This method returns the output
+  # printed by the generator.
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#67
+  def run_generator(args = T.unsafe(nil), config = T.unsafe(nil)); end
+
+  private
+
+  # @return [Boolean]
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#90
+  def destination_root_is_set?; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#94
+  def ensure_current_path; end
+
+  # source://railties//lib/rails/generators/testing/behaviour.rb#104
+  def migration_file_name(relative); end
+
+  # Clears all files and directories in destination.
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#99
+  def prepare_destination; end
+
+  module GeneratedClassMethods
+    def current_path; end
+    def current_path=(value); end
+    def current_path?; end
+    def default_arguments; end
+    def default_arguments=(value); end
+    def default_arguments?; end
+    def destination_root; end
+    def destination_root=(value); end
+    def destination_root?; end
+    def generator_class; end
+    def generator_class=(value); end
+    def generator_class?; end
+  end
+
+  module GeneratedInstanceMethods
+    def current_path; end
+    def current_path=(value); end
+    def current_path?; end
+    def default_arguments; end
+    def default_arguments=(value); end
+    def default_arguments?; end
+    def destination_root; end
+    def destination_root=(value); end
+    def destination_root?; end
+    def generator_class; end
+    def generator_class=(value); end
+    def generator_class?; end
+  end
+end
+
+# source://railties//lib/rails/generators/testing/behaviour.rb#27
+module Rails::Generators::Testing::Behaviour::ClassMethods
+  # Sets default arguments on generator invocation. This can be overwritten when
+  # invoking it.
+  #
+  #   arguments %w(app_name --skip-active-record)
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#39
+  def arguments(array); end
+
+  # Sets the destination of generator files:
+  #
+  #   destination File.expand_path("../tmp", __dir__)
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#46
+  def destination(path); end
+
+  # Sets which generator should be tested:
+  #
+  #   tests AppGenerator
+  #
+  # source://railties//lib/rails/generators/testing/behaviour.rb#31
+  def tests(klass); end
+end
+
+# source://railties//lib/rails/generators/testing/setup_and_teardown.rb#6
+module Rails::Generators::Testing::SetupAndTeardown
+  # source://railties//lib/rails/generators/testing/setup_and_teardown.rb#7
+  def setup; end
+
+  # source://railties//lib/rails/generators/testing/setup_and_teardown.rb#13
+  def teardown; end
+end
+
 # This module helps build the runtime properties that are displayed in
 # Rails::InfoController responses. These include the active Rails version,
 # Ruby version, Rack version, and so on.
@@ -2507,6 +4839,12 @@ class Rails::Initializable::Initializer
   def run(*args); end
 end
 
+# source://railties//lib/rails/test_unit/line_filtering.rb#6
+module Rails::LineFiltering
+  # source://railties//lib/rails/test_unit/line_filtering.rb#7
+  def run(reporter, options = T.unsafe(nil)); end
+end
+
 # source://railties//lib/rails/mailers_controller.rb#5
 class Rails::MailersController < ::Rails::ApplicationController
   # source://railties//lib/rails/mailers_controller.rb#16
@@ -2557,6 +4895,8 @@ end
 
 # source://railties//lib/rails/mailers_controller.rb#0
 module Rails::MailersController::HelperMethods
+  include ::ActionText::ContentHelper
+  include ::ActionText::TagHelper
   include ::ActionController::Base::HelperMethods
 
   # source://railties//lib/rails/mailers_controller.rb#12
@@ -3366,6 +5706,107 @@ class Rails::SourceAnnotationExtractor::Annotation < ::Struct
     def tags; end
   end
 end
+
+# source://railties//lib/rails/test_unit/runner.rb#10
+module Rails::TestUnit; end
+
+# source://railties//lib/rails/test_unit/runner.rb#105
+class Rails::TestUnit::CompositeFilter
+  # @return [CompositeFilter] a new instance of CompositeFilter
+  #
+  # source://railties//lib/rails/test_unit/runner.rb#108
+  def initialize(runnable, filter, patterns); end
+
+  # minitest uses === to find matching filters.
+  #
+  # source://railties//lib/rails/test_unit/runner.rb#115
+  def ===(method); end
+
+  # Returns the value of attribute named_filter.
+  #
+  # source://railties//lib/rails/test_unit/runner.rb#106
+  def named_filter; end
+
+  private
+
+  # source://railties//lib/rails/test_unit/runner.rb#130
+  def derive_line_filters(patterns); end
+
+  # source://railties//lib/rails/test_unit/runner.rb#120
+  def derive_named_filter(filter); end
+end
+
+# source://railties//lib/rails/test_unit/runner.rb#141
+class Rails::TestUnit::Filter
+  # @return [Filter] a new instance of Filter
+  #
+  # source://railties//lib/rails/test_unit/runner.rb#142
+  def initialize(runnable, file, line); end
+
+  # source://railties//lib/rails/test_unit/runner.rb#147
+  def ===(method); end
+
+  private
+
+  # source://railties//lib/rails/test_unit/runner.rb#159
+  def definition_for(method); end
+end
+
+# source://railties//lib/rails/test_unit/runner.rb#11
+class Rails::TestUnit::Runner
+  # source://railties//lib/rails/test_unit/runner.rb#12
+  def filters; end
+
+  class << self
+    # source://railties//lib/rails/test_unit/runner.rb#15
+    def attach_before_load_options(opts); end
+
+    # source://railties//lib/rails/test_unit/runner.rb#50
+    def compose_filter(runnable, filter); end
+
+    # source://railties//lib/rails/test_unit/runner.rb#12
+    def filters; end
+
+    # source://railties//lib/rails/test_unit/runner.rb#45
+    def load_tests(argv); end
+
+    # source://railties//lib/rails/test_unit/runner.rb#20
+    def parse_options(argv); end
+
+    # source://railties//lib/rails/test_unit/runner.rb#33
+    def rake_run(argv = T.unsafe(nil)); end
+
+    # source://railties//lib/rails/test_unit/runner.rb#39
+    def run(argv = T.unsafe(nil)); end
+
+    private
+
+    # source://railties//lib/rails/test_unit/runner.rb#83
+    def default_test_exclude_glob; end
+
+    # source://railties//lib/rails/test_unit/runner.rb#79
+    def default_test_glob; end
+
+    # source://railties//lib/rails/test_unit/runner.rb#59
+    def extract_filters(argv); end
+
+    # source://railties//lib/rails/test_unit/runner.rb#95
+    def list_tests(argv); end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/test_unit/runner.rb#91
+    def path_argument?(arg); end
+
+    # @return [Boolean]
+    #
+    # source://railties//lib/rails/test_unit/runner.rb#87
+    def regexp_filter?(arg); end
+  end
+end
+
+# source://railties//lib/rails/test_unit/railtie.rb#6
+class Rails::TestUnitRailtie < ::Rails::Railtie; end
 
 # source://railties//lib/rails/gem_version.rb#9
 module Rails::VERSION; end

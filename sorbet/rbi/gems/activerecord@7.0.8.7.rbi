@@ -7742,6 +7742,7 @@ end
 #
 # source://activerecord//lib/active_record/base.rb#282
 class ActiveRecord::Base
+  include ::ActionText::Encryption
   include ::ActiveRecord::Core
   include ::ActiveRecord::Persistence
   include ::ActiveRecord::ReadonlyAttributes
@@ -7796,6 +7797,9 @@ class ActiveRecord::Base
   include ::ActiveRecord::SignedId
   include ::ActiveRecord::Suppressor
   include ::ActiveRecord::Encryption::EncryptableRecord
+  include ::ActiveStorage::Attached::Model
+  include ::ActiveStorage::Reflection::ActiveRecordExtensions
+  include ::ActionText::Attribute
   extend ::ActiveModel::Naming
   extend ::ActiveSupport::Benchmarkable
   extend ::ActiveSupport::DescendantsTracker
@@ -7852,6 +7856,9 @@ class ActiveRecord::Base
   extend ::ActiveRecord::SignedId::ClassMethods
   extend ::ActiveRecord::Suppressor::ClassMethods
   extend ::ActiveRecord::Encryption::EncryptableRecord::ClassMethods
+  extend ::ActiveStorage::Attached::Model::ClassMethods
+  extend ::ActiveStorage::Reflection::ActiveRecordExtensions::ClassMethods
+  extend ::ActionText::Attribute::ClassMethods
 
   # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
   def __callbacks; end
@@ -7948,6 +7955,12 @@ class ActiveRecord::Base
 
   # source://activerecord//lib/active_record/reflection.rb#12
   def aggregate_reflections?; end
+
+  # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#53
+  def attachment_reflections; end
+
+  # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#53
+  def attachment_reflections?; end
 
   # source://activemodel/7.0.8.7/lib/active_model/attribute_methods.rb#72
   def attribute_aliases; end
@@ -8308,6 +8321,15 @@ class ActiveRecord::Base
 
     # source://activerecord//lib/active_record/core.rb#133
     def asynchronous_queries_tracker; end
+
+    # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#53
+    def attachment_reflections; end
+
+    # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#53
+    def attachment_reflections=(value); end
+
+    # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#53
+    def attachment_reflections?; end
 
     # source://activemodel/7.0.8.7/lib/active_model/attribute_methods.rb#72
     def attribute_aliases; end
@@ -27938,6 +27960,14 @@ end
 # source://activerecord//lib/active_record/querying.rb#5
 ActiveRecord::Querying::QUERYING_METHODS = T.let(T.unsafe(nil), Array)
 
+# = Active Record Railtie
+#
+# source://activerecord//lib/active_record/railtie.rb#16
+class ActiveRecord::Railtie < ::Rails::Railtie; end
+
+# source://activerecord//lib/active_record/railtie.rb#203
+ActiveRecord::Railtie::SQLITE3_PRODUCTION_WARN = T.let(T.unsafe(nil), String)
+
 # Raised when values that executed are out of range.
 #
 # source://activerecord//lib/active_record/errors.rb#224
@@ -28100,6 +28130,7 @@ class ActiveRecord::RecordNotUnique < ::ActiveRecord::WrappedDatabaseException; 
 # source://activerecord//lib/active_record/reflection.rb#7
 module ActiveRecord::Reflection
   extend ::ActiveSupport::Concern
+  extend ::ActiveStorage::Reflection::ReflectionExtension
   include GeneratedInstanceMethods
 
   mixes_in_class_methods GeneratedClassMethods
@@ -28117,7 +28148,7 @@ module ActiveRecord::Reflection
 
     private
 
-    # source://activerecord//lib/active_record/reflection.rb#33
+    # source://activestorage/7.0.8.7/lib/active_storage/reflection.rb#37
     def reflection_class_for(macro); end
   end
 
@@ -32511,141 +32542,6 @@ module ActiveRecord::TestDatabases
     # source://activerecord//lib/active_record/test_databases.rb#11
     def create_and_load_schema(i, env_name:); end
   end
-end
-
-# source://activerecord//lib/active_record/test_fixtures.rb#6
-module ActiveRecord::TestFixtures
-  extend ::ActiveSupport::Concern
-  include GeneratedInstanceMethods
-
-  mixes_in_class_methods GeneratedClassMethods
-  mixes_in_class_methods ::ActiveRecord::TestFixtures::ClassMethods
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#14
-  def after_teardown; end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#9
-  def before_setup; end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#189
-  def enlist_fixture_connections; end
-
-  # @return [Boolean]
-  #
-  # source://activerecord//lib/active_record/test_fixtures.rb#103
-  def run_in_transaction?; end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#108
-  def setup_fixtures(config = T.unsafe(nil)); end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#172
-  def teardown_fixtures; end
-
-  private
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#278
-  def instantiate_fixtures; end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#274
-  def load_fixtures(config); end
-
-  # @return [Boolean]
-  #
-  # source://activerecord//lib/active_record/test_fixtures.rb#290
-  def load_instances?; end
-
-  # Shares the writing connection pool with connections on
-  # other handlers.
-  #
-  # In an application with a primary and replica the test fixtures
-  # need to share a connection pool so that the reading connection
-  # can see data in the open transaction on the writing connection.
-  #
-  # source://activerecord//lib/active_record/test_fixtures.rb#202
-  def setup_shared_connection_pool; end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#245
-  def teardown_shared_connection_pool; end
-
-  module GeneratedClassMethods
-    def fixture_class_names; end
-    def fixture_class_names=(value); end
-    def fixture_class_names?; end
-    def fixture_path; end
-    def fixture_path=(value); end
-    def fixture_path?; end
-    def fixture_table_names; end
-    def fixture_table_names=(value); end
-    def fixture_table_names?; end
-    def lock_threads; end
-    def lock_threads=(value); end
-    def lock_threads?; end
-    def pre_loaded_fixtures; end
-    def pre_loaded_fixtures=(value); end
-    def pre_loaded_fixtures?; end
-    def use_instantiated_fixtures; end
-    def use_instantiated_fixtures=(value); end
-    def use_instantiated_fixtures?; end
-    def use_transactional_tests; end
-    def use_transactional_tests=(value); end
-    def use_transactional_tests?; end
-  end
-
-  module GeneratedInstanceMethods
-    def fixture_class_names; end
-    def fixture_class_names=(value); end
-    def fixture_class_names?; end
-    def fixture_path; end
-    def fixture_path?; end
-    def fixture_table_names; end
-    def fixture_table_names=(value); end
-    def fixture_table_names?; end
-    def lock_threads; end
-    def lock_threads=(value); end
-    def lock_threads?; end
-    def pre_loaded_fixtures; end
-    def pre_loaded_fixtures=(value); end
-    def pre_loaded_fixtures?; end
-    def use_instantiated_fixtures; end
-    def use_instantiated_fixtures=(value); end
-    def use_instantiated_fixtures?; end
-    def use_transactional_tests; end
-    def use_transactional_tests=(value); end
-    def use_transactional_tests?; end
-  end
-end
-
-# source://activerecord//lib/active_record/test_fixtures.rb#29
-module ActiveRecord::TestFixtures::ClassMethods
-  # source://activerecord//lib/active_record/test_fixtures.rb#42
-  def fixtures(*fixture_set_names); end
-
-  # Sets the model class for a fixture when the class name cannot be inferred from the fixture name.
-  #
-  # Examples:
-  #
-  #   set_fixture_class some_fixture:        SomeModel,
-  #                     'namespaced/fixture' => Another::Model
-  #
-  # The keys must be the fixture names, that coincide with the short paths to the fixture files.
-  #
-  # source://activerecord//lib/active_record/test_fixtures.rb#38
-  def set_fixture_class(class_names = T.unsafe(nil)); end
-
-  # source://activerecord//lib/active_record/test_fixtures.rb#56
-  def setup_fixture_accessors(fixture_set_names = T.unsafe(nil)); end
-
-  # Prevents automatically wrapping each specified test in a transaction,
-  # to allow application logic transactions to be tested in a top-level
-  # (non-nested) context.
-  #
-  # source://activerecord//lib/active_record/test_fixtures.rb#92
-  def uses_transaction(*methods); end
-
-  # @return [Boolean]
-  #
-  # source://activerecord//lib/active_record/test_fixtures.rb#97
-  def uses_transaction?(method); end
 end
 
 # source://activerecord//lib/active_record/associations.rb#177

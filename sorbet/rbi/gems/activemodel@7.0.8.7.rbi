@@ -3215,6 +3215,9 @@ class ActiveModel::NullMutationTracker
   end
 end
 
+# source://activemodel//lib/active_model/railtie.rb#7
+class ActiveModel::Railtie < ::Rails::Railtie; end
+
 # Raised when attribute values are out of range.
 #
 # source://activemodel//lib/active_model/errors.rb#494

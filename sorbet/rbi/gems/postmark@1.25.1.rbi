@@ -38,6 +38,9 @@ module Mail
     # source://mail/2.8.1/lib/mail/mail.rb#151
     def first(*args, &block); end
 
+    # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/from_source.rb#4
+    def from_source(source); end
+
     # source://mail/2.8.1/lib/mail/mail.rb#233
     def inform_interceptors(mail); end
 
@@ -147,6 +150,9 @@ class Mail::Message
   # source://mail/2.8.1/lib/mail/message.rb#512
   def bcc=(val); end
 
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#21
+  def bcc_addresses; end
+
   # source://mail/2.8.1/lib/mail/message.rb#1306
   def bcc_addrs; end
 
@@ -179,6 +185,9 @@ class Mail::Message
 
   # source://mail/2.8.1/lib/mail/message.rb#553
   def cc=(val); end
+
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#17
+  def cc_addresses; end
 
   # source://mail/2.8.1/lib/mail/message.rb#1300
   def cc_addrs; end
@@ -331,6 +340,9 @@ class Mail::Message
 
   # source://mail/2.8.1/lib/mail/message.rb#670
   def from=(val); end
+
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#5
+  def from_address; end
 
   # source://mail/2.8.1/lib/mail/message.rb#1288
   def from_addrs; end
@@ -507,6 +519,12 @@ class Mail::Message
   # source://mail/2.8.1/lib/mail/message.rb#751
   def received=(val); end
 
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/recipients.rb#5
+  def recipients; end
+
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#9
+  def recipients_addresses; end
+
   # source://mail/2.8.1/lib/mail/message.rb#755
   def references(val = T.unsafe(nil)); end
 
@@ -650,6 +668,9 @@ class Mail::Message
   # source://mail/2.8.1/lib/mail/message.rb#1193
   def to=(val); end
 
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#13
+  def to_addresses; end
+
   # source://mail/2.8.1/lib/mail/message.rb#1294
   def to_addrs; end
 
@@ -683,6 +704,9 @@ class Mail::Message
   # source://mail/2.8.1/lib/mail/message.rb#1811
   def without_attachments!; end
 
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#25
+  def x_original_to_addresses; end
+
   protected
 
   # source://postmark//lib/postmark/message_extensions/mail.rb#172
@@ -713,6 +737,9 @@ class Mail::Message
 
   # source://mail/2.8.1/lib/mail/message.rb#2056
   def add_required_message_fields; end
+
+  # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#30
+  def address_list(obj); end
 
   # source://mail/2.8.1/lib/mail/message.rb#2025
   def allowed_encodings; end

@@ -13,9 +13,7 @@ require_relative "param_filters"
 require_relative "multi_error_reporter"
 
 module LogStruct
-  # Formatter for structured logging that outputs logs as JSON
-  # This is a port of the existing JSONLogFormatter with some improvements
-  class LogFormatter < Logger::Formatter
+  class JSONFormatter < Logger::Formatter
     extend T::Sig
 
     # Add current_tags method to support ActiveSupport::TaggedLogging
@@ -25,7 +23,7 @@ module LogStruct
     end
 
     # Add tagged method to support ActiveSupport::TaggedLogging
-    sig { params(tags: T::Array[String], blk: T.proc.params(formatter: LogFormatter).void).returns(T.untyped) }
+    sig { params(tags: T::Array[String], blk: T.proc.params(formatter: JSONFormatter).void).returns(T.untyped) }
     def tagged(*tags, &blk)
       new_tags = tags.flatten
       current_tags.concat(new_tags) if new_tags.any?

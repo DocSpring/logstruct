@@ -4766,6 +4766,9 @@ class Rack::Session::Cookie::SessionId
   def cookie_value; end
 end
 
+# source://rack//lib/rack/session/memcache.rb#8
+Rack::Session::Memcache = Rack::Session::Dalli
+
 # Rack::Session::Pool provides simple cookie based session management.
 # Session data is stored in a hash held by @pool.
 # In the context of a multithreaded environment, sessions being
