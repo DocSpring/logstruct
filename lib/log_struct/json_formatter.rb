@@ -45,7 +45,7 @@ module LogStruct
     end
 
     sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
-    def format_values(arg, recursion_depth: 0)
+    def process_values(arg, recursion_depth: 0)
       # Prevent infinite recursion in case any args have circular references
       # or are too deeply nested. Just return args.
       return arg if recursion_depth > 20
@@ -62,13 +62,13 @@ module LogStruct
             {_filtered: ParamFilters.summarize_json_attribute(value)}
           else
             # Process the value normally
-            format_values(value, recursion_depth: recursion_depth + 1)
+            process_values(value, recursion_depth: recursion_depth + 1)
           end
         end
 
         result
       when Array
-        result = arg.map { |value| format_values(value, recursion_depth: recursion_depth + 1) }
+        result = arg.map { |value| process_values(value, recursion_depth: recursion_depth + 1) }
 
         # Filter large arrays
         if result.size > 10
@@ -95,6 +95,8 @@ module LogStruct
         arg.serialize
       when String
         scrub_string(arg)
+      when Time
+        arg.iso8601(3)
       else
         arg
       end
@@ -123,17 +125,14 @@ module LogStruct
       end
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
-      data = format_values(data)
+      data = process_values(data)
 
       # Add standard fields if not already present
       data[:src] ||= "rails"
       data[:evt] ||= "log"
       data[:ts] ||= time.iso8601(3)
-      data[:level] = severity.downcase
+      data[:level] = severity.upcase
       data[:progname] = progname if progname.present?
-
-      # Scrub any string messages
-      data[:msg] = scrub_string(data[:msg]) if data[:msg].is_a?(String)
 
       generate_json(data)
     end

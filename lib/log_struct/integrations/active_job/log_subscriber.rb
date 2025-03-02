@@ -1,6 +1,11 @@
 # typed: true
 # frozen_string_literal: true
 
+require_relative "../../log_source"
+require_relative "../../log_event"
+require_relative "../../log/job"
+require_relative "../../log/exception"
+
 module LogStruct
   module Integrations
     module ActiveJob
@@ -8,12 +13,12 @@ module LogStruct
       class LogSubscriber < ::ActiveJob::LogSubscriber
         def enqueue(event)
           job = event.payload[:job]
-          log_job_event("active_job_enqueued", job, event)
+          log_job_event(LogEvent::JobExecution, job, event)
         end
 
         def enqueue_at(event)
           job = event.payload[:job]
-          log_job_event("active_job_enqueued_at", job, event)
+          log_job_event(LogEvent::JobExecution, job, event, scheduled_at: job.scheduled_at)
         end
 
         def perform(event)
@@ -21,53 +26,65 @@ module LogStruct
           exception = event.payload[:exception_object]
 
           if exception
-            log_job_event("active_job_failed", job, event, exception: exception)
+            # Log the exception with the job context
+            log_exception(exception, job, event)
           else
-            log_job_event("active_job_performed", job, event, duration: event.duration.round(2))
+            log_job_event(LogEvent::JobExecution, job, event, duration: event.duration.round(2))
           end
         end
 
         def perform_start(event)
           job = event.payload[:job]
-          log_job_event("active_job_performing", job, event)
+          log_job_event(LogEvent::JobExecution, job, event)
         end
 
         private
 
-        def log_job_event(event_name, job, _event, additional_data = {})
-          log_data = {
-            src: "active_job",
-            evt: event_name,
-            ts: Time.now.iso8601(3),
-            pid: Process.pid,
+        def log_job_event(event_type, job, _event, additional_data = {})
+          # Create structured log data
+          log_data = Log::Job.new(
+            evt: event_type,
             job_id: job.job_id,
             job_class: job.class.to_s,
             queue_name: job.queue_name,
-            executions: job.executions
-          }
-
-          # Format arguments if the job class allows it
-          log_data[:arguments] = job.arguments.map { |arg| format(arg) } if job.class.log_arguments? && job.arguments.any?
-
-          # Add scheduled_at if present
-          log_data[:scheduled_at] = job.scheduled_at.iso8601(3) if job.scheduled_at
-
-          # Add provider_job_id if present
-          log_data[:provider_job_id] = job.provider_job_id if job.provider_job_id
-
-          # Add exception details if present
-          if additional_data[:exception]
-            exception = additional_data[:exception]
-            log_data[:error_class] = exception.class.to_s
-            log_data[:error_message] = exception.message
-            log_data[:backtrace] = exception.backtrace&.first(5)
-          end
-
-          # Add duration if present
-          log_data[:duration_ms] = additional_data[:duration] if additional_data[:duration]
+            duration: additional_data[:duration],
+            # Add arguments if the job class allows it
+            arguments: job.class.log_arguments? ? job.arguments : nil,
+            # Store additional data in the data hash
+            data: {
+              executions: job.executions,
+              scheduled_at: additional_data[:scheduled_at],
+              provider_job_id: job.provider_job_id
+            }.compact
+          )
 
           # Use Rails logger with our structured formatter
           logger.info(log_data)
+        end
+
+        def log_exception(exception, job, _event)
+          # Create job context data for the exception
+          job_context = {
+            job_id: job.job_id,
+            job_class: job.class.to_s,
+            queue_name: job.queue_name,
+            executions: job.executions,
+            provider_job_id: job.provider_job_id
+          }
+
+          # Add arguments if the job class allows it
+          job_context[:arguments] = job.arguments if job.class.log_arguments?
+
+          # Create exception log with job source and context
+          log_data = Log::Exception.from_exception(
+            LogSource::Job,
+            LogEvent::Error,
+            exception,
+            job_context
+          )
+
+          # Use Rails logger with our structured formatter
+          logger.error(log_data)
         end
 
         def logger

@@ -90,7 +90,7 @@ module LogStruct
             end
 
             def to_global_id
-              GlobalID.new("gid://rails-structured-logging/User/#{id}")
+              GlobalID.new("gid://logstruct/User/#{id}")
             end
 
             def self.name
@@ -108,7 +108,7 @@ module LogStruct
           }
 
           result = JSON.parse(formatter.call(severity, time, progname, message))
-          expect(result["arguments"][0]).to eq("gid://rails-structured-logging/User/123")
+          expect(result["arguments"][0]).to eq("gid://logstruct/User/123")
           expect(result["arguments"][1]["email"]).not_to include("test@example.com")
         end
 
@@ -161,7 +161,7 @@ module LogStruct
       end
     end
 
-    describe "#format_values" do
+    describe "#process_values" do
       let(:user_class) do
         Class.new do
           include GlobalID::Identification
@@ -172,7 +172,7 @@ module LogStruct
           end
 
           def to_global_id
-            GlobalID.new("gid://rails-structured-logging/User/#{id}")
+            GlobalID.new("gid://logstruct/User/#{id}")
           end
 
           def self.name
@@ -184,26 +184,26 @@ module LogStruct
       let(:user) { user_class.new(123) }
 
       it "formats GlobalID::Identification objects as GlobalIDs" do
-        expect(formatter.format_values(user)).to eq("gid://rails-structured-logging/User/123")
+        expect(formatter.process_values(user)).to eq("gid://logstruct/User/123")
       end
 
       it "formats hashes recursively" do
         arg = {user: user, data: {value: "test"}}
-        result = formatter.format_values(arg)
-        expect(result[:user]).to eq("gid://rails-structured-logging/User/123")
+        result = formatter.process_values(arg)
+        expect(result[:user]).to eq("gid://logstruct/User/123")
         expect(result[:data][:value]).to eq("test")
       end
 
       it "formats arrays recursively" do
         arg = [user, {email: "test@example.com"}]
-        result = formatter.format_values(arg)
-        expect(result[0]).to eq("gid://rails-structured-logging/User/123")
+        result = formatter.process_values(arg)
+        expect(result[0]).to eq("gid://logstruct/User/123")
         expect(result[1][:email]).not_to include("test@example.com")
       end
 
       it "truncates large arrays" do
         arg = (1..20).to_a
-        result = formatter.format_values(arg)
+        result = formatter.process_values(arg)
         expect(result.length).to eq(11)
         expect(result.last).to eq("... and 10 more items")
       end
@@ -214,7 +214,7 @@ module LogStruct
         hash1[:hash2] = hash2 # Create a circular reference
 
         # This should not cause an infinite recursion
-        result = formatter.format_values(hash1)
+        result = formatter.process_values(hash1)
         expect(result).to be_a(Hash)
         expect(result[:a]).to eq(1)
         expect(result[:hash2][:b]).to eq(2)
