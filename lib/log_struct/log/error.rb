@@ -18,8 +18,8 @@ module LogStruct
       const :ts, Time, factory: -> { Time.now }
 
       # Error-specific fields
-      const :err_class, T.nilable(String), default: nil
-      const :err_msg, T.nilable(String), default: nil
+      const :err_class, T.class_of(StandardError)
+      const :err_msg, String
       const :backtrace, T.nilable(T::Array[String]), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
