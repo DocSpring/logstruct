@@ -7,8 +7,8 @@ require_relative "../log_event"
 
 module LogStruct
   module Log
-    # File log entry for structured logging (primarily for Shrine)
-    class File < T::Struct
+    # Shrine log entry for structured logging
+    class Shrine < T::Struct
       include LogInterface
 
       # Common fields

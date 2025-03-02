@@ -6,7 +6,7 @@ require "action_dispatch/middleware/host_authorization"
 module LogStruct
   module Integrations
     # Host Authorization integration for structured logging of blocked hosts
-    module HostAuthorizationResponseApp
+    module HostAuthorization
       class << self
         # Set up host authorization logging
         def setup
@@ -23,7 +23,7 @@ module LogStruct
             ::Rails.logger.warn(
               src: Enums::SourceType::Rails.serialize,
               evt: Enums::EventType::SecurityViolation.serialize,
-              violation_type: Enums::ViolationType::BlockedHost.serialize,
+              violation_type: LogViolationType::BlockedHost.serialize,
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,
               request_id: request.request_id,

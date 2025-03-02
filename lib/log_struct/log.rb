@@ -1,0 +1,13 @@
+# typed: strict
+# frozen_string_literal: true
+
+require_relative "log_source"
+require_relative "log_event"
+require_relative "log_violation_type"
+require_relative "log/log_interface"
+require_relative "log/error"
+require_relative "log/email"
+require_relative "log/request"
+require_relative "log/job"
+require_relative "log/file"
+require_relative "log/notification"

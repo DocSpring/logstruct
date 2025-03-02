@@ -100,8 +100,8 @@ module LogStruct
       @sidekiq_integration_enabled = T.let(true, T::Boolean) # Enable Sidekiq integration by default
       @shrine_integration_enabled = T.let(true, T::Boolean) # Enable Shrine integration by default
 
-      # LogstopFork filtering options
-      @filter_emails = T.let(true, T::Boolean) # Filter email addresses by default for security/compliance
+      # Data scrubbing options (we include a fork of Logstop in this gem)
+      @filter_emails = T.let(true, T::Boolean) # Filter email addresses by default
       @filter_url_passwords = T.let(true, T::Boolean) # Filter passwords in URLs by default
       @filter_credit_cards = T.let(true, T::Boolean) # Filter credit card numbers by default
       @filter_phones = T.let(true, T::Boolean) # Filter phone numbers by default

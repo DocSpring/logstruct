@@ -27,10 +27,11 @@ module LogStruct
             payload = event.payload.except(:io, :metadata, :name).dup
 
             # Create structured log data
-            log_data = LogTypes.create_shrine_log_data(
-              event_name,
-              event.duration,
-              payload
+            log_data = Log::Shrine.new(
+              src: LogSource::Shrine,
+              evt: LogEvent::Shrine,
+              duration: event.duration,
+              payload: payload
             )
 
             # Pass the structured hash to the logger
