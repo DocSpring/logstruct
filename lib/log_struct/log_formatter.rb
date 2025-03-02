@@ -7,6 +7,7 @@ require "json"
 require "globalid"
 require_relative "log_source"
 require_relative "log_event"
+require_relative "logstop_fork"
 
 module LogStruct
   # Formatter for structured logging that outputs logs as JSON
@@ -63,8 +64,8 @@ module LogStruct
 
     sig { params(string: String).returns(String) }
     def scrub_string(string)
-      # Use our LogstopFork module to scrub sensitive information from strings
-      LogStruct::LogstopFork.scrub(string)
+      # Use LogstopFork module to scrub sensitive information from strings
+      LogstopFork.scrub(string)
     end
 
     sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
