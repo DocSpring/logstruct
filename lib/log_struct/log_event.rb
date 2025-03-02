@@ -18,19 +18,11 @@ module LogStruct
       Notification = new(:notification)
 
       # Email Event Types
-      EmailDelivery = new(:delivery)
-      EmailDelivered = new(:delivered)
-      EmailError = new(:error)
+      Delivery = new(:delivery)
+      Delivered = new(:delivered)
 
       # Error event types
       Error = new(:error)
-      Exception = new(:exception)
-      Warning = new(:warning)
-
-      # Third-party gem event types
-      Shrine = new(:shrine)
-      CarrierWave = new(:carrierwave)
-      Sidekiq = new(:sidekiq)
     end
   end
 end
