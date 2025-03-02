@@ -132,7 +132,7 @@ module LogStruct
       data[:src] ||= "rails"
       data[:evt] ||= "log"
       data[:ts] ||= time.iso8601(3)
-      data[:level] = severity.upcase
+      data[:lvl] = severity.downcase
       data[:progname] = progname if progname.present?
 
       generate_json(data)

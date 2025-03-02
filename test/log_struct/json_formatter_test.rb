@@ -113,7 +113,7 @@ module LogStruct
 
     def test_tagged_method
       result = nil
-      @formatter.tagged("tag1", "tag2") do |f|
+      @formatter.tagged(["tag1", "tag2"]) do |f|
         assert_equal %w[tag1 tag2], f.current_tags
         result = f
       end
@@ -133,7 +133,10 @@ module LogStruct
       user_class = create_user_class
       user = user_class.new(123)
 
-      assert_equal "gid://logstruct/User/123", @formatter.process_values(user)
+      result = @formatter.process_values(user)
+
+      assert_instance_of GlobalID, result
+      assert_equal "gid://logstruct/User/123", result.to_s
     end
 
     def test_process_values_formats_hashes_recursively
@@ -143,7 +146,8 @@ module LogStruct
 
       result = @formatter.process_values(arg)
 
-      assert_equal "gid://logstruct/User/123", result[:user]
+      assert_instance_of GlobalID, result[:user]
+      assert_equal "gid://logstruct/User/123", result[:user].to_s
       assert_equal "test", result[:data][:value]
     end
 
@@ -154,7 +158,8 @@ module LogStruct
 
       result = @formatter.process_values(arg)
 
-      assert_equal "gid://logstruct/User/123", result[0]
+      assert_instance_of GlobalID, result[0]
+      assert_equal "gid://logstruct/User/123", result[0].to_s
       assert_not_includes result[1][:email], "test@example.com"
     end
 
