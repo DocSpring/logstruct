@@ -8066,7 +8066,7 @@ class ActionController::UrlGenerationError < ::ActionController::ActionControlle
   def routes; end
 end
 
-# source://actionpack//lib/action_dispatch/middleware/host_authorization.rb#3
+# source://actionpack//lib/action_dispatch.rb#37
 module ActionDispatch
   extend ::ActiveSupport::Autoload
 

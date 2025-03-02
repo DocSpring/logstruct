@@ -15,9 +15,11 @@ gem:
     - rdoc
     - rubocop
     - rubocop-ast
+    - rubocop-performance
+    - rubocop-rspec
     - rubocop-sorbet
-    - solargraph
     - ruby-progressbar
+    - solargraph
     - spoom
     - standard
     - standard-sorbet
@@ -26,8 +28,8 @@ gem:
     - yard
     - yard-sorbet
     - zeitwerk
-  doc: true
-  workers: 5
+  # doc: true
+  # workers: 5
 dsl:
   # Add your `dsl` command parameters here:
   #

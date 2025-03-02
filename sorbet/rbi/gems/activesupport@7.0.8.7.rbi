@@ -4782,6 +4782,108 @@ end
 # source://activesupport//lib/active_support/error_reporter.rb#42
 ActiveSupport::ErrorReporter::SEVERITIES = T.let(T.unsafe(nil), Array)
 
+# Allows you to "listen" to changes in a file system.
+# The evented file updater does not hit disk when checking for updates.
+# Instead, it uses platform-specific file system events to trigger a change
+# in state.
+#
+# The file checker takes an array of files to watch or a hash specifying directories
+# and file extensions to watch. It also takes a block that is called when
+# EventedFileUpdateChecker#execute is run or when EventedFileUpdateChecker#execute_if_updated
+# is run and there have been changes to the file system.
+#
+# Example:
+#
+#     checker = ActiveSupport::EventedFileUpdateChecker.new(["/tmp/foo"]) { puts "changed" }
+#     checker.updated?
+#     # => false
+#     checker.execute_if_updated
+#     # => nil
+#
+#     FileUtils.touch("/tmp/foo")
+#
+#     checker.updated?
+#     # => true
+#     checker.execute_if_updated
+#     # => "changed"
+#
+# source://activesupport//lib/active_support/evented_file_update_checker.rb#37
+class ActiveSupport::EventedFileUpdateChecker
+  # @return [EventedFileUpdateChecker] a new instance of EventedFileUpdateChecker
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#38
+  def initialize(files, dirs = T.unsafe(nil), &block); end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#61
+  def execute; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#66
+  def execute_if_updated; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#48
+  def inspect; end
+
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#52
+  def updated?; end
+end
+
+# source://activesupport//lib/active_support/evented_file_update_checker.rb#74
+class ActiveSupport::EventedFileUpdateChecker::Core
+  # @return [Core] a new instance of Core
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#77
+  def initialize(files, dirs); end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#144
+  def changed(modified, added, removed); end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#178
+  def common_path(paths); end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#172
+  def directories_to_watch; end
+
+  # Returns the value of attribute files.
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#75
+  def files; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#100
+  def finalizer; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#138
+  def normalize_dirs!; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#129
+  def restart; end
+
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#134
+  def restart?; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#113
+  def start; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#125
+  def stop; end
+
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#107
+  def thread_safely; end
+
+  # Returns the value of attribute updated.
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#75
+  def updated; end
+
+  # @return [Boolean]
+  #
+  # source://activesupport//lib/active_support/evented_file_update_checker.rb#150
+  def watching?(file); end
+end
+
 # source://activesupport//lib/active_support/execution_context.rb#4
 module ActiveSupport::ExecutionContext
   class << self
@@ -10227,11 +10329,9 @@ end
 
 # source://activesupport//lib/active_support/tagged_logging.rb#29
 module ActiveSupport::TaggedLogging::Formatter
-  include ::RailsStructuredLogging::TypedSig
-
   # This method is invoked when a log event occurs.
   #
-  # source://rails_structured_logging/0.1.0/lib/rails_structured_logging/monkey_patches/active_support/tagged_logging/formatter.rb#21
+  # source://logstruct/0.1.0/lib/log_struct/monkey_patches/active_support/tagged_logging/formatter.rb#19
   def call(severity, time, progname, data); end
 
   # source://activesupport//lib/active_support/tagged_logging.rb#53

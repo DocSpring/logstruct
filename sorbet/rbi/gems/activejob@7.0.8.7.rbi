@@ -224,6 +224,24 @@ class ActiveJob::Base
   # source://activesupport/7.0.8.7/lib/active_support/rescuable.rb#13
   def rescue_handlers?; end
 
+  # source://sidekiq/7.3.9/lib/sidekiq/job.rb#141
+  def sidekiq_options_hash; end
+
+  # source://sidekiq/7.3.9/lib/sidekiq/job.rb#153
+  def sidekiq_options_hash=(_arg0); end
+
+  # source://sidekiq/7.3.9/lib/sidekiq/job.rb#141
+  def sidekiq_retries_exhausted_block; end
+
+  # source://sidekiq/7.3.9/lib/sidekiq/job.rb#153
+  def sidekiq_retries_exhausted_block=(_arg0); end
+
+  # source://sidekiq/7.3.9/lib/sidekiq/job.rb#141
+  def sidekiq_retry_in_block; end
+
+  # source://sidekiq/7.3.9/lib/sidekiq/job.rb#153
+  def sidekiq_retry_in_block=(_arg0); end
+
   class << self
     # source://activesupport/7.0.8.7/lib/active_support/callbacks.rb#68
     def __callbacks; end
@@ -330,11 +348,40 @@ class ActiveJob::Base
     # source://activejob//lib/active_job/exceptions.rb#11
     def retry_jitter=(value); end
 
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#108
+    def sidekiq_options_hash; end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#116
+    def sidekiq_options_hash=(val); end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#108
+    def sidekiq_retries_exhausted_block; end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#116
+    def sidekiq_retries_exhausted_block=(val); end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#108
+    def sidekiq_retry_in_block; end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#116
+    def sidekiq_retry_in_block=(val); end
+
     # source://activesupport/7.0.8.7/lib/active_support/deprecation/method_wrappers.rb#63
     def skip_after_callbacks_if_terminated(*args, **_arg1, &block); end
 
     # source://activesupport/7.0.8.7/lib/active_support/deprecation/method_wrappers.rb#63
     def skip_after_callbacks_if_terminated=(*args, **_arg1, &block); end
+
+    private
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#103
+    def __synchronized_sidekiq_options_hash; end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#103
+    def __synchronized_sidekiq_retries_exhausted_block; end
+
+    # source://sidekiq/7.3.9/lib/sidekiq/job.rb#103
+    def __synchronized_sidekiq_retry_in_block; end
   end
 end
 

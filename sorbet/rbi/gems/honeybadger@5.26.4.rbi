@@ -4058,6 +4058,54 @@ class Honeybadger::Rack::UserInformer
   def agent; end
 end
 
+# Patch Rake::Application to handle errors with Honeybadger
+#
+# @api private
+#
+# source://honeybadger//lib/honeybadger/init/rake.rb#6
+module Honeybadger::RakeHandler
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/init/rake.rb#15
+  def display_error_message_with_honeybadger(ex); end
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/init/rake.rb#22
+  def reconstruct_command_line; end
+
+  class << self
+    # @api private
+    # @private
+    #
+    # source://honeybadger//lib/honeybadger/init/rake.rb#7
+    def included(klass); end
+  end
+end
+
+# This module brings Rake 0.8.7 error handling to 0.9.0 standards
+#
+# @api private
+#
+# source://honeybadger//lib/honeybadger/init/rake.rb#27
+module Honeybadger::RakeHandler::Rake087Methods
+  # Method extracted from Rake 0.8.7 source
+  #
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/init/rake.rb#48
+  def display_error_message(ex); end
+
+  # Method taken from Rake 0.9.0 source
+  #
+  # Provide standard exception handling for the given block.
+  #
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/init/rake.rb#31
+  def standard_exception_handling; end
+end
+
 # source://honeybadger//lib/honeybadger/registry.rb#2
 class Honeybadger::Registry
   # @return [Registry] a new instance of Registry
