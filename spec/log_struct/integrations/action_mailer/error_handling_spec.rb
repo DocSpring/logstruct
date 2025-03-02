@@ -38,13 +38,14 @@ module LogStruct
 
       let(:mailer) { test_mailer_class.new.welcome_email }
       let(:standard_error) { StandardError.new("Standard error message") }
+      let(:postmark_error) { Postmark::Error.new("Postmark error") }
+      let(:postmark_inactive_error) { Postmark::InactiveRecipientError.new("Inactive recipient", ["inactive@example.com"]) }
 
       before do
         # Mock the logger methods
         allow(Integrations::ActionMailer::Logger).to receive(:log_structured_error)
         allow(Rails.logger).to receive(:info)
-        allow(Rails.logger).to receive(:error)
-        allow(LogStruct.config).to receive(:report_exception)
+        allow(MultiErrorReporter).to receive(:report_exception)
       end
 
       describe "rescue handlers" do
@@ -52,20 +53,23 @@ module LogStruct
           handlers = test_mailer_class.rescue_handlers
 
           # Check for handlers by name and method
-          expect(handlers).to include(["StandardError", :log_and_reraise_exception])
+          expect(handlers).to include(["StandardError", :log_and_reraise_error])
+          expect(handlers).to include(["Postmark::Error", :log_and_reraise_error])
+          expect(handlers).to include(["Postmark::InactiveRecipientError", :log_and_notify_error])
+          expect(handlers).to include(["Postmark::InvalidEmailRequestError", :log_and_notify_error])
         end
       end
 
-      describe "#log_and_ignore_exception" do
+      describe "#log_and_ignore_error" do
         it "logs the error but does not raise it" do
-          expect(mailer).to receive(:log_email_delivery_error).with(standard_error,
+          expect(mailer).to receive(:log_email_delivery_error).with(postmark_inactive_error,
             notify: false,
             report: false,
             reraise: false).and_call_original
           allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
           # Should not raise an error
-          expect { mailer.send(:log_and_ignore_exception, standard_error) }.not_to raise_error
+          expect { mailer.send(:log_and_ignore_error, postmark_inactive_error) }.not_to raise_error
         end
       end
 
@@ -82,7 +86,7 @@ module LogStruct
         end
       end
 
-      describe "#log_and_report_exception" do
+      describe "#log_and_report_error" do
         it "logs the error with report flag and does not raise it" do
           expect(mailer).to receive(:log_email_delivery_error).with(standard_error,
             notify: false,
@@ -91,11 +95,11 @@ module LogStruct
           allow(mailer).to receive(:handle_error_notifications) # Stub this to prevent actual error handling
 
           # Should not raise an error
-          expect { mailer.send(:log_and_report_exception, standard_error) }.not_to raise_error
+          expect { mailer.send(:log_and_report_error, standard_error) }.not_to raise_error
         end
       end
 
-      describe "#log_and_reraise_exception" do
+      describe "#log_and_reraise_error" do
         it "logs the error and reraises it" do
           expect(mailer).to receive(:log_email_delivery_error).with(standard_error,
             notify: false,
@@ -107,7 +111,7 @@ module LogStruct
 
           # Should raise the error
           expect do
-            mailer.send(:log_and_reraise_exception, standard_error)
+            mailer.send(:log_and_reraise_error, standard_error)
           end.to raise_error(StandardError, "Standard error message")
         end
       end
@@ -156,7 +160,7 @@ module LogStruct
 
         context "when report is true" do
           it "reports to error reporting service" do
-            expect(LogStruct.config).to receive(:report_exception).with(
+            expect(MultiErrorReporter).to receive(:report_exception).with(
               standard_error,
               hash_including(
                 mailer_class: "TestMailer",
@@ -195,6 +199,11 @@ module LogStruct
 
       describe "#recipients" do
         it "extracts recipients from error if available" do
+          recipients = mailer.send(:recipients, postmark_inactive_error)
+          expect(recipients).to eq("inactive@example.com")
+        end
+
+        it "returns 'unknown' if error does not respond to recipients" do
           recipients = mailer.send(:recipients, standard_error)
           expect(recipients).to eq("unknown")
         end

@@ -3609,12 +3609,6 @@ class Mail::Message
   # source://mail//lib/mail/message.rb#1268
   def body_encoding=(value); end
 
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#129
-  def body_html; end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#137
-  def body_text; end
-
   # @return [Boolean]
   #
   # source://mail//lib/mail/message.rb#1554
@@ -3778,15 +3772,6 @@ class Mail::Message
   # source://mail//lib/mail/message.rb#267
   def deliver!; end
 
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#4
-  def delivered; end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#4
-  def delivered=(_arg0); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#6
-  def delivered?; end
-
   # If you assign a delivery handler, mail will call :deliver_mail on the
   # object you assign to delivery_handler, it will pass itself as the
   # single argument.
@@ -3942,12 +3927,6 @@ class Mail::Message
   # source://mail//lib/mail/message.rb#471
   def errors; end
 
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#147
-  def export_attachments; end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#151
-  def export_headers; end
-
   # Returns the filename of the attachment
   #
   # source://mail//lib/mail/message.rb#1923
@@ -4089,9 +4068,6 @@ class Mail::Message
   # source://mail//lib/mail/message.rb#448
   def headers(hash = T.unsafe(nil)); end
 
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#125
-  def html?; end
-
   # Accessor for html_part
   #
   # source://mail//lib/mail/message.rb#1635
@@ -4181,18 +4157,6 @@ class Mail::Message
   #
   # source://mail//lib/mail/message.rb#712
   def message_id=(val); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#75
-  def message_stream(val = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#80
-  def message_stream=(val); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#36
-  def metadata(val = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#44
-  def metadata=(val); end
 
   # Method Missing in this implementation allows you to set any of the
   # standard fields directly as you would the "to", "subject" etc.
@@ -4355,21 +4319,6 @@ class Mail::Message
   #
   # source://mail//lib/mail/message.rb#223
   def perform_deliveries=(_arg0); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#55
-  def postmark_attachments; end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#48
-  def postmark_attachments=(value); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#4
-  def postmark_response; end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#4
-  def postmark_response=(_arg0); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#88
-  def prerender; end
 
   # If set to false, mail will silently catch and ignore any exceptions
   # raised through attempting to deliver an email.
@@ -4839,24 +4788,6 @@ class Mail::Message
   # source://mail//lib/mail/message.rb#1152
   def subject=(val); end
 
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#10
-  def tag(val = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#14
-  def tag=(val); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#64
-  def template_alias(val = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#70
-  def template_model(model = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#69
-  def template_model=(_arg0); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#84
-  def templated?; end
-
   # @return [Boolean]
   #
   # source://mail//lib/mail/message.rb#1964
@@ -4924,26 +4855,11 @@ class Mail::Message
   # source://mail//lib/mail/message.rb#1294
   def to_addrs; end
 
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#161
-  def to_postmark_hash; end
-
   # source://mail//lib/mail/message.rb#1869
   def to_s; end
 
   # source://mail//lib/mail/message.rb#1823
   def to_yaml(opts = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#18
-  def track_links(val = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#23
-  def track_links=(val); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#27
-  def track_opens(val = T.unsafe(nil)); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#32
-  def track_opens=(val); end
 
   # source://mail//lib/mail/message.rb#621
   def transport_encoding(val = T.unsafe(nil)); end
@@ -4956,17 +4872,6 @@ class Mail::Message
 
   # source://actionmailbox/7.0.8.7/lib/action_mailbox/mail_ext/addresses.rb#25
   def x_original_to_addresses; end
-
-  protected
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#172
-  def export_native_attachments; end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#168
-  def pack_attachment_data(data); end
-
-  # source://postmark/1.25.1/lib/postmark/message_extensions/mail.rb#183
-  def reserved_headers; end
 
   private
 

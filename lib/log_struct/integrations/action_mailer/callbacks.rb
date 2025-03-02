@@ -50,7 +50,7 @@ module LogStruct
 
           # Use T.unsafe only for the class_eval call since this is metaprogramming
           # that Sorbet can't statically analyze
-          T.unsafe(::ActionMailer::MessageDelivery).class_eval do
+          ::ActionMailer::MessageDelivery.class_eval do
             # Add handle_exceptions method if it doesn't exist
             unless method_defined?(:handle_exceptions)
               def handle_exceptions
