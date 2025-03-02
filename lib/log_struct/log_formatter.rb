@@ -116,14 +116,12 @@ module LogStruct
         # Use hash as is
         log_value.dup
       else
-        # Create a Log struct with the message and then serialize it
-        log = LogStruct::Log::Log.new(
+        # Create a Plain struct with the message and then serialize it
+        plain = LogStruct::Log::Plain.new(
           msg: log_value.to_s,
-          src: "rails",
-          evt: "log",
-          ts: time.iso8601(3)
+          ts: time
         )
-        log.serialize
+        plain.serialize
       end
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments

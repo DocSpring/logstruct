@@ -7,25 +7,26 @@ require_relative "../log_event"
 
 module LogStruct
   module Log
-    # Storage log entry for structured logging (ActiveStorage)
+    # Storage log entry for structured logging
     class Storage < T::Struct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Storage, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
 
-      # Storage-specific fields
-      const :service, T.nilable(String), default: nil
+      # File-specific fields
+      const :storage, T.nilable(String), default: nil
       const :operation, T.nilable(String), default: nil
-      const :key, T.nilable(String), default: nil
-      const :checksum, T.nilable(String), default: nil
-      const :byte_size, T.nilable(Integer), default: nil
-      const :content_type, T.nilable(String), default: nil
+      const :file_id, T.nilable(String), default: nil
+      const :filename, T.nilable(String), default: nil
+      const :mime_type, T.nilable(String), default: nil
+      const :size, T.nilable(Integer), default: nil
       const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
+      const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
@@ -38,15 +39,18 @@ module LogStruct
           msg: msg
         }
 
-        # Add Storage-specific fields if they're present
-        hash[:service] = service if service
+        # Add file-specific fields if they're present
+        hash[:storage] = storage if storage
         hash[:operation] = operation if operation
-        hash[:key] = key if key
-        hash[:checksum] = checksum if checksum
-        hash[:byte_size] = byte_size if byte_size
-        hash[:content_type] = content_type if content_type
+        hash[:file_id] = file_id if file_id
+        hash[:filename] = filename if filename
+        hash[:mime_type] = mime_type if mime_type
+        hash[:size] = size if size
         hash[:metadata] = metadata if metadata
         hash[:duration] = duration if duration
+
+        # Merge any additional data
+        hash.merge!(data) if data.any?
 
         hash
       end

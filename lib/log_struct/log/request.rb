@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_entry_interface"
+require_relative "log_interface"
 require_relative "../log_source"
 require_relative "../log_event"
 
@@ -12,7 +12,7 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Rails, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
@@ -27,9 +27,8 @@ module LogStruct
       const :duration, T.nilable(Float), default: nil
       const :view, T.nilable(Float), default: nil
       const :db, T.nilable(Float), default: nil
-      const :ip, T.nilable(String), default: nil
       const :params, T.nilable(T::Hash[String, T.untyped]), default: nil
-      const :headers, T.nilable(T::Hash[String, T.untyped]), default: nil
+      const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
@@ -52,9 +51,10 @@ module LogStruct
         hash[:duration] = duration if duration
         hash[:view] = view if view
         hash[:db] = db if db
-        hash[:ip] = ip if ip
         hash[:params] = params if params
-        hash[:headers] = headers if headers
+
+        # Merge any additional data
+        hash.merge!(data) if data.any?
 
         hash
       end

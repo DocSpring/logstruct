@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_entry_interface"
+require_relative "log_interface"
 require_relative "../log_source"
 require_relative "../log_event"
 
@@ -12,7 +12,7 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Job, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
@@ -20,14 +20,10 @@ module LogStruct
       # Job-specific fields
       const :job_id, T.nilable(String), default: nil
       const :job_class, T.nilable(String), default: nil
-      const :queue, T.nilable(String), default: nil
-      const :args, T.nilable(T::Array[T.untyped]), default: nil
+      const :queue_name, T.nilable(String), default: nil
+      const :arguments, T.nilable(T::Array[T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
-      const :status, T.nilable(String), default: nil
-      const :error, T.nilable(String), default: nil
-      const :retry_count, T.nilable(Integer), default: nil
-      const :scheduled_at, T.nilable(Time), default: nil
-      const :enqueued_at, T.nilable(Time), default: nil
+      const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
@@ -43,16 +39,12 @@ module LogStruct
         # Add job-specific fields if they're present
         hash[:job_id] = job_id if job_id
         hash[:job_class] = job_class if job_class
-        hash[:queue] = queue if queue
-        hash[:args] = args if args
+        hash[:queue_name] = queue_name if queue_name
+        hash[:arguments] = arguments if arguments
         hash[:duration] = duration if duration
-        hash[:status] = status if status
-        hash[:error] = error if error
-        hash[:retry_count] = retry_count if retry_count
 
-        # Format time fields - need to check for nil first
-        hash[:scheduled_at] = scheduled_at&.iso8601(3) if scheduled_at
-        hash[:enqueued_at] = enqueued_at&.iso8601(3) if enqueued_at
+        # Merge any additional data
+        hash.merge!(data) if data.any?
 
         hash
       end

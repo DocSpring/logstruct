@@ -12,19 +12,16 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Mailer, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
 
       # Email-specific fields
-      const :msg_id, T.nilable(String), default: nil
-      const :mailer, T.nilable(String), default: nil
-      const :action, T.nilable(String), default: nil
-      const :to, T.nilable(String), default: nil
-      const :cc, T.nilable(T.nilable(String)), default: nil
-      const :bcc, T.nilable(T.nilable(String)), default: nil
+      const :to, T.nilable(T.any(String, T::Array[String])), default: nil
+      const :from, T.nilable(String), default: nil
       const :subject, T.nilable(String), default: nil
+      const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
@@ -38,13 +35,12 @@ module LogStruct
         }
 
         # Add email-specific fields if they're present
-        hash[:msg_id] = msg_id if msg_id
-        hash[:mailer] = mailer if mailer
-        hash[:action] = action if action
         hash[:to] = to if to
-        hash[:cc] = cc if cc
-        hash[:bcc] = bcc if bcc
+        hash[:from] = from if from
         hash[:subject] = subject if subject
+
+        # Merge any additional data
+        hash.merge!(data) if data.any?
 
         hash
       end

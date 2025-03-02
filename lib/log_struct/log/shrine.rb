@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_entry_interface"
+require_relative "log_interface"
 require_relative "../log_source"
 require_relative "../log_event"
 
@@ -12,7 +12,7 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::Shrine, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
@@ -26,6 +26,7 @@ module LogStruct
       const :size, T.nilable(Integer), default: nil
       const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
+      const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
@@ -47,6 +48,9 @@ module LogStruct
         hash[:size] = size if size
         hash[:metadata] = metadata if metadata
         hash[:duration] = duration if duration
+
+        # Merge any additional data
+        hash.merge!(data) if data.any?
 
         hash
       end

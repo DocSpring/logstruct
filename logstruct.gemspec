@@ -8,8 +8,11 @@ Gem::Specification.new do |spec|
   spec.authors = ["DocSpring"]
   spec.email = ["support@docspring.com"]
 
-  spec.summary = "Adds JSON structured logging to any Rails app"
-  spec.description = "An opinionated, comprehensive structured logging solution for Rails applications"
+  spec.summary = "Type-Safe JSON Structured Logging for Rails Apps"
+  spec.description = "An opinionated and type-safe structured logging solution. " \
+    "Configures any Rails app to log JSON to stdout. " \
+    "Structured logging is automatically configured for many gems, including Sidekiq, Carrierwave, Shrine, etc. " \
+    "Log messages, params, and job args are automatically filtered and scrubbed to remove any sensitive info."
   spec.homepage = "https://github.com/docspring/logstruct"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"

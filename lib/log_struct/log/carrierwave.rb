@@ -12,7 +12,7 @@ module LogStruct
       include LogInterface
 
       # Common fields
-      const :src, LogStruct::LogSource
+      const :src, LogStruct::LogSource, default: T.let(LogStruct::LogSource::CarrierWave, LogStruct::LogSource)
       const :evt, LogStruct::LogEvent
       const :ts, Time, default: T.unsafe(-> { Time.zone.now })
       const :msg, T.nilable(String), default: nil
@@ -26,6 +26,12 @@ module LogStruct
       const :size, T.nilable(Integer), default: nil
       const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
+
+      # CarrierWave-specific fields
+      const :uploader, T.nilable(String), default: nil
+      const :model, T.nilable(String), default: nil
+      const :mount_point, T.nilable(String), default: nil
+      const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
@@ -47,6 +53,14 @@ module LogStruct
         hash[:size] = size if size
         hash[:metadata] = metadata if metadata
         hash[:duration] = duration if duration
+
+        # Add CarrierWave-specific fields if they're present
+        hash[:uploader] = uploader if uploader
+        hash[:model] = model if model
+        hash[:mount_point] = mount_point if mount_point
+
+        # Merge any additional data
+        hash.merge!(data) if data.any?
 
         hash
       end
