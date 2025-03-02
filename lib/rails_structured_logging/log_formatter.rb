@@ -10,6 +10,39 @@ module RailsStructuredLogging
   # Formatter for structured logging that outputs logs as JSON
   # This is a port of the existing JSONLogFormatter with some improvements
   class LogFormatter < Logger::Formatter
+    # Format ActiveJob arguments safely, similar to how Rails does it internally
+    # Also scrubs sensitive information using LogstopFork
+    LogValueType = T.type_alias {
+      T.any(
+        T::Boolean,
+        T::Hash[T.untyped, T.untyped],
+        T::Array[T.untyped],
+        GlobalID::Identification,
+        String,
+        Integer,
+        Float,
+        Symbol
+      )
+    }
+
+    LogHashType = T.type_alias {
+      T::Hash[Symbol, T.any(
+        T::Boolean,
+        T::Hash[T.untyped, T.untyped],
+        T::Array[T.untyped],
+        GlobalID::Identification,
+        String,
+      {symbol1: Type1, symbol2: Type2}
+    }
+
+    # Can call Rails.logger.info with either a structured hash or a plain string
+    LogDataType = T.type_alias {
+      T.any(
+        String,
+        T::Hash[T.untyped, T.untyped]
+      )
+    }
+
     # Add current_tags method to support ActiveSupport::TaggedLogging
     sig { returns(T::Array[String]) }
     def current_tags
@@ -38,29 +71,14 @@ module RailsStructuredLogging
       RailsStructuredLogging::LogstopFork.scrub(string)
     end
 
-    # Format ActiveJob arguments safely, similar to how Rails does it internally
-    # Also scrubs sensitive information using LogstopFork
-    LogValueType = T.type_alias {
-      T.any(
-        T::Boolean,
-        T::Hash[T.untyped, T.untyped],
-        T::Array[T.untyped],
-        GlobalID::Identification,
-        String,
-        Integer,
-        Float,
-        Symbol
-      )
-    }
-    sig { params(arg: LogValueType).returns(LogValueType) }
-    def format_values(arg)
-      @format_recursion_counter ||= 0
-      # Prevent infinite recursion, just return args with no modifications
-      return arg if @format_recursion_counter > 20
+    sig { params(arg: LogValueType, recursion_depth: Integer).returns(LogValueType) }
+    def format_values(arg, recursion_depth: 0)
+      # Prevent infinite recursion in case any args have circular references
+      # or are too deeply nested. Just return args.
+      return arg if recursion_depth > 20
 
       case arg
       when Hash
-        @format_recursion_counter += 1
         result = {}
 
         # Process each key-value pair
@@ -71,18 +89,18 @@ module RailsStructuredLogging
             {_filtered: ParamFilters.summarize_json_attribute(value)}
           else
             # Process the value normally
-            format_values(value)
+            format_values(value, recursion_depth: recursion_depth + 1)
           end
         end
 
         result
       when Array
-        @format_recursion_counter += 1
-        result = arg.map { |value| format_values(value) }
+        result = arg.map { |value| format_values(value, recursion_depth: recursion_depth + 1) }
 
         # Filter large arrays
-        result = result.take(10) + ["... and #{result.size - 10} more items"] if result.size > 10
-
+        if result.size > 10
+          result = result.take(10) + ["... and #{result.size - 10} more items"]
+        end
         result
       when GlobalID::Identification
         begin
@@ -110,12 +128,10 @@ module RailsStructuredLogging
       arg
     end
 
-    sig { params(severity: String, time: Time, progname: String, msg: T.any(String, T::Hash[T.untyped, T.untyped])).returns(String) }
-    def call(severity, time, progname, msg)
-      @format_recursion_counter = 0
-
+    sig { params(severity: String, time: Time, progname: String, msg: LogValueType).returns(String) }
+    def call(severity, time, progname, log_value)
       # Use standardized field names
-      data = T.let(msg.is_a?(Hash) ? msg.dup : {msg: msg.to_s}, T::Hash[T.untyped, T.untyped])
+      data = T.let(msg.is_a?(Hash) ? msg.dup : {msg: msg.to_s}, LogValueType)
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = format_values(data)
