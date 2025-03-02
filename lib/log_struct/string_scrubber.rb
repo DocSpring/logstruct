@@ -4,12 +4,12 @@
 require "digest"
 
 module LogStruct
-  # LogScrubber is a fork of logstop by @ankane: https://github.com/ankane/logstop
+  # StringScrubber is a fork of logstop by @ankane: https://github.com/ankane/logstop
   # Changes:
   # - Shows which type of data was filtered
   # - Includes an SHA256 hash with filtered emails for request tracing
   # - Uses configuration options from LogStruct.config
-  module LogScrubber
+  module StringScrubber
     class << self
       URL_PASSWORD_REGEX = %r{((?://|%2F%2F)[^:]+:)[^@/]+@}
       URL_PASSWORD_REPLACEMENT = '\1[FILTERED]@'
@@ -68,8 +68,8 @@ module LogStruct
         msg.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.filter_macs
 
         # custom scrubber
-        log_scrubbing_handler = config.log_scrubbing_handler
-        msg = log_scrubbing_handler.call(msg) if !log_scrubbing_handler.nil?
+        string_scrubbing_handler = config.string_scrubbing_handler
+        msg = string_scrubbing_handler.call(msg) if !string_scrubbing_handler.nil?
 
         msg
       end

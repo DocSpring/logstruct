@@ -35,7 +35,7 @@ module LogStruct
       assert_equal "l0g5t0p", @config.email_hash_salt
       assert_equal 12, @config.email_hash_length
       assert_nil @config.lograge_custom_options
-      assert_nil @config.log_scrubbing_handler
+      assert_nil @config.string_scrubbing_handler
     end
 
     def test_exception_reporting_handler
@@ -76,14 +76,14 @@ module LogStruct
       assert custom_handler_called
     end
 
-    def test_custom_log_scrubbing_handler
+    def test_custom_string_scrubbing_handler
       # Set a custom scrubbing handler
       custom_scrubber = ->(msg) { "SCRUBBED: #{msg}" }
-      @config.log_scrubbing_handler = custom_scrubber
+      @config.string_scrubbing_handler = custom_scrubber
 
       # Verify the handler is set correctly
-      assert_equal custom_scrubber, @config.log_scrubbing_handler
-      assert_equal "SCRUBBED: test message", @config.log_scrubbing_handler.call("test message")
+      assert_equal custom_scrubber, @config.string_scrubbing_handler
+      assert_equal "SCRUBBED: test message", @config.string_scrubbing_handler.call("test message")
     end
 
     def test_custom_lograge_options

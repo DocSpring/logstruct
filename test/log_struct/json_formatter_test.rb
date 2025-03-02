@@ -33,8 +33,8 @@ module LogStruct
       assert_equal @progname, result["progname"]
     end
 
-    def test_call_applies_log_scrubber_to_message
-      # Use real LogScrubber scrubbing
+    def test_call_applies_string_scrubber_to_message
+      # Use real StringScrubber scrubbing
       email_message = "Email: user@example.com"
       result = JSON.parse(@formatter.call(@severity, @time, @progname, email_message))
 
@@ -62,7 +62,7 @@ module LogStruct
       assert_equal "custom_time", result["ts"]
     end
 
-    def test_call_applies_log_scrubber_to_hash_message_fields
+    def test_call_applies_string_scrubber_to_hash_message_fields
       email_message = {msg: "Email: user@example.com"}
       result = JSON.parse(@formatter.call(@severity, @time, @progname, email_message))
 

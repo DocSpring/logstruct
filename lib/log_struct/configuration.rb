@@ -5,8 +5,8 @@ module LogStruct
   # Configuration class for LogStruct
   class Configuration
     module CustomHandlers
-      LogScrubbing = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
-      ExceptionReporting = T.type_alias {
+      StringScrubber = T.type_alias { T.nilable(T.proc.params(msg: String).returns(String)) }
+      ExceptionReporter = T.type_alias {
         T.proc.params(
           error: StandardError,
           context: T::Hash[Symbol, T.untyped]
@@ -35,7 +35,7 @@ module LogStruct
 
     # Custom handler for exception reporting
     # Default: nil
-    sig { returns(CustomHandlers::ExceptionReporting) }
+    sig { returns(CustomHandlers::ExceptionReporter) }
     attr_accessor :exception_reporting_handler
 
     # Enable or disable ActionMailer integration
@@ -168,8 +168,8 @@ module LogStruct
 
     # Custom log scrubbing handler for any additional string scrubbing
     # Default: nil
-    sig { returns(CustomHandlers::LogScrubbing) }
-    attr_accessor :log_scrubbing_handler
+    sig { returns(CustomHandlers::StringScrubber) }
+    attr_accessor :string_scrubbing_handler
 
     sig { void }
     def initialize
@@ -193,7 +193,7 @@ module LogStruct
         # Log using the structured format
         ::Rails.logger.error(exception_data)
       },
-        CustomHandlers::ExceptionReporting)
+        CustomHandlers::ExceptionReporter)
 
       @actionmailer_integration_enabled = T.let(true, T::Boolean) # Enable ActionMailer integration by default
       @host_authorization_enabled = T.let(true, T::Boolean) # Enable host authorization logging by default
@@ -244,8 +244,8 @@ module LogStruct
         T::Array[Symbol])
 
       # Log scrubbing options
-      # (The LogScrubber class is a vendored fork of https://github.com/ankane/logstop)
-      @log_scrubbing_handler = T.let(nil, CustomHandlers::LogScrubbing)
+      # (The StringScrubber class is a vendored fork of https://github.com/ankane/logstop)
+      @string_scrubbing_handler = T.let(nil, CustomHandlers::StringScrubber)
       @filter_emails = T.let(true, T::Boolean) # Filter email addresses by default
       @hash_salt = T.let("l0g5t0p", String)
       @hash_length = T.let(12, Integer)

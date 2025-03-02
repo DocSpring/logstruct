@@ -4,7 +4,7 @@
 require "test_helper"
 
 module LogStruct
-  class LogScrubberTest < Minitest::Test
+  class StringScrubberTest < Minitest::Test
     def setup
       # Save original configuration
       @original_config = LogStruct.configuration
@@ -26,7 +26,7 @@ module LogStruct
 
       # Test with a simple email
       input = "Contact us at user@example.com for more information"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       # Verify the email was replaced with a hash
       assert_not_includes result, "user@example.com"
@@ -34,7 +34,7 @@ module LogStruct
 
       # Test with multiple emails
       input = "Emails: user1@example.com and user2@example.org"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "user1@example.com"
       assert_not_includes result, "user2@example.org"
@@ -47,7 +47,7 @@ module LogStruct
 
       # Test with a URL containing a password
       input = "Database URL: postgres://user:password123@localhost:5432/mydb"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       # Verify the password was filtered
       assert_not_includes result, "password123"
@@ -55,7 +55,7 @@ module LogStruct
 
       # Test with encoded URL
       input = "Encoded URL: https%3A%2F%2Fuser%3Asecret%40example.com"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "secret"
       assert_includes result, "[FILTERED]"
@@ -67,14 +67,14 @@ module LogStruct
 
       # Test with a 16-digit card number
       input = "Card: 4111111111111111"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "4111111111111111"
       assert_includes result, "[CREDIT_CARD]"
 
       # Test with formatted card number
       input = "Card: 4111-1111-1111-1111"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "4111-1111-1111-1111"
       assert_includes result, "[CREDIT_CARD]"
@@ -86,7 +86,7 @@ module LogStruct
 
       # Test with a formatted phone number
       input = "Call us at 555-123-4567"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "555-123-4567"
       assert_includes result, "[PHONE]"
@@ -98,7 +98,7 @@ module LogStruct
 
       # Test with a formatted SSN
       input = "SSN: 123-45-6789"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "123-45-6789"
       assert_includes result, "[SSN]"
@@ -110,7 +110,7 @@ module LogStruct
 
       # Test with an IP address
       input = "IP: 192.168.1.1"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "192.168.1.1"
       assert_includes result, "[IP]"
@@ -122,7 +122,7 @@ module LogStruct
 
       # Test with a MAC address
       input = "MAC: 00:11:22:33:44:55"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       assert_not_includes result, "00:11:22:33:44:55"
       assert_includes result, "[MAC]"
@@ -140,7 +140,7 @@ module LogStruct
 
       # Test with sensitive data
       input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       # Verify nothing was filtered
       assert_equal input, result
@@ -148,11 +148,11 @@ module LogStruct
 
     def test_custom_scrubbing_handler
       # Set a custom scrubbing handler
-      LogStruct.config.log_scrubbing_handler = ->(msg) { msg.gsub("SECRET", "[REDACTED]") }
+      LogStruct.config.string_scrubbing_handler = ->(msg) { msg.gsub("SECRET", "[REDACTED]") }
 
       # Test with custom data
       input = "This contains a SECRET value"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       # Verify custom scrubbing was applied
       assert_not_includes result, "SECRET"
@@ -167,7 +167,7 @@ module LogStruct
 
       # Test with multiple sensitive data types
       input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567"
-      result = LogScrubber.scrub(input)
+      result = StringScrubber.scrub(input)
 
       # Verify all sensitive data was filtered
       assert_not_includes result, "user@example.com"
