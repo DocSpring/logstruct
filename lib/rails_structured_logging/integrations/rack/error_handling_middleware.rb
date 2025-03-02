@@ -1,9 +1,6 @@
 # typed: true
 # frozen_string_literal: true
 
-require_relative "../enums"
-require_relative "../multi_error_reporter"
-
 module RailsStructuredLogging
   module Integrations
     module Rack

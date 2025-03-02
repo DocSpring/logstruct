@@ -1,15 +1,11 @@
 # typed: true
 # frozen_string_literal: true
 
-require_relative "../sorbet"
-
 module RailsStructuredLogging
   module Integrations
     module ActionMailer
       # Backport of the *_deliver callbacks from Rails 7.1
       module Callbacks
-        include TypedSig
-        extend T::Sig
         extend ::ActiveSupport::Concern
 
         # Track if we've already patched MessageDelivery
@@ -23,8 +19,6 @@ module RailsStructuredLogging
         end
 
         class_methods do
-          extend T::Sig
-
           # Defines a callback that will get called right before the
           # message is sent to the delivery method.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }

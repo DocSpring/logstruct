@@ -7,18 +7,11 @@ rescue LoadError
   # postmark gem is not available, error handling will be skipped
 end
 
-require_relative "../sorbet"
-require_relative "../enums"
-require_relative "../log_types"
-require_relative "../multi_error_reporter"
-
 module RailsStructuredLogging
   module Integrations
     module ActionMailer
       # Handles error handling for ActionMailer
       module ErrorHandling
-        include TypedSig
-        extend T::Sig
         extend ActiveSupport::Concern
 
         included do

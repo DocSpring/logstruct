@@ -1,9 +1,6 @@
 # typed: true
 # frozen_string_literal: true
 
-require_relative "enums"
-require_relative "sorbet"
-
 begin
   require "action_mailer"
 rescue LoadError
@@ -22,12 +19,7 @@ module RailsStructuredLogging
   module Integrations
     # ActionMailer integration for structured logging
     module ActionMailer
-      include TypedSig
-      extend T::Sig
-
       class << self
-        extend T::Sig
-
         # Set up ActionMailer structured logging
         sig { void }
         def setup

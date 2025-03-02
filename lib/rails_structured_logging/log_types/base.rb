@@ -1,16 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../enums"
-
 module RailsStructuredLogging
   module LogTypes
-    extend T::Sig
-
     # Base log data class with common fields
     class BaseLogData
-      extend T::Sig
-
       sig { returns(Symbol) }
       attr_reader :src
 

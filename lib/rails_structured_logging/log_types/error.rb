@@ -5,12 +5,8 @@ require_relative "base"
 
 module RailsStructuredLogging
   module LogTypes
-    extend T::Sig
-
     # Error log data class
     class ErrorLogData < BaseLogData
-      extend T::Sig
-
       sig { returns(T.nilable(String)) }
       attr_reader :error_class
 

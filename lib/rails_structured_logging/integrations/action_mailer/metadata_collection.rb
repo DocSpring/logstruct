@@ -1,16 +1,11 @@
 # typed: true
 # frozen_string_literal: true
 
-require_relative "../sorbet"
-
 module RailsStructuredLogging
   module Integrations
     module ActionMailer
       # Handles collection of metadata for email logging
       module MetadataCollection
-        include TypedSig
-        extend T::Sig
-
         # Add message-specific metadata to log data
         sig { params(mailer: T.untyped, log_data: T::Hash[Symbol, T.untyped]).void }
         def self.add_message_metadata(mailer, log_data)

@@ -2,16 +2,11 @@
 # frozen_string_literal: true
 
 require_relative "base"
-require_relative "../enums"
 
 module RailsStructuredLogging
   module LogTypes
-    extend T::Sig
-
     # Notification log data class
     class NotificationLogData < BaseLogData
-      extend T::Sig
-
       sig { returns(Symbol) }
       attr_reader :notification_type
 
@@ -78,7 +73,7 @@ module RailsStructuredLogging
     end
 
     # Helper method to create a notification log data object for email errors
-    sig { params(error: StandardError, mailer: T.untyped).returns(NotificationLogData) }
+    sig { params(error: StandardError, _mailer: T.untyped).returns(NotificationLogData) }
     def self.create_email_notification_log_data(error, _mailer)
       # Extract error class name safely
       error_class_name = T.unsafe(error.class).name

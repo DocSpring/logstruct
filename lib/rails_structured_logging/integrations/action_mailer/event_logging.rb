@@ -1,15 +1,11 @@
 # typed: true
 # frozen_string_literal: true
 
-require_relative "../sorbet"
-
 module RailsStructuredLogging
   module Integrations
     module ActionMailer
       # Handles logging of email delivery events
       module EventLogging
-        include TypedSig
-        extend T::Sig
         extend ActiveSupport::Concern
 
         # We can't use included block with strict typing

@@ -2,16 +2,11 @@
 # frozen_string_literal: true
 
 require_relative "base"
-require_relative "../enums"
 
 module RailsStructuredLogging
   module LogTypes
-    extend T::Sig
-
     # Shrine operation log data class
     class ShrineLogData < BaseLogData
-      extend T::Sig
-
       # Shrine-specific fields
       sig { returns(Symbol) }
       attr_reader :operation

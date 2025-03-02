@@ -2,16 +2,11 @@
 # frozen_string_literal: true
 
 require_relative "base"
-require_relative "../enums"
 
 module RailsStructuredLogging
   module LogTypes
-    extend T::Sig
-
     # Email delivery log data class
     class EmailLogData < BaseLogData
-      extend T::Sig
-
       sig { returns(T.nilable(String)) }
       attr_reader :message_id
 

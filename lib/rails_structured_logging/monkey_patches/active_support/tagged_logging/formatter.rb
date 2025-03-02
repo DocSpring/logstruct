@@ -9,8 +9,6 @@ require "active_support/tagged_logging"
 module ActiveSupport
   module TaggedLogging
     module FormatterExtension
-      include TypedSig
-      extend T::Sig
       extend T::Helpers
       requires_ancestor { ::ActiveSupport::TaggedLogging::Formatter }
 

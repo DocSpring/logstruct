@@ -1,7 +1,6 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "sorbet"
 require "json"
 
 %w[sentry-ruby bugsnag rollbar honeybadger].each do |gem|
@@ -15,15 +14,10 @@ module RailsStructuredLogging
   # It automatically detects and uses available error reporting services
   # Similar to MultiJSON, it detects available adapters once and then uses the configured one
   class MultiErrorReporter
-    include TypedSig
-    extend T::Sig
-
     # Use T.let to properly declare the class variable at the class level
     @error_reporter = T.let(Enums::ErrorTracker::Logger, Enums::ErrorTracker)
 
     class << self
-      extend T::Sig
-
       sig { returns(Enums::ErrorTracker) }
       attr_reader :error_reporter
 

@@ -1,15 +1,11 @@
-# typed: true
+# typed: strong
 # frozen_string_literal: true
-
-require_relative "enums"
 
 module RailsStructuredLogging
   # Configuration class for RailsStructuredLogging
   class Configuration
-    extend T::Sig
-
     # Define typed attributes
-    sig { returns(T.nilable(T::Boolean)) }
+    sig { returns(T::Boolean) }
     attr_accessor :enabled
 
     sig { returns(T::Boolean) }
@@ -18,11 +14,11 @@ module RailsStructuredLogging
     sig { returns(String) }
     attr_accessor :logstop_email_salt
 
-    sig { returns(T.nilable(T.proc.params(event: T.untyped, options: T.untyped).returns(T.untyped))) }
+    sig { returns(T.nilable(T.proc.params(event: ActiveSupport::Notifications::Event, options: T.untyped).returns(T.untyped))) }
     attr_accessor :lograge_custom_options
 
     # Notification callback for email delivery errors
-    sig { returns(T.nilable(T.proc.params(event: T.untyped, options: T.untyped).returns(T.untyped))) }
+    sig { returns(T.proc.params(error: StandardError, recipients: T::Array[String], message: String).void) }
     attr_accessor :email_error_notification_callback
 
     # Integration flags
@@ -68,17 +64,21 @@ module RailsStructuredLogging
 
     sig { void }
     def initialize
-      @enabled = nil # nil means use default logic
+      @enabled = true
       @lograge_enabled = true
       @logstop_email_salt = "l0g5t0p"
-      @lograge_custom_options = nil # Applications can provide a proc to extend lograge options
+
+      # Applications can provide a proc to extend lograge options
+      @lograge_custom_options = nil
 
       # Some email delivery issues should not be considered exceptions.
       # e.g. Postmark errors like inactive recipient, blocked address, invalid email address.
       # You can configure this callback to send Slack notifications instead of an error report to your bug tracker.
       # Default: Log to Rails.logger.info
       @email_error_notification_callback = lambda { |error, recipients, message|
-        ::Rails.logger.info("Email delivery error notification: #{error.class}: #{message} Recipients: #{recipients}")
+        ::Rails.logger.info(
+          "Email delivery error notification: #{error.class}: #{message} Recipients: #{recipients}"
+        )
       }
 
       @actionmailer_integration_enabled = true # Enable ActionMailer integration by default

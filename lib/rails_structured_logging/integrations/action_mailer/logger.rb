@@ -1,16 +1,11 @@
 # typed: true
 # frozen_string_literal: true
 
-require_relative "../sorbet"
-
 module RailsStructuredLogging
   module Integrations
     module ActionMailer
       # Handles structured logging for ActionMailer
       module Logger
-        include TypedSig
-        extend T::Sig
-
         # Build base log data common to all logging methods
         sig do
           params(mailer: T.untyped,

@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require "action_dispatch/middleware/host_authorization"
-require_relative "enums"
 
 module RailsStructuredLogging
   module Integrations
