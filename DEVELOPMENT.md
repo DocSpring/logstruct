@@ -189,6 +189,121 @@ When working with external libraries that don't have type definitions:
 2. Use `T.unsafe` when necessary, but document why it's needed
 3. Consider contributing type definitions back to the original projects
 
+### Sorbet Best Practices
+
+#### Block Context Typing
+
+When working with blocks where methods are called on `self` that belong to a different class (like in configuration blocks), always use `T.bind`:
+
+```ruby
+# GOOD
+SomeGem.configure do
+  T.bind(self, SomeGem::Configuration)
+  add_option "value"  # Now Sorbet knows this method exists
+end
+
+# BAD
+SomeGem.configure do
+  T.unsafe(self).add_option "value"  # NEVER do this!
+end
+```
+
+#### Method Resolution
+
+For methods that are defined in modules like `Kernel` but called without an explicit receiver:
+
+```ruby
+# GOOD
+sig { params(blk: T.nilable(T.proc.params(arg0: String).void)).void }
+def some_method(&blk)
+  yield "value" if Kernel.block_given?
+end
+
+# BAD
+def some_method(&blk)
+  yield "value" if block_given?  # Sorbet doesn't know where this method comes from
+end
+```
+
+#### Working with SimpleCov and Other DSLs
+
+When using gems with DSLs like SimpleCov:
+
+```ruby
+# GOOD
+SimpleCov.start do
+  T.bind(self, SimpleCov::Configuration)
+  add_filter "test/"
+  enable_coverage :branch
+end
+
+# BAD
+SimpleCov.start do
+  T.unsafe(self).add_filter "test/"  # NEVER do this!
+end
+```
+
+#### Handling External Libraries
+
+1. **Always check the RBI files first**: Before resorting to `T.unsafe` or other workarounds, check the generated RBI files to understand the proper types.
+
+2. **Use proper binding for DSLs**: Many Ruby libraries use DSLs where the context (`self`) inside a block is an instance of a specific class. Always use `T.bind(self, CorrectClass)` to inform Sorbet about this.
+
+3. **Add missing type signatures**: If a gem lacks proper type definitions, contribute by adding them to your project's `sorbet/rbi/overrides/` directory.
+
+#### Common Sorbet Patterns
+
+1. **Binding `self` in class methods**:
+
+   ```ruby
+   class MyClass
+     class << self
+       extend T::Sig
+
+       sig { params(value: String).void }
+       def configure(value)
+         yield(new(value))
+       end
+     end
+
+     sig { params(config: T.untyped).void }
+     def initialize(config)
+       @config = config
+     end
+   end
+
+   MyClass.configure("test") do |instance|
+     T.bind(self, MyClass)
+     # Now you can call MyClass instance methods
+   end
+   ```
+
+2. **Typing procs and blocks**:
+
+   ```ruby
+   sig { params(blk: T.proc.params(arg0: String).returns(Integer)).returns(Integer) }
+   def process_with_block(&blk)
+     yield("test")
+   end
+   ```
+
+3. **Using `T.cast` for narrowing types**:
+   ```ruby
+   sig { params(value: T.any(String, Symbol, Integer)).returns(String) }
+   def normalize(value)
+     case value
+     when String
+       T.cast(value, String)
+     when Symbol
+       T.cast(value, Symbol).to_s
+     else
+       T.cast(value, Integer).to_s
+     end
+   end
+   ```
+
+Remember: Taking shortcuts with Sorbet defeats the purpose of having static type checking. Always invest the time to properly type your code.
+
 ## Development Workflow
 
 1. Fork the repository

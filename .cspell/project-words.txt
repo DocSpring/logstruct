@@ -1,4 +1,5 @@
 ankane
+autorun
 bindir
 Bugsnag
 carrierwave
