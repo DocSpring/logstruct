@@ -8,8 +8,8 @@ require_relative "../log_event"
 
 module LogStruct
   module Log
-    # Error log entry for general error logging (not tied to Ruby exceptions)
-    class Error < T::Struct
+    # Exception log entry for Ruby exceptions with class, message, and backtrace
+    class Exception < T::Struct
       include LogInterface
       include LogSerialization
 
@@ -18,8 +18,10 @@ module LogStruct
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
 
-      # Error-specific fields
+      # Exception-specific fields
+      const :err_class, T.class_of(StandardError)
       const :msg, String
+      const :backtrace, T.nilable(T::Array[String]), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
@@ -27,13 +29,28 @@ module LogStruct
       def serialize
         hash = common_serialize
 
-        # Add error-specific fields
+        # Add exception-specific fields
+        hash[:err_class] = err_class.name
         hash[:msg] = msg
+        hash[:backtrace] = backtrace if backtrace
 
         # Merge any additional data
         hash.merge!(data) if data.any?
 
         hash
+      end
+
+      # Create an Exception log from a Ruby exception
+      sig { params(src: LogSource, evt: LogEvent, ex: StandardError, data: T::Hash[Symbol, T.untyped]).returns(Exception) }
+      def self.from_exception(src, evt, ex, data = {})
+        new(
+          src: src,
+          evt: evt,
+          err_class: ex.class,
+          msg: ex.message,
+          backtrace: ex.backtrace,
+          data: data
+        )
       end
     end
   end
