@@ -6,10 +6,10 @@ require_relative "../log_source"
 require_relative "../log_event"
 
 module LogStruct
-  module LogEntries
+  module Log
     # Email log entry for structured logging
     class Email < T::Struct
-      include LogEntryInterface
+      include LogInterface
 
       # Common fields
       const :src, LogStruct::LogSource

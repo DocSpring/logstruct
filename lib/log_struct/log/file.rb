@@ -6,10 +6,10 @@ require_relative "../log_source"
 require_relative "../log_event"
 
 module LogStruct
-  module LogEntries
+  module Log
     # File log entry for structured logging (primarily for Shrine)
     class File < T::Struct
-      include LogEntryInterface
+      include LogInterface
 
       # Common fields
       const :src, LogStruct::LogSource

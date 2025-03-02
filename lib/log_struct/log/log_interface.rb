@@ -2,9 +2,9 @@
 # frozen_string_literal: true
 
 module LogStruct
-  module LogEntries
+  module Log
     # Common interface that all log entry types must implement
-    module LogEntryInterface
+    module LogInterface
       extend T::Sig
       extend T::Helpers
 
