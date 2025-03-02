@@ -60,6 +60,7 @@ And you always need to check for any third-party gems that are not part of Rails
 - Use Sorbet type annotations for all methods
 - Ensure all files have the appropriate `# typed:` annotation
 - **NEVER use `T.unsafe` calls**. Instead, properly type your code or use appropriate type assertions with `T.let` or `T.cast` when absolutely necessary.
+- `T.untyped` is generally ok for Hash values when they come from unknown sources.
 - When dealing with external libraries, create proper type signatures or use extension methods rather than resorting to `T.unsafe`.
 
 ### Testing
