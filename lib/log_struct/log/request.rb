@@ -3,6 +3,8 @@
 
 require_relative "log_interface"
 require_relative "log_serialization"
+require_relative "request_interface"
+require_relative "request_serialization"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
@@ -13,11 +15,15 @@ module LogStruct
     class Request < T::Struct
       include LogInterface
       include LogSerialization
+      include RequestInterface
+      include RequestSerialization
+
       # Common fields
       const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
       const :lvl, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :msg, T.nilable(String), default: nil
 
       # Request-specific fields
       # NOTE: `method` is a reserved word, so we use a `http_method`
@@ -32,6 +38,10 @@ module LogStruct
       const :view, T.nilable(Float), default: nil
       const :db, T.nilable(Float), default: nil
       const :params, T.nilable(T::Hash[String, T.untyped]), default: nil
+      const :source_ip, T.nilable(String), default: nil
+      const :user_agent, T.nilable(String), default: nil
+      const :referer, T.nilable(String), default: nil
+      const :request_id, T.nilable(String), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
@@ -39,9 +49,13 @@ module LogStruct
       def serialize
         hash = common_serialize
 
+        # Add message if present
+        hash[:msg] = msg if msg
+
         # Add request-specific fields
-        hash[:method] = http_method if http_method # Use `method` in JSON
-        hash[:path] = path if path
+        hash.merge!(serialize_request_fields)
+
+        # Add other request-specific fields
         hash[:format] = format if format
         hash[:controller] = controller if controller
         hash[:action] = action if action
