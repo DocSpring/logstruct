@@ -1,14 +1,15 @@
 # Development Guidelines
 
-# Setup
+# Core Dependencies
 
-Install Watchman (used by Sorbet):
+This gem requires Rails and will always have access to these core Rails modules:
 
-```bash
-brew install watchman
-```
+- `::Rails`
+- `::ActiveSupport`
+- `::ActionDispatch`
+- `::ActionController`
 
-For other platforms: https://facebook.github.io/watchman/docs/install.html
+You do not need to check if these are defined with `defined?` - they are guaranteed to be available.
 
 ## Code Style and Conventions
 

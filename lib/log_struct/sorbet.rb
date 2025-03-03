@@ -11,7 +11,7 @@ require_relative "multi_error_reporter"
 T::Configuration.call_validation_error_handler = lambda do |signature, opts|
   error = TypeError.new(opts[:pretty_message])
 
-  if defined?(Rails) && Rails.env.test?
+  if ::Rails.env.test?
     # Fail hard in tests to catch issues early
     raise error
   else
