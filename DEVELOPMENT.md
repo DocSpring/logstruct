@@ -333,3 +333,22 @@ Remember: Taking shortcuts with Sorbet defeats the purpose of having static type
 - Keep the README up to date
 - Document all public methods
 - Use YARD documentation format
+
+## Principles
+
+### Error Handling: Fail Hard in Tests, Fail Soft in Production
+
+We follow the principle of "fail hard in tests, fail soft in production" for error handling. This means:
+
+- In test environments: Errors should crash the application to catch issues early
+- In production: Errors should be logged/reported but allow the application to continue running
+
+This is particularly important for:
+
+1. Testing our own code - we want to catch type errors and other issues during development
+2. Our users' applications - we want to help them catch issues in their tests while ensuring our gem doesn't crash their production applications
+
+For example, Sorbet type checking failures will:
+
+- Crash in tests to help catch type errors early
+- Log/report in production to avoid disrupting the application
