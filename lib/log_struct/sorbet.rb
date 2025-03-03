@@ -11,6 +11,7 @@ require_relative "multi_error_reporter"
 T::Configuration.call_validation_error_handler = lambda do |signature, opts|
   error = TypeError.new(opts[:pretty_message])
 
+  # More recent versions of Rails support Rails.env.local? (but we support Rails 7.0)
   if ::Rails.env.test? || ::Rails.env.development?
     # Fail hard in test/dev to catch any type issues early (both our own tests and our users' tests)
     raise error
