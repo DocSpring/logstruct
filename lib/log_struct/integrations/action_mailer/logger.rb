@@ -42,14 +42,20 @@ module LogStruct
         sig { params(mailer: T.untyped, error: StandardError, message: String).void }
         def self.log_structured_error(mailer, error, message)
           log_data = build_base_log_data(mailer, "email_error")
-          log_data[:error_class] = T.unsafe(error.class).name
-          log_data[:error_message] = error.message
-          log_data[:msg] = message
-          log_to_rails(log_data, :error)
+
+          # Create an exception log with proper structured data
+          exception_data = Log::Exception.from_exception(
+            LogSource::Mailer,
+            LogEvent::Error,
+            error,
+            log_data.merge(msg: message)
+          )
+
+          log_to_rails(exception_data, :error)
         end
 
         # Log to Rails logger with structured data
-        sig { params(message: T.any(String, T::Hash[T.untyped, T.untyped]), level: Symbol).void }
+        sig { params(message: T.any(String, T::Struct, T::Hash[T.untyped, T.untyped]), level: Symbol).void }
         def self.log_to_rails(message, level = :info)
           ::Rails.logger.public_send(level, message)
         end

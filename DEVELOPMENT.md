@@ -136,6 +136,30 @@ end
 
 This approach ensures proper type checking without using `T.unsafe`.
 
+#### Typing ActiveSupport::Concern included blocks
+
+When using `ActiveSupport::Concern` with an `included` block, you need to use `T.bind` to inform Sorbet about the correct context:
+
+```ruby
+module MyModule
+  extend ActiveSupport::Concern
+
+  requires_ancestor { ParentClass }
+
+  included do
+    # Within the included block, self is the class including this module
+    # Use T.bind to tell Sorbet what class methods are available
+    T.bind(self, ParentClassCallbacks::ClassMethods)
+
+    # Now Sorbet knows these callback methods exist
+    before_action :some_method
+    after_action :another_method
+  end
+end
+```
+
+This pattern is especially important for Rails concerns that set up callbacks, validations, or associations, since these are class methods defined in modules like `ActionController::Callbacks::ClassMethods`, `ActiveRecord::Validations::ClassMethods`, etc.
+
 ### Automatic RBI Generation for Specs
 
 When working with RSpec and the `rspec-sorbet-types` gem, you need to run `tapioca dsl` after adding new `rsig` or test `describe` blocks. To automate this process, you can use the spec watcher script:

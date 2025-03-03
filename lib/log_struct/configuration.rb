@@ -131,7 +131,8 @@ module LogStruct
     # Filtering options for all strings, including plain logs, error messages, etc.
     # -------------------------------------------------------------------------------------
 
-    # Filter email addresses
+    # Filter email addresses. Also controls email filtering for the ActionMailer integration
+    # (to, from, recipient fields, etc.)
     # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :filter_emails

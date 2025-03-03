@@ -17,6 +17,7 @@ rdoc
 referer
 reraise
 reraises
+reraising
 Rescuable
 Rollbar
 rsig
