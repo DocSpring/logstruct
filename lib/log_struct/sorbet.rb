@@ -11,11 +11,11 @@ require_relative "multi_error_reporter"
 T::Configuration.call_validation_error_handler = lambda do |signature, opts|
   error = TypeError.new(opts[:pretty_message])
 
-  if ::Rails.env.test?
-    # Fail hard in tests to catch issues early
+  if ::Rails.env.test? || ::Rails.env.development?
+    # Fail hard in test/dev to catch any type issues early (both our own tests and our users' tests)
     raise error
   else
-    # Fail soft in production by reporting the error
+    # Report/log errors in production but don't crash
     LogStruct::MultiErrorReporter.report_exception(error)
   end
 end
