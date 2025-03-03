@@ -10,14 +10,31 @@ require_relative "multi_error_reporter"
 # https://sorbet.org/docs/runtime#on_failure-changing-what-happens-on-runtime-errors
 T::Configuration.call_validation_error_handler = lambda do |signature, opts|
   error = TypeError.new(opts[:pretty_message])
+  config = LogStruct.config
+  mode = config.mode_for(:type_errors)
 
-  # More recent versions of Rails support Rails.env.local? (but we support Rails 7.0)
-  if ::Rails.env.test? || ::Rails.env.development?
-    # Fail hard in test/dev to catch any type issues early (both our own tests and our users' tests)
+  case mode
+  when :raise
     raise error
-  else
-    # Report/log errors in production but don't crash
+  when :log
+    ::Rails.logger.error(error)
+  when :report
     LogStruct::MultiErrorReporter.report_exception(error)
+  when :log_production
+    if config.should_raise?
+      raise error
+    else
+      ::Rails.logger.error(error)
+    end
+  when :report_production
+    if config.should_raise?
+      raise error
+    else
+      LogStruct::MultiErrorReporter.report_exception(error)
+    end
+  else
+    # Default to logging if somehow we get an invalid mode
+    ::Rails.logger.error(error)
   end
 end
 

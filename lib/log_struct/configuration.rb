@@ -14,14 +14,44 @@ module LogStruct
       }
     end
 
-    # Enable or disable LogStruct
+    # -------------------------------------------------------------------------------------
+    # Core Settings
+    # -------------------------------------------------------------------------------------
+
+    # Environments where LogStruct should be enabled automatically
+    # Default: [:production]
+    sig { returns(T::Array[Symbol]) }
+    attr_accessor :environments
+
+    # Enable or disable LogStruct manually
     # Default: true
     sig { returns(T::Boolean) }
     attr_accessor :enabled
 
     # -------------------------------------------------------------------------------------
-    # Integrations
+    # Error Handling
     # -------------------------------------------------------------------------------------
+
+    # Environments where errors should be raised locally
+    # Default: [:test, :development]
+    sig { returns(T::Array[Symbol]) }
+    attr_accessor :local_environments
+
+    # How to handle different types of errors
+    # Modes:
+    # - :log - always log the error
+    # - :report - always report to tracking service and continue
+    # - :log_production - log in production, raise locally
+    # - :report_production - report in production, raise locally
+    # - :raise - always raise regardless of environment
+    #
+    # Default: {
+    #   type_errors: :log_production,     # Sorbet type errors - raise in test/dev, log in prod
+    #   logstruct_errors: :raise,         # Our own errors - always raise
+    #   other_errors: :log               # Everything else - just log
+    # }
+    sig { returns(T::Hash[Symbol, Symbol]) }
+    attr_accessor :error_handling
 
     # Enable or disable Lograge integration
     # Default: true
@@ -177,6 +207,33 @@ module LogStruct
       @enabled = T.let(true, T::Boolean)
       @lograge_enabled = T.let(true, T::Boolean)
 
+      # Core configuration
+
+      # Which environments should have JSON logs?
+      # Default: [:test, :production]
+      @environments = T.let([:test, :production], T::Array[Symbol])
+
+      # Error handling configuration
+      # Which environments should be considered local? (e.g. for :log_production)
+      @local_environments = T.let([:test, :development], T::Array[Symbol])
+      @error_handling = T.let(
+        {
+          # Sorbet type errors
+          # Default: Raise in test/dev, log in production
+          # Feel free to change this to :ignore if you don't care about type errors.
+          type_errors: :log_production,
+          # Internal LogStruct errors
+          # Default: Raise in test/dev, log in prod
+          # These are any errors that may occur during log filtering and formatting.
+          # (If you raise these in production you won't see any logs for the crashed requests.)
+          logstruct_errors: :log_production,
+          # All other errors (StandardError)
+          # Default: Always re-raise errors after logging
+          standard_errors: :raise
+        },
+        T::Hash[Symbol, Symbol]
+      )
+
       # Applications can provide a proc to extend lograge options
       @lograge_custom_options = nil
 
@@ -256,6 +313,24 @@ module LogStruct
       @filter_ssns = T.let(true, T::Boolean) # Filter social security numbers by default
       @filter_ips = T.let(false, T::Boolean) # Don't filter IP addresses by default
       @filter_macs = T.let(false, T::Boolean) # Don't filter MAC addresses by default
+    end
+
+    # Check if errors should be raised in the current environment
+    sig { returns(T::Boolean) }
+    def should_raise?
+      local_environments.include?(::Rails.env.to_sym)
+    end
+
+    # Check if LogStruct should be enabled in the current environment
+    sig { returns(T::Boolean) }
+    def enabled_for_environment?
+      enabled && environments.include?(::Rails.env.to_sym)
+    end
+
+    # Get the mode for handling a specific type of error
+    sig { params(error_type: Symbol).returns(Symbol) }
+    def mode_for(error_type)
+      error_handling[error_type] || T.must(error_handling[:other_errors])
     end
   end
 end

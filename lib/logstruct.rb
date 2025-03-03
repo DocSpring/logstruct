@@ -36,7 +36,7 @@ module LogStruct
 
     sig { returns(T::Boolean) }
     def enabled?
-      configuration.enabled
+      configuration.enabled_for_environment?
     end
   end
 end
