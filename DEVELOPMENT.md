@@ -160,23 +160,6 @@ end
 
 This pattern is especially important for Rails concerns that set up callbacks, validations, or associations, since these are class methods defined in modules like `ActionController::Callbacks::ClassMethods`, `ActiveRecord::Validations::ClassMethods`, etc.
 
-### Automatic RBI Generation for Specs
-
-When working with RSpec and the `rspec-sorbet-types` gem, you need to run `tapioca dsl` after adding new `rsig` or test `describe` blocks. To automate this process, you can use the spec watcher script:
-
-```bash
-# Start the spec file watcher
-bin/watch_specs
-```
-
-This script will:
-
-- Monitor the `spec/` directory for any file changes
-- Automatically run `bin/tapioca dsl` when changes are detected
-- Display notifications about which files changed and when the tapioca process completes
-
-This is particularly useful when working with `T.bind(self, T.class_of(...))` and `rsig` annotations in your specs, as it eliminates the need to manually run `tapioca dsl` after each change.
-
 ### Common Type Annotations
 
 ```ruby

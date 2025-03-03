@@ -4,13 +4,9 @@
 /coverage/
 /doc/
 /pkg/
-/spec/reports/
 /tmp/
 /Gemfile.lock
 *.gem
 /node_modules/
 /plans/
 /log/
-
-# rspec failure tracking
-.rspec_status

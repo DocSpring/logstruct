@@ -15,7 +15,6 @@ AllCops:
     - public/**/*
     - vendor/**/*
     - tmp/**/*
-    - spec/**/*
     - sorbet/rbi/dsl/**/*
     - sorbet/rbi/gems/**/*
     - sorbet/rbi/annotations/**/*
@@ -37,7 +36,7 @@ Rails/ApplicationMailer:
 
 Performance/OpenStruct:
   Exclude:
-    - spec/**/*
+    - test/**/*
 
 # Testing
 # ------------------------------------------------------------------------------
