@@ -2,9 +2,10 @@
 # frozen_string_literal: true
 
 require_relative "log_interface"
-require_relative "log_serialization"
 require_relative "request_interface"
-require_relative "request_serialization"
+require_relative "msg_interface"
+require_relative "data_interface"
+require_relative "merge_data"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
@@ -15,9 +16,10 @@ module LogStruct
     # Security log entry for structured logging of security-related events
     class Security < T::Struct
       include LogInterface
-      include LogSerialization
       include RequestInterface
-      include RequestSerialization
+      include MsgInterface
+      include DataInterface
+      include MergeData
 
       # Common fields
       const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
@@ -31,7 +33,7 @@ module LogStruct
 
       # Request-related fields
       const :path, T.nilable(String), default: nil
-      const :http_method, T.nilable(String), default: nil
+      const :http_method, T.nilable(String), default: nil, name: "method"
       const :source_ip, T.nilable(String), default: nil
       const :user_agent, T.nilable(String), default: nil
       const :referer, T.nilable(String), default: nil
