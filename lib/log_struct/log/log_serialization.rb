@@ -1,6 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
+require_relative "log_interface"
 module LogStruct
   module Log
     # Common log serialization method

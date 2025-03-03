@@ -18,7 +18,6 @@ module LogStruct
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
       const :lvl, LogLevel, default: T.let(LogLevel::Info, LogLevel)
-      const :msg, T.nilable(String), default: nil
 
       # Request-specific fields
       # NOTE: `method` is a reserved word, so we use a `http_method`
@@ -41,7 +40,6 @@ module LogStruct
         hash = common_serialize
 
         # Add request-specific fields
-        hash[:msg] = msg if msg
         hash[:method] = http_method if http_method # Use `method` in JSON
         hash[:path] = path if path
         hash[:format] = format if format

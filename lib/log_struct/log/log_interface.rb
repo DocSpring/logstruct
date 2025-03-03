@@ -1,6 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
+require_relative "../log_source"
+require_relative "../log_event"
+require_relative "../log_level"
+
 module LogStruct
   module Log
     # Common interface that all log entry types must implement

@@ -16,23 +16,25 @@ module LogStruct
           # Define the response app as a separate variable to fix block alignment
           response_app = lambda do |env|
             request = ::ActionDispatch::Request.new(env)
+            # Include the blocked hosts app configuration in the log entry
+            # This can be helpful later when reviewing logs.
             blocked_hosts = env["action_dispatch.blocked_hosts"]
 
-            # Log the blocked host attempt as a hash
-            # (converted to JSON by the Rails log formatter)
-            ::Rails.logger.warn(
-              src: LogSource::Rails,
-              evt: LogEvent::Security,
-              violation_type: SecurityEvent::BlockedHost,
+            # Create a structured security log entry
+            security_log = LogStruct::Log::Security.new(
+              sec_evt: LogSecurityEvent::BlockedHost,
+              msg: "Blocked host detected: #{request.host}",
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,
               request_id: request.request_id,
               path: request.path,
-              method: request.method,
+              http_method: request.method,
               source_ip: request.remote_ip,
               user_agent: request.user_agent,
               referer: request.referer
             )
+            # Log the structured data
+            ::Rails.logger.warn(security_log)
 
             # Return a 403 Forbidden response
             [403, {"Content-Type" => "text/plain"}, ["Forbidden: Blocked Host"]]
