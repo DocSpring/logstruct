@@ -3,7 +3,7 @@
 
 module LogStruct
   # Define log source types as an enum
-  class LogViolationType < T::Enum
+  class SecurityEvent < T::Enum
     enums do
       IpSpoof = new(:ip_spoof_attack)
       Csrf = new(:csrf_token_error)

@@ -23,7 +23,7 @@ module LogStruct
             ::Rails.logger.warn(
               src: LogSource::Rails,
               evt: LogEvent::Security,
-              violation_type: LogViolationType::BlockedHost,
+              violation_type: SecurityEvent::BlockedHost,
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,
               request_id: request.request_id,

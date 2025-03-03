@@ -5,6 +5,7 @@ require_relative "log_interface"
 require_relative "log_serialization"
 require_relative "../log_source"
 require_relative "../log_event"
+require_relative "../log_level"
 
 module LogStruct
   module Log
@@ -17,6 +18,7 @@ module LogStruct
       const :src, LogSource # Used by all sources, should not have a default.
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
+      const :lvl, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
       # Exception-specific fields
       const :err_class, T.class_of(StandardError)

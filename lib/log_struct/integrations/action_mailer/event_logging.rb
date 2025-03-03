@@ -49,7 +49,7 @@ module LogStruct
           data = {
             message_id: Logger.extract_message_id(self),
             mailer_class: self.class.to_s,
-            mailer_action: action_name.to_
+            mailer_action: action_name.to_s
           }.compact
 
           # Add any additional metadata
@@ -62,9 +62,22 @@ module LogStruct
           from = mailer_message&.from&.first
           subject = mailer_message&.subject
 
+          # Map Rails log level to LogStruct::LogLevel
+          log_level = case level
+          when :error, :fatal
+            LogStruct::LogLevel::Error
+          when :warn
+            LogStruct::LogLevel::Warn
+          when :debug
+            LogStruct::LogLevel::Debug
+          else
+            LogStruct::LogLevel::Info
+          end
+
           # Create a structured log entry
           log_data = LogStruct::Log::Email.new(
             evt: event_type,
+            lvl: log_level,
             to: to,
             from: from,
             subject: subject,

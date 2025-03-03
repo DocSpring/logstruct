@@ -16,7 +16,8 @@ module LogStruct
         {
           src: src.serialize,
           evt: evt.serialize,
-          ts: ts.iso8601(3)
+          ts: ts.iso8601(3),
+          lvl: lvl.serialize
         }
       end
     end
