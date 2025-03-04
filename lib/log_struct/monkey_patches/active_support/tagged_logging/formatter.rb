@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require "active_support/tagged_logging"
@@ -9,6 +9,7 @@ require "active_support/tagged_logging"
 module ActiveSupport
   module TaggedLogging
     module FormatterExtension
+      extend T::Sig
       extend T::Helpers
       requires_ancestor { ::ActiveSupport::TaggedLogging::Formatter }
 
@@ -16,6 +17,7 @@ module ActiveSupport
       # plain strings in a Hash under a `msg` key.
       # The data is then passed to our custom log formatter that transforms it
       # into a JSON string before logging.
+      sig { params(severity: T.any(String, Symbol), time: Time, progname: T.untyped, data: T.untyped).returns(String) }
       def call(severity, time, progname, data)
         # Convert data to a hash if it's not already one
         data = {message: data.to_s} unless data.is_a?(Hash)

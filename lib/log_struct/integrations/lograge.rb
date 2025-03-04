@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 begin
@@ -12,7 +12,9 @@ module LogStruct
     # Lograge integration for structured request logging
     module Lograge
       class << self
+        extend T::Sig
         # Set up lograge for structured request logging
+        sig { returns(T.nilable(TrueClass)) }
         def setup
           return unless defined?(::Lograge)
           return unless LogStruct.enabled?
@@ -80,6 +82,7 @@ module LogStruct
         private
 
         # Process headers from the event payload
+        sig { params(event: ActiveSupport::Notifications::Event, options: T::Hash[Symbol, T.untyped]).void }
         def process_headers(event, options)
           headers = event.payload[:headers]
           return if headers.blank?
@@ -97,6 +100,7 @@ module LogStruct
         end
 
         # Apply custom options from the application's configuration
+        sig { params(event: ActiveSupport::Notifications::Event, options: T::Hash[Symbol, T.untyped]).void }
         def apply_custom_options(event, options)
           custom_options_proc = LogStruct.config.integrations.lograge_custom_options
           return unless custom_options_proc&.respond_to?(:call)

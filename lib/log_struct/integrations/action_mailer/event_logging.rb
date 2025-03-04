@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 module LogStruct
@@ -7,7 +7,7 @@ module LogStruct
       # Handles logging of email delivery events
       module EventLogging
         extend ActiveSupport::Concern
-
+        extend T::Sig
         extend T::Helpers
         requires_ancestor { ::ActionMailer::Base }
 

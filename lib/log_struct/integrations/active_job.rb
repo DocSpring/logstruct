@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 begin
@@ -15,7 +15,9 @@ module LogStruct
     # ActiveJob integration for structured logging
     module ActiveJob
       class << self
+        extend T::Sig
         # Set up ActiveJob structured logging
+        sig { returns(T.nilable(TrueClass)) }
         def setup
           return unless defined?(::ActiveJob::LogSubscriber)
           return unless LogStruct.enabled?

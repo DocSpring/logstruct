@@ -12,6 +12,7 @@ module LogStruct
     # CarrierWave integration for structured logging
     module CarrierWave
       class << self
+        extend T::Sig
         # Set up CarrierWave structured logging
         sig { void }
         def setup

@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require "action_dispatch/middleware/host_authorization"
@@ -8,7 +8,9 @@ module LogStruct
     # Host Authorization integration for structured logging of blocked hosts
     module HostAuthorization
       class << self
+        extend T::Sig
         # Set up host authorization logging
+        sig { returns(T.nilable(TrueClass)) }
         def setup
           return unless LogStruct.enabled?
           return unless LogStruct.config.integrations.enable_host_authorization

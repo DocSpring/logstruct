@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 require_relative "../log_source"
@@ -10,7 +10,9 @@ module LogStruct
     # Integration for ActiveStorage structured logging
     module ActiveStorage
       class << self
+        extend T::Sig
         # Set up ActiveStorage structured logging
+        sig { returns(T.nilable(TrueClass)) }
         def setup
           return unless defined?(::ActiveStorage)
 
@@ -23,6 +25,7 @@ module LogStruct
         private
 
         # Process ActiveStorage events and create structured logs
+        sig { params(event: ActiveSupport::Notifications::Event).void }
         def process_active_storage_event(event)
           return unless LogStruct.enabled?
           return unless LogStruct.config.integrations.enable_active_storage
