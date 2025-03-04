@@ -37,7 +37,7 @@ module LogStruct
 
         # Log a mailer event with the given event type
         sig do
-          params(event_type: Log::Email::EmailLogEvent,
+          params(event_type: Log::ActionMailer::EmailLogEvent,
             level: Symbol,
             additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped)
         end
@@ -63,7 +63,7 @@ module LogStruct
           subject = mailer_message&.subject
 
           # Create a structured log entry
-          log_data = Log::Email.new(
+          log_data = Log::ActionMailer.new(
             event: event_type,
             level: LogLevel::Info,
             to: to,

@@ -61,8 +61,7 @@ module LogStruct
           end
 
           # Create structured log event for this storage operation
-          log_data = Log::Storage.new(
-            source: Source::Storage,
+          log_data = Log::ActiveStorage.new(
             event: event_type,
             checksum: event.payload[:checksum].to_s,
             duration: duration

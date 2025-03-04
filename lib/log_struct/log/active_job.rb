@@ -12,8 +12,8 @@ require_relative "../log_keys"
 
 module LogStruct
   module Log
-    # Job log entry for structured logging
-    class Job < T::Struct
+    # ActiveJob log entry for structured logging
+    class ActiveJob < T::Struct
       extend T::Sig
 
       include Interfaces::CommonFields
@@ -31,7 +31,7 @@ module LogStruct
       }
 
       # Common fields
-      const :source, Source, default: T.let(Source::Job, Source)
+      const :source, Source::Job, default: T.let(Source::Job, Source::Job)
       const :event, JobLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)

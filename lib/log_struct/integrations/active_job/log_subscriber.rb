@@ -3,7 +3,7 @@
 
 require_relative "../../enums/source"
 require_relative "../../enums/log_event"
-require_relative "../../log/job"
+require_relative "../../log/active_job"
 require_relative "../../log/exception"
 
 module LogStruct
@@ -49,7 +49,7 @@ module LogStruct
         sig { params(event_type: T.any(LogEvent::Enqueue, LogEvent::Schedule, LogEvent::Start, LogEvent::Finish), job: T.untyped, _event: T.untyped, additional_data: T::Hash[Symbol, T.untyped]).void }
         def log_job_event(event_type, job, _event, additional_data = {})
           # Create structured log data
-          log_data = Log::Job.new(
+          log_data = Log::ActiveJob.new(
             event: event_type,
             job_id: job.job_id,
             job_class: job.class.to_s,

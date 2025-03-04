@@ -13,7 +13,7 @@ require_relative "../log_keys"
 module LogStruct
   module Log
     # Email log entry for structured logging
-    class Email < T::Struct
+    class ActionMailer < T::Struct
       extend T::Sig
 
       include Interfaces::CommonFields
@@ -26,7 +26,7 @@ module LogStruct
       }
 
       # Common fields
-      const :source, Source, default: T.let(Source::Mailer, Source)
+      const :source, Source::Mailer, default: T.let(Source::Mailer, Source::Mailer)
       const :event, EmailLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)

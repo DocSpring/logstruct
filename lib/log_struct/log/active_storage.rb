@@ -9,15 +9,15 @@ require_relative "../enums/log_level"
 
 module LogStruct
   module Log
-    # Storage log entry for structured logging
-    class Storage < T::Struct
+    # ActiveStorage log entry for structured logging
+    class ActiveStorage < T::Struct
       extend T::Sig
 
       include Interfaces::CommonFields
       include SerializeCommon
 
       # Common fields
-      const :source, Source, default: T.let(Source::Storage, Source)
+      const :source, Source::Storage, default: T.let(Source::Storage, Source::Storage)
       const :event, LogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
