@@ -38,18 +38,16 @@ module LogStruct
         nil
       }
 
-      # Force initialization with Sentry
-      MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
-
-      # Stub both initialize_reporter and the Sentry method
-      MultiErrorReporter.stub(:initialize_reporter,
-        -> {
-          MultiErrorReporter.instance_variable_set(:@error_reporter, ErrorReporter::Sentry)
-        }) do
-        ::Sentry.stub(:capture_exception, capture_stub) do
-          # Make the call to test
-          MultiErrorReporter.report_exception(@exception, @context)
-        end
+      # Set the reporter to Sentry
+      MultiErrorReporter.reporter = :sentry
+      
+      # Verify that Sentry is the current reporter
+      assert_equal ErrorReporter::Sentry, MultiErrorReporter.reporter
+      
+      # Stub the Sentry method
+      ::Sentry.stub(:capture_exception, capture_stub) do
+        # Make the call to test
+        MultiErrorReporter.report_exception(@exception, @context)
       end
 
       assert called, "Sentry.capture_exception should have been called"
@@ -98,7 +96,7 @@ module LogStruct
       end
 
       assert_mock report_mock
-      assert_equal ErrorReporter::Bugsnag, MultiErrorReporter.error_reporter
+      assert_equal ErrorReporter::Bugsnag, MultiErrorReporter.reporter
     end
 
     def test_report_exception_with_rollbar
@@ -114,7 +112,7 @@ module LogStruct
       end
 
       assert_mock rollbar_mock
-      assert_equal ErrorReporter::Rollbar, MultiErrorReporter.error_reporter
+      assert_equal ErrorReporter::Rollbar, MultiErrorReporter.reporter
     end
 
     def test_report_exception_with_honeybadger
@@ -130,7 +128,7 @@ module LogStruct
       end
 
       assert_mock honeybadger_mock
-      assert_equal ErrorReporter::Honeybadger, MultiErrorReporter.error_reporter
+      assert_equal ErrorReporter::Honeybadger, MultiErrorReporter.reporter
     end
 
     def test_report_exception_with_no_service
@@ -142,12 +140,11 @@ module LogStruct
       original_constants[:Honeybadger] = Object.send(:remove_const, :Honeybadger) if defined?(::Honeybadger)
 
       begin
-        # Reset the reporter to force reinitialization with no services available
-        MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
-
-        # Stub the initialize_reporter method to return RailsLogger
-        init_mock = Minitest::Mock.new
-        init_mock.expect(:call, ErrorReporter::RailsLogger)
+        # Reset the reporter to force detection with no services available
+        MultiErrorReporter.instance_variable_set(:@reporter, nil)
+        
+        # Verify that RailsLogger is detected when no services are available
+        assert_equal ErrorReporter::RailsLogger, MultiErrorReporter.reporter
 
         # Create a log mock to verify LogStruct.log was called correctly
         log_mock = Minitest::Mock.new
@@ -160,16 +157,13 @@ module LogStruct
           true
         end
 
-        # This is where we actually call report_exception with our mocks
-        MultiErrorReporter.stub(:initialize_reporter, init_mock) do
-          LogStruct.stub(:log, log_mock) do
-            MultiErrorReporter.report_exception(@exception, @context)
-          end
+        # This is where we actually call report_exception with our mock
+        LogStruct.stub(:log, log_mock) do
+          MultiErrorReporter.report_exception(@exception, @context)
         end
 
-        # Verify our mocks were called
+        # Verify our mock was called
         assert_mock log_mock
-        assert_mock init_mock
       ensure
         # Restore constants
         original_constants.each do |const, value|
@@ -204,7 +198,7 @@ module LogStruct
       end
 
       assert_mock sentry_mock
-      assert_equal ErrorReporter::Sentry, MultiErrorReporter.error_reporter
+      assert_equal ErrorReporter::Sentry, MultiErrorReporter.reporter
     end
   end
 end
