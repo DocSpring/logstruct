@@ -40,26 +40,26 @@ module LogStruct
       const :range, T.nilable(String), default: nil
 
       # Convert the log entry to a hash for serialization
-      sig { override.returns(T::Hash[Symbol, T.untyped]) }
-      def serialize
-        hash = serialize_common
+      sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+      def serialize(strict = true)
+        hash = serialize_common(strict)
 
         # Add storage-specific fields
-        hash[:storage] = storage if storage
-        hash[:operation] = operation if operation
-        hash[:file_id] = file_id if file_id
-        hash[:filename] = filename if filename
-        hash[:mime_type] = mime_type if mime_type
-        hash[:size] = size if size
-        hash[:metadata] = metadata if metadata
-        hash[:duration] = duration if duration
+        hash[LogKeys::STORAGE] = storage if storage
+        hash[LogKeys::OP] = operation if operation
+        hash[LogKeys::FILE_ID] = file_id if file_id
+        hash[LogKeys::FILENAME] = filename if filename
+        hash[LogKeys::MIME_TYPE] = mime_type if mime_type
+        hash[LogKeys::SIZE] = size if size
+        hash[LogKeys::METADATA] = metadata if metadata
+        hash[LogKeys::DURATION] = duration if duration
 
         # Add ActiveStorage-specific fields
-        hash[:checksum] = checksum if checksum
-        hash[:exist] = exist if !exist.nil?
-        hash[:url] = url if url
-        hash[:prefix] = prefix if prefix
-        hash[:range] = range if range
+        hash[LogKeys::CHECKSUM] = checksum if checksum
+        hash[LogKeys::EXIST] = exist if !exist.nil?
+        hash[LogKeys::URL] = url if url
+        hash[LogKeys::PREFIX] = prefix if prefix
+        hash[LogKeys::RANGE] = range if range
 
         hash
       end

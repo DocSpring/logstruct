@@ -13,9 +13,10 @@ module LogStruct
 
       requires_ancestor { Interfaces::CommonFields }
 
-      # Convert the log entry to a hash for serialization
-      sig { returns(T::Hash[Symbol, T.untyped]) }
-      def serialize_common
+      # Convert the log entry to a hash for serialization.
+      # (strict param is unused, but need same signature as default T::Struct.serialize)
+      sig { params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+      def serialize_common(strict = true)
         {
           LogKeys::SRC => source.serialize,
           LogKeys::EVT => event.serialize,

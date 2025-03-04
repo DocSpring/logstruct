@@ -58,7 +58,14 @@ module LogStruct
     TID = :tid # Thread ID
     CTX = :ctx # Context
 
-    # Storage-specific fields
+    # Storage-specific fields (ActiveStorage)
+    CHECKSUM = :checksum
+    EXIST = :exist
+    URL = :url
+    PREFIX = :prefix
+    RANGE = :range
+
+    # Storage-specific fields (Shrine)
     STORAGE = :storage
     OP = :op # Operation
     FILE_ID = :file_id

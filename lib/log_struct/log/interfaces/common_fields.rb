@@ -30,6 +30,10 @@ module LogStruct
         # The log level of the log entry (JSON property: lvl)
         sig { abstract.returns(LogLevel) }
         def level; end
+
+        # All logs must define a custom serialize method
+        sig { abstract.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+        def serialize(strict = true); end
       end
     end
   end

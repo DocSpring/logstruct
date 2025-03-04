@@ -107,24 +107,47 @@ module LogStruct
       arg
     end
 
+    sig { params(log_value: T.untyped, time: Time).returns(T::Hash[Symbol, T.untyped]) }
+    def log_value_to_hash(log_value, time:)
+      case log_value
+      when Log::Interfaces::CommonFields
+        # Our log classes all implement a custom #serialize method that use symbol keys
+        log_value.serialize
+
+      when T::Struct
+        # Default T::Struct.serialize methods returns a hash with string keys, so convert them to symbols
+        log_value.serialize.deep_symbolize_keys
+
+      when Hash
+        # Use hash as is and convert string keys to symbols
+        log_value.dup.deep_symbolize_keys
+
+      else
+        # Create a Plain log with the message as a string and serialize it with symbol keys
+        # log_value can be literally anything: Integer, Float, Boolean, NilClass, etc.
+        log_message = case log_value
+        # Handle all the basic types without any further processing
+        when String, Symbol, Numeric, TrueClass, FalseClass, NilClass, Array, Hash, Time
+          log_value
+        else
+          if log_value.respond_to?(:as_json)
+            log_value.as_json
+          else
+            log_value.to_s
+          end
+        end
+
+        Log::Plain.new(
+          message: log_message,
+          timestamp: time
+        ).serialize
+      end
+    end
+
+    # Serializes Log (or string) into JSON
     sig { params(severity: String, time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
-      # Handle different types of log values
-      data = case log_value
-      when T::Struct
-        # Convert T::Struct to a hash
-        log_value.serialize
-      when Hash
-        # Use hash as is
-        log_value.dup
-      else
-        # Create a Plain struct with the message and then serialize it
-        plain = Log::Plain.new(
-          message: log_value.to_s,
-          timestamp: time
-        )
-        plain.serialize
-      end
+      data = log_value_to_hash(log_value, time: time)
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = process_values(data)

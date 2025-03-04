@@ -45,9 +45,9 @@ module LogStruct
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
-      sig { override.returns(T::Hash[Symbol, T.untyped]) }
-      def serialize
-        hash = serialize_common
+      sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+      def serialize(strict = true)
+        hash = serialize_common(strict)
         merge_data_fields(hash)
 
         # Add job-specific fields if they're present

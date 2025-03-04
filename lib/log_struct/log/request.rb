@@ -50,9 +50,9 @@ module LogStruct
       const :request_id, T.nilable(String), default: nil
 
       # Convert the log entry to a hash for serialization
-      sig { override.returns(T::Hash[Symbol, T.untyped]) }
-      def serialize
-        hash = serialize_common
+      sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+      def serialize(strict = true)
+        hash = serialize_common(strict)
         add_request_fields(hash)
         hash[LogKeys::METHOD] = http_method if http_method
         hash[LogKeys::PATH] = path if path
