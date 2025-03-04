@@ -11,8 +11,7 @@ require_relative "error_handling_mode"
 # https://sorbet.org/docs/runtime#on_failure-changing-what-happens-on-runtime-errors
 T::Configuration.call_validation_error_handler = lambda do |signature, opts|
   error = TypeError.new(opts[:pretty_message])
-  mode = LogStruct.config.mode_for(:type_errors)
-  mode.handle(error)
+  LogStruct.handle_error(LogStruct::ErrorSource::Sorbet, error)
 end
 
 # Extend T::Sig to all modules so we don't have to write `extend T::Sig` everywhere.

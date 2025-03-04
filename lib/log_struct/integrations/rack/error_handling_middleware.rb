@@ -35,7 +35,12 @@ module LogStruct
             # Log the structured data
             ::Rails.logger.warn(security_log)
 
-            # Return a custom response for IP spoofing instead of raising
+            # Report the error
+            context = extract_request_context(env)
+            LogStruct.handle_exception(ErrorSource::Security, ip_spoof_error, context)
+
+            # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
+            # If we are only logging or reporting these security errors, then return a default response
             [403, {"Content-Type" => "text/plain"}, ["Forbidden: IP Spoofing Detected"]]
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
             # Create a security log for CSRF error
@@ -56,8 +61,11 @@ module LogStruct
 
             # Report to error reporting service and re-raise
             context = extract_request_context(env)
-            MultiErrorReporter.report_exception(invalid_auth_token_error, context)
-            raise # Re-raise to let Rails handle the response
+            LogStruct.handle_exception(ErrorSource::Security, invalid_auth_token_error, context)
+
+            # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
+            # If we are only logging or reporting these security errors, then return a default response
+            [403, {"Content-Type" => "text/plain"}, ["Forbidden: CSRF Error"]]
           rescue => error
             # Log other exceptions with request context
             log_event(
@@ -68,10 +76,12 @@ module LogStruct
               error_message: error.message
             )
 
-            # Report to error reporting service and re-raise
+            # Report to error reporting service and re-raise (if configured)
             context = extract_request_context(env)
-            MultiErrorReporter.report_exception(error, context)
-            raise # Re-raise to let Rails handle the response
+            LogStruct.handle_exception(ErrorSource::Request, error, context)
+
+            # Must always re-raise any general errors. This cannot be configured
+            raise error
           end
         end
 
@@ -93,8 +103,7 @@ module LogStruct
 
         def log_event(env, event:, level:, client_ip: nil, **custom_fields)
           # WARNING: Calling .remote_ip on the request will raise an error
-          # if this is a remote IP spoofing attack. It's still safe to call
-          # any other methods.
+          # if this is a remote IP spoofing attack. But it's still safe to call other methods.
           request = ::ActionDispatch::Request.new(env)
 
           log_data = {

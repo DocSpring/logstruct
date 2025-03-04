@@ -88,7 +88,7 @@ module LogStruct
               arg
             end
           rescue => e
-            MultiErrorReporter.report_exception(e)
+            LogStruct.handle_exception(LogStruct::ErrorSource::LogStruct, e)
             "[GLOBALID_ERROR]"
           end
         end

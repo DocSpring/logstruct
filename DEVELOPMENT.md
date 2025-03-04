@@ -1,5 +1,11 @@
 # Development Guidelines
 
+# Sorbet Usage
+
+- We use `sorbet-runtime` for runtime type checking. This is a hard dependency for the gem.
+- `T::Sig` is available globally - we extend it once in `sorbet.rb` and it's available to all modules
+- No need to `extend T::Sig` in individual files
+
 # Core Dependencies
 
 This gem requires Rails and will always have access to these core Rails modules:
@@ -337,19 +343,15 @@ Remember: Taking shortcuts with Sorbet defeats the purpose of having static type
 
 ## Principles
 
-### Error Handling: Fail Hard in Test/Dev, Fail Soft in Production
+### Error Handling: Fail Hard in Tests, Fail Soft in Production
 
-We follow the principle of "fail hard in test/dev, fail soft in production" for error handling. This means:
+We follow the principle of "fail hard in tests, fail soft in production":
 
-- In test or development environments: All errors should crash the application so we catch issues early
-- In production: Some errors should be logged/reported while allowing the application to continue running
+- In local (test/dev) environments, we raise errors to catch issues early
+- In production environments, we log or report errors but allow the application to continue running
+- This applies to both our own errors and errors from dependencies (e.g. Sorbet type checking failures)
 
-This is particularly important for:
+This principle is important for both testing our code and for users' applications:
 
-1. Testing our own code - We want to catch type errors and other issues during development
-2. Our users' applications - We want to help them catch issues in their tests or during development while ensuring our gem doesn't crash their production applications
-
-For example, Sorbet type checking failures will:
-
-- Crash in tests to help catch type errors early
-- Log/report in production to avoid disrupting the application
+- During development and testing, we want to catch type errors and other issues as early as possible
+- In production, we don't want to crash users' applications due to errors in our code
