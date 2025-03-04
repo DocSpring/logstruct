@@ -74,17 +74,19 @@ module LogStruct
             # If we are only logging or reporting these security errors, then return a default response
             [403, {CONTENT_TYPE_HEADER => CONTENT_TYPE_TEXT}, [CSRF_RESPONSE]]
           rescue => error
-            # Log other exceptions with request context
-            log_event(
-              env,
-              level: :error,
-              event: LogEvent::Error,
-              error_class: error.class.to_s,
-              error_message: error.message
+            # Extract request context for error reporting
+            context = extract_request_context(env)
+            
+            # Create and log a structured exception with request context
+            exception_log = Log::Exception.from_exception(
+              Source::Request,
+              error,
+              context
             )
+            LogStruct.log(exception_log)
 
             # Re-raise any standard errors to let Rails or error reporter handle it.
-            # This cannot be configured.
+            # Rails will also log the request details separately
             raise error
           end
         end
@@ -106,25 +108,6 @@ module LogStruct
           {error_extracting_context: error.message}
         end
 
-        sig { params(env: T.untyped, event: LogEvent, level: Symbol, client_ip: T.nilable(String)).void }
-        def log_event(env, event:, level:, client_ip: nil, **custom_fields)
-          # WARNING: Calling .remote_ip on the request will raise an error
-          # if this is a remote IP spoofing attack. But it's still safe to call other methods.
-          request = ::ActionDispatch::Request.new(env)
-
-          log_data = Log::Request.new(
-            source: Source::Rails,
-            event: event,
-            level: level,
-            request_id: request.request_id,
-            client_ip: client_ip || request.remote_ip,
-            path: request.path,
-            http_method: request.method,
-            user_agent: request.user_agent,
-            referer: request.referer
-          )
-          LogStruct.log(log_data)
-        end
       end
     end
   end
