@@ -1,4 +1,4 @@
-# typed: false
+# typed: true
 # frozen_string_literal: true
 
 require "test_helper"
@@ -6,184 +6,164 @@ require "log_struct/configuration"
 require "log_struct/error_handling_mode"
 
 module LogStruct
-  class ConfigurationTest < ActiveSupport::TestCase
+  class ConfigurationTest < Minitest::Test
     def setup
       @config = Configuration.new
     end
 
-    def test_default_values
-      # Test default values for boolean flags
-      assert @config.enabled
-      assert @config.lograge_enabled
-      assert @config.actionmailer_integration_enabled
-      assert @config.host_authorization_enabled
-      assert @config.activejob_integration_enabled
-      assert @config.rack_middleware_enabled
-      assert @config.sidekiq_integration_enabled
-      assert @config.shrine_integration_enabled
-      assert @config.active_storage_integration_enabled
-      assert @config.carrierwave_integration_enabled
-
-      # Test default values for log scrubbing options
-      assert @config.filter_emails
-      assert @config.filter_url_passwords
-      assert @config.filter_credit_cards
-      assert @config.filter_phones
-      assert @config.filter_ssns
-      assert_not @config.filter_ips
-      assert_not @config.filter_macs
-
-      # Test default values for other settings
-      assert_equal "l0g5t0p", @config.hash_salt
-      assert_equal 12, @config.hash_length
-      assert_nil @config.lograge_custom_options
-      assert_nil @config.string_scrubbing_handler
-    end
-
-    def test_exception_reporting_handler
-      # The default handler should be a proc
-      assert_instance_of Proc, @config.exception_reporting_handler
-
-      # Create a test exception and context
-      error = StandardError.new("Test error")
-      context = {user_id: 123}
-
-      # Mock Rails.logger to verify the handler calls it
-      logger_mock = Minitest::Mock.new
-      logger_mock.expect(:error, nil, [Hash])
-
-      Rails.stub(:logger, logger_mock) do
-        @config.exception_reporting_handler.call(error, context)
-      end
-
-      assert_mock logger_mock
-    end
-
-    def test_custom_exception_reporting_handler
-      # Set a custom handler
-      custom_handler_called = false
-      custom_handler = ->(error, context) {
-        custom_handler_called = true
-
-        assert_instance_of StandardError, error
-        assert_equal({user_id: 123}, context)
-      }
-
-      @config.exception_reporting_handler = custom_handler
-
-      # Call the handler
-      @config.exception_reporting_handler.call(StandardError.new("Test"), {user_id: 123})
-
-      # Verify the custom handler was called
-      assert custom_handler_called
-    end
-
-    def test_custom_string_scrubbing_handler
-      # Set a custom scrubbing handler
-      custom_scrubber = ->(msg) { "SCRUBBED: #{msg}" }
-      @config.string_scrubbing_handler = custom_scrubber
-
-      # Verify the handler is set correctly
-      assert_equal custom_scrubber, @config.string_scrubbing_handler
-      assert_equal "SCRUBBED: test message", @config.string_scrubbing_handler.call("test message")
-    end
-
-    def test_custom_lograge_options
-      # Set custom lograge options
-      custom_options = ->(event, options) { {custom: "value"} }
-      @config.lograge_custom_options = custom_options
-
-      # Verify the options are set correctly
-      assert_equal custom_options, @config.lograge_custom_options
-    end
-
-    def test_toggle_settings
-      # Test toggling boolean settings
-      @config.enabled = false
-
-      assert_not @config.enabled
-
-      @config.filter_ips = true
-
-      assert @config.filter_ips
-
-      @config.sidekiq_integration_enabled = false
-
-      assert_not @config.sidekiq_integration_enabled
-    end
-
-    def test_email_hash_settings
-      # Test changing email hash settings
-      @config.hash_salt = "custom_salt"
-
-      assert_equal "custom_salt", @config.hash_salt
-
-      @config.hash_length = 16
-
-      assert_equal 16, @config.hash_length
-    end
+    # -------------------------------------------------------------------------------------
+    # Error Handling Tests
+    # -------------------------------------------------------------------------------------
 
     def test_default_error_handling_modes
-      assert_equal ErrorHandlingMode::LogProduction, @config.error_handling[:type_errors]
-      assert_equal ErrorHandlingMode::LogProduction, @config.error_handling[:logstruct_errors]
-      assert_equal ErrorHandlingMode::Raise, @config.error_handling[:standard_errors]
+      assert_equal ErrorHandlingMode::Log, @config.error_handling.type_errors
+      assert_equal ErrorHandlingMode::Log, @config.error_handling.logstruct_errors
+      assert_equal ErrorHandlingMode::Log, @config.error_handling.standard_errors
     end
 
-    def test_setting_individual_error_handling_mode
-      @config.error_handling[:type_errors] = :ignore
+    def test_error_handling_modes_can_be_configured_individually
+      @config.error_handling.type_errors = ErrorHandlingMode::Ignore
+      @config.error_handling.logstruct_errors = ErrorHandlingMode::Report
+      @config.error_handling.standard_errors = ErrorHandlingMode::RaiseError
 
-      assert_equal ErrorHandlingMode::Ignore, @config.error_handling[:type_errors]
+      assert_equal ErrorHandlingMode::Ignore, @config.error_handling.type_errors
+      assert_equal ErrorHandlingMode::Report, @config.error_handling.logstruct_errors
+      assert_equal ErrorHandlingMode::RaiseError, @config.error_handling.standard_errors
     end
 
-    def test_setting_multiple_error_handling_modes
-      @config.error_handling = {
+    def test_error_handling_exception_reporting_handler
+      handler = ->(e) { puts e.message }
+      @config.error_handling.exception_reporting_handler = handler
+
+      assert_equal handler, @config.error_handling.exception_reporting_handler
+    end
+
+    # -------------------------------------------------------------------------------------
+    # Integration Tests
+    # -------------------------------------------------------------------------------------
+
+    def test_default_integration_settings
+      assert @config.integrations.lograge_enabled
+      assert @config.integrations.emails_enabled
+    end
+
+    def test_integration_settings_can_be_configured
+      @config.integrations.lograge_enabled = false
+      @config.integrations.emails_enabled = false
+
+      assert_not @config.integrations.lograge_enabled
+      assert_not @config.integrations.emails_enabled
+    end
+
+    # -------------------------------------------------------------------------------------
+    # Filter Tests
+    # -------------------------------------------------------------------------------------
+
+    def test_default_filter_settings
+      assert @config.filters.filter_enabled
+      assert @config.filters.filter_emails
+      assert @config.filters.filter_phone_numbers
+      assert @config.filters.filter_credit_cards
+      assert_empty @config.filters.filtered_keys
+      assert_empty @config.filters.hashed_keys
+      assert_equal "YOUR-SALT-HERE", @config.filters.hash_salt
+      assert_equal 8, @config.filters.hash_length
+    end
+
+    def test_filter_settings_can_be_configured
+      @config.filters.filter_enabled = false
+      @config.filters.filter_emails = false
+      @config.filters.filter_phone_numbers = false
+      @config.filters.filter_credit_cards = false
+      @config.filters.filtered_keys = [:password, :secret]
+      @config.filters.hashed_keys = [:email, :phone]
+      @config.filters.hash_salt = "test-salt"
+      @config.filters.hash_length = 16
+
+      assert_not @config.filters.filter_enabled
+      assert_not @config.filters.filter_emails
+      assert_not @config.filters.filter_phone_numbers
+      assert_not @config.filters.filter_credit_cards
+      assert_equal [:password, :secret], @config.filters.filtered_keys
+      assert_equal [:email, :phone], @config.filters.hashed_keys
+      assert_equal "test-salt", @config.filters.hash_salt
+      assert_equal 16, @config.filters.hash_length
+    end
+
+    # -------------------------------------------------------------------------------------
+    # Environment Tests
+    # -------------------------------------------------------------------------------------
+
+    def test_default_environment_settings
+      assert_equal [:development, :test], @config.local_environments
+      assert_equal [:development, :test, :staging, :production], @config.environments
+    end
+
+    def test_environment_settings_can_be_configured
+      @config.local_environments = [:development]
+      @config.environments = [:production]
+
+      assert_equal [:development], @config.local_environments
+      assert_equal [:production], @config.environments
+    end
+
+    # -------------------------------------------------------------------------------------
+    # Untyped Configuration API Tests
+    # -------------------------------------------------------------------------------------
+
+    def test_untyped_error_handling_configuration
+      untyped = Configuration::Untyped.new(@config)
+      untyped.error_handling.configure(
         type_errors: :ignore,
-        logstruct_errors: :raise
-      }
+        logstruct_errors: :report,
+        standard_errors: :raise_error
+      )
 
-      assert_equal ErrorHandlingMode::Ignore, @config.error_handling[:type_errors]
-      assert_equal ErrorHandlingMode::Raise, @config.error_handling[:logstruct_errors]
-      assert_equal ErrorHandlingMode::Raise, @config.error_handling[:standard_errors] # Default preserved
+      assert_equal ErrorHandlingMode::Ignore, @config.error_handling.type_errors
+      assert_equal ErrorHandlingMode::Report, @config.error_handling.logstruct_errors
+      assert_equal ErrorHandlingMode::RaiseError, @config.error_handling.standard_errors
     end
 
-    def test_setting_invalid_error_handling_mode
-      error = assert_raises(ArgumentError) do
-        @config.error_handling[:type_errors] = :invalid_mode
-      end
+    def test_untyped_integration_configuration
+      untyped = Configuration::Untyped.new(@config)
+      untyped.integrations.configure(
+        lograge: false,
+        emails: false
+      )
 
-      assert_match(/Invalid error handling mode: :invalid_mode/, error.message)
+      assert_not @config.integrations.lograge_enabled
+      assert_not @config.integrations.emails_enabled
     end
 
-    def test_setting_invalid_error_handling_modes
-      error = assert_raises(ArgumentError) do
-        @config.error_handling = {
-          type_errors: :ignore,
-          logstruct_errors: :invalid_mode
-        }
-      end
+    def test_untyped_filter_configuration
+      untyped = Configuration::Untyped.new(@config)
+      untyped.filters.configure(
+        filter_enabled: false,
+        filter_emails: false,
+        filter_phone_numbers: false,
+        filter_credit_cards: false,
+        filtered_keys: [:password, :secret],
+        hashed_keys: [:email, :phone],
+        hash_salt: "test-salt",
+        hash_length: 16
+      )
 
-      assert_match(/Invalid error handling mode: :invalid_mode/, error.message)
+      assert_not @config.filters.filter_enabled
+      assert_not @config.filters.filter_emails
+      assert_not @config.filters.filter_phone_numbers
+      assert_not @config.filters.filter_credit_cards
+      assert_equal [:password, :secret], @config.filters.filtered_keys
+      assert_equal [:email, :phone], @config.filters.hashed_keys
+      assert_equal "test-salt", @config.filters.hash_salt
+      assert_equal 16, @config.filters.hash_length
     end
 
-    def test_configure_block_with_error_handling
-      LogStruct.configure do |config|
-        config.error_handling[:type_errors] = :ignore
-      end
+    def test_untyped_raises_for_unknown_settings
+      untyped = Configuration::Untyped.new(@config)
 
-      assert_equal ErrorHandlingMode::Ignore, LogStruct.config.error_handling[:type_errors]
-    end
-
-    def test_configure_block_with_multiple_error_handling_modes
-      LogStruct.configure do |config|
-        config.error_handling = {
-          type_errors: :ignore,
-          logstruct_errors: :raise
-        }
-      end
-
-      assert_equal ErrorHandlingMode::Ignore, LogStruct.config.error_handling[:type_errors]
-      assert_equal ErrorHandlingMode::Raise, LogStruct.config.error_handling[:logstruct_errors]
-      assert_equal ErrorHandlingMode::Raise, LogStruct.config.error_handling[:standard_errors] # Default preserved
+      assert_raises(ArgumentError) { untyped.error_handling.configure(unknown: :ignore) }
+      assert_raises(ArgumentError) { untyped.integrations.configure(unknown: false) }
+      assert_raises(ArgumentError) { untyped.filters.configure(unknown: false) }
     end
   end
 end

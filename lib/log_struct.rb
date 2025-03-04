@@ -5,6 +5,7 @@
 require "log_struct/sorbet"
 require "log_struct/version"
 require "log_struct/configuration"
+require "log_struct/configuration/untyped"
 require "log_struct/json_formatter"
 require "log_struct/railtie"
 require "log_struct/error_source"
@@ -18,8 +19,6 @@ require "log_struct/monkey_patches/active_support/tagged_logging/formatter"
 require "log_struct/integrations"
 
 module LogStruct
-  extend T::Sig
-
   class Error < StandardError; end
 
   class << self
@@ -31,16 +30,9 @@ module LogStruct
     end
     alias_method :config, :configuration
 
-    sig { returns(Configuration::Untyped) }
-    def configuration_untyped
-      Configuration.to_untyped
-    end
-
     sig { params(block: T.proc.params(config: Configuration::Untyped).void).void }
     def configure(&block)
-      config = Configuration::Untyped.instance
-      yield(config)
-      config.apply_to_typed
+      yield(Configuration::Untyped.new(configuration))
     end
 
     sig { params(block: T.proc.params(config: Configuration).void).void }

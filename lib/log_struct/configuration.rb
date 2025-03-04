@@ -11,90 +11,44 @@ module LogStruct
   class Configuration < T::Struct
     extend T::Sig
 
-    @@instance = T.let(nil, T.nilable(Configuration))
+    # -------------------------------------------------------------------------------------
+    # Props
+    # -------------------------------------------------------------------------------------
 
-    prop :error_handling, ErrorHandling
-    prop :integrations, Integrations
-    prop :filters, Filters
+    const :error_handling, ErrorHandling
+    const :integrations, Integrations
+    const :filters, Filters
+    prop :enabled, T::Boolean, default: true
+    prop :environments, T::Array[Symbol], default: [:test, :production]
+    prop :local_environments, T::Array[Symbol], default: [:development, :test]
 
-    sig { returns(Configuration) }
-    def self.instance
-      @@instance ||= new(
-        error_handling: ErrorHandling.new,
-        integrations: Integrations.new,
-        filters: Filters.new
-      )
-    end
+    # -------------------------------------------------------------------------------------
+    # Class Methods
+    # -------------------------------------------------------------------------------------
 
-    sig { returns(Configuration) }
-    def self.config
-      instance
-    end
+    class << self
+      # Class‐instance variable
+      @configuration = T.let(nil, T.nilable(Configuration))
 
-    sig { returns(Configuration) }
-    def self.configuration
-      instance
-    end
-
-    sig { returns(Configuration) }
-    def self.configuration_typed
-      instance
-    end
-
-    sig { params(block: T.proc.params(config: Configuration).void).void }
-    def self.configure_typed(&block)
-      yield(instance)
-    end
-
-    sig { params(block: T.proc.params(config: Configuration::Untyped).void).void }
-    def self.configure(&block)
-      config = Configuration::Untyped.instance
-      yield(config)
-      config.apply_to_typed
+      sig { returns(Configuration) }
+      def configuration
+        @configuration ||= T.let(Configuration.new(
+          error_handling: ErrorHandling.new,
+          integrations: Integrations.new,
+          filters: Filters.new
+        ),
+          T.nilable(Configuration))
+      end
     end
 
     # -------------------------------------------------------------------------------------
-    # Core Settings
+    # Serialization
     # -------------------------------------------------------------------------------------
 
-    # Environments where LogStruct should be enabled automatically
-    # Default: [:production]
-    prop :environments, T::Array[Symbol]
-
-    # Enable or disable LogStruct manually
-    # Default: true
-    prop :enabled, T::Boolean
-
-    # -------------------------------------------------------------------------------------
-    # Error Handling
-    # -------------------------------------------------------------------------------------
-
-    # Environments where errors should be raised locally
-    # Default: [:test, :development]
-    prop :local_environments, T::Array[Symbol]
-
-    sig { void }
-    def initialize
-      super(
-        error_handling: ErrorHandling.new,
-        integrations: Integrations.new,
-        filters: Filters.new,
-        enabled: true,
-        environments: [:test, :production],
-        local_environments: [:test, :development]
-      )
+    sig { returns(T::Hash[Symbol, T.untyped]) }
+    def serialize
+      super.deep_symbolize_keys
     end
-
-    # Check if errors should be raised in the current environment
-    sig { returns(T::Boolean) }
-    def should_raise?
-      local_environments.include?(::Rails.env.to_sym)
-    end
-
-    # Check if LogStruct should be enabled in the current environment
-    sig { returns(T::Boolean) }
-    def enabled_for_environment?
-      enabled && environments.include?(::Rails.env.to_sym)
-    end
+    alias_method :to_h, :serialize
   end
 end

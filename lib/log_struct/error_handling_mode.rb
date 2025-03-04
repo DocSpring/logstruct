@@ -17,6 +17,8 @@ module LogStruct
       ReportProduction = new
       # Always raise regardless of environment
       Raise = new
+      # Always raise regardless of environment
+      RaiseError = new
     end
 
     # Check if this mode should raise in the current environment
@@ -27,11 +29,42 @@ module LogStruct
         false
       when LogProduction, ReportProduction
         current_config = LogStruct.config
-        T.must(current_config).should_raise?
+        current_config.should_raise?
       when Raise
+        true
+      when RaiseError
         true
       else
         T.absurd(self)
+      end
+    end
+
+    sig { returns(Symbol) }
+    def to_sym
+      case self
+      when Ignore then :ignore
+      when Log then :log
+      when Report then :report
+      when LogProduction then :log_production
+      when ReportProduction then :report_production
+      when Raise then :raise
+      when RaiseError then :raise_error
+      else T.absurd(self)
+      end
+    end
+
+    sig { params(sym: Symbol).returns(ErrorHandlingMode) }
+    def self.from_symbol(sym)
+      case sym
+      when :ignore then Ignore
+      when :log then Log
+      when :report then Report
+      when :log_production then LogProduction
+      when :report_production then ReportProduction
+      when :raise then Raise
+      when :raise_error then RaiseError
+      else
+        raise ArgumentError, "Invalid error handling mode: #{sym}"
       end
     end
   end
