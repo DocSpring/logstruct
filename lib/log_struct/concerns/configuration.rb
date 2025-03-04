@@ -12,23 +12,33 @@ module LogStruct
 
         sig { params(block: T.proc.params(config: LogStruct::Configuration).void).void }
         def configure(&block)
-          yield(configuration)
+          yield(config)
         end
 
         sig { returns(LogStruct::Configuration) }
-        def configuration
+        def config
           LogStruct::Configuration.instance
         end
 
         # (Can't use alias_method since this module is extended into LogStruct)
         sig { returns(LogStruct::Configuration) }
-        def config
-          configuration
+        def configuration
+          config
         end
 
         sig { returns(T::Boolean) }
         def enabled?
-          configuration.enabled
+          config.enabled
+        end
+
+        sig { returns(T::Boolean) }
+        def is_local?
+          config.local_environments.include?(::Rails.env.to_sym)
+        end
+
+        sig { returns(T::Boolean) }
+        def is_production?
+          !is_local?
         end
       end
     end

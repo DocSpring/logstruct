@@ -58,14 +58,5 @@ module LogStruct
       super.deep_symbolize_keys
     end
     alias_method :to_h, :serialize
-
-    # -------------------------------------------------------------------------------------
-    # Environment Detection
-    # -------------------------------------------------------------------------------------
-
-    sig { returns(T::Boolean) }
-    def should_raise?
-      environments.exclude?(::Rails.env.to_sym)
-    end
   end
 end

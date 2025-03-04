@@ -24,11 +24,11 @@ module LogStruct
     def test_error_handling_modes_can_be_configured_individually
       @config.error_handling.type_errors = ErrorHandlingMode::Ignore
       @config.error_handling.logstruct_errors = ErrorHandlingMode::Report
-      @config.error_handling.standard_errors = ErrorHandlingMode::RaiseError
+      @config.error_handling.standard_errors = ErrorHandlingMode::Raise
 
       assert_equal ErrorHandlingMode::Ignore, @config.error_handling.type_errors
       assert_equal ErrorHandlingMode::Report, @config.error_handling.logstruct_errors
-      assert_equal ErrorHandlingMode::RaiseError, @config.error_handling.standard_errors
+      assert_equal ErrorHandlingMode::Raise, @config.error_handling.standard_errors
     end
 
     def test_error_handling_exception_reporting_handler
@@ -121,7 +121,7 @@ module LogStruct
 
       assert_equal ErrorHandlingMode::Ignore, @config.error_handling.type_errors
       assert_equal ErrorHandlingMode::Report, @config.error_handling.logstruct_errors
-      assert_equal ErrorHandlingMode::RaiseError, @config.error_handling.standard_errors
+      assert_equal ErrorHandlingMode::Raise, @config.error_handling.standard_errors
     end
 
     def test_untyped_integration_configuration

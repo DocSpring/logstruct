@@ -17,8 +17,6 @@ module LogStruct
       ReportProduction = new(:report_production)
       # Always raise regardless of environment
       Raise = new(:raise)
-      # Always raise regardless of environment
-      RaiseError = new(:raise_error)
     end
   end
 end

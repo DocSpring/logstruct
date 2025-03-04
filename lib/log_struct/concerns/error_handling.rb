@@ -77,26 +77,27 @@ module LogStruct
           case mode
           when ErrorHandlingMode::Ignore
             # Do nothing
+
           when ErrorHandlingMode::Log
             log_exception(error, source: source, context: context)
+
           when ErrorHandlingMode::Report
             report_exception(error, source: source, context: context)
+
           when ErrorHandlingMode::LogProduction
-            if mode.should_raise?
-              raise(error)
-            else
-              log_exception(error, source: source, context: context)
-            end
+            raise(error) unless LogStruct.is_production?
+            log_exception(error, source: source, context: context)
+
           when ErrorHandlingMode::ReportProduction
-            if mode.should_raise?
-              raise(error)
-            else
-              report_exception(error, source: source, context: context)
-            end
-          when ErrorHandlingMode::Raise, ErrorHandlingMode::RaiseError
+            raise(error) unless LogStruct.is_production?
+            report_exception(error, source: source, context: context)
+
+          when ErrorHandlingMode::Raise
             raise(error)
+
           else
             T.absurd(mode)
+
           end
         end
       end
