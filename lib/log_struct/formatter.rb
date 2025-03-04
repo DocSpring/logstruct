@@ -130,9 +130,26 @@ module LogStruct
         when String, Symbol, TrueClass, FalseClass, NilClass, Array, Hash, Time, Numeric
           log_value
         else
-          if log_value.respond_to?(:as_json)
-            log_value.as_json
-          else
+          # Handle the serialization of complex objects in a useful way:
+          #
+          # 1. For ActiveRecord models: Use as_json which includes attributes
+          # 2. For objects with custom as_json implementations: Use their implementation
+          # 3. For basic objects that only have ActiveSupport's as_json: Use to_s
+          begin
+            method_owner = log_value.method(:as_json).owner
+            
+            # If it's ActiveRecord, ActiveModel, or a custom implementation, use as_json
+            if method_owner.to_s.include?("ActiveRecord") || 
+               method_owner.to_s.include?("ActiveModel") || 
+               !method_owner.to_s.include?("ActiveSupport::CoreExtensions") && 
+               !method_owner.to_s.include?("Object")
+              log_value.as_json
+            else
+              # For plain objects with only the default ActiveSupport as_json
+              log_value.to_s
+            end
+          rescue => _e
+            # If any error accessing the method, fall back to to_s
             log_value.to_s
           end
         end
