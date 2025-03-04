@@ -5,7 +5,6 @@
 require "log_struct/sorbet"
 require "log_struct/version"
 require "log_struct/configuration"
-require "log_struct/configuration_untyped"
 require "log_struct/json_formatter"
 require "log_struct/railtie"
 require "log_struct/error_source"
@@ -27,23 +26,19 @@ module LogStruct
     include ErrorHandler
 
     sig { returns(Configuration) }
-    def config
-      Configuration.config
-    end
-
-    sig { returns(Configuration) }
     def configuration
       Configuration.configuration
     end
+    alias_method :config, :configuration
 
-    sig { returns(Configuration) }
-    def configuration_typed
-      Configuration.configuration_typed
+    sig { returns(Configuration::Untyped) }
+    def configuration_untyped
+      Configuration.to_untyped
     end
 
-    sig { params(block: T.proc.params(config: ConfigurationUntyped).void).void }
+    sig { params(block: T.proc.params(config: Configuration::Untyped).void).void }
     def configure(&block)
-      config = ConfigurationUntyped.instance
+      config = Configuration::Untyped.instance
       yield(config)
       config.apply_to_typed
     end

@@ -1,6 +1,11 @@
 # typed: strict
 # frozen_string_literal: true
 
+require_relative "configuration/untyped"
+require_relative "configuration/error_handling"
+require_relative "configuration/integrations"
+require_relative "configuration/filters"
+
 module LogStruct
   # Core configuration class that provides a type-safe API
   class Configuration < T::Struct
@@ -41,9 +46,9 @@ module LogStruct
       yield(instance)
     end
 
-    sig { params(block: T.proc.params(config: ConfigurationUntyped).void).void }
+    sig { params(block: T.proc.params(config: Configuration::Untyped).void).void }
     def self.configure(&block)
-      config = ConfigurationUntyped.instance
+      config = Configuration::Untyped.instance
       yield(config)
       config.apply_to_typed
     end
