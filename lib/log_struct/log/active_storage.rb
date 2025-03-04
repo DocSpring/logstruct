@@ -22,7 +22,7 @@ module LogStruct
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
-      # Storage-specific fields
+      # ActiveStorage-specific fields
       const :operation, T.nilable(Symbol), default: nil
       const :storage, T.nilable(String), default: nil
       const :file_id, T.nilable(String), default: nil
@@ -31,8 +31,6 @@ module LogStruct
       const :size, T.nilable(Integer), default: nil
       const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
-
-      # ActiveStorage-specific fields
       const :checksum, T.nilable(String), default: nil
       const :exist, T.nilable(T::Boolean), default: nil
       const :url, T.nilable(String), default: nil
@@ -44,17 +42,15 @@ module LogStruct
       def serialize_log(strict = true)
         hash = serialize_common(strict)
 
-        # Add storage-specific fields
-        hash[LogKeys::STORAGE] = storage if storage
+        # Add ActiveStorage-specific fields - only include non-nil values
         hash[LogKeys::OP] = operation if operation
+        hash[LogKeys::STORAGE] = storage if storage
         hash[LogKeys::FILE_ID] = file_id if file_id
         hash[LogKeys::FILENAME] = filename if filename
         hash[LogKeys::MIME_TYPE] = mime_type if mime_type
         hash[LogKeys::SIZE] = size if size
         hash[LogKeys::METADATA] = metadata if metadata
         hash[LogKeys::DURATION] = duration if duration
-
-        # Add ActiveStorage-specific fields
         hash[LogKeys::CHECKSUM] = checksum if checksum
         hash[LogKeys::EXIST] = exist if !exist.nil?
         hash[LogKeys::URL] = url if url
