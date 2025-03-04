@@ -1,5 +1,11 @@
 {
-  "ignorePaths": [],
+  "ignorePaths": [
+    "sorbet/rbi/annotations/**",
+    "sorbet/rbi/dsl/**",
+    "sorbet/rbi/gems/**",
+    "vendor/**",
+    "node_modules/**"
+  ],
   "overrides": [],
   "ignoreRegExpList": [],
   "useGitignore": true,

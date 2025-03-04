@@ -38,10 +38,43 @@ jobs:
 
       - name: Prettier (Format Check)
         run: npx prettier --check "**/*.{js,json,md}"
+        
+  tapioca:
+    name: Tapioca RBI Check
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.6"
+          bundler-cache: true
+          
+      - name: Install dependencies
+        run: |
+          ruby -v
+          bundle install
+          
+      - name: Generate and verify RBI files
+        run: |
+          bundle exec tapioca gems --verify
+          bundle exec tapioca dsl --verify
+          
+      - name: Check for RBI changes
+        run: |
+          # Check if there are any uncommitted changes to RBI files
+          git status --porcelain sorbet/rbi/
+          if [[ -n $(git status --porcelain sorbet/rbi/) ]]; then
+            echo "Error: RBI files are out of date. Please run 'bundle exec tapioca gems' and 'bundle exec tapioca dsl' and commit the changes."
+            git diff sorbet/rbi/
+            exit 1
+          fi
 
   test:
     name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
-    needs: [lint]
+    needs: [lint, tapioca]
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
