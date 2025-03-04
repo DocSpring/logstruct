@@ -53,13 +53,12 @@ module LogStruct
             metadata: payload[:metadata],
             duration: event.duration,
             # Store additional fields in the data hash (flattened by JSON formatter)
-            data: {
-              checksum: payload[:checksum],
-              exist: payload[:exist],
-              url: payload[:url],
-              prefix: payload[:prefix],
-              range: payload[:range]
-            }.compact # Remove nil values
+
+            checksum: payload[:checksum],
+            exist: payload[:exist],
+            url: payload[:url],
+            prefix: payload[:prefix],
+            range: payload[:range]
           )
 
           # Log the structured data

@@ -15,13 +15,14 @@ module LogStruct
 
       include CommonInterface
       include SerializeCommon
+
       # Common fields
       const :source, LogSource, default: T.let(LogSource::Storage, LogSource)
       const :event, LogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
-      # File-specific fields
+      # Storage-specific fields
       const :storage, T.nilable(String), default: nil
       const :operation, T.nilable(String), default: nil
       const :file_id, T.nilable(String), default: nil
@@ -30,14 +31,20 @@ module LogStruct
       const :size, T.nilable(Integer), default: nil
       const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
       const :duration, T.nilable(Float), default: nil
-      const :data, T::Hash[Symbol, T.untyped], default: {}
+
+      # ActiveStorage-specific fields
+      const :checksum, T.nilable(String), default: nil
+      const :exist, T.nilable(T::Boolean), default: nil
+      const :url, T.nilable(String), default: nil
+      const :prefix, T.nilable(String), default: nil
+      const :range, T.nilable(String), default: nil
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = merge_data_field
+        hash = serialize_common
 
-        # Add file-specific fields if they're present
+        # Add storage-specific fields
         hash[:storage] = storage if storage
         hash[:operation] = operation if operation
         hash[:file_id] = file_id if file_id
@@ -47,8 +54,12 @@ module LogStruct
         hash[:metadata] = metadata if metadata
         hash[:duration] = duration if duration
 
-        # Merge any additional data
-        hash.merge!(data) if data.any?
+        # Add ActiveStorage-specific fields
+        hash[:checksum] = checksum if checksum
+        hash[:exist] = exist if !exist.nil?
+        hash[:url] = url if url
+        hash[:prefix] = prefix if prefix
+        hash[:range] = range if range
 
         hash
       end
