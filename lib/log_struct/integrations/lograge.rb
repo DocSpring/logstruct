@@ -14,7 +14,7 @@ module LogStruct
       class << self
         extend T::Sig
         # Set up lograge for structured request logging
-        sig { returns(T.nilable(TrueClass)) }
+        sig { void }
         def setup
           return unless defined?(::Lograge)
           return unless LogStruct.enabled?
@@ -51,9 +51,6 @@ module LogStruct
               Integrations::Lograge.lograge_default_options(event)
             end
           end
-
-          true # Return true to satisfy the signature
-        end
         end
 
         sig { params(event: ActiveSupport::Notifications::Event).returns(T::Hash[Symbol, T.untyped]) }

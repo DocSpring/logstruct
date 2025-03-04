@@ -12,7 +12,7 @@ module LogStruct
       class << self
         extend T::Sig
         # Set up Rack middleware for structured error logging
-        sig { params(app: T.untyped).returns(T.nilable(TrueClass)) }
+        sig { params(app: T.untyped).void }
         def setup(app)
           return unless LogStruct.enabled?
           return unless LogStruct.config.integrations.enable_rack_error_handler

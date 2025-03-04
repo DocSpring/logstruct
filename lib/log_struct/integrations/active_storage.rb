@@ -12,7 +12,7 @@ module LogStruct
       class << self
         extend T::Sig
         # Set up ActiveStorage structured logging
-        sig { returns(T.nilable(TrueClass)) }
+        sig { void }
         def setup
           return unless defined?(::ActiveStorage)
 

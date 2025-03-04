@@ -11,7 +11,7 @@ module LogStruct
       class << self
         extend T::Sig
         # Set up host authorization logging
-        sig { returns(T.nilable(TrueClass)) }
+        sig { void }
         def setup
           return unless LogStruct.enabled?
           return unless LogStruct.config.integrations.enable_host_authorization

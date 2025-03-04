@@ -17,7 +17,7 @@ module LogStruct
       class << self
         extend T::Sig
         # Set up ActiveJob structured logging
-        sig { returns(T.nilable(TrueClass)) }
+        sig { void }
         def setup
           return unless defined?(::ActiveJob::LogSubscriber)
           return unless LogStruct.enabled?

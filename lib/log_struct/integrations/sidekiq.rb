@@ -17,7 +17,7 @@ module LogStruct
         extend T::Sig
 
         # Set up Sidekiq structured logging
-        sig { returns(T.nilable(TrueClass)) }
+        sig { void }
         def setup
           return unless defined?(::Sidekiq)
           return unless LogStruct.enabled?

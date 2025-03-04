@@ -47,7 +47,7 @@ module LogStruct
 
           # Prepare data for the log entry
           data = {
-            message_id: Logger.extract_message_id(self),
+            message_id: extract_message_id,
             mailer_class: self.class.to_s,
             mailer_action: action_name.to_s
           }.compact
@@ -77,7 +77,7 @@ module LogStruct
           # Create a structured log entry
           log_data = Log::Email.new(
             event: event_type,
-            lvl: log_level,
+            level: log_level,
             to: to,
             from: from,
             subject: subject,
@@ -88,6 +88,17 @@ module LogStruct
           ::Rails.logger.public_send(level, log_data)
 
           log_data
+        end
+        
+        # Extract message ID from the mailer
+        sig { returns(T.nilable(String)) }
+        def extract_message_id
+          return nil unless respond_to?(:message)
+          
+          mail_message = message
+          return nil unless mail_message.respond_to?(:message_id)
+          
+          mail_message.message_id
         end
       end
     end

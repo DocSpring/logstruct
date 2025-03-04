@@ -12,16 +12,16 @@ module LogStruct
       class << self
         extend T::Sig
         # Set up Rack middleware for structured error logging
-        sig { params(app: T.untyped).returns(T.nilable(TrueClass)) }
+        sig { params(app: T.untyped).void }
         def setup(app)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.rack_middleware_enabled
+          return unless LogStruct.config.integrations.enable_rack_error_handler
 
           # Add structured logging middleware for security violations and errors
           # Need to insert after ShowExceptions to catch IP spoofing errors
           app.middleware.insert_after(
             ::ActionDispatch::ShowExceptions,
-            Integrations::Rack::ErrorHandlingMiddleware
+            Integrations::RackErrorHandler::Middleware
           )
         end
       end
