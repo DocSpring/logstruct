@@ -1,9 +1,9 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/common_interface"
-require_relative "interfaces/data_interface"
-require_relative "interfaces/message_interface"
+require_relative "interfaces/common_fields"
+require_relative "interfaces/data_field"
+require_relative "interfaces/message_field"
 require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
@@ -17,9 +17,9 @@ module LogStruct
     class Exception < T::Struct
       extend T::Sig
 
-      include CommonInterface
-      include DataInterface
-      include MessageInterface
+      include Interfaces::CommonFields
+      include Interfaces::DataField
+      include Interfaces::MessageField
       include MergeDataFields
 
       ExceptionLogEvent = T.type_alias {

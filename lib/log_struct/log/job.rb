@@ -1,8 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/common_interface"
-require_relative "interfaces/data_interface"
+require_relative "interfaces/common_fields"
+require_relative "interfaces/data_field"
 require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
@@ -16,8 +16,8 @@ module LogStruct
     class Job < T::Struct
       extend T::Sig
 
-      include CommonInterface
-      include DataInterface
+      include Interfaces::CommonFields
+      include Interfaces::DataField
       include SerializeCommon
       include MergeDataFields
 

@@ -13,7 +13,7 @@ module LogStruct
     class Sidekiq < T::Struct
       extend T::Sig
 
-      include CommonInterface
+      include Interfaces::CommonFields
 
       # Common fields (without event)
       const :source, Source::Sidekiq, default: T.let(Source::Sidekiq, Source::Sidekiq)

@@ -12,7 +12,7 @@ module LogStruct
         extend T::Sig
 
         # Type-safe interface for Rails.logger
-        sig { params(log: Log::CommonInterface).void }
+        sig { params(log: Log::Interfaces::CommonFields).void }
         def log(log)
           level = log.level
           case level

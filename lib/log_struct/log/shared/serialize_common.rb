@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "../../log_keys"
-require_relative "../interfaces/common_interface"
+require_relative "../interfaces/common_fields"
 
 module LogStruct
   module Log
@@ -11,7 +11,7 @@ module LogStruct
       extend T::Sig
       extend T::Helpers
 
-      requires_ancestor { CommonInterface }
+      requires_ancestor { Interfaces::CommonFields }
 
       # Convert the log entry to a hash for serialization
       sig { returns(T::Hash[Symbol, T.untyped]) }

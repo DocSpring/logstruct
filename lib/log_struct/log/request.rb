@@ -1,8 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/common_interface"
-require_relative "interfaces/request_interface"
+require_relative "interfaces/common_fields"
+require_relative "interfaces/request_fields"
 require_relative "shared/serialize_common"
 require_relative "shared/add_request_fields"
 require_relative "../enums/source"
@@ -16,8 +16,8 @@ module LogStruct
     class Request < T::Struct
       extend T::Sig
 
-      include CommonInterface
-      include RequestInterface
+      include Interfaces::CommonFields
+      include Interfaces::RequestFields
       include SerializeCommon
       include AddRequestFields
 

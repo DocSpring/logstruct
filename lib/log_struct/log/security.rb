@@ -1,10 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/common_interface"
-require_relative "interfaces/data_interface"
-require_relative "interfaces/message_interface"
-require_relative "interfaces/request_interface"
+require_relative "interfaces/common_fields"
+require_relative "interfaces/data_field"
+require_relative "interfaces/message_field"
+require_relative "interfaces/request_fields"
 require_relative "shared/add_request_fields"
 require_relative "shared/merge_data_fields"
 require_relative "shared/serialize_common"
@@ -19,10 +19,10 @@ module LogStruct
     class Security < T::Struct
       extend T::Sig
 
-      include CommonInterface
-      include DataInterface
-      include MessageInterface
-      include RequestInterface
+      include Interfaces::CommonFields
+      include Interfaces::DataField
+      include Interfaces::MessageField
+      include Interfaces::RequestFields
       include SerializeCommon
       include AddRequestFields
       include MergeDataFields

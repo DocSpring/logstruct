@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/common_interface"
+require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
@@ -13,7 +13,7 @@ module LogStruct
     class Storage < T::Struct
       extend T::Sig
 
-      include CommonInterface
+      include Interfaces::CommonFields
       include SerializeCommon
 
       # Common fields
