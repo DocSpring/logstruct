@@ -32,18 +32,19 @@ module LogStruct
 
           payload = event.payload
           # Extract operation from event name (e.g., "service_upload.active_storage" -> "upload")
-          first_part = event.name.split(".").first || ''
-          operation = first_part.sub("service_", "")
-          service = payload[:service] || "unknown"
+          first_part = event.name.split(".").first || "unknown"
+          operation = first_part.sub("service_", "").to_sym
 
           # Map operation to appropriate event type
           event_type = case operation
-          when "upload" then LogEvent::Upload
-          when "download", "streaming_download", "download_chunk" then LogEvent::Download
-          when "delete", "delete_prefixed" then LogEvent::Delete
-          when "exist" then LogEvent::Exist
+          when :upload then LogEvent::Upload
+          when :download, :streaming_download, :download_chunk then LogEvent::Download
+          when :delete, :delete_prefixed then LogEvent::Delete
+          when :exist then LogEvent::Exist
           else LogEvent::Unknown
           end
+
+          service = payload[:service] || "unknown"
 
           # Create structured log data
           log_data = Log::Storage.new(

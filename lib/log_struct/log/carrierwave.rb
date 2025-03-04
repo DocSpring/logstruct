@@ -27,7 +27,8 @@ module LogStruct
           LogEvent::Download,
           LogEvent::Delete,
           LogEvent::Metadata,
-          LogEvent::Exist
+          LogEvent::Exist,
+          LogEvent::Unknown
         )
       }
 
@@ -39,7 +40,7 @@ module LogStruct
 
       # File-specific fields
       const :storage, T.nilable(String), default: nil
-      const :operation, T.nilable(String), default: nil
+      const :operation, T.nilable(Symbol), default: nil
       const :file_id, T.nilable(String), default: nil
       const :filename, T.nilable(String), default: nil
       const :mime_type, T.nilable(String), default: nil
@@ -61,7 +62,7 @@ module LogStruct
 
         # Add file-specific fields if they're present
         hash[LogKeys::STORAGE] = storage if storage
-        hash[LogKeys::OPERATION] = operation if operation
+        hash[LogKeys::OP] = operation if operation
         hash[LogKeys::FILE_ID] = file_id if file_id
         hash[LogKeys::FILENAME] = filename if filename
         hash[LogKeys::MIME_TYPE] = mime_type if mime_type

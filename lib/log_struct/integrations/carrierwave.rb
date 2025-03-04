@@ -70,6 +70,7 @@ module LogStruct
           when :upload then LogEvent::Upload
           when :download then LogEvent::Download
           when :delete then LogEvent::Delete
+          when :exist, :exists then LogEvent::Exist
           else LogEvent::Unknown
           end
 

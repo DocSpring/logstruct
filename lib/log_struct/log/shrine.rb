@@ -54,9 +54,9 @@ module LogStruct
         # Add Shrine-specific fields if they're present
         hash[LogKeys::STORAGE] = storage if storage
         hash[LogKeys::LOCATION] = location if location
-        hash[LogKeys::UPLOAD_OPTIONS] = upload_options if upload_options
-        hash[LogKeys::DOWNLOAD_OPTIONS] = download_options if download_options
-        hash[LogKeys::OPTIONS] = options if options
+        hash[LogKeys::UPLOAD_OPTS] = upload_options if upload_options
+        hash[LogKeys::DOWNLOAD_OPTS] = download_options if download_options
+        hash[LogKeys::OPTS] = options if options
         hash[LogKeys::UPLOADER] = uploader if uploader
         hash[LogKeys::DURATION] = duration if duration
 

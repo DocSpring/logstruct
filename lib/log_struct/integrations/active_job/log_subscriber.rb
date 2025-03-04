@@ -1,8 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../log_source"
-require_relative "../../log_event"
+require_relative "../../enums/source"
+require_relative "../../enums/log_event"
 require_relative "../../log/job"
 require_relative "../../log/exception"
 
@@ -12,7 +12,7 @@ module LogStruct
       # Structured logging for ActiveJob
       class LogSubscriber < ::ActiveJob::LogSubscriber
         extend T::Sig
-        
+
         sig { params(event: T.untyped).void }
         def enqueue(event)
           job = event.payload[:job]

@@ -60,16 +60,16 @@ module LogStruct
 
     # Storage-specific fields
     STORAGE = :storage
-    OPERATION = :operation
+    OP = :op # Operation
     FILE_ID = :file_id
     FILENAME = :filename
     MIME_TYPE = :mime_type
     SIZE = :size
     METADATA = :metadata
     LOCATION = :location
-    UPLOAD_OPTIONS = :upload_options
-    DOWNLOAD_OPTIONS = :download_options
-    OPTIONS = :options
+    UPLOAD_OPTS = :upload_opts
+    DOWNLOAD_OPTS = :download_opts
+    OPTS = :opts
     UPLOADER = :uploader
 
     # CarrierWave-specific fields
