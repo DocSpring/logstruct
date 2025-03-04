@@ -43,7 +43,7 @@ module LogStruct
       end
 
       # Report an exception to the configured error reporting service
-      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
         # Call the appropriate reporter method based on what's available
         case @error_reporter
@@ -63,7 +63,7 @@ module LogStruct
       private
 
       # Report to Sentry
-      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_sentry(exception, context = {})
         return unless defined?(::Sentry)
 
@@ -74,7 +74,7 @@ module LogStruct
       end
 
       # Report to Bugsnag
-      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_bugsnag(exception, context = {})
         return unless defined?(::Bugsnag)
 
@@ -86,7 +86,7 @@ module LogStruct
       end
 
       # Report to Rollbar
-      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_rollbar(exception, context = {})
         return unless defined?(::Rollbar)
 
@@ -96,7 +96,7 @@ module LogStruct
       end
 
       # Report to Honeybadger
-      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
+      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_to_honeybadger(exception, context = {})
         return unless defined?(::Honeybadger)
 
@@ -106,26 +106,20 @@ module LogStruct
       end
 
       # Fallback logging when no error reporting services are available
-      # Writes directly to stdout to avoid potential infinite loops with Rails.logger
-      sig { params(exception: Exception, context: T::Hash[T.untyped, T.untyped]).void }
+      # Uses the LogStruct.log method to properly log the exception
+      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def fallback_logging(exception, context = {})
         return if exception.nil?
 
-        # Create a structured log entry
-        log_data = {
-          source: "rails",
-          event: "error",
-          error_class: exception.class.to_s,
-          error_message: exception.message,
-          backtrace: exception.backtrace&.take(20)
-        }
+        # Create a proper exception log entry
+        exception_log = Log::Exception.from_exception(
+          Source::LogStruct,
+          exception,
+          context
+        )
 
-        # Add context if provided
-        log_data[:context] = context if context.any?
-
-        # Write directly to stdout to avoid potential infinite loops
-        # (the log formatter uses this method itself to report errors)
-        $stdout.puts log_data.to_json
+        # Use LogStruct.log to properly log the exception
+        LogStruct.log(exception_log)
       end
     end
 

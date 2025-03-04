@@ -74,21 +74,16 @@ module LogStruct
 
     def test_handles_global_id_errors_gracefully
       user_class = create_user_class
-      broken_user = user_class.new(456)
-
-      # Mock the to_global_id method to raise an error
-      def broken_user.to_global_id
-        raise StandardError, "Can't serialize"
-      end
-
-      message = {
-        source: "active_job",
-        arguments: [broken_user]
-      }
-
-      result = JSON.parse(@formatter.call(@severity, @time, @progname, message))
-
-      assert_equal "[GLOBALID_ERROR]", result["arguments"][0]
+      user = user_class.new(456)
+      
+      # Create a proper Minitest mock
+      mock_globalid = Minitest::Mock.new
+      mock_globalid.expect(:to_global_id, nil) { raise StandardError, "Can't serialize" }
+      
+      # Test the error handling path in process_values
+      result = @formatter.process_values(mock_globalid)
+      
+      assert_equal "[GLOBALID_ERROR]", result
     end
 
     def test_tagged_logging_support
@@ -176,6 +171,61 @@ module LogStruct
       data = {key: "value"}
 
       assert_equal "{\"key\":\"value\"}\n", @formatter.generate_json(data)
+    end
+    
+    def test_log_value_to_hash_with_string
+      # Test string conversion
+      result = @formatter.log_value_to_hash("Test message", time: @time)
+      
+      assert_equal "Test message", result[:msg]
+      assert result[:src]
+      assert result[:ts]
+    end
+    
+    def test_log_value_to_hash_with_hash
+      # Test hash conversion (including string keys)
+      result = @formatter.log_value_to_hash({
+        "string_key" => "value",
+        symbol_key: "symbol_value"
+      }, time: @time)
+      
+      assert_equal "value", result[:string_key]
+      assert_equal "symbol_value", result[:symbol_key]
+    end
+    
+    def test_log_value_to_hash_with_struct
+      # Test struct conversion 
+      log_entry = LogStruct::Log::Plain.new(
+        message: "Struct message",
+        source: LogStruct::Source::App,
+        level: LogStruct::LogLevel::Info
+      )
+      
+      result = @formatter.log_value_to_hash(log_entry, time: @time)
+      
+      assert_equal "Struct message", result[:msg]
+      assert_equal "app", result[:src]
+    end
+    
+    def test_log_value_to_hash_with_other_types
+      # Test numeric conversion
+      number_result = @formatter.log_value_to_hash(123, time: @time)
+      assert_equal 123, number_result[:msg]
+      
+      # Test boolean conversion
+      bool_result = @formatter.log_value_to_hash(true, time: @time)
+      assert_equal true, bool_result[:msg]
+      
+      # Test object with as_json
+      json_obj = Object.new
+      def json_obj.as_json; {"name" => "JSON Object"}; end
+      obj_result = @formatter.log_value_to_hash(json_obj, time: @time)
+      assert_equal({"name" => "JSON Object"}, obj_result[:msg])
+      
+      # Test regular object
+      regular_obj = Object.new
+      obj_result = @formatter.log_value_to_hash(regular_obj, time: @time)
+      assert_equal regular_obj.to_s, obj_result[:msg]
     end
 
     private

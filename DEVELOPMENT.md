@@ -344,6 +344,32 @@ Remember: Taking shortcuts with Sorbet defeats the purpose of having static type
 
 ## Principles
 
+### Exception Handling
+
+#### Use StandardError, not Exception
+
+In Ruby, `StandardError` is a subclass of `Exception`. We use the term "exception" generically in our code to refer to errors, but we specifically use the `StandardError` class (or its subclasses) in our method signatures and error handling code. We NEVER use the base `Exception` class because:
+
+- `Exception` includes critical system errors like `NoMemoryError`, `SystemExit`, `SignalException`, etc. which should not be caught by normal application code.
+- Catching `Exception` can interfere with Ruby's process management and signal handling.
+- Rescuing `Exception` may prevent normal program termination or proper cleanup.
+
+Always specify `StandardError` (or specific subclasses) in your method signatures and rescue blocks:
+
+```ruby
+# GOOD
+sig { params(exception: StandardError, context: T::Hash[Symbol, T.untyped]).void }
+def report_exception(exception, context = {})
+  # ...
+end
+
+# BAD
+sig { params(exception: Exception, context: T::Hash[Symbol, T.untyped]).void }
+def report_exception(exception, context = {})
+  # ...
+end
+```
+
 ### Error Handling: Fail Hard in Tests, Fail Soft in Production
 
 We follow the principle of "fail hard in tests, fail soft in production":

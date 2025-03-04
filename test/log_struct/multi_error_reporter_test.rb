@@ -43,21 +43,26 @@ module LogStruct
     def test_report_exception_with_sentry_error_fallback
       # Skip if Sentry is not defined
       skip "Sentry is not available" unless defined?(::Sentry)
-
-      # Force Sentry to raise an error
-      ::Sentry.stub(:capture_exception, ->(_exception, _options) { raise "Sentry error" }) do
-        MultiErrorReporter.report_exception(@exception, @context)
+      
+      # Create a log mock to verify LogStruct.log was called correctly
+      log_mock = Minitest::Mock.new
+      LogStruct.stub(:log, log_mock) do
+        # Force Sentry to raise an error
+        ::Sentry.stub(:capture_exception, ->(_exception, _options) { raise "Sentry error" }) do
+          # Expect log to be called with an Exception log struct with source LogStruct
+          log_mock.expect(:call, nil) do |log_entry|
+            assert_instance_of Log::Exception, log_entry
+            assert_equal Source::LogStruct, log_entry.source
+            assert_equal LogEvent::Error, log_entry.event
+            true
+          end
+          
+          MultiErrorReporter.report_exception(@exception, @context)
+        end
       end
-
-      # Verify fallback logging occurred
-      output = @stdout_buffer.string
-
-      assert_not_empty output
-
-      parsed_output = JSON.parse(output, symbolize_names: true)
-
-      assert_equal "rails", parsed_output[:src]
-      assert_equal "error", parsed_output[:evt]
+      
+      # Verify our mock was called
+      assert_mock log_mock
     end
 
     def test_report_exception_with_bugsnag
@@ -126,18 +131,22 @@ module LogStruct
         MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
         MultiErrorReporter.report_exception(@exception, @context)
 
-        # Verify fallback logging occurred
-        output = @stdout_buffer.string
-
-        assert_not_empty output
-
-        parsed_output = JSON.parse(output, symbolize_names: true)
-
-        assert_equal "rails", parsed_output[:src]
-        assert_equal "error", parsed_output[:evt]
-        assert_equal "StandardError", parsed_output[:error_class]
-        assert_equal "Test error", parsed_output[:error_message]
-        assert_equal @context, parsed_output[:context]
+        # Create a log mock to verify LogStruct.log was called correctly
+        log_mock = Minitest::Mock.new
+        log_mock.expect(:call, nil) do |log_entry|
+          assert_instance_of Log::Exception, log_entry
+          assert_equal Source::LogStruct, log_entry.source
+          assert_equal "Test error", log_entry.message
+          assert_equal StandardError, log_entry.err_class
+          assert_equal @context, log_entry.data
+          true
+        end
+        
+        LogStruct.stub(:log, log_mock) do
+          MultiErrorReporter.report_exception(@exception, @context)
+        end
+        
+        assert_mock log_mock
 
         # Verify the reporter was initialized to use fallback
         assert_equal ErrorReporter::RailsLogger, MultiErrorReporter.error_reporter
