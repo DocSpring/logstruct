@@ -7,7 +7,7 @@ module LogStruct
   class FormatterTest < ActiveSupport::TestCase
     def setup
       @formatter = Formatter.new
-      @severity = "INFO"
+      @severity = ::Logger::INFO
       @time = Time.utc(2023, 1, 1, 12, 0, 0)
       @progname = "test"
       @iso_time = "2023-01-01T12:00:00.000Z"
@@ -48,9 +48,9 @@ module LogStruct
         source: LogStruct::Source::App,
         level: LogStruct::LogLevel::Info
       )
-      
+
       result = JSON.parse(@formatter.call(@severity, @time, @progname, log_entry))
-      
+
       assert_equal "Test message", result["msg"]
       assert_equal "app", result["src"]
       assert_equal "log", result["evt"]

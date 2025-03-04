@@ -99,6 +99,7 @@ module LogStruct
       when Time
         arg.iso8601(3)
       else
+        # Any other type (e.g. Symbol, Integer, Float, Boolean etc.)
         arg
       end
     rescue => e

@@ -62,22 +62,10 @@ module LogStruct
           from = mailer_message&.from&.first
           subject = mailer_message&.subject
 
-          # Map Rails log level to LogLevel
-          log_level = case level
-          when :error, :fatal
-            LogLevel::Error
-          when :warn
-            LogLevel::Warn
-          when :debug
-            LogLevel::Debug
-          else
-            LogLevel::Info
-          end
-
           # Create a structured log entry
           log_data = Log::Email.new(
             event: event_type,
-            level: log_level,
+            level: LogLevel::Info,
             to: to,
             from: from,
             subject: subject,
