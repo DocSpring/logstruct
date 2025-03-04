@@ -58,7 +58,7 @@ module LogStruct
       def local_environments=(environments)
         @config.local_environments = environments
       end
-      
+
       # Support for hash-based configuration
       sig { params(settings: T::Hash[Symbol, T.untyped]).void }
       def configure(settings)

@@ -19,7 +19,7 @@ module LogStruct
         def setup
           return unless defined?(::ActiveJob::LogSubscriber)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.activejob_integration_enabled
+          return unless LogStruct.config.integrations.enable_activejob
 
           ::ActiveSupport.on_load(:active_job) do
             # Detach the default text formatter

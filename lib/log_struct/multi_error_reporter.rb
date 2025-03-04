@@ -11,7 +11,8 @@ rescue LoadError
 end
 
 # MultiErrorReporter provides a unified interface for reporting errors to various services.
-# You can also configure your own error reporter by setting LogStruct.config.exception_reporting_handler.
+# You can also override this with your own error reporter by setting
+# LogStruct#.config.exception_reporting_handler
 # NOTE: This is used for cases where an error should be reported
 # but the operation should be allowed to continue (e.g. scrubbing log data.)
 module LogStruct

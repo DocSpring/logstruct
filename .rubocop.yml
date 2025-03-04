@@ -33,6 +33,9 @@ Rails/TimeZone:
 # We don't use ApplicationMailer in this gem
 Rails/ApplicationMailer:
   Enabled: false
+# Not a Rails app
+Rails/RakeEnvironment:
+  Enabled: false
 
 Performance/OpenStruct:
   Exclude:

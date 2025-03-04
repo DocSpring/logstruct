@@ -25,7 +25,7 @@ module LogStruct
         def setup
           return unless defined?(::ActionMailer)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.actionmailer_integration_enabled
+          return unless LogStruct.config.integrations.enable_actionmailer
 
           # Silence default ActionMailer logs (we use our own structured logging)
           # This is required because we replace the logging using our own callbacks

@@ -17,7 +17,7 @@ module LogStruct
         def setup
           return unless defined?(::Sidekiq)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.sidekiq_integration_enabled
+          return unless LogStruct.config.integrations.enable_sidekiq
 
           # Configure Sidekiq server (worker) to use our formatter
           ::Sidekiq.configure_server do |config|

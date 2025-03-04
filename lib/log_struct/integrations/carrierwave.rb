@@ -17,7 +17,7 @@ module LogStruct
         def setup
           return unless defined?(::CarrierWave)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.carrierwave_integration_enabled
+          return unless LogStruct.config.integrations.enable_carrierwave
 
           # Patch CarrierWave to add logging
           ::CarrierWave::Uploader::Base.prepend(LoggingMethods)

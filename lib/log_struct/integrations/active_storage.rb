@@ -25,7 +25,7 @@ module LogStruct
         # Process ActiveStorage events and create structured logs
         def process_active_storage_event(event)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.active_storage_integration_enabled
+          return unless LogStruct.config.integrations.enable_active_storage
 
           payload = event.payload
           # Extract operation from event name (e.g., "service_upload.active_storage" -> "upload")

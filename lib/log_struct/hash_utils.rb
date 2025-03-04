@@ -10,8 +10,8 @@ module LogStruct
       # Create a hash of a string value for tracing while preserving privacy
       sig { params(value: String).returns(String) }
       def hash_value(value)
-        salt = LogStruct.configuration.hash_salt
-        length = LogStruct.configuration.hash_length
+        salt = LogStruct.configuration.filters.hash_salt
+        length = LogStruct.configuration.filters.hash_length
         Digest::SHA256.hexdigest("#{salt}#{value}")[0...length] || "error"
       end
     end

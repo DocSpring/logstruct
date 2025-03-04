@@ -5,7 +5,7 @@ require_relative "error_handling/mode"
 
 module LogStruct
   class Configuration
-    class ErrorHandling < T::Struct
+    class ErrorHandlingModes < T::Struct
       extend T::Sig
 
       # How to handle different types of errors

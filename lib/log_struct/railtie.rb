@@ -7,7 +7,7 @@ module LogStruct
   # Railtie to integrate with Rails
   class Railtie < ::Rails::Railtie
     initializer "logstruct.setup" do |app|
-      next unless LogStruct.config.enabled_for_environment?
+      next unless LogStruct.enabled?
 
       # Set up the Rails logger formatter
       ::Rails.logger.formatter = JSONFormatter.new

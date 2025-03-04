@@ -31,8 +31,8 @@ module LogStruct
         end
 
         sig { params(keys: T::Array[Symbol]).void }
-        def hashed_keys=(keys)
-          @typed.hashed_keys = keys
+        def filtered_keys_with_string_hash=(keys)
+          @typed.filtered_keys_with_string_hash = keys
         end
 
         sig { params(salt: String).void }
@@ -53,7 +53,7 @@ module LogStruct
             when :filter_phone_numbers then self.filter_phone_numbers = T.cast(value, T::Boolean)
             when :filter_credit_cards then self.filter_credit_cards = T.cast(value, T::Boolean)
             when :filtered_keys then self.filtered_keys = T.cast(value, T::Array[Symbol])
-            when :hashed_keys then self.hashed_keys = T.cast(value, T::Array[Symbol])
+            when :filtered_keys_with_string_hash then self.filtered_keys_with_string_hash = T.cast(value, T::Array[Symbol])
             when :hash_salt then self.hash_salt = T.cast(value, String)
             when :hash_length then self.hash_length = T.cast(value, Integer)
             else

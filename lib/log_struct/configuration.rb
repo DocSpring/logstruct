@@ -1,7 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "configuration/error_handling"
+require_relative "handlers"
+require_relative "configuration/error_handling_modes"
 require_relative "configuration/integrations"
 require_relative "configuration/filters"
 require_relative "untyped/configuration"
@@ -15,12 +16,17 @@ module LogStruct
     # Props
     # -------------------------------------------------------------------------------------
 
-    const :error_handling, Configuration::ErrorHandling
+    const :error_handling_modes, Configuration::ErrorHandlingModes
     const :integrations, Configuration::Integrations
     const :filters, Configuration::Filters
     prop :enabled, T::Boolean, default: true
     prop :environments, T::Array[Symbol], default: [:test, :production]
     prop :local_environments, T::Array[Symbol], default: [:development, :test]
+    
+    # Custom handler for exception reporting
+    # Default: Errors are handled by LogStruct::MultiErrorReporter 
+    # (auto-detects Sentry, Bugsnag, Rollbar, Honeybadger, etc.)
+    prop :exception_reporting_handler, Handlers::ExceptionReporter
 
     # -------------------------------------------------------------------------------------
     # Class Methods
@@ -57,7 +63,7 @@ module LogStruct
 
     sig { returns(T::Boolean) }
     def should_raise?
-      !environments.include?(Rails.env.to_sym)
+      environments.exclude?(Rails.env.to_sym)
     end
   end
 end

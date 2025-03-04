@@ -17,7 +17,7 @@ module LogStruct
         def setup
           return unless defined?(::Shrine)
           return unless LogStruct.enabled?
-          return unless LogStruct.config.shrine_integration_enabled
+          return unless LogStruct.config.integrations.enable_shrine
 
           # Create a structured log subscriber for Shrine
           # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
