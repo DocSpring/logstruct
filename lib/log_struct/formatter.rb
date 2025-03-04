@@ -111,8 +111,8 @@ module LogStruct
     def log_value_to_hash(log_value, time:)
       case log_value
       when Log::Interfaces::CommonFields
-        # Our log classes all implement a custom #serialize method that use symbol keys
-        log_value.serialize
+        # Our log classes all implement a custom #serialize_log method that use symbol keys
+        log_value.serialize_log
 
       when T::Struct
         # Default T::Struct.serialize methods returns a hash with string keys, so convert them to symbols

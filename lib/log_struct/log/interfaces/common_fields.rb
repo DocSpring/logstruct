@@ -31,9 +31,11 @@ module LogStruct
         sig { abstract.returns(LogLevel) }
         def level; end
 
-        # All logs must define a custom serialize method
+        # All logs must define a custom serialize_log method
+        # If the class is a T::Struct that responds to serialize_log then we can be sure
+        # we're getting symbols as keys and don't need to call #serialize.deep_symbolize_keys
         sig { abstract.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-        def serialize(strict = true); end
+        def serialize_log(strict = true); end
       end
     end
   end

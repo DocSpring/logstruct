@@ -47,8 +47,8 @@ module LogStruct
 
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-      def serialize(strict = true)
-        hash = serialize_common
+      def serialize_log(strict = true)
+        hash = serialize_common(strict)
         hash[LogKeys::MSG] = msg if msg
 
         # Add Shrine-specific fields if they're present
