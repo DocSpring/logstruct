@@ -73,17 +73,28 @@ module LogStruct
     end
 
     def test_handles_global_id_errors_gracefully
-      user_class = create_user_class
-      user_class.new(456)
+      # For this test, we'll directly test the GlobalID error handling section
+      # by stubbing out the process_values method for a specific object
 
-      # Create a proper Minitest mock
-      mock_globalid = Minitest::Mock.new
-      mock_globalid.expect(:to_global_id, nil) { raise StandardError, "Can't serialize" }
+      # Create a special class inside this test method
+      my_gid_class = Class.new do
+        include GlobalID::Identification
 
-      # Test the error handling path in process_values
-      result = @formatter.process_values(mock_globalid)
+        def to_global_id
+          raise StandardError, "Can't serialize"
+        end
+      end
 
-      assert_equal "[GLOBALID_ERROR]", result
+      # Create an instance of it
+      error_obj = my_gid_class.new
+
+      # Need to stub LogStruct.handle_exception to avoid actually reporting an error
+      LogStruct.stub(:handle_exception, nil) do
+        # Test the error handling path in process_values
+        result = @formatter.process_values(error_obj)
+
+        assert_equal "[GLOBALID_ERROR]", result
+      end
     end
 
     def test_tagged_logging_support
@@ -209,6 +220,8 @@ module LogStruct
     end
 
     def test_log_value_to_hash_with_other_types
+      puts "Running test_log_value_to_hash_with_other_types"
+      
       # Test numeric conversion
       number_result = @formatter.log_value_to_hash(123, time: @time)
 
@@ -220,19 +233,27 @@ module LogStruct
       assert bool_result[:msg]
 
       # Test object with as_json
-      json_obj = Object.new
-      def json_obj.as_json
-        {"name" => "JSON Object"}
+      json_class = Class.new do
+        def as_json
+          {"name" => "JSON Object"}
+        end
       end
+      json_obj = json_class.new
       obj_result = @formatter.log_value_to_hash(json_obj, time: @time)
 
       assert_equal({"name" => "JSON Object"}, obj_result[:msg])
 
-      # Test regular object
-      regular_obj = Object.new
-      obj_result = @formatter.log_value_to_hash(regular_obj, time: @time)
+      # Test a normal Ruby object with a stable string representation
+      test_obj = Class.new do
+        def to_s
+          "TestObject"
+        end
+      end.new
 
-      assert_equal regular_obj.to_s, obj_result[:msg]
+      # Just call the method normally
+      obj_result = @formatter.log_value_to_hash(test_obj, time: @time)
+
+      assert_equal "TestObject", obj_result[:msg]
     end
 
     private

@@ -45,6 +45,8 @@ Performance/OpenStruct:
 # ------------------------------------------------------------------------------
 Minitest/MultipleAssertions:
   Enabled: false
+Minitest/ReturnInTestMethod:
+  Enabled: false
 
 # Sorbet RBI Rules
 # ------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 - Run all tests: `bin/test`
 - Run single test file: `bin/test test/path_to_test.rb`
 - Run test at specific line: `bin/test test/path_to_test.rb:LINE_NUMBER`
+- Run test by name: `bin/test -n=test_method_name`
 - Typecheck: `bin/typecheck`
 - Format code: `bin/format`
 - Lint: `bin/rubocop`

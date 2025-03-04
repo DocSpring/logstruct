@@ -156,8 +156,7 @@ module LogStruct
       data[:src] ||= Source::App
       data[:evt] ||= LogEvent::Log
       data[:ts] ||= time.iso8601(3)
-      # Our log structs already use their own level field, so this is just a fallback
-      data[:lvl] ||= LogLevel.from_severity_int(severity)
+      data[:lvl] ||= LogLevel.from_severity_int(severity) # Just a fallback, Log structs store their own level field
       data[:prog] = progname if progname.present?
 
       generate_json(data)

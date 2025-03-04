@@ -9,26 +9,50 @@ load File.expand_path("../Rakefile", __dir__)
 
 # Handle specific test file(s) or patterns from command line arguments
 if ARGV.any?
-  require "minitest"
-
-  test_files = ARGV.flat_map do |arg|
-    if arg.include?(":")
-      # Handle file:line_number format for running specific tests
+  # First, check for test name pattern
+  name_pattern = nil
+  filtered_args = ARGV.filter_map do |arg|
+    if arg =~ /^-n=(.*)/
+      name_pattern = $1
+      nil  # Don't include this in filtered args
+    elsif arg.include?(":")
+      # Handle file:line_number format by finding the test at that line
       file, line = arg.split(":")
-      ENV["TESTOPTS"] = "--name=/.*/" if line
-      file
+      
+      # If line number is provided, locate the test method at that line
+      if line
+        file_content = File.exist?(file) ? File.read(file) : ""
+        line_num = line.to_i
+        
+        # Simple approach - find the last test_* method defined before this line
+        method_matches = file_content.lines[0...line_num].join.scan(/def\s+(test_\w+)/)
+        if method_matches.any?
+          test_method = method_matches.last[0]
+          puts "Running test: #{test_method} at line #{line}"
+          name_pattern = test_method
+          file  # Return just the file, not file:line
+        else
+          puts "No test method found before line #{line} in #{file}"
+          file  # Return the file anyway
+        end
+      else
+        arg  # Return arg unchanged
+      end
     else
-      arg
+      arg  # Return arg unchanged
     end
   end
-
-  # Use Ruby to run the specific test file(s)
-  `which ruby`.strip
-  rake_path = `gem which rake`.strip.sub("/lib/rake.rb", "")
-  loader_path = "#{rake_path}/lib/rake/rake_test_loader.rb"
-
-  exec "ruby", "-I", "lib:test:lib", loader_path, *test_files
-else
-  # Run the standard test task
-  Rake::Task[:test].invoke
+  
+  # Specify test name pattern
+  if name_pattern
+    # Using TESTOPTS with --name= works for both line number based lookup and explicit name
+    ENV["TESTOPTS"] = "--name=#{name_pattern}" 
+    puts "Using test name pattern: #{name_pattern}"
+  end
+  
+  # Delegate to Rake test task with filtered arguments
+  ARGV.replace(filtered_args)
 end
+
+# Run the test task
+Rake::Task[:test].invoke
