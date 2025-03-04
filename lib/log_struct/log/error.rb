@@ -23,9 +23,13 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
+      ErrorLogEvent = T.type_alias {
+        LogEvent::Error
+      }
+
       # Common fields
-      const :source, LogSource # Used by all sources, should not have a default.
-      const :event, LogEvent
+      const :source, Source # Used by all sources, should not have a default.
+      const :event, ErrorLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 

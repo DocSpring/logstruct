@@ -15,7 +15,7 @@ module LogStruct
       interface!
 
       # The source of the log entry (JSON property: src)
-      sig { abstract.returns(LogSource) }
+      sig { abstract.returns(Source) }
       def source; end
 
       # The event type of the log entry (JSON property: evt)

@@ -17,9 +17,20 @@ module LogStruct
       include CommonInterface
       include SerializeCommon
 
+      ShrineLogEvent = T.type_alias {
+        T.any(
+          LogEvent::Upload,
+          LogEvent::Download,
+          LogEvent::Delete,
+          LogEvent::Metadata,
+          LogEvent::Exist,
+          LogEvent::Unknown
+        )
+      }
+
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::Shrine, LogSource)
-      const :event, LogEvent
+      const :source, Source, default: T.let(Source::Shrine, Source)
+      const :event, ShrineLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
       const :msg, T.nilable(String), default: nil

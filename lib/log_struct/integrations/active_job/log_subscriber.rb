@@ -13,12 +13,12 @@ module LogStruct
       class LogSubscriber < ::ActiveJob::LogSubscriber
         def enqueue(event)
           job = event.payload[:job]
-          log_job_event(LogEvent::JobExecution, job, event)
+          log_job_event(LogEvent::Enqueue, job, event)
         end
 
         def enqueue_at(event)
           job = event.payload[:job]
-          log_job_event(LogEvent::JobExecution, job, event, scheduled_at: job.scheduled_at)
+          log_job_event(LogEvent::Schedule, job, event, scheduled_at: job.scheduled_at)
         end
 
         def perform(event)
@@ -29,13 +29,13 @@ module LogStruct
             # Log the exception with the job context
             log_exception(exception, job, event)
           else
-            log_job_event(LogEvent::JobExecution, job, event, duration: event.duration.round(2))
+            log_job_event(LogEvent::Finish, job, event, duration: event.duration.round(2))
           end
         end
 
         def perform_start(event)
           job = event.payload[:job]
-          log_job_event(LogEvent::JobExecution, job, event)
+          log_job_event(LogEvent::Start, job, event)
         end
 
         private
@@ -43,7 +43,7 @@ module LogStruct
         def log_job_event(event_type, job, _event, additional_data = {})
           # Create structured log data
           log_data = Log::Job.new(
-            evt: event_type,
+            event: event_type,
             job_id: job.job_id,
             job_class: job.class.to_s,
             queue_name: job.queue_name,
@@ -77,8 +77,7 @@ module LogStruct
 
           # Create exception log with job source and context
           log_data = Log::Exception.from_exception(
-            LogSource::Job,
-            LogEvent::Error,
+            Source::Job,
             exception,
             job_context
           )

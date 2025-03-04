@@ -10,7 +10,7 @@ module LogStruct
       next unless LogStruct.enabled?
 
       # Set up the Rails logger formatter
-      ::Rails.logger.formatter = JSONFormatter.new
+      ::Rails.logger.formatter = LogStruct::Formatter.new
 
       Integrations.setup_integrations
     end

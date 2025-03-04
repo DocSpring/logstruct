@@ -1,7 +1,6 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/common_interface"
 require_relative "shared/serialize_common"
 require_relative "../log_source"
 require_relative "../log_event"
@@ -14,12 +13,8 @@ module LogStruct
     class Sidekiq < T::Struct
       extend T::Sig
 
-      include CommonInterface
-      include SerializeCommon
-
-      # Common fields
-      const :source, LogSource, default: T.let(LogSource::Sidekiq, LogSource)
-      const :event, LogEvent
+      # Common fields (without event)
+      const :source, Source::Sidekiq, default: T.let(Source::Sidekiq, Source::Sidekiq)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
@@ -32,14 +27,15 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = serialize_common
-        hash[LogKeys::MSG] = message if message
-
-        # Add Sidekiq-specific fields if they're present
-        hash[LogKeys::PID] = process_id if process_id
-        hash[LogKeys::TID] = thread_id if thread_id
-        hash[LogKeys::CTX] = context if context
-        hash
+        {
+          LogKeys::SRC => source.serialize,
+          LogKeys::TS => timestamp.iso8601(3),
+          LogKeys::LVL => level.serialize,
+          LogKeys::MSG => message,
+          LogKeys::PID => process_id,
+          LogKeys::TID => thread_id,
+          LogKeys::CTX => context
+        }
       end
     end
   end

@@ -6,7 +6,7 @@ require_relative "hash_utils"
 
 module LogStruct
   # This class contains methods for filtering sensitive data in logs
-  # It is used by JSONFormatter to determine which keys should be filtered
+  # It is used by Formatter to determine which keys should be filtered
   class ParamFilters
     class << self
       extend T::Sig

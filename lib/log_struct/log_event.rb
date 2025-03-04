@@ -12,7 +12,10 @@ module LogStruct
       Request = new(:request)
 
       # Job events
-      JobExecution = new(:job_execution)
+      Enqueue = new(:enqueue)
+      Schedule = new(:schedule)
+      Start = new(:start)
+      Finish = new(:finish)
 
       # File storage events
       Upload = new(:upload)
@@ -26,7 +29,7 @@ module LogStruct
       Delivered = new(:delivered)
 
       # Security events
-      IPSpoofing = new(:ip_spoofing)
+      IPSpoof = new(:ip_spoof)
       CSRFViolation = new(:csrf_violation)
       BlockedHost = new(:blocked_host)
 

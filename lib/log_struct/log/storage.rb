@@ -17,7 +17,7 @@ module LogStruct
       include SerializeCommon
 
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::Storage, LogSource)
+      const :source, Source, default: T.let(Source::Storage, Source)
       const :event, LogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)

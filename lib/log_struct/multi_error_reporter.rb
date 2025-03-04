@@ -113,8 +113,8 @@ module LogStruct
 
         # Create a structured log entry
         log_data = {
-          src: "rails",
-          evt: "error",
+          source: "rails",
+          event: "error",
           error_class: exception.class.to_s,
           error_message: exception.message,
           backtrace: exception.backtrace&.take(20)

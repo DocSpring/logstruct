@@ -21,13 +21,13 @@ module LogStruct
           ::Rails.application.configure do
             config.lograge.enabled = true
             # Use a raw formatter that just returns the log struct.
-            # The struct is converted to JSON by our JSONFormatter (after filtering, etc.)
+            # The struct is converted to JSON by our Formatter (after filtering, etc.)
             config.lograge.formatter = T.let(
               lambda do |data|
                 # Convert the data hash to a Log::Request struct
                 Log::Request.new(
-                  src: LogSource::Rails,
-                  evt: LogEvent::Request,
+                  source: Source::Rails,
+                  event: LogEvent::Request,
                   ts: T.cast(Time.now, Time),
                   http_method: data[:method],
                   path: data[:path],
@@ -61,7 +61,7 @@ module LogStruct
           ).compact
 
           # We'll set these in the formatter
-          # options[:src] = LogSource::Rails
+          # options[:src] = Source::Rails
           # options[:evt] = LogEvent::Request
 
           if event.payload[:params].present?

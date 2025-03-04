@@ -13,8 +13,8 @@ module LogStruct
         end
         def self.build_base_log_data(mailer, event_type)
           log_data = {
-            src: "mailer",
-            evt: event_type,
+            source: "mailer",
+            event: event_type,
             ts: Time.now.iso8601(3),
             message_id: extract_message_id(mailer),
             mailer_class: mailer.class.to_s,
@@ -45,10 +45,9 @@ module LogStruct
 
           # Create an exception log with proper structured data
           exception_data = Log::Exception.from_exception(
-            LogSource::Mailer,
-            LogEvent::Error,
+            Source::Mailer,
             error,
-            log_data.merge(msg: message)
+            log_data.merge(message: message)
           )
 
           log_to_rails(exception_data, :error)

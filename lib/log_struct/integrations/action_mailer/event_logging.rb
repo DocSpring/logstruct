@@ -24,20 +24,20 @@ module LogStruct
         # Log when an email is about to be delivered
         sig { void }
         def log_email_delivery
-          log_mailer_event(LogStruct::LogEvent::Delivery)
+          log_mailer_event(LogEvent::Delivery)
         end
 
         # Log when an email is delivered
         sig { void }
         def log_email_delivered
-          log_mailer_event(LogStruct::LogEvent::Delivered)
+          log_mailer_event(LogEvent::Delivered)
         end
 
         private
 
         # Log a mailer event with the given event type
         sig do
-          params(event_type: LogStruct::LogEvent,
+          params(event_type: LogEvent,
             level: Symbol,
             additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped)
         end
@@ -62,21 +62,21 @@ module LogStruct
           from = mailer_message&.from&.first
           subject = mailer_message&.subject
 
-          # Map Rails log level to LogStruct::LogLevel
+          # Map Rails log level to LogLevel
           log_level = case level
           when :error, :fatal
-            LogStruct::LogLevel::Error
+            LogLevel::Error
           when :warn
-            LogStruct::LogLevel::Warn
+            LogLevel::Warn
           when :debug
-            LogStruct::LogLevel::Debug
+            LogLevel::Debug
           else
-            LogStruct::LogLevel::Info
+            LogLevel::Info
           end
 
           # Create a structured log entry
-          log_data = LogStruct::Log::Email.new(
-            evt: event_type,
+          log_data = Log::Email.new(
+            event: event_type,
             lvl: log_level,
             to: to,
             from: from,

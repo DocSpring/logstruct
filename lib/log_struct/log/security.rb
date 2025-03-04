@@ -19,10 +19,6 @@ module LogStruct
     class Security < T::Struct
       extend T::Sig
 
-      SecurityLogEvent = T.type_alias {
-        T.any(LogEvent::IPSpoofing, LogEvent::CSRFViolation, LogEvent::BlockedHost)
-      }
-
       include CommonInterface
       include RequestInterface
       include MessageInterface
@@ -31,8 +27,16 @@ module LogStruct
       include AddRequestFields
       include MergeDataFields
 
+      SecurityLogEvent = T.type_alias {
+        T.any(
+          LogEvent::IPSpoof,
+          LogEvent::CSRFViolation,
+          LogEvent::BlockedHost
+        )
+      }
+
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::Rails, LogSource)
+      const :source, Source, default: T.let(Source::Security, Source)
       const :event, SecurityLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)

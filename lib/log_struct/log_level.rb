@@ -11,6 +11,7 @@ module LogStruct
       Warn = new(:warn)
       Error = new(:error)
       Fatal = new(:fatal)
+      Unknown = new(:unknown)
     end
   end
 end

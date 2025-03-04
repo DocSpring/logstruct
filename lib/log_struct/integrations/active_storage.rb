@@ -43,8 +43,8 @@ module LogStruct
 
           # Create structured log data
           log_data = Log::Storage.new(
-            src: LogSource::Storage,
-            evt: event_type,
+            source: Source::Storage,
+            event: event_type,
             operation: operation,
             storage: service,
             file_id: payload[:key],

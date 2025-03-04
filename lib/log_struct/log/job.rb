@@ -21,9 +21,18 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
+      JobLogEvent = T.type_alias {
+        T.any(
+          LogEvent::Enqueue,
+          LogEvent::Schedule,
+          LogEvent::Start,
+          LogEvent::Finish
+        )
+      }
+
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::Job, LogSource)
-      const :event, LogEvent
+      const :source, Source, default: T.let(Source::Job, Source)
+      const :event, JobLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 

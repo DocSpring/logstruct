@@ -21,9 +21,13 @@ module LogStruct
       include SerializeCommon
       include AddRequestFields
 
+      RequestLogEvent = T.type_alias {
+        LogEvent::Request
+      }
+
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::Rails, LogSource)
-      const :event, LogEvent
+      const :source, Source, default: T.let(Source::Rails, Source)
+      const :event, RequestLogEvent, default: T.let(LogEvent::Request, RequestLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 

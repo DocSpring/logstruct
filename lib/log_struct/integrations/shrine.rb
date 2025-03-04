@@ -12,6 +12,7 @@ module LogStruct
     # Shrine integration for structured logging
     module Shrine
       class << self
+        extend T::Sig
         # Set up Shrine structured logging
         sig { void }
         def setup
@@ -30,15 +31,14 @@ module LogStruct
             when :download then LogEvent::Download
             when :delete then LogEvent::Delete
             when :metadata then LogEvent::Metadata
-            # ActiveStorage uses 'exist', so we use that for consistency
-            when :exists then LogEvent::Exist
+            when :exists then LogEvent::Exist # ActiveStorage uses 'exist', may as well use that
             else LogEvent::Unknown
             end
 
             # Create structured log data
             log_data = Log::Shrine.new(
-              src: LogSource::Shrine,
-              evt: event_type,
+              source: Source::Shrine,
+              event: event_type,
               duration: event.duration,
               storage: payload[:storage],
               location: payload[:location],
@@ -58,7 +58,7 @@ module LogStruct
             )
 
             # Pass the structured hash to the logger
-            # If Rails.logger has our JSONFormatter, it will handle JSON conversion
+            # If Rails.logger has our Formatter, it will handle JSON conversion
             ::Shrine.logger.info log_data
           end)
 

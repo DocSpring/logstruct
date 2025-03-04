@@ -21,9 +21,19 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
+      CarrierWaveLogEvent = T.type_alias {
+        T.any(
+          LogEvent::Upload,
+          LogEvent::Download,
+          LogEvent::Delete,
+          LogEvent::Metadata,
+          LogEvent::Exist
+        )
+      }
+
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::CarrierWave, LogSource)
-      const :event, LogEvent
+      const :source, Source, default: T.let(Source::CarrierWave, Source)
+      const :event, CarrierWaveLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 

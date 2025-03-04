@@ -80,7 +80,6 @@ module LogStruct
             # Create an exception log for structured logging
             exception_data = Log::Exception.from_exception(
               Source::Mailer,
-              LogEvent::Error,
               error,
               context
             )
@@ -102,7 +101,6 @@ module LogStruct
           # Create an error log data object
           exception_data = Log::Exception.from_exception(
             Source::Mailer,
-            LogEvent::Error,
             error,
             {
               mailer: self.class,

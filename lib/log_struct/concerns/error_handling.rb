@@ -40,7 +40,6 @@ module LogStruct
           # Create structured log entry
           exception_log = Log::Exception.from_exception(
             source,
-            LogEvent::Error,
             error,
             context || {}
           )

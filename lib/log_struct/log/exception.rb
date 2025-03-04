@@ -22,9 +22,13 @@ module LogStruct
       include MessageInterface
       include MergeDataFields
 
+      ExceptionLogEvent = T.type_alias {
+        LogEvent::Error
+      }
+
       # Common fields
       const :source, Source # Used by all sources, should not have a default.
-      const :event, LogEvent
+      const :event, ExceptionLogEvent, default: T.let(LogEvent::Error, ExceptionLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
@@ -52,15 +56,13 @@ module LogStruct
       sig {
         params(
           source: Source,
-          event: LogEvent,
           ex: StandardError,
           data: T::Hash[Symbol, T.untyped]
         ).returns(Log::Exception)
       }
-      def self.from_exception(source, event, ex, data = {})
+      def self.from_exception(source, ex, data = {})
         new(
           source: source,
-          event: event,
           message: ex.message,
           err_class: ex.class,
           backtrace: ex.backtrace,

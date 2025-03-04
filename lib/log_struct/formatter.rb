@@ -13,7 +13,7 @@ require_relative "param_filters"
 require_relative "multi_error_reporter"
 
 module LogStruct
-  class JSONFormatter < Logger::Formatter
+  class Formatter < ::Logger::Formatter
     extend T::Sig
 
     # Add current_tags method to support ActiveSupport::TaggedLogging
@@ -23,7 +23,7 @@ module LogStruct
     end
 
     # Add tagged method to support ActiveSupport::TaggedLogging
-    sig { params(tags: T::Array[String], blk: T.proc.params(formatter: JSONFormatter).void).returns(T.untyped) }
+    sig { params(tags: T::Array[String], blk: T.proc.params(formatter: Formatter).void).returns(T.untyped) }
     def tagged(*tags, &blk)
       new_tags = tags.flatten
       current_tags.concat(new_tags) if new_tags.any?
@@ -92,7 +92,7 @@ module LogStruct
             "[GLOBALID_ERROR]"
           end
         end
-      when LogSource, LogEvent
+      when Source, LogEvent
         arg.serialize
       when String
         scrub_string(arg)
@@ -119,8 +119,8 @@ module LogStruct
       else
         # Create a Plain struct with the message and then serialize it
         plain = Log::Plain.new(
-          msg: log_value.to_s,
-          ts: time
+          message: log_value.to_s,
+          timestamp: time
         )
         plain.serialize
       end
@@ -133,7 +133,7 @@ module LogStruct
       data[:evt] ||= "log"
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = severity.downcase
-      data[:progname] = progname if progname.present?
+      data[:prog] = progname if progname.present?
 
       generate_json(data)
     end

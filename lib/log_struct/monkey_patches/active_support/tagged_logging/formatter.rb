@@ -18,7 +18,7 @@ module ActiveSupport
       # into a JSON string before logging.
       def call(severity, time, progname, data)
         # Convert data to a hash if it's not already one
-        data = {msg: data.to_s} unless data.is_a?(Hash)
+        data = {message: data.to_s} unless data.is_a?(Hash)
 
         # Add current tags to the hash if present
         tags = current_tags

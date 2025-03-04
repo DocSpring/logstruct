@@ -4,9 +4,9 @@
 require "test_helper"
 
 module LogStruct
-  class JSONFormatterTest < ActiveSupport::TestCase
+  class FormatterTest < ActiveSupport::TestCase
     def setup
-      @formatter = JSONFormatter.new
+      @formatter = Formatter.new
       @severity = "INFO"
       @time = Time.utc(2023, 1, 1, 12, 0, 0)
       @progname = "test"
@@ -42,7 +42,7 @@ module LogStruct
     end
 
     def test_call_with_hash_message
-      message = {custom_field: "value", msg: "Test message"}
+      message = {custom_field: "value", message: "Test message"}
       result = JSON.parse(@formatter.call(@severity, @time, @progname, message))
 
       assert_equal "value", result["custom_field"]
@@ -54,7 +54,7 @@ module LogStruct
     end
 
     def test_call_does_not_override_existing_fields
-      custom_message = {src: "custom", evt: "test_event", ts: "custom_time"}
+      custom_message = {source: "custom", event: "test_event", ts: "custom_time"}
       result = JSON.parse(@formatter.call(@severity, @time, @progname, custom_message))
 
       assert_equal "custom", result["src"]
@@ -63,7 +63,7 @@ module LogStruct
     end
 
     def test_call_applies_string_scrubber_to_hash_message_fields
-      email_message = {msg: "Email: user@example.com"}
+      email_message = {message: "Email: user@example.com"}
       result = JSON.parse(@formatter.call(@severity, @time, @progname, email_message))
 
       assert_not_includes result["msg"], "user@example.com"
@@ -74,7 +74,7 @@ module LogStruct
       user = user_class.new(123)
 
       message = {
-        src: "active_job",
+        source: "active_job",
         arguments: [user, {email: "test@example.com"}]
       }
 
@@ -94,7 +94,7 @@ module LogStruct
       end
 
       message = {
-        src: "active_job",
+        source: "active_job",
         arguments: [broken_user]
       }
 

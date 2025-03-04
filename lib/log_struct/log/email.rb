@@ -21,9 +21,13 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
+      EmailLogEvent = T.type_alias {
+        T.any(LogEvent::Delivery, LogEvent::Delivered)
+      }
+
       # Common fields
-      const :source, LogSource, default: T.let(LogSource::Mailer, LogSource)
-      const :event, LogEvent
+      const :source, Source, default: T.let(Source::Mailer, Source)
+      const :event, EmailLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 

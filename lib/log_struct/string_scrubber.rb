@@ -36,7 +36,7 @@ module LogStruct
       MAC_REPLACEMENT = "[MAC]"
 
       # Scrub sensitive information from a string
-      sig { params(msg: String).returns(String) }
+      sig { params(message: String).returns(String) }
       def scrub(msg)
         msg = msg.to_s.dup
         config = LogStruct.config.filters

@@ -21,9 +21,9 @@ module LogStruct
             blocked_hosts = env["action_dispatch.blocked_hosts"]
 
             # Create a structured security log entry
-            security_log = LogStruct::Log::Security.new(
-              sec_evt: LogSecurityEvent::BlockedHost,
-              msg: "Blocked host detected: #{request.host}",
+            security_log = Log::Security.new(
+              sec_event: LogSecurityEvent::BlockedHost,
+              message: "Blocked host detected: #{request.host}",
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,
               request_id: request.request_id,

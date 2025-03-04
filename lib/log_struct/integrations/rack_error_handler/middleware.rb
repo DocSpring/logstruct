@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 module LogStruct
@@ -6,10 +6,19 @@ module LogStruct
     module RackErrorHandler
       # Custom middleware to enhance Rails error logging with JSON format and request details
       class Middleware
+        extend T::Sig
+
+        CONTENT_TYPE_HEADER = "Content-Type"
+        CONTENT_TYPE_TEXT = "text/plain"
+        IP_SPOOF_RESPONSE = "Forbidden: IP Spoofing Detected"
+        CSRF_RESPONSE = "Forbidden: CSRF Error"
+
+        sig { params(app: T.untyped).void }
         def initialize(app)
           @app = app
         end
 
+        sig { params(env: T.untyped).returns(T.untyped) }
         def call(env)
           return @app.call(env) unless LogStruct.enabled?
 
@@ -18,7 +27,8 @@ module LogStruct
             @app.call(env)
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             # Create a security log for IP spoofing
-            security_log = LogStruct::Log::Security.new(
+            security_log = Log::Security.new(
+              event: LogEvent::IPSpoof,
               message: ip_spoof_error.message,
               # Can't call .remote_ip on the request because that's what raises the error.
               # Have to pass the client_ip and x_forwarded_for headers.
@@ -36,17 +46,17 @@ module LogStruct
 
             # Report the error
             context = extract_request_context(env)
-            LogStruct.handle_exception(LogStruct::ErrorSource::Security, ip_spoof_error, context)
+            LogStruct.handle_exception(ip_spoof_error, source: Source::Security, context: context)
 
             # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
-            [403, {"Content-Type" => "text/plain"}, ["Forbidden: IP Spoofing Detected"]]
+            [403, {CONTENT_TYPE_HEADER => CONTENT_TYPE_TEXT}, [IP_SPOOF_RESPONSE]]
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
             # Create a security log for CSRF error
             request = ::ActionDispatch::Request.new(env)
-            security_log = LogStruct::Log::Security.new(
-              sec_evt: LogSecurityEvent::CSRFError,
-              msg: invalid_auth_token_error.message,
+            security_log = Log::Security.new(
+              event: LogEvent::CSRFViolation,
+              message: invalid_auth_token_error.message,
               path: request.path,
               http_method: request.method,
               source_ip: request.remote_ip,
@@ -54,38 +64,34 @@ module LogStruct
               referer: request.referer,
               request_id: request.request_id
             )
+            LogStruct.log(security_log)
 
-            # Log the structured data
-            ::Rails.logger.warn(security_log)
-
-            # Report to error reporting service and re-raise
+            # Report to error reporting service and/or re-raise
             context = extract_request_context(env)
-            LogStruct.handle_exception(LogStruct::ErrorSource::Security, invalid_auth_token_error, context)
+            LogStruct.handle_exception(invalid_auth_token_error, source: Source::Security, context: context)
 
             # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
-            [403, {"Content-Type" => "text/plain"}, ["Forbidden: CSRF Error"]]
+            [403, {CONTENT_TYPE_HEADER => CONTENT_TYPE_TEXT}, [CSRF_RESPONSE]]
           rescue => error
             # Log other exceptions with request context
             log_event(
               env,
               level: :error,
-              event: LogEvent::RequestError,
+              event: LogEvent::Error,
               error_class: error.class.to_s,
               error_message: error.message
             )
 
-            # Report to error reporting service and re-raise (if configured)
-            context = extract_request_context(env)
-            LogStruct.handle_exception(LogStruct::ErrorSource::Request, error, context)
-
-            # Must always re-raise any general errors. This cannot be configured
+            # Re-raise any standard errors to let Rails or error reporter handle it.
+            # This cannot be configured.
             raise error
           end
         end
 
         private
 
+        sig { params(env: T.untyped).returns(T::Hash[Symbol, T.untyped]) }
         def extract_request_context(env)
           request = ::ActionDispatch::Request.new(env)
           {
@@ -100,26 +106,24 @@ module LogStruct
           {error_extracting_context: error.message}
         end
 
+        sig { params(env: T.untyped, event: LogEvent, level: Symbol, client_ip: T.nilable(String)).void }
         def log_event(env, event:, level:, client_ip: nil, **custom_fields)
           # WARNING: Calling .remote_ip on the request will raise an error
           # if this is a remote IP spoofing attack. But it's still safe to call other methods.
           request = ::ActionDispatch::Request.new(env)
 
-          log_data = {
-            src: LogSource::Rails,
-            evt: event,
+          log_data = Log::Request.new(
+            source: Source::Rails,
+            event: event,
             level: level,
             request_id: request.request_id,
             client_ip: client_ip || request.remote_ip,
             path: request.path,
-            method: request.method,
+            http_method: request.method,
             user_agent: request.user_agent,
-            referer: request.referer,
-            **custom_fields
-          }
-          # We send a hash to the Rails log formatter which scrubs sensitive data,
-          # adds tags, and then serializes it as JSON.
-          ::Rails.logger.public_send(level, log_data)
+            referer: request.referer
+          )
+          LogStruct.log(log_data)
         end
       end
     end
