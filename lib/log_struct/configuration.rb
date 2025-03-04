@@ -2,9 +2,9 @@
 # frozen_string_literal: true
 
 require_relative "handlers"
-require_relative "configuration/error_handling_modes"
-require_relative "configuration/integrations"
-require_relative "configuration/filters"
+require_relative "config_struct/error_handling_modes"
+require_relative "config_struct/integrations"
+require_relative "config_struct/filters"
 
 module LogStruct
   # Core configuration class that provides a type-safe API
@@ -18,8 +18,8 @@ module LogStruct
     prop :enabled, T::Boolean, default: true
     prop :environments, T::Array[Symbol], factory: -> { [:test, :production] }
     prop :local_environments, T::Array[Symbol], factory: -> { [:development, :test] }
-    const :integrations, Configuration::Integrations, factory: -> { Configuration::Integrations.new }
-    const :filters, Configuration::Filters, factory: -> { Configuration::Filters.new }
+    const :integrations, ConfigStruct::Integrations, factory: -> { ConfigStruct::Integrations.new }
+    const :filters, ConfigStruct::Filters, factory: -> { ConfigStruct::Filters.new }
 
     # Custom log scrubbing handler for any additional string scrubbing
     # Default: nil
@@ -32,9 +32,9 @@ module LogStruct
 
     # How to handle errors from various sources
     const :error_handling_modes,
-      Configuration::ErrorHandlingModes,
+      ConfigStruct::ErrorHandlingModes,
       factory: -> {
-        Configuration::ErrorHandlingModes.new
+        ConfigStruct::ErrorHandlingModes.new
       }
 
     # -------------------------------------------------------------------------------------

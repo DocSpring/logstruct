@@ -5,7 +5,7 @@
 # not an optional dependency.
 require "sorbet-runtime"
 require_relative "multi_error_reporter"
-require_relative "error_handling_mode"
+require_relative "enums/error_handling_mode"
 
 # Don't extend T::Sig to all modules. We're just a library, not a private application
 # See: https://sorbet.org/docs/sigs

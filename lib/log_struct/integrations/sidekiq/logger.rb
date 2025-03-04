@@ -3,7 +3,7 @@
 
 require_relative "../../../logger"
 require_relative "../../../log/sidekiq"
-require_relative "../../../source"
+require_relative "../../../enums/source"
 
 module LogStruct
   module Integrations

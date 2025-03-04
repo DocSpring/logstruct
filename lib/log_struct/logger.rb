@@ -3,7 +3,7 @@
 
 require "active_support/logger"
 require_relative "formatter"
-require_relative "log_level"
+require_relative "enums/log_level"
 
 module LogStruct
   # Base Logger class that uses LogStruct::Formatter

@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 module LogStruct
-  class Configuration
+  module ConfigStruct
     class ErrorHandlingModes < T::Struct
       # How to handle different types of errors
       # Modes:

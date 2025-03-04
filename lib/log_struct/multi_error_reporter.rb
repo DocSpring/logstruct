@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "error_reporter"
+require_relative "enums/error_reporter"
 
 %w[sentry-ruby bugsnag rollbar honeybadger].any? do |gem_name|
   require gem_name

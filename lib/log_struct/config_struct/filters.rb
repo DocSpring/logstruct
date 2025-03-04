@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 module LogStruct
-  class Configuration
+  module ConfigStruct
     class Filters < T::Struct
       extend T::Sig
 

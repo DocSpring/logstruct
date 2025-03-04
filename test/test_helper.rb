@@ -7,6 +7,7 @@ require "sorbet-runtime"
 
 SimpleCov.start do
   T.bind(self, SimpleCov::Configuration)
+
   add_filter "test/"
   enable_coverage :branch
   primary_coverage :branch
