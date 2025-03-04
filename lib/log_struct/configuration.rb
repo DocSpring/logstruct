@@ -39,6 +39,7 @@ module LogStruct
 
     # How to handle different types of errors
     # Modes:
+    # - :ignore - always ignore the error
     # - :log - always log the error
     # - :report - always report to tracking service and continue
     # - :log_production - log in production, raise locally
@@ -50,7 +51,7 @@ module LogStruct
     #   logstruct_errors: :raise,         # Our own errors - always raise
     #   other_errors: :log               # Everything else - just log
     # }
-    sig { returns(T::Hash[Symbol, Symbol]) }
+    sig { returns(T::Hash[Symbol, ErrorHandlingMode]) }
     attr_accessor :error_handling
 
     # Enable or disable Lograge integration
@@ -221,17 +222,17 @@ module LogStruct
           # Sorbet type errors
           # Default: Raise in test/dev, log in production
           # Feel free to change this to :ignore if you don't care about type errors.
-          type_errors: :log_production,
+          type_errors: ErrorHandlingMode::LogProduction,
           # Internal LogStruct errors
           # Default: Raise in test/dev, log in prod
           # These are any errors that may occur during log filtering and formatting.
           # (If you raise these in production you won't see any logs for the crashed requests.)
-          logstruct_errors: :log_production,
+          logstruct_errors: ErrorHandlingMode::LogProduction,
           # All other errors (StandardError)
           # Default: Always re-raise errors after logging
-          standard_errors: :raise
+          standard_errors: ErrorHandlingMode::Raise
         },
-        T::Hash[Symbol, Symbol]
+        T::Hash[Symbol, ErrorHandlingMode]
       )
 
       # Applications can provide a proc to extend lograge options
@@ -328,9 +329,9 @@ module LogStruct
     end
 
     # Get the mode for handling a specific type of error
-    sig { params(error_type: Symbol).returns(Symbol) }
+    sig { params(error_type: Symbol).returns(ErrorHandlingMode) }
     def mode_for(error_type)
-      error_handling[error_type] || T.must(error_handling[:other_errors])
+      error_handling[error_type] || T.must(error_handling[:standard_errors])
     end
   end
 end
