@@ -58,7 +58,7 @@ module LogStruct
       def local_environments=(environments)
         @config.local_environments = environments
       end
-      
+
       sig { params(handler: LogStruct::Handlers::ExceptionReporter).void }
       def exception_reporting_handler=(handler)
         @config.exception_reporting_handler = handler

@@ -14,10 +14,10 @@ module LogStruct
       include LogInterface
       include LogSerialization
       # Common fields
-      const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
-      const :evt, LogEvent, default: T.let(LogEvent::Log, LogEvent)
-      const :ts, Time, factory: -> { Time.now }
-      const :lvl, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :source, LogSource, name: :src, default: T.let(LogSource::Rails, LogSource)
+      const :event, LogEvent, name: :evt, default: T.let(LogEvent::Log, LogEvent)
+      const :timestamp, Time, name: :ts, factory: -> { Time.now }
+      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
 
       # Log message
       const :msg, String

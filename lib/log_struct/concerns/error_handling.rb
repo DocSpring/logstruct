@@ -11,7 +11,7 @@ module LogStruct
       sig { params(source: Source).returns(ErrorHandlingMode) }
       def error_handling_mode_for(source)
         config = LogStruct.config
-        
+
         # Use a case statement for type-safety
         case source
         when Source::TypeChecking
@@ -20,13 +20,13 @@ module LogStruct
           config.error_handling_modes.logstruct_errors
         when Source::Security
           config.error_handling_modes.security_errors
-        when Source::Request, 
+        when Source::Request,
              Source::App,
-             Source::Job, 
+             Source::Job,
              Source::Storage,
              Source::Mailer,
              Source::Shrine,
-             Source::CarrierWave, 
+             Source::CarrierWave,
              Source::Sidekiq
           config.error_handling_modes.standard_errors
         else
@@ -40,17 +40,17 @@ module LogStruct
       def log_exception(error, source:, context: nil)
         # Create structured log entry
         exception_log = Log::Exception.from_exception(
-          source, 
+          source,
           LogEvent::Error,
           error,
           context || {}
         )
-        
+
         # Use the structured log entry directly with Rails logger
         # The JSONFormatter will handle proper serialization
         ::Rails.logger.error(exception_log)
       end
-      
+
       # Report an exception using the configured handler or MultiErrorReporter
       sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
       def report_exception(error, source:, context: nil)

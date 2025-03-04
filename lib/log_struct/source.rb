@@ -9,14 +9,14 @@ module LogStruct
       TypeChecking = new(:type_checking) # For type checking errors (Sorbet)
       LogStruct = new(:logstruct) # Errors from LogStruct itself
       Security = new(:security) # Security-related events
-      
+
       # Application sources
       Request = new(:request) # For request-related logs/errors
       Job = new(:job) # ActiveJob logs/errors
       Storage = new(:storage) # ActiveStorage logs/errors
       Mailer = new(:mailer) # ActionMailer logs/errors
       App = new(:app) # General application logs/errors
-      
+
       # Third-party gem sources
       Shrine = new(:shrine)
       CarrierWave = new(:carrierwave)

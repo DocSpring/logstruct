@@ -17,8 +17,8 @@ module LogStruct
       # Common fields
       const :src, Source # Used by all sources, should not have a default.
       const :evt, LogEvent
-      const :ts, Time, factory: -> { Time.now }
-      const :lvl, LogLevel, default: T.let(LogLevel::Error, LogLevel)
+      const :timestamp, Time, name: :ts, factory: -> { Time.now }
+      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Error, LogLevel)
 
       # Exception-specific fields
       const :err_class, T.class_of(StandardError)

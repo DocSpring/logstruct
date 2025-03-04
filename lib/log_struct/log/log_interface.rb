@@ -13,26 +13,24 @@ module LogStruct
 
       interface!
 
-      # Common required fields for all log types
+      # The source of the log entry (JSON property: src)
       sig { abstract.returns(LogSource) }
-      def src
+      def source
       end
 
+      # The event type of the log entry (JSON property: evt)
       sig { abstract.returns(LogEvent) }
-      def evt
+      def event
       end
 
+      # The timestamp of the log entry (JSON property: ts)
       sig { abstract.returns(Time) }
-      def ts
+      def timestamp
       end
 
+      # The log level of the log entry (JSON property: lvl)
       sig { abstract.returns(LogLevel) }
-      def lvl
-      end
-
-      # Convert the log entry to a hash for serialization
-      sig { abstract.returns(T::Hash[Symbol, T.untyped]) }
-      def serialize
+      def level
       end
     end
   end

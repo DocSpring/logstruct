@@ -15,10 +15,10 @@ module LogStruct
       include LogSerialization
 
       # Common fields
-      const :src, LogSource, default: T.let(LogSource::Sidekiq, LogSource)
+      const :source, LogSource, name: :src, default: T.let(LogSource::Sidekiq, LogSource)
       const :evt, LogEvent
-      const :ts, Time, factory: -> { Time.now }
-      const :lvl, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :timestamp, Time, name: :ts, factory: -> { Time.now }
+      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
 
       # Sidekiq-specific fields
       const :job_id, T.nilable(String), default: nil

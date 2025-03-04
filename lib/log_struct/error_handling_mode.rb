@@ -39,7 +39,7 @@ module LogStruct
 
     sig { params(sym: Symbol).returns(ErrorHandlingMode) }
     def self.from_symbol(sym)
-      values.find { |value| value.serialize == sym } || 
+      values.find { |value| value.serialize == sym } ||
         raise(ArgumentError, "Invalid error handling mode: #{sym}")
     end
   end

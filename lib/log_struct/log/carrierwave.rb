@@ -15,10 +15,10 @@ module LogStruct
       include LogSerialization
 
       # Common fields
-      const :src, LogSource, default: T.let(LogSource::CarrierWave, LogSource)
+      const :source, LogSource, name: :src, default: T.let(LogSource::CarrierWave, LogSource)
       const :evt, LogEvent
-      const :ts, Time, factory: -> { Time.now }
-      const :lvl, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :timestamp, Time, name: :ts, factory: -> { Time.now }
+      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
 
       # File-specific fields
       const :storage, T.nilable(String), default: nil

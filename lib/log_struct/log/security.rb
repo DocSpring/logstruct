@@ -22,10 +22,10 @@ module LogStruct
       include MergeData
 
       # Common fields
-      const :src, LogSource, default: T.let(LogSource::Rails, LogSource)
-      const :evt, LogEvent, default: T.let(LogEvent::Security, LogEvent)
-      const :ts, Time, factory: -> { Time.now }
-      const :lvl, LogLevel, default: T.let(LogLevel::Warn, LogLevel)
+      const :source, LogSource, name: :src, default: T.let(LogSource::Rails, LogSource)
+      const :event, LogEvent, name: :evt, default: T.let(LogEvent::Security, LogEvent)
+      const :timestamp, Time, name: :ts, factory: -> { Time.now }
+      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Warn, LogLevel)
 
       # Security-specific fields
       const :sec_evt, LogSecurityEvent

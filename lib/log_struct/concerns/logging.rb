@@ -10,9 +10,9 @@ module LogStruct
     module Logging
       extend T::Sig
 
-      sig { params(level: LogLevel, log: Log).void }
-      def log(level, log)
-        case level
+      sig { params(log: Log).void }
+      def log(log)
+        case log.level
         when LogLevel::Debug
           Rails.logger.debug(log)
         when LogLevel::Info
