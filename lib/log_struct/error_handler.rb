@@ -4,11 +4,23 @@
 module LogStruct
   # Module for handling errors according to configured modes
   module ErrorHandler
+    extend T::Sig
+
+    # Get the error handling mode for a given source
+    sig { params(source: ErrorSource).returns(ErrorHandlingMode) }
+    def error_handling_mode_for(source)
+      config = LogStruct.config
+      mode = config.error_handling[source.serialize.to_sym]
+      return mode if mode.is_a?(ErrorHandlingMode)
+      standard_mode = config.error_handling[:standard_errors]
+      raise "No standard error handling mode configured" unless standard_mode.is_a?(ErrorHandlingMode)
+      standard_mode
+    end
+
     # Handle an exception according to the configured error handling mode
     sig { params(error: StandardError, source: ErrorSource, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
     def handle_exception(error, source, context = nil)
-      current_config = LogStruct.config
-      mode = T.must(current_config).mode_for(source.serialize.to_sym)
+      mode = error_handling_mode_for(source)
 
       case mode
       when ErrorHandlingMode::Ignore

@@ -217,22 +217,24 @@ module LogStruct
       # Error handling configuration
       # Which environments should be considered local? (e.g. for :log_production)
       @local_environments = T.let([:test, :development], T::Array[Symbol])
+
+      # Error handling configuration
       @error_handling = T.let(
         {
           # Sorbet type errors
           # Default: Raise in test/dev, log in production
           # Feel free to change this to :ignore if you don't care about type errors.
-          type_errors: ErrorHandlingMode::LogProduction,
+          type_errors: ErrorHandlingMode::LogProduction.serialize,
           # Internal LogStruct errors
           # Default: Raise in test/dev, log in prod
           # These are any errors that may occur during log filtering and formatting.
           # (If you raise these in production you won't see any logs for the crashed requests.)
-          logstruct_errors: ErrorHandlingMode::LogProduction,
+          logstruct_errors: ErrorHandlingMode::LogProduction.serialize,
           # All other errors (StandardError)
           # Default: Always re-raise errors after logging
-          standard_errors: ErrorHandlingMode::Raise
+          standard_errors: ErrorHandlingMode::Raise.serialize
         },
-        T::Hash[Symbol, ErrorHandlingMode]
+        T::Hash[Symbol, Symbol]
       )
 
       # Applications can provide a proc to extend lograge options
@@ -326,12 +328,6 @@ module LogStruct
     sig { returns(T::Boolean) }
     def enabled_for_environment?
       enabled && environments.include?(::Rails.env.to_sym)
-    end
-
-    # Get the mode for handling a specific type of error
-    sig { params(error_type: Symbol).returns(ErrorHandlingMode) }
-    def mode_for(error_type)
-      error_handling[error_type] || T.must(error_handling[:standard_errors])
     end
   end
 end
