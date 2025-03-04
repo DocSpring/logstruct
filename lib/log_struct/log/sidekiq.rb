@@ -2,8 +2,8 @@
 # frozen_string_literal: true
 
 require_relative "shared/serialize_common"
-require_relative "../log_source"
-require_relative "../log_event"
+require_relative "../enums/source"
+require_relative "../enums/log_event"
 require_relative "../log_level"
 require_relative "../log_keys"
 

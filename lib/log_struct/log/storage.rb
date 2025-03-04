@@ -3,8 +3,8 @@
 
 require_relative "log_interface"
 require_relative "shared/serialize_common"
-require_relative "../log_source"
-require_relative "../log_event"
+require_relative "../enums/source"
+require_relative "../enums/log_event"
 require_relative "../log_level"
 
 module LogStruct

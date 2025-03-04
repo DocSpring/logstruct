@@ -24,17 +24,9 @@ module LogStruct
     # Override add to ensure proper log level handling
     sig { params(severity: T.any(String, Integer), message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
     def add(severity, message = nil, progname = nil, &block)
-      severity = severity.to_s.upcase if severity.is_a?(Integer)
-      
-      # Convert string severity to integer level for comparison
-      severity_int = case severity.to_s.downcase
-                     when 'debug' then Logger::DEBUG
-                     when 'info' then Logger::INFO
-                     when 'warn' then Logger::WARN
-                     when 'error' then Logger::ERROR
-                     when 'fatal' then Logger::FATAL
-                     else Logger::UNKNOWN
-                     end
+      # Get the numeric severity level for comparison
+      level_enum = LogLevel.from_severity(severity)
+      severity_int = level_enum.to_severity_int
       
       return true if severity.nil? || (@level && @level > severity_int)
 
