@@ -3,11 +3,14 @@
 
 require_relative "enums/error_reporter"
 
-%w[sentry-ruby bugsnag rollbar honeybadger].any? do |gem_name|
-  require gem_name
-  true
-rescue LoadError
-  # If none of these gems are available we'll fall back to Rails.logger
+# Try to require all supported error reporting libraries
+# Users may have multiple installed, so we should load all of them
+%w[sentry-ruby bugsnag rollbar honeybadger].each do |gem_name|
+  begin
+    require gem_name
+  rescue LoadError
+    # If a particular gem is not available, we'll still load the others
+  end
 end
 
 module LogStruct

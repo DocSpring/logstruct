@@ -25,8 +25,6 @@ module LogStruct
     end
 
     def test_report_exception_with_sentry
-      # Skip if Sentry is not defined
-      skip "Sentry is not available" unless defined?(::Sentry)
 
       # Create a stub to assert capture_exception was called
       called = T.let(false, T::Boolean)
@@ -79,9 +77,6 @@ module LogStruct
     end
 
     def test_report_exception_with_bugsnag
-      # Skip if Bugsnag is not defined
-      skip "Bugsnag is not available" unless defined?(::Bugsnag)
-
       report_mock = Minitest::Mock.new
       report_mock.expect(:add_metadata, nil, [:context, @context])
 
@@ -100,8 +95,6 @@ module LogStruct
     end
 
     def test_report_exception_with_rollbar
-      # Skip if Rollbar is not defined
-      skip "Rollbar is not available" unless defined?(::Rollbar)
 
       # Mock Rollbar.error
       rollbar_mock = Minitest::Mock.new
@@ -116,8 +109,6 @@ module LogStruct
     end
 
     def test_report_exception_with_honeybadger
-      # Skip if Honeybadger is not defined
-      skip "Honeybadger is not available" unless defined?(::Honeybadger)
 
       # Mock Honeybadger.notify
       honeybadger_mock = Minitest::Mock.new
@@ -173,10 +164,6 @@ module LogStruct
     end
 
     def test_reporter_priority_with_all_services
-      # Skip if any service is not defined
-      skip "Not all services are available" unless
-        defined?(::Sentry) && defined?(::Bugsnag) &&
-          defined?(::Rollbar) && defined?(::Honeybadger)
 
       # Create mocks for all services
       sentry_mock = Minitest::Mock.new
