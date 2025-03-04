@@ -26,6 +26,8 @@ module LogStruct
             Rails.logger.error(log)
           when LogLevel::Fatal
             Rails.logger.fatal(log)
+          when LogLevel::Unknown
+            Rails.logger.error(log) # Log unknown severity as error
           else
             T.absurd(level)
           end

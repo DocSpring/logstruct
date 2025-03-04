@@ -20,7 +20,7 @@ module LogStruct
 
       # Sidekiq-specific fields
       const :process_id, T.nilable(Integer), default: nil
-      const :thread_id, T.nilable(Integer), default: nil
+      const :thread_id, T.nilable(T.any(Integer, String)), default: nil
       const :message, T.nilable(String), default: nil
       const :context, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
 

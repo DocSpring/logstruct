@@ -46,7 +46,7 @@ module LogStruct
 
     # Process log data before sending to formatter
     # Subclasses should override this to format specific log types
-    sig { params(severity: String, message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
+    sig { params(severity: T.any(String, Integer), message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
     def process_log_data(severity, message, progname)
       # Default implementation returns message as is
       message || progname
