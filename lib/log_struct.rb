@@ -4,10 +4,10 @@
 # Core library files
 require "log_struct/sorbet"
 require "log_struct/version"
+require "log_struct/enums"  # All enums are now in the enums directory
 require "log_struct/configuration"
 require "log_struct/json_formatter"
 require "log_struct/railtie"
-require "log_struct/error_source"
 require "log_struct/concerns/error_handling"
 require "log_struct/concerns/configuration"
 require "log_struct/concerns/logging"
