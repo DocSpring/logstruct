@@ -72,7 +72,7 @@ module LogStruct
         # MAC addresses
         string.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.filter_macs
 
-        # custom scrubber
+        # Custom scrubber
         custom_scrubber = LogStruct.config.string_scrubbing_handler
         string = custom_scrubber.call(string) if !custom_scrubber.nil?
 

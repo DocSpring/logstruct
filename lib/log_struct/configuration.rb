@@ -48,6 +48,11 @@ module LogStruct
     def self.instance
       @instance ||= T.let(Configuration.new, T.nilable(Configuration))
     end
+    
+    sig { params(config: Configuration).void }
+    def self.set_instance(config)
+      @instance = config
+    end
 
     # -------------------------------------------------------------------------------------
     # Serialization

@@ -25,6 +25,12 @@ module LogStruct
         def configuration
           config
         end
+        
+        # Setter method to replace the configuration (for testing purposes)
+        sig { params(config: LogStruct::Configuration).void }
+        def configuration=(config)
+          LogStruct::Configuration.set_instance(config)
+        end
 
         sig { returns(T::Boolean) }
         def enabled?
