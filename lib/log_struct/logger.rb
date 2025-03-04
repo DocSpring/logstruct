@@ -25,7 +25,18 @@ module LogStruct
     sig { params(severity: T.any(String, Integer), message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
     def add(severity, message = nil, progname = nil, &block)
       severity = severity.to_s.upcase if severity.is_a?(Integer)
-      return true if severity.nil? || (@level && @level > LogStruct::LogLevel.from_string(severity))
+      
+      # Convert string severity to integer level for comparison
+      severity_int = case severity.to_s.downcase
+                     when 'debug' then Logger::DEBUG
+                     when 'info' then Logger::INFO
+                     when 'warn' then Logger::WARN
+                     when 'error' then Logger::ERROR
+                     when 'fatal' then Logger::FATAL
+                     else Logger::UNKNOWN
+                     end
+      
+      return true if severity.nil? || (@level && @level > severity_int)
 
       # Get message from block if block is given
       if block
@@ -43,7 +54,7 @@ module LogStruct
 
     # Process log data before sending to formatter
     # Subclasses should override this to format specific log types
-    sig { params(severity: String, message: T.nilable(T.untyped), progname: T.nilable(String)).returns(T.untyped) }
+    sig { params(severity: String, message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
     def process_log_data(severity, message, progname)
       # Default implementation returns message as is
       message || progname
