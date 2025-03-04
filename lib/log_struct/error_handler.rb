@@ -10,7 +10,7 @@ module LogStruct
     sig { params(source: ErrorSource).returns(ErrorHandlingMode) }
     def error_handling_mode_for(source)
       config = LogStruct.config
-      
+
       # Map the error source to the appropriate error handling mode
       case source
       when ErrorSource::TypeChecking
@@ -31,16 +31,19 @@ module LogStruct
 
     # Handle an exception according to the configured error handling mode
     sig { params(error: StandardError, source: ErrorSource, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-    def handle_exception(error, source, context = nil)
+    def handle_exception(error, source:, context: nil)
       mode = error_handling_mode_for(source)
 
       case mode
       when ErrorHandlingMode::Ignore
         # Do nothing
       when ErrorHandlingMode::Log
-        ::Rails.logger.error(error)
+        raise "fix this, we need to log proper errors"
+        # Log the exception with structured data
+        Rails.logger.error(exception_data)
+
       when ErrorHandlingMode::Report
-        report_error(error, context, source)
+        report_error(error, source: source, context: context)
       when ErrorHandlingMode::LogProduction
         if mode.should_raise?
           Kernel.raise(error)
@@ -51,7 +54,7 @@ module LogStruct
         if mode.should_raise?
           Kernel.raise(error)
         else
-          report_error(error, context, source)
+          report_error(error, source: source, context: context)
         end
       when ErrorHandlingMode::Raise, ErrorHandlingMode::RaiseError
         Kernel.raise(error)
@@ -59,12 +62,12 @@ module LogStruct
         T.absurd(mode)
       end
     end
-    
+
     private
-    
+
     # Report an error using the configured handler or MultiErrorReporter
     sig { params(error: StandardError, context: T.nilable(T::Hash[Symbol, T.untyped]), source: ErrorSource).void }
-    def report_error(error, context = nil, source = ErrorSource::Application)
+    def report_error(error, source: ErrorSource::Application, context: nil)
       if LogStruct.config.exception_reporting_handler
         # Use the configured handler
         LogStruct.config.exception_reporting_handler.call(error, context, source)
