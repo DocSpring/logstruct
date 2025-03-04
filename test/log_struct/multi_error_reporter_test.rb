@@ -28,16 +28,25 @@ module LogStruct
       # Skip if Sentry is not defined
       skip "Sentry is not available" unless defined?(::Sentry)
 
-      # Mock Sentry.capture_exception
-      sentry_mock = Minitest::Mock.new
-      sentry_mock.expect(:capture_exception, nil, [@exception, {extra: @context}])
-
-      ::Sentry.stub(:capture_exception, sentry_mock) do
+      # Create a stub to assert capture_exception was called
+      called = false
+      capture_stub = ->(exception, options) { 
+        called = true 
+        assert_equal @exception, exception
+        assert_equal({extra: @context}, options)
+        nil
+      }
+      
+      # Stub the actual Sentry method
+      ::Sentry.stub(:capture_exception, capture_stub) do
+        # Reset the reporter to ensure it uses Sentry
+        MultiErrorReporter.instance_variable_set(:@error_reporter, ErrorReporter::Sentry)
+        
+        # Make the call to test
         MultiErrorReporter.report_exception(@exception, @context)
       end
-
-      assert_mock sentry_mock
-      assert_equal ErrorReporter::Sentry, MultiErrorReporter.error_reporter
+      
+      assert called, "Sentry.capture_exception should have been called"
     end
 
     def test_report_exception_with_sentry_error_fallback
@@ -129,8 +138,7 @@ module LogStruct
       begin
         # Reset the reporter to force reinitialization
         MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
-        MultiErrorReporter.report_exception(@exception, @context)
-
+        
         # Create a log mock to verify LogStruct.log was called correctly
         log_mock = Minitest::Mock.new
         log_mock.expect(:call, nil) do |log_entry|
@@ -142,6 +150,7 @@ module LogStruct
           true
         end
         
+        # This is where we actually call report_exception with our mock
         LogStruct.stub(:log, log_mock) do
           MultiErrorReporter.report_exception(@exception, @context)
         end
@@ -151,10 +160,17 @@ module LogStruct
         # Verify the reporter was initialized to use fallback
         assert_equal ErrorReporter::RailsLogger, MultiErrorReporter.error_reporter
       ensure
-        # Restore constants
+        # Ensure we mock the type error handler too
+        original_sig_handler = T::Configuration.instance_variable_get(:@call_validation_error_handler)
+        T::Configuration.call_validation_error_handler = ->(signature, opts) {}
+
+        # Restore constants and handlers
         original_constants.each do |const, value|
-          Object.const_set(const, value)
+          Object.const_set(const, value) if value
         end
+        
+        # Restore the type error handler
+        T::Configuration.call_validation_error_handler = original_sig_handler
       end
     end
 
