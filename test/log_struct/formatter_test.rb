@@ -221,7 +221,7 @@ module LogStruct
 
     def test_log_value_to_hash_with_other_types
       puts "Running test_log_value_to_hash_with_other_types"
-      
+
       # Test numeric conversion
       number_result = @formatter.log_value_to_hash(123, time: @time)
 

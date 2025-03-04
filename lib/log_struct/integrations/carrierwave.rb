@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 begin
@@ -82,7 +82,7 @@ module LogStruct
 
           # Extract file information if available
           file_size = file.size if file&.respond_to?(:size)
-          
+
           # Log the retrieve operation with structured data
           log_data = Log::CarrierWave.new(
             source: Source::CarrierWave,

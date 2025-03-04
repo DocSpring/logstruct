@@ -14,6 +14,7 @@ module LogStruct
       extend T::Sig
 
       # Also supports URL-encoded URLs like https%3A%2F%2Fuser%3Asecret%40example.com
+      # cspell:ignore Fuser Asecret
       URL_PASSWORD_REGEX = /((?:\/\/|%2F%2F)[^\s\/]+(?::|%3A))[^\s\/]+(@|%40)/
       URL_PASSWORD_REPLACEMENT = '\1[FILTERED]\2'
 

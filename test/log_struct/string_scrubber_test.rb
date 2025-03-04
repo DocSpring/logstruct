@@ -54,6 +54,7 @@ module LogStruct
 
     def test_scrub_url_passwords
       # Test with a URL containing a password
+      # cspell:ignore mydb
       input = "Database URL: postgres://user:password123@localhost:5432/mydb"
       result = StringScrubber.scrub(input)
 
@@ -62,6 +63,7 @@ module LogStruct
       assert_includes result, "postgres://user:[FILTERED]@localhost:5432/mydb"
 
       # Test with encoded URL
+      # cspell:ignore Fuser Asecret
       input = "Encoded URL: https%3A%2F%2Fuser%3Asecret%40example.com"
       result = StringScrubber.scrub(input)
 

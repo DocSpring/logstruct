@@ -6,12 +6,14 @@ bytesize
 carrierwave
 creds
 dalli
+gettime
 Honeybadger
 logdev
 Logstop
 LogStruct
 metaprogramming
 nilable
+procs
 progname
 railtie
 rdoc

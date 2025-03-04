@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 module LogStruct
@@ -10,7 +10,7 @@ module LogStruct
         extend ::ActiveSupport::Concern
 
         # Track if we've already patched MessageDelivery
-        @patched_message_delivery = false
+        @patched_message_delivery = T.let(false, T::Boolean)
 
         # We can't use included block with strict typing
         # This will be handled by ActiveSupport::Concern at runtime
