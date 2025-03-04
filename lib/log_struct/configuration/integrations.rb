@@ -45,22 +45,6 @@ module LogStruct
       # Enable or disable CarrierWave integration
       # Default: true
       prop :enable_carrierwave, T::Boolean, default: true
-
-      sig { void }
-      def initialize
-        super(
-          enable_lograge: true,
-          lograge_custom_options: nil,
-          enable_actionmailer: true,
-          enable_host_authorization: true,
-          enable_activejob: true,
-          enable_rack_error_handler: true,
-          enable_sidekiq: true,
-          enable_shrine: true,
-          enable_active_storage: true,
-          enable_carrierwave: true
-        )
-      end
     end
   end
 end

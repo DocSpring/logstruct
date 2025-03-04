@@ -11,8 +11,7 @@ module LogStruct
 
       # Data field for additional context
       sig { abstract.returns(T::Hash[Symbol, T.untyped]) }
-      def data
-      end
+      def data; end
     end
   end
 end

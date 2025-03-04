@@ -5,6 +5,8 @@ module LogStruct
   class Configuration
     class Untyped
       class ErrorHandling
+        extend T::Sig
+
         sig { params(typed: Configuration::ErrorHandling).void }
         def initialize(typed)
           @typed = typed

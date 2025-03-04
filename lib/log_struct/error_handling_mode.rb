@@ -4,6 +4,7 @@
 module LogStruct
   # Enum for error handling modes
   class ErrorHandlingMode < T::Enum
+    extend T::Sig
     enums do
       # Always ignore the error
       Ignore = new(:ignore)

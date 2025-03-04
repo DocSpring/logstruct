@@ -11,11 +11,6 @@ module LogStruct
       # Request events
       Request = new(:request)
 
-      # Security events
-      IPSpoofing = new(:ip_spoofing)
-      CSRFViolation = new(:csrf_violation)
-      BlockedHost = new(:blocked_host)
-
       # Job events
       JobExecution = new(:job_execution)
 
@@ -29,6 +24,11 @@ module LogStruct
       # Email events
       Delivery = new(:delivery)
       Delivered = new(:delivered)
+
+      # Security events
+      IPSpoofing = new(:ip_spoofing)
+      CSRFViolation = new(:csrf_violation)
+      BlockedHost = new(:blocked_host)
 
       # Error events
       Error = new(:error)

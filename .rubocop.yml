@@ -51,6 +51,9 @@ Minitest/MultipleAssertions:
 Style/SingleLineMethods:
   Exclude:
     - sorbet/**/*
+    - lib/log_struct/log/interfaces/**/*
+
 Style/EmptyMethod:
   Exclude:
     - sorbet/**/*
+    - lib/log_struct/log/interfaces/**/*

@@ -20,79 +20,61 @@ module LogStruct
       # Default: [:password, :password_confirmation, :pass, :pw, :token, :secret,
       #           :credentials, :creds, :auth, :authentication, :authorization]
       #
-      prop :filtered_keys, T::Array[Symbol]
+      prop :filtered_keys,
+        T::Array[Symbol],
+        factory: -> {
+          %i[
+            password password_confirmation pass pw token secret
+            credentials auth authentication authorization
+            credit_card ssn social_security
+          ]
+        }
 
       # Keys where string values should include an SHA256 hash.
       # Useful for tracing emails across requests (e.g. sign in, sign up) while protecting privacy.
       # Default: [:email, :email_address]
-      prop :filtered_keys_with_string_hash, T::Array[Symbol]
+      prop :filtered_keys_with_string_hash,
+        T::Array[Symbol],
+        factory: -> { %i[email email_address] }
 
       # Hash salt for SHA256 hashing (typically used for email addresses)
       # Used for both param filters and string scrubbing
       # Default: "l0g5t0p"
-      prop :hash_salt, String
+      prop :hash_salt, String, default: "l0g5t0p"
 
       # Hash length for SHA256 hashing (typically used for email addresses)
       # Used for both param filters and string scrubbing
       # Default: 12
-      prop :hash_length, Integer
+      prop :hash_length, Integer, default: 12
 
       # Filter email addresses. Also controls email filtering for the ActionMailer integration
       # (to, from, recipient fields, etc.)
       # Default: true
-      prop :filter_emails, T::Boolean
+      prop :filter_emails, T::Boolean, default: true
 
       # Filter URL passwords
       # Default: true
-      prop :filter_url_passwords, T::Boolean
+      prop :filter_url_passwords, T::Boolean, default: true
 
       # Filter credit card numbers
       # Default: true
-      prop :filter_credit_cards, T::Boolean
+      prop :filter_credit_cards, T::Boolean, default: true
 
       # Filter phone numbers
       # Default: true
-      prop :filter_phones, T::Boolean
+      prop :filter_phone_numbers, T::Boolean, default: true
 
       # Filter social security numbers
       # Default: true
-      prop :filter_ssns, T::Boolean
+      prop :filter_ssns, T::Boolean, default: true
 
       # Filter IP addresses
       # Default: false
-      prop :filter_ips, T::Boolean
+      prop :filter_ips, T::Boolean, default: false
 
       # Filter MAC addresses
       # Default: false
-      prop :filter_macs, T::Boolean
-
-      # Custom log scrubbing handler for any additional string scrubbing
-      # Default: nil
-      prop :string_scrubbing_handler, T.nilable(LogStruct::CustomHandlers::StringScrubber)
-
-      sig { void }
-      def initialize
-        super(
-          filtered_keys: %i[
-            password password_confirmation pass pw token secret
-            credentials auth authentication authorization
-            credit_card ssn social_security
-          ],
-          filtered_keys_with_string_hash: %i[
-            email email_address
-          ],
-          hash_salt: "l0g5t0p",
-          hash_length: 12,
-          filter_emails: true,
-          filter_url_passwords: true,
-          filter_credit_cards: true,
-          filter_phones: true,
-          filter_ssns: true,
-          filter_ips: false,
-          filter_macs: false,
-          string_scrubbing_handler: nil
-        )
-      end
+      prop :filter_macs, T::Boolean, default: false
     end
   end
 end

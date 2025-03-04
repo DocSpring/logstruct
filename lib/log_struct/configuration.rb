@@ -21,25 +21,33 @@ module LogStruct
     prop :local_environments, T::Array[Symbol], factory: -> { [:development, :test] }
     const :integrations, Configuration::Integrations, factory: -> { Configuration::Integrations.new }
     const :filters, Configuration::Filters, factory: -> { Configuration::Filters.new }
-    const :error_handling_modes, Configuration::ErrorHandlingModes, factory: -> { Configuration::ErrorHandlingModes.new }
+
+    # Custom log scrubbing handler for any additional string scrubbing
+    # Default: nil
+    prop :string_scrubbing_handler, T.nilable(LogStruct::CustomHandlers::StringScrubber)
 
     # Custom handler for exception reporting
     # Default: Errors are handled by LogStruct::MultiErrorReporter
     # (auto-detects Sentry, Bugsnag, Rollbar, Honeybadger, etc.)
     prop :exception_reporting_handler, T.nilable(Handlers::ExceptionReporter), default: nil
 
+    # How to handle errors from various sources
+    const :error_handling_modes,
+      Configuration::ErrorHandlingModes,
+      factory: -> {
+        Configuration::ErrorHandlingModes.new
+      }
+
     # -------------------------------------------------------------------------------------
     # Class Methods
     # -------------------------------------------------------------------------------------
 
-    class << self
-      # Class‐instance variable
-      @configuration = T.let(nil, T.nilable(Configuration))
+    # Class‐instance variable
+    @configuration = T.let(nil, T.nilable(Configuration))
 
-      sig { returns(Configuration) }
-      def configuration
-        @configuration ||= T.let(Configuration.new, T.nilable(Configuration))
-      end
+    sig { returns(Configuration) }
+    def self.configuration
+      @configuration ||= T.let(Configuration.new, T.nilable(Configuration))
     end
 
     # -------------------------------------------------------------------------------------

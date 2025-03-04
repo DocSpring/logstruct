@@ -7,15 +7,36 @@ require "sorbet-runtime"
 require_relative "multi_error_reporter"
 require_relative "error_handling_mode"
 
-# Configure sorbet-runtime to use our error reporter for type checking failures
-# https://sorbet.org/docs/runtime#on_failure-changing-what-happens-on-runtime-errors
-T::Configuration.call_validation_error_handler = lambda do |signature, opts|
-  error = TypeError.new(opts[:pretty_message])
-  LogStruct.handle_error(LogStruct::ErrorSource::Sorbet, error)
+# Don't extend T::Sig to all modules. We're just a library, not a private application
+# See: https://sorbet.org/docs/sigs
+# class Module
+#   include T::Sig
+# end
+
+current_inline_type_error_handler = T::Configuration.instance_variable_get(:@inline_type_error_handler)
+T::Configuration.inline_type_error_handler = lambda do |error, opts|
+  LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
+  current_inline_type_error_handler&.call(error, opts)
 end
 
-# Extend T::Sig to all modules so we don't have to write `extend T::Sig` everywhere.
-# See: https://sorbet.org/docs/sigs
-class Module
-  include T::Sig
+current_validation_error_handler = T::Configuration.instance_variable_get(:@call_validation_error_handler)
+T::Configuration.call_validation_error_handler = lambda do |signature, opts|
+  if signature.method.owner.name.start_with?("LogStruct")
+    error = TypeError.new(opts[:pretty_message])
+    LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
+  elsif current_validation_error_handler
+    current_validation_error_handler.call(signature, opts)
+  end
+end
+
+current_sig_builder_error_handler = T::Configuration.instance_variable_get(:@sig_builder_error_handler)
+T::Configuration.sig_builder_error_handler = lambda do |error, location|
+  LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
+  current_sig_builder_error_handler&.call(error, location)
+end
+
+current_sig_validation_error_handler = T::Configuration.instance_variable_get(:@sig_validation_error_handler)
+T::Configuration.sig_validation_error_handler = lambda do |error, opts|
+  LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
+  current_sig_validation_error_handler&.call(error, opts)
 end

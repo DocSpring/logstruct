@@ -1,24 +1,29 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_interface"
-require_relative "log_serialization"
+require_relative "interfaces/common_interface"
+require_relative "interfaces/data_interface"
+require_relative "shared/serialize_common"
+require_relative "shared/merge_data_fields"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
+require_relative "../log_keys"
 
 module LogStruct
   module Log
     # Job log entry for structured logging
     class Job < T::Struct
-      include LogInterface
-      include LogSerialization
+      include CommonInterface
+      include DataInterface
+      include SerializeCommon
+      include MergeDataFields
 
       # Common fields
-      const :source, LogSource, name: :src, default: T.let(LogSource::Job, LogSource)
-      const :event, LogEvent, name: :evt
-      const :timestamp, Time, name: :ts, factory: -> { Time.now }
-      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
+      const :source, LogSource, default: T.let(LogSource::Job, LogSource)
+      const :event, LogEvent
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
       # Job-specific fields
       const :job_id, T.nilable(String), default: nil
@@ -31,17 +36,15 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = common_serialize
+        hash = serialize_common
+        merge_data_fields(hash)
 
         # Add job-specific fields if they're present
-        hash[:job_id] = job_id if job_id
-        hash[:job_class] = job_class if job_class
-        hash[:queue_name] = queue_name if queue_name
-        hash[:arguments] = arguments if arguments
-        hash[:duration] = duration if duration
-
-        # Merge any additional data
-        hash.merge!(data) if data.any?
+        hash[LogKeys::JOB_ID] = job_id if job_id
+        hash[LogKeys::JOB_CLASS] = job_class if job_class
+        hash[LogKeys::QUEUE_NAME] = queue_name if queue_name
+        hash[LogKeys::ARGUMENTS] = arguments if arguments
+        hash[LogKeys::DURATION] = duration if duration
 
         hash
       end

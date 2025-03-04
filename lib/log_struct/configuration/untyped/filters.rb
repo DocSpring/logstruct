@@ -5,6 +5,8 @@ module LogStruct
   class Configuration
     class Untyped
       class Filters
+        extend T::Sig
+
         sig { params(typed: Configuration::Filters).void }
         def initialize(typed)
           @typed = typed

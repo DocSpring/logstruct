@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "log_interface"
-require_relative "log_serialization"
+require_relative "shared/serialize_common"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
@@ -11,13 +11,13 @@ module LogStruct
   module Log
     # Storage log entry for structured logging
     class Storage < T::Struct
-      include LogInterface
-      include LogSerialization
+      include CommonInterface
+      include SerializeCommon
       # Common fields
-      const :source, LogSource, name: :src, default: T.let(LogSource::Storage, LogSource)
-      const :event, LogEvent, name: :evt
-      const :timestamp, Time, name: :ts, factory: -> { Time.now }
-      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
+      const :source, LogSource, default: T.let(LogSource::Storage, LogSource)
+      const :event, LogEvent
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
       # File-specific fields
       const :storage, T.nilable(String), default: nil
@@ -33,7 +33,7 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = common_serialize
+        hash = merge_data_field
 
         # Add file-specific fields if they're present
         hash[:storage] = storage if storage

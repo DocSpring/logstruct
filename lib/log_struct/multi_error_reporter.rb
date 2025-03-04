@@ -10,17 +10,18 @@ rescue LoadError
   # If none of these gems are not available we'll fall back to Rails.logger
 end
 
-# MultiErrorReporter provides a unified interface for reporting errors to various services.
-# You can also override this with your own error reporter by setting
-# LogStruct#.config.exception_reporting_handler
-# NOTE: This is used for cases where an error should be reported
-# but the operation should be allowed to continue (e.g. scrubbing log data.)
 module LogStruct
+  # MultiErrorReporter provides a unified interface for reporting errors to various services.
+  # You can also override this with your own error reporter by setting
+  # LogStruct#.config.exception_reporting_handler
+  # NOTE: This is used for cases where an error should be reported
+  # but the operation should be allowed to continue (e.g. scrubbing log data.)
   class MultiErrorReporter
     # Use T.let to properly declare the class variable at the class level
     @error_reporter = T.let(ErrorReporter::RailsLogger, ErrorReporter)
 
     class << self
+      extend T::Sig
       sig { returns(ErrorReporter) }
       attr_reader :error_reporter
 

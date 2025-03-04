@@ -1,24 +1,29 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_interface"
-require_relative "log_serialization"
+require_relative "interfaces/common_interface"
+require_relative "interfaces/data_interface"
+require_relative "shared/serialize_common"
+require_relative "shared/merge_data_fields"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
+require_relative "../log_keys"
 
 module LogStruct
   module Log
     # CarrierWave log entry for structured logging
     class CarrierWave < T::Struct
-      include LogInterface
-      include LogSerialization
+      include CommonInterface
+      include DataInterface
+      include SerializeCommon
+      include MergeDataFields
 
       # Common fields
-      const :source, LogSource, name: :src, default: T.let(LogSource::CarrierWave, LogSource)
-      const :event, LogEvent, name: :evt
-      const :timestamp, Time, name: :ts, factory: -> { Time.now }
-      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
+      const :source, LogSource, default: T.let(LogSource::CarrierWave, LogSource)
+      const :event, LogEvent
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
       # File-specific fields
       const :storage, T.nilable(String), default: nil
@@ -39,25 +44,23 @@ module LogStruct
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = common_serialize
+        hash = serialize_common
+        merge_data_fields(hash)
 
         # Add file-specific fields if they're present
-        hash[:storage] = storage if storage
-        hash[:operation] = operation if operation
-        hash[:file_id] = file_id if file_id
-        hash[:filename] = filename if filename
-        hash[:mime_type] = mime_type if mime_type
-        hash[:size] = size if size
-        hash[:metadata] = metadata if metadata
-        hash[:duration] = duration if duration
+        hash[LogKeys::STORAGE] = storage if storage
+        hash[LogKeys::OPERATION] = operation if operation
+        hash[LogKeys::FILE_ID] = file_id if file_id
+        hash[LogKeys::FILENAME] = filename if filename
+        hash[LogKeys::MIME_TYPE] = mime_type if mime_type
+        hash[LogKeys::SIZE] = size if size
+        hash[LogKeys::METADATA] = metadata if metadata
+        hash[LogKeys::DURATION] = duration if duration
 
         # Add CarrierWave-specific fields if they're present
-        hash[:uploader] = uploader if uploader
-        hash[:model] = model if model
-        hash[:mount_point] = mount_point if mount_point
-
-        # Merge any additional data
-        hash.merge!(data) if data.any?
+        hash[LogKeys::UPLOADER] = uploader if uploader
+        hash[LogKeys::MODEL] = model if model
+        hash[LogKeys::MOUNT_POINT] = mount_point if mount_point
 
         hash
       end

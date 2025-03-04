@@ -8,30 +8,26 @@ require_relative "../log_level"
 module LogStruct
   module Log
     # Common interface that all log entry types must implement
-    module LogInterface
+    module CommonInterface
       extend T::Helpers
 
       interface!
 
       # The source of the log entry (JSON property: src)
       sig { abstract.returns(LogSource) }
-      def source
-      end
+      def source; end
 
       # The event type of the log entry (JSON property: evt)
       sig { abstract.returns(LogEvent) }
-      def event
-      end
+      def event; end
 
       # The timestamp of the log entry (JSON property: ts)
       sig { abstract.returns(Time) }
-      def timestamp
-      end
+      def timestamp; end
 
       # The log level of the log entry (JSON property: lvl)
       sig { abstract.returns(LogLevel) }
-      def level
-      end
+      def level; end
     end
   end
 end

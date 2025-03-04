@@ -1,37 +1,51 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_interface"
-require_relative "request_interface"
-require_relative "msg_interface"
-require_relative "data_interface"
-require_relative "merge_data"
+require_relative "interfaces/log_interface"
+require_relative "interfaces/request_interface"
+require_relative "interfaces/msg_interface"
+require_relative "interfaces/data_interface"
+require_relative "shared/data_merging"
+require_relative "shared/merge_data_fields"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
 require_relative "../log_security_event"
+require_relative "../log_keys"
 
 module LogStruct
   module Log
     # Security log entry for structured logging of security-related events
     class Security < T::Struct
-      include LogInterface
+      SecurityLogEvent = T.type_alias {
+        T.any(LogEvent::IPSpoofing, LogEvent::CSRFViolation, LogEvent::BlockedHost)
+      }
+
+      include CommonInterface
       include RequestInterface
-      include MsgInterface
+      include MessageInterface
       include DataInterface
-      include MergeData
+      include SerializeCommon
+      include AddRequestFields
+      include MergeDataFields
 
       # Common fields
-      const :source, LogSource, name: :src, default: T.let(LogSource::Rails, LogSource)
-      const :event, LogEvent, name: :evt, default: T.let(LogEvent::Security, LogEvent)
-      const :timestamp, Time, name: :ts, factory: -> { Time.now }
-      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Warn, LogLevel)
+      const :source, LogSource, default: T.let(LogSource::Rails, LogSource)
+      const :event, SecurityLogEvent
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
       # Security-specific fields
-      const :sec_evt, LogSecurityEvent
-      const :msg, T.nilable(String), default: nil
+      const :message, T.nilable(String), default: nil
+      const :blocked_host, T.nilable(String), default: nil
+      const :blocked_hosts, T.nilable(T::Array[String]), default: nil
+      const :client_ip, T.nilable(String), default: nil
+      const :x_forwarded_for, T.nilable(String), default: nil
 
-      # Request-related fields
+      # Additional data (merged into hash)
+      const :data, T::Hash[Symbol, T.untyped], default: {}
+
+      # Common request fields
       const :path, T.nilable(String), default: nil
       const :http_method, T.nilable(String), default: nil, name: "method"
       const :source_ip, T.nilable(String), default: nil
@@ -39,33 +53,19 @@ module LogStruct
       const :referer, T.nilable(String), default: nil
       const :request_id, T.nilable(String), default: nil
 
-      # Additional security-specific fields
-      const :blocked_host, T.nilable(String), default: nil
-      const :blocked_hosts, T.nilable(T::Array[String]), default: nil
-      const :client_ip, T.nilable(String), default: nil
-      const :x_forwarded_for, T.nilable(String), default: nil
-      const :data, T::Hash[Symbol, T.untyped], default: {}
-
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = common_serialize
+        hash = serialize_common
+        add_request_fields(hash)
+        merge_data_fields(hash)
 
         # Add security-specific fields
-        hash[:sec_evt] = sec_evt.serialize
-        hash[:msg] = msg if msg
-
-        # Add request-related fields
-        hash.merge!(serialize_request_fields)
-
-        # Add additional security-specific fields
-        hash[:blocked_host] = blocked_host if blocked_host
-        hash[:blocked_hosts] = blocked_hosts if blocked_hosts
-        hash[:client_ip] = client_ip if client_ip
-        hash[:x_forwarded_for] = x_forwarded_for if x_forwarded_for
-
-        # Merge any additional data
-        hash.merge!(data) if data.any?
+        hash[LogKeys::MSG] = message if message
+        hash[LogKeys::BLOCKED_HOST] = blocked_host if blocked_host
+        hash[LogKeys::BLOCKED_HOSTS] = blocked_hosts if blocked_hosts
+        hash[LogKeys::CLIENT_IP] = client_ip if client_ip
+        hash[LogKeys::X_FORWARDED_FOR] = x_forwarded_for if x_forwarded_for
 
         hash
       end

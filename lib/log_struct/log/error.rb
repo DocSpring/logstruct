@@ -1,39 +1,44 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_interface"
-require_relative "log_serialization"
+require_relative "interfaces/common_interface"
+require_relative "interfaces/data_interface"
+require_relative "interfaces/message_interface"
+require_relative "shared/serialize_common"
+require_relative "shared/merge_data_fields"
 require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
+require_relative "../log_keys"
 
 module LogStruct
   module Log
-    # Error log entry for general error logging (not tied to Ruby exceptions)
+    # Error log entry for general error logging (not related to Ruby exceptions)
     class Error < T::Struct
-      include LogInterface
-      include LogSerialization
+      include CommonInterface
+      include DataInterface
+      include MessageInterface
+      include SerializeCommon
+      include MergeDataFields
 
       # Common fields
-      const :src, LogSource # Used by all sources, should not have a default.
-      const :event, LogEvent, name: :evt
-      const :timestamp, Time, name: :ts, factory: -> { Time.now }
-      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Error, LogLevel)
+      const :source, LogSource # Used by all sources, should not have a default.
+      const :event, LogEvent
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
       # Error-specific fields
-      const :msg, String
+      const :message, String
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = common_serialize
+        hash = serialize_common
+        merge_data_fields(hash)
 
         # Add error-specific fields
-        hash[:msg] = msg
-
-        # Merge any additional data
-        hash.merge!(data) if data.any?
+        hash[LogKeys::MSG] = message
 
         hash
       end

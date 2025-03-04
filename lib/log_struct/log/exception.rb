@@ -1,55 +1,66 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_interface"
-require_relative "log_serialization"
-require_relative "../source"
+require_relative "interfaces/common_interface"
+require_relative "interfaces/data_interface"
+require_relative "interfaces/message_interface"
+require_relative "shared/serialize_common"
+require_relative "shared/merge_data_fields"
+require_relative "../log_source"
 require_relative "../log_event"
 require_relative "../log_level"
+require_relative "../log_keys"
 
 module LogStruct
   module Log
     # Exception log entry for Ruby exceptions with class, message, and backtrace
     class Exception < T::Struct
-      include LogInterface
-      include LogSerialization
+      include CommonInterface
+      include DataInterface
+      include MessageInterface
+      include MergeDataFields
 
       # Common fields
-      const :src, Source # Used by all sources, should not have a default.
-      const :event, LogEvent, name: :evt
-      const :timestamp, Time, name: :ts, factory: -> { Time.now }
-      const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Error, LogLevel)
+      const :source, Source # Used by all sources, should not have a default.
+      const :event, LogEvent
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
       # Exception-specific fields
+      const :message, String
       const :err_class, T.class_of(StandardError)
-      const :msg, String
       const :backtrace, T.nilable(T::Array[String]), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.returns(T::Hash[Symbol, T.untyped]) }
       def serialize
-        hash = common_serialize
+        hash = serialize_common
+        merge_data_fields(hash)
 
         # Add exception-specific fields
-        hash[:err_class] = err_class.name
-        hash[:msg] = msg
-        hash[:backtrace] = backtrace if backtrace
-
-        # Merge any additional data
-        hash.merge!(data) if data.any?
+        hash[LogKeys::ERR_CLASS] = err_class.name
+        hash[LogKeys::MSG] = message
+        hash[LogKeys::BACKTRACE] = backtrace if backtrace
 
         hash
       end
 
       # Create an Exception log from a Ruby exception
-      sig { params(src: Source, evt: LogEvent, ex: StandardError, data: T::Hash[Symbol, T.untyped]).returns(Exception) }
-      def self.from_exception(src, evt, ex, data = {})
+      sig {
+        params(
+          source: Source,
+          event: LogEvent,
+          ex: StandardError,
+          data: T::Hash[Symbol, T.untyped]
+        ).returns(Log::Exception)
+      }
+      def self.from_exception(source, event, ex, data = {})
         new(
-          src: src,
-          evt: evt,
+          source: source,
+          event: event,
+          message: ex.message,
           err_class: ex.class,
-          msg: ex.message,
           backtrace: ex.backtrace,
           data: data
         )

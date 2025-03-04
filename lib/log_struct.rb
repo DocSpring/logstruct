@@ -8,7 +8,9 @@ require "log_struct/configuration"
 require "log_struct/json_formatter"
 require "log_struct/railtie"
 require "log_struct/error_source"
-require "log_struct/error_handler"
+require "log_struct/concerns/error_handling"
+require "log_struct/concerns/configuration"
+require "log_struct/concerns/logging"
 
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to support hash input/output
 require "log_struct/monkey_patches/active_support/tagged_logging/formatter"
@@ -20,27 +22,10 @@ module LogStruct
   class Error < StandardError; end
 
   class << self
-    include ErrorHandler
+    extend T::Sig
 
-    sig { returns(Configuration) }
-    def configuration
-      Configuration.configuration
-    end
-    alias_method :config, :configuration
-
-    sig { params(block: T.proc.params(config: Untyped::Configuration).void).void }
-    def configure(&block)
-      yield(Untyped::Configuration.new(configuration))
-    end
-
-    sig { params(block: T.proc.params(config: Configuration).void).void }
-    def configure_typed(&block)
-      yield(configuration)
-    end
-
-    sig { returns(T::Boolean) }
-    def enabled?
-      configuration.enabled
-    end
+    extend Concerns::ErrorHandling::ClassMethods
+    extend Concerns::Configuration::ClassMethods
+    extend Concerns::Logging::ClassMethods
   end
 end

@@ -19,8 +19,7 @@ module LogStruct
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             # Create a security log for IP spoofing
             security_log = LogStruct::Log::Security.new(
-              sec_evt: LogSecurityEvent::IPSpoof,
-              msg: ip_spoof_error.message,
+              message: ip_spoof_error.message,
               # Can't call .remote_ip on the request because that's what raises the error.
               # Have to pass the client_ip and x_forwarded_for headers.
               client_ip: env["HTTP_CLIENT_IP"],
