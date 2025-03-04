@@ -15,7 +15,7 @@ module LogStruct
         protected
 
         # Override process_log_data to create Sidekiq log structs
-        sig { override.params(severity: String, message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
+        sig { override.params(severity: T.any(String, Integer), message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
         def process_log_data(severity, message, progname)
           # Create a Sidekiq log struct with the message
           LogStruct::Log::Sidekiq.new(

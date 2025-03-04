@@ -28,9 +28,9 @@ module LogStruct
               lambda do |data|
                 # Convert the data hash to a Log::Request struct
                 Log::Request.new(
-                  source: Source::Rails,
+                  source: Source::Request,
                   event: LogEvent::Request,
-                  ts: T.cast(Time.now, Time),
+                  timestamp: Time.now,
                   http_method: data[:method],
                   path: data[:path],
                   format: data[:format],
@@ -51,6 +51,9 @@ module LogStruct
               Integrations::Lograge.lograge_default_options(event)
             end
           end
+
+          true # Return true to satisfy the signature
+        end
         end
 
         sig { params(event: ActiveSupport::Notifications::Event).returns(T::Hash[Symbol, T.untyped]) }

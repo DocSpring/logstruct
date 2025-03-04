@@ -22,7 +22,7 @@ module LogStruct
       }
 
       # Common fields
-      const :source, Source, default: T.let(Source::Rails, Source)
+      const :source, Source, default: T.let(Source::App, Source)
       const :event, PlainLogEvent, default: T.let(LogEvent::Log, PlainLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
