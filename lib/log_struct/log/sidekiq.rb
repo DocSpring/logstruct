@@ -16,7 +16,7 @@ module LogStruct
 
       # Common fields
       const :source, LogSource, name: :src, default: T.let(LogSource::Sidekiq, LogSource)
-      const :evt, LogEvent
+      const :event, LogEvent, name: :evt
       const :timestamp, Time, name: :ts, factory: -> { Time.now }
       const :level, LogLevel, name: :lvl, default: T.let(LogLevel::Info, LogLevel)
 

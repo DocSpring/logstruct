@@ -10,9 +10,11 @@ module LogStruct
     module Logging
       extend T::Sig
 
-      sig { params(log: Log).void }
+      # Type-safe interface for Rails.logger
+      sig { params(log: Log::LogInterface).void }
       def log(log)
-        case log.level
+        level = log.level
+        case level
         when LogLevel::Debug
           Rails.logger.debug(log)
         when LogLevel::Info
