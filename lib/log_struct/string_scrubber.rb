@@ -36,45 +36,47 @@ module LogStruct
       MAC_REPLACEMENT = "[MAC]"
 
       # Scrub sensitive information from a string
-      sig { params(message: String).returns(String) }
-      def scrub(msg)
-        msg = msg.to_s.dup
+      sig { params(string: String).returns(String) }
+      def scrub(string)
+        return string if string.empty?
+
+        string = string.to_s.dup
         config = LogStruct.config.filters
 
         # Passwords in URLs
-        msg.gsub!(URL_PASSWORD_REGEX, URL_PASSWORD_REPLACEMENT) if config.filter_url_passwords
+        string.gsub!(URL_PASSWORD_REGEX, URL_PASSWORD_REPLACEMENT) if config.filter_url_passwords
 
         # Emails
         if config.filter_emails
-          msg.gsub!(EMAIL_REGEX) do |match|
-            email_hash = Digest::SHA256.hexdigest("#{match}#{config.hash_salt}")
-            "[EMAIL:#{email_hash[0..config.hash_length]}]"
+          string.gsub!(EMAIL_REGEX) do |email|
+            email_hash = HashUtils.hash_value(email)
+            "[EMAIL:#{email_hash}]"
           end
         end
 
         # Credit card numbers
         if config.filter_credit_cards
-          msg.gsub!(CREDIT_CARD_REGEX_SHORT, CREDIT_CARD_REPLACEMENT)
-          msg.gsub!(CREDIT_CARD_REGEX_DELIMITERS, CREDIT_CARD_REPLACEMENT)
+          string.gsub!(CREDIT_CARD_REGEX_SHORT, CREDIT_CARD_REPLACEMENT)
+          string.gsub!(CREDIT_CARD_REGEX_DELIMITERS, CREDIT_CARD_REPLACEMENT)
         end
 
         # Phone numbers
-        msg.gsub!(PHONE_REGEX, PHONE_REPLACEMENT) if config.filter_phone_numbers
+        string.gsub!(PHONE_REGEX, PHONE_REPLACEMENT) if config.filter_phone_numbers
 
         # SSNs
-        msg.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.filter_ssns
+        string.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.filter_ssns
 
         # IPs
-        msg.gsub!(IP_REGEX, IP_REPLACEMENT) if config.filter_ips
+        string.gsub!(IP_REGEX, IP_REPLACEMENT) if config.filter_ips
 
         # MAC addresses
-        msg.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.filter_macs
+        string.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.filter_macs
 
         # custom scrubber
         custom_scrubber = LogStruct.config.string_scrubbing_handler
-        msg = custom_scrubber.call(msg) if !custom_scrubber.nil?
+        string = custom_scrubber.call(string) if !custom_scrubber.nil?
 
-        msg
+        string
       end
     end
   end

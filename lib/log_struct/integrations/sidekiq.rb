@@ -7,6 +7,7 @@ rescue LoadError
   # Sidekiq gem is not available, integration will be skipped
 end
 require_relative "sidekiq/logger" if defined?(::Sidekiq)
+require_relative "../logger_utils"
 
 module LogStruct
   module Integrations
@@ -24,15 +25,17 @@ module LogStruct
 
           # Configure Sidekiq server (worker) to use our logger
           ::Sidekiq.configure_server do |config|
-            config.logger = LogStruct::Integrations::Sidekiq::Logger.new(
-              config.logger.instance_variable_get(:@logdev)&.dev || $stdout
+            config.logger = LogStruct::LoggerUtils.create_logger(
+              LogStruct::Integrations::Sidekiq::Logger,
+              config.logger
             )
           end
 
           # Configure Sidekiq client (Rails app) to use our logger
           ::Sidekiq.configure_client do |config|
-            config.logger = LogStruct::Integrations::Sidekiq::Logger.new(
-              config.logger.instance_variable_get(:@logdev)&.dev || $stdout
+            config.logger = LogStruct::LoggerUtils.create_logger(
+              LogStruct::Integrations::Sidekiq::Logger,
+              config.logger
             )
           end
 
