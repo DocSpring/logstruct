@@ -21,11 +21,7 @@ require "log_struct/integrations"
 module LogStruct
   class Error < StandardError; end
 
-  class << self
-    extend T::Sig
-
-    extend Concerns::ErrorHandling::ClassMethods
-    extend Concerns::Configuration::ClassMethods
-    extend Concerns::Logging::ClassMethods
-  end
+  extend Concerns::ErrorHandling::ClassMethods
+  extend Concerns::Configuration::ClassMethods
+  extend Concerns::Logging::ClassMethods
 end

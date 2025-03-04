@@ -7,6 +7,10 @@ module LogStruct
     module ErrorHandling
       module ClassMethods
         extend T::Sig
+        extend T::Helpers
+
+        # Needed for #raise
+        requires_ancestor { Module }
 
         # Get the error handling mode for a given source
         sig { params(source: Source).returns(ErrorHandlingMode) }
@@ -55,12 +59,13 @@ module LogStruct
         # Report an exception using the configured handler or MultiErrorReporter
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def report_exception(error, source:, context: nil)
-          if LogStruct.config.exception_reporting_handler
+          exception_handler = LogStruct.config.exception_reporting_handler
+          if exception_handler
             # Use the configured handler
-            LogStruct.config.exception_reporting_handler.call(error, context, source)
+            exception_handler.call(error, context, source)
           else
             # Fall back to MultiErrorReporter
-            LogStruct::MultiErrorReporter.report_exception(error, context)
+            LogStruct::MultiErrorReporter.report_exception(error, context || {})
           end
         end
 
@@ -78,18 +83,18 @@ module LogStruct
             report_exception(error, source: source, context: context)
           when ErrorHandlingMode::LogProduction
             if mode.should_raise?
-              Kernel.raise(error)
+              raise(error)
             else
               log_exception(error, source: source, context: context)
             end
           when ErrorHandlingMode::ReportProduction
             if mode.should_raise?
-              Kernel.raise(error)
+              raise(error)
             else
               report_exception(error, source: source, context: context)
             end
           when ErrorHandlingMode::Raise, ErrorHandlingMode::RaiseError
-            Kernel.raise(error)
+            raise(error)
           else
             T.absurd(mode)
           end

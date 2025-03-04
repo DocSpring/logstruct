@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
 
 begin
@@ -20,6 +20,7 @@ module LogStruct
     # ActionMailer integration for structured logging
     module ActionMailer
       class << self
+        extend T::Sig
         # Set up ActionMailer structured logging
         sig { void }
         def setup

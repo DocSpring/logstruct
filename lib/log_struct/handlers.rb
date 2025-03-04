@@ -9,7 +9,7 @@ module LogStruct
       T.proc.params(
         error: StandardError,
         context: T.nilable(T::Hash[Symbol, T.untyped]),
-        source: LogStruct::ErrorSource
+        source: Source
       ).void
     }
 

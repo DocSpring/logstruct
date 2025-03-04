@@ -13,6 +13,8 @@ require_relative "integrations/carrierwave"
 
 module LogStruct
   module Integrations
+    extend T::Sig
+
     sig { void }
     def self.setup_integrations
       config = LogStruct.config

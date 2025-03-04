@@ -6,6 +6,7 @@ module LogStruct
     module ActionMailer
       # Handles error handling for ActionMailer
       module ErrorHandling
+        extend T::Sig
         extend ActiveSupport::Concern
 
         # NOTE: rescue_from handlers are checked in reverse order.
@@ -78,7 +79,7 @@ module LogStruct
 
             # Create an exception log for structured logging
             exception_data = Log::Exception.from_exception(
-              LogSource::Mailer,
+              Source::Mailer,
               LogEvent::Error,
               error,
               context
@@ -88,7 +89,7 @@ module LogStruct
             Rails.logger.error(exception_data)
 
             # Call the error handler
-            LogStruct.handle_exception(error, ErrorSource::Application, context)
+            LogStruct.handle_exception(error, source: Source::Mailer, context: context)
           end
 
           # Re-raise the error if requested
@@ -100,7 +101,7 @@ module LogStruct
         def log_notification_event(error)
           # Create an error log data object
           exception_data = Log::Exception.from_exception(
-            LogSource::Mailer,
+            Source::Mailer,
             LogEvent::Error,
             error,
             {

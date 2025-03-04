@@ -22,6 +22,7 @@ module LogStruct
 
     class << self
       extend T::Sig
+
       sig { returns(ErrorReporter) }
       attr_reader :error_reporter
 

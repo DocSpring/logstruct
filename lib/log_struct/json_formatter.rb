@@ -14,6 +14,8 @@ require_relative "multi_error_reporter"
 
 module LogStruct
   class JSONFormatter < Logger::Formatter
+    extend T::Sig
+
     # Add current_tags method to support ActiveSupport::TaggedLogging
     sig { returns(T::Array[String]) }
     def current_tags
@@ -86,7 +88,7 @@ module LogStruct
               arg
             end
           rescue => e
-            LogStruct.handle_exception(ErrorSource::LogStruct, e)
+            LogStruct.handle_exception(e, source: Source::LogStruct)
             "[GLOBALID_ERROR]"
           end
         end

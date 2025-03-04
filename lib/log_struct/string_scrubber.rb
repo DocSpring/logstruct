@@ -11,6 +11,8 @@ module LogStruct
   # - Uses configuration options from LogStruct.config
   module StringScrubber
     class << self
+      extend T::Sig
+
       # Also supports URL-encoded URLs like https%3A%2F%2Fuser%3Asecret%40example.com
       URL_PASSWORD_REGEX = /((?:\/\/|%2F%2F)[^\s\/]+(?::|%3A))[^\s\/]+(@|%40)/
       URL_PASSWORD_REPLACEMENT = '\1[FILTERED]\2'
@@ -37,7 +39,7 @@ module LogStruct
       sig { params(msg: String).returns(String) }
       def scrub(msg)
         msg = msg.to_s.dup
-        config = LogStruct.config
+        config = LogStruct.config.filters
 
         # Passwords in URLs
         msg.gsub!(URL_PASSWORD_REGEX, URL_PASSWORD_REPLACEMENT) if config.filter_url_passwords
@@ -57,7 +59,7 @@ module LogStruct
         end
 
         # Phone numbers
-        msg.gsub!(PHONE_REGEX, PHONE_REPLACEMENT) if config.filter_phones
+        msg.gsub!(PHONE_REGEX, PHONE_REPLACEMENT) if config.filter_phone_numbers
 
         # SSNs
         msg.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.filter_ssns
@@ -69,8 +71,8 @@ module LogStruct
         msg.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.filter_macs
 
         # custom scrubber
-        string_scrubbing_handler = config.string_scrubbing_handler
-        msg = string_scrubbing_handler.call(msg) if !string_scrubbing_handler.nil?
+        custom_scrubber = LogStruct.config.string_scrubbing_handler
+        msg = custom_scrubber.call(msg) if !custom_scrubber.nil?
 
         msg
       end
