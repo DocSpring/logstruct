@@ -10,9 +10,10 @@ module LogStruct
     # These handlers can be enabled/disabled using configuration
     module Sorbet
       extend T::Sig
+      extend IntegrationInterface
 
       # Set up Sorbet error handlers to report errors through LogStruct
-      sig { params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).void }
       def self.setup(config)
         return unless config.integrations.enable_sorbet_error_handler
 

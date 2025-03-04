@@ -14,22 +14,22 @@ module LogStruct
   module Integrations
     # ActiveJob integration for structured logging
     module ActiveJob
-      class << self
-        extend T::Sig
-        # Set up ActiveJob structured logging
-        sig { void }
-        def setup
-          return unless defined?(::ActiveJob::LogSubscriber)
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.integrations.enable_activejob
+      extend T::Sig
+      extend IntegrationInterface
 
-          ::ActiveSupport.on_load(:active_job) do
-            # Detach the default text formatter
-            ::ActiveJob::LogSubscriber.detach_from :active_job
+      # Set up ActiveJob structured logging
+      sig { override.params(config: LogStruct::Configuration).void }
+      def self.setup(config)
+        return unless defined?(::ActiveJob::LogSubscriber)
+        return unless config.enabled
+        return unless config.integrations.enable_activejob
 
-            # Attach our structured formatter
-            Integrations::ActiveJob::LogSubscriber.attach_to :active_job
-          end
+        ::ActiveSupport.on_load(:active_job) do
+          # Detach the default text formatter
+          ::ActiveJob::LogSubscriber.detach_from :active_job
+
+          # Attach our structured formatter
+          Integrations::ActiveJob::LogSubscriber.attach_to :active_job
         end
       end
     end

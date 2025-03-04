@@ -6,16 +6,16 @@ require "test_helper"
 module LogStruct
   class StringScrubberTest < ActiveSupport::TestCase
     def setup
-      # Save original configuration 
+      # Save original configuration
       @original_config = LogStruct::Configuration.instance
-      
+
       # Create a new configuration for testing
       test_config = LogStruct::Configuration.new(
         filters: ConfigStruct::Filters.new(
           filter_emails: true,
           filter_url_passwords: true,
           filter_credit_cards: true,
-          filter_phone_numbers: true, 
+          filter_phone_numbers: true,
           filter_ssns: true,
           filter_ips: true,
           filter_macs: true,
@@ -24,7 +24,7 @@ module LogStruct
         ),
         string_scrubbing_handler: nil
       )
-      
+
       # Replace the configuration
       LogStruct.configuration = test_config
     end

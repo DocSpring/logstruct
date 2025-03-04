@@ -13,34 +13,33 @@ module LogStruct
   module Integrations
     # Sidekiq integration for structured logging
     module Sidekiq
-      class << self
-        extend T::Sig
+      extend T::Sig
+      extend IntegrationInterface
 
-        # Set up Sidekiq structured logging
-        sig { void }
-        def setup
-          return unless defined?(::Sidekiq)
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.integrations.enable_sidekiq
+      # Set up Sidekiq structured logging
+      sig { override.params(config: LogStruct::Configuration).void }
+      def self.setup(config)
+        return unless defined?(::Sidekiq)
+        return unless config.enabled
+        return unless config.integrations.enable_sidekiq
 
-          # Configure Sidekiq server (worker) to use our logger
-          ::Sidekiq.configure_server do |config|
-            config.logger = LogStruct::LoggerUtils.create_logger(
-              LogStruct::Integrations::Sidekiq::Logger,
-              original_logger: config.logger
-            )
-          end
-
-          # Configure Sidekiq client (Rails app) to use our logger
-          ::Sidekiq.configure_client do |config|
-            config.logger = LogStruct::LoggerUtils.create_logger(
-              LogStruct::Integrations::Sidekiq::Logger,
-              original_logger: config.logger
-            )
-          end
-
-          true
+        # Configure Sidekiq server (worker) to use our logger
+        ::Sidekiq.configure_server do |sidekiq_config|
+          sidekiq_config.logger = LogStruct::LoggerUtils.create_logger(
+            LogStruct::Integrations::Sidekiq::Logger,
+            original_logger: sidekiq_config.logger
+          )
         end
+
+        # Configure Sidekiq client (Rails app) to use our logger
+        ::Sidekiq.configure_client do |sidekiq_config|
+          sidekiq_config.logger = LogStruct::LoggerUtils.create_logger(
+            LogStruct::Integrations::Sidekiq::Logger,
+            original_logger: sidekiq_config.logger
+          )
+        end
+
+        true
       end
     end
   end

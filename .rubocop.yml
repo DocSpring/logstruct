@@ -52,8 +52,10 @@ Style/SingleLineMethods:
   Exclude:
     - sorbet/**/*
     - lib/log_struct/log/interfaces/**/*
+    - "**/*_interface.rb"
 
 Style/EmptyMethod:
   Exclude:
     - sorbet/**/*
     - lib/log_struct/log/interfaces/**/*
+    - "**/*_interface.rb"

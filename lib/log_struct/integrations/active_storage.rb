@@ -9,65 +9,67 @@ module LogStruct
   module Integrations
     # Integration for ActiveStorage structured logging
     module ActiveStorage
+      extend IntegrationInterface
+
       class << self
         extend T::Sig
+
         # Set up ActiveStorage structured logging
-        sig { void }
-        def setup
+        sig { override.params(config: LogStruct::Configuration).void }
+        def setup(config)
           return unless defined?(::ActiveStorage)
+          return unless config.enabled
+          return unless config.integrations.enable_active_storage
 
           # Subscribe to all ActiveStorage service events
           ::ActiveSupport::Notifications.subscribe(/service_.*\.active_storage/) do |*args|
-            process_active_storage_event(::ActiveSupport::Notifications::Event.new(*args))
+            process_active_storage_event(::ActiveSupport::Notifications::Event.new(*args), config)
           end
         end
 
         private
 
         # Process ActiveStorage events and create structured logs
-        sig { params(event: ActiveSupport::Notifications::Event).void }
-        def process_active_storage_event(event)
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.integrations.enable_active_storage
+        sig { params(event: ActiveSupport::Notifications::Event, config: LogStruct::Configuration).void }
+        def process_active_storage_event(event, config)
+          return unless config.enabled
+          return unless config.integrations.enable_active_storage
 
-          payload = event.payload
-          # Extract operation from event name (e.g., "service_upload.active_storage" -> "upload")
-          first_part = event.name.split(".").first || "unknown"
-          operation = first_part.sub("service_", "").to_sym
+          # Extract key information from the event
+          event_name = event.name.sub(/\.active_storage$/, "")
+          service_name = event.payload[:service]
+          duration = event.duration
 
-          # Map operation to appropriate event type
-          event_type = case operation
-          when :upload then LogEvent::Upload
-          when :download, :streaming_download, :download_chunk then LogEvent::Download
-          when :delete, :delete_prefixed then LogEvent::Delete
-          when :exist then LogEvent::Exist
-          else LogEvent::Unknown
+          # Map service events to log event types
+          event_type = case event_name.to_sym
+          when :service_upload
+            LogEvent::Upload
+          when :service_download, :service_download_chunk
+            LogEvent::Download
+          when :service_delete, :service_delete_prefixed
+            LogEvent::Delete
+          when :service_exist
+            LogEvent::Exist
+          when :service_url
+            LogEvent::Url
+          when :service_stream
+            LogEvent::Stream
+          when :service_update_metadata
+            LogEvent::Metadata
+          else
+            LogEvent::Unknown
           end
 
-          service = payload[:service] || "unknown"
-
-          # Create structured log data
+          # Create structured log event for this storage operation
           log_data = Log::Storage.new(
             source: Source::Storage,
             event: event_type,
-            operation: operation,
-            storage: service,
-            file_id: payload[:key],
-            mime_type: payload[:content_type],
-            size: payload[:byte_size],
-            metadata: payload[:metadata],
-            duration: event.duration,
-            # Store additional fields in the data hash (flattened by JSON formatter)
-
-            checksum: payload[:checksum],
-            exist: payload[:exist],
-            url: payload[:url],
-            prefix: payload[:prefix],
-            range: payload[:range]
+            checksum: event.payload[:checksum].to_s,
+            duration: duration
           )
 
-          # Log the structured data
-          Rails.logger.info(log_data)
+          # Log structured data
+          LogStruct.log(log_data)
         end
       end
     end

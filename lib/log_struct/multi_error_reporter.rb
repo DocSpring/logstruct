@@ -47,7 +47,7 @@ module LogStruct
       def report_exception(exception, context = {})
         # Initialize reporter if it hasn't been done
         initialize_reporter if @error_reporter.nil?
-        
+
         # Call the appropriate reporter method based on what's available
         case @error_reporter
         when ErrorReporter::Sentry

@@ -18,46 +18,28 @@ module LogStruct
   module Integrations
     # ActionMailer integration for structured logging
     module ActionMailer
-      class << self
-        extend T::Sig
-        # Set up ActionMailer structured logging
-        sig { void }
-        def setup
-          return unless defined?(::ActionMailer)
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.integrations.enable_actionmailer
+      extend T::Sig
+      extend IntegrationInterface
 
-          # Silence default ActionMailer logs (we use our own structured logging)
-          # This is required because we replace the logging using our own callbacks
-          if defined?(::ActionMailer::Base)
-            ::ActionMailer::Base.logger = ::Logger.new(File::NULL)
-          end
+      # Set up ActionMailer structured logging
+      sig { override.params(config: LogStruct::Configuration).void }
+      def self.setup(config)
+        return unless defined?(::ActionMailer)
+        return unless config.enabled
+        return unless config.integrations.enable_actionmailer
 
-          # Include our modules directly into ::ActionMailer::Base
-          ::ActiveSupport.on_load(:action_mailer) do
-            include Integrations::ActionMailer::EventLogging
-            include Integrations::ActionMailer::ErrorHandling
-          end
-
-          # Set up callbacks for Rails 7.0.x (not needed for Rails 7.1+)
-          setup_callbacks_for_rails_7_0
+        # Silence default ActionMailer logs (we use our own structured logging)
+        # This is required because we replace the logging using our own callbacks
+        if defined?(::ActionMailer::Base)
+          ::ActionMailer::Base.logger = ::Logger.new(File::NULL)
         end
 
-        private
-
-        # Set up callbacks for Rails 7.0.x
-        sig { void }
-        def setup_callbacks_for_rails_7_0
-          return if ::Rails.gem_version >= Gem::Version.new("7.1.0")
-
-          # Include the callbacks module in ::ActionMailer::Base
-          ::ActiveSupport.on_load(:action_mailer) do
-            include Integrations::ActionMailer::Callbacks
-          end
-
-          # Patch MessageDelivery to run the callbacks
-          Integrations::ActionMailer::Callbacks.patch_message_delivery
-        end
+        # Register our custom observers and handlers
+        # Registering these at the class level means all mailers will use them
+        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::MetadataCollection }
+        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::EventLogging }
+        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::ErrorHandling }
+        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::Callbacks }
       end
     end
   end

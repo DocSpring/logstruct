@@ -8,45 +8,48 @@ module LogStruct
   module Integrations
     # Host Authorization integration for structured logging of blocked hosts
     module HostAuthorization
-      class << self
-        extend T::Sig
-        # Set up host authorization logging
-        sig { void }
-        def setup
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.integrations.enable_host_authorization
+      extend T::Sig
+      extend IntegrationInterface
 
-          # Define the response app as a separate variable to fix block alignment
-          response_app = lambda do |env|
-            request = ::ActionDispatch::Request.new(env)
-            # Include the blocked hosts app configuration in the log entry
-            # This can be helpful later when reviewing logs.
-            blocked_hosts = env["action_dispatch.blocked_hosts"]
+      # Set up host authorization logging
+      sig { override.params(config: LogStruct::Configuration).void }
+      def self.setup(config)
+        return unless config.enabled
+        return unless config.integrations.enable_host_authorization
 
-            # Create a structured security log entry
-            security_log = Log::Security.new(
-              event: LogEvent::BlockedHost,
-              message: "Blocked host detected: #{request.host}",
-              blocked_host: request.host,
-              blocked_hosts: blocked_hosts,
-              request_id: request.request_id,
-              path: request.path,
-              http_method: request.method,
-              source_ip: request.remote_ip,
-              user_agent: request.user_agent,
-              referer: request.referer
-            )
-            # Log the structured data
-            ::Rails.logger.warn(security_log)
+        # Define the response app as a separate variable to fix block alignment
+        response_app = lambda do |env|
+          request = ::ActionDispatch::Request.new(env)
+          # Include the blocked hosts app configuration in the log entry
+          # This can be helpful later when reviewing logs.
+          blocked_hosts = env["action_dispatch.blocked_hosts"]
 
-            # Return a 403 Forbidden response
-            [403, {"Content-Type" => "text/plain"}, ["Forbidden: Blocked Host"]]
-          end
+          # Create a structured security log entry
+          security_log = Log::Security.new(
+            event: LogEvent::BlockedHost,
+            message: "Blocked host detected: #{request.host}",
+            blocked_host: request.host,
+            remote_ip: request.ip,
+            forwarded_for: request.x_forwarded_for,
+            http_method: request.method,
+            path: request.path,
+            url: request.url,
+            user_agent: request.user_agent,
+            allowed_hosts: blocked_hosts.allowed_hosts,
+            allow_ip_hosts: blocked_hosts.allow_ip_hosts
+          )
 
-          # Assign the lambda to the host_authorization config
-          ::Rails.application.config.host_authorization ||= {}
-          ::Rails.application.config.host_authorization[:response_app] = response_app
+          # Log and then return blocked host response
+          LogStruct.log(security_log)
+
+          # Generate an appropriate blocked host response
+          headers = {"Content-Type" => "text/html", "Content-Length" => "292"}
+
+          [403, headers, ["<html><head><title>Blocked Host</title></head><body><h1>Blocked Host</h1><p>This host is not permitted to access this application.</p><p>If you are the administrator, check your configuration.</p></body></html>"]]
         end
+
+        # Replace the default HostAuthorization app with our custom app that logs
+        ::ActionDispatch::HostAuthorization.blocked_response_app = response_app
       end
     end
   end

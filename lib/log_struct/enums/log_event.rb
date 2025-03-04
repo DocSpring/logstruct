@@ -17,12 +17,14 @@ module LogStruct
       Start = new(:start)
       Finish = new(:finish)
 
-      # File storage events
+      # File storage events (ActiveStorage, Shrine, CarrierWave, etc.)
       Upload = new(:upload)
       Download = new(:download)
       Delete = new(:delete)
       Metadata = new(:metadata)
       Exist = new(:exist)
+      Stream = new(:stream)
+      Url = new(:url)
 
       # Email events
       Delivery = new(:delivery)

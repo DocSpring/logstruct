@@ -11,87 +11,95 @@ module LogStruct
   module Integrations
     # CarrierWave integration for structured logging
     module CarrierWave
-      class << self
-        extend T::Sig
-        # Set up CarrierWave structured logging
-        sig { void }
-        def setup
-          return unless defined?(::CarrierWave)
-          return unless LogStruct.enabled?
-          return unless LogStruct.config.integrations.enable_carrierwave
+      extend T::Sig
+      extend IntegrationInterface
 
-          # Patch CarrierWave to add logging
-          ::CarrierWave::Uploader::Base.prepend(LoggingMethods)
-        end
+      # Set up CarrierWave structured logging
+      sig { override.params(config: LogStruct::Configuration).void }
+      def self.setup(config)
+        return unless defined?(::CarrierWave)
+        return unless config.enabled
+        return unless config.integrations.enable_carrierwave
+
+        # Patch CarrierWave to add logging
+        ::CarrierWave::Uploader::Base.prepend(LoggingMethods)
       end
 
       # Methods to add logging to CarrierWave operations
       module LoggingMethods
         extend T::Sig
-        extend T::Helpers
-        requires_ancestor { ::CarrierWave::Uploader::Base }
 
-        sig { params(file: T.untyped).returns(T.untyped) }
-        def store!(file = nil)
-          start_time = Time.now
+        # Log file storage operations
+        sig { params(args: T.untyped).returns(T.untyped) }
+        def store!(*args)
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result = super
-          duration = (Time.now - start_time) * 1000 # Convert to milliseconds
+          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
 
-          log_operation(:upload, file, duration)
-          result
-        end
+          # Extract file information
+          file_size = file.size if file.respond_to?(:size)
+          file_info = {
+            identifier: identifier,
+            filename: file.filename,
+            content_type: file.content_type,
+            size: file_size,
+            store_path: store_path,
+            extension: file.extension
+          }
 
-        sig { params(identifier: T.untyped).returns(T.untyped) }
-        def retrieve_from_store!(identifier)
-          start_time = Time.now
-          result = super
-          duration = (Time.now - start_time) * 1000 # Convert to milliseconds
-
-          log_operation(:download, {identifier: identifier}, duration)
-          result
-        end
-
-        sig { returns(T.untyped) }
-        def remove!
-          start_time = Time.now
-          result = super
-          duration = (Time.now - start_time) * 1000 # Convert to milliseconds
-
-          log_operation(:delete, {identifier: identifier}, duration)
-          result
-        end
-
-        private
-
-        sig { params(operation: Symbol, file_info: T.untyped, duration: Float).void }
-        def log_operation(operation, file_info, duration)
-          # Map operation to LogEvent type
-          event_type = case operation
-          when :upload then LogEvent::Upload
-          when :download then LogEvent::Download
-          when :delete then LogEvent::Delete
-          when :exist, :exists then LogEvent::Exist
-          else LogEvent::Unknown
-          end
-
-          # Create structured log data
+          # Log the store operation with structured data
           log_data = Log::CarrierWave.new(
             source: Source::CarrierWave,
-            event: event_type,
-            operation: operation,
-            storage: storage.to_s,
-            file_id: identifier,
-            filename: file_info.try(:original_filename) || file_info.try(:filename),
-            mime_type: file_info.try(:content_type),
-            size: file_info.try(:size),
+            event: LogEvent::Upload,
+            duration: duration * 1000.0, # Convert to ms
+            model: model.class.name,
             uploader: self.class.name,
-            model: model&.class&.name,
-            mount_point: mounted_as&.to_s,
-            duration: duration
+            mounted_as: mounted_as.to_s,
+            storage: storage.class.name,
+            version: version_name.to_s,
+            processing: processing.to_s,
+            file: file_info
           )
 
-          # Log the structured data
-          Rails.logger.info(log_data)
+          ::Rails.logger.info(log_data)
+          result
+        end
+
+        # Log file retrieve operations
+        sig { params(identifier: T.untyped, args: T.untyped).returns(T.untyped) }
+        def retrieve_from_store!(identifier, *args)
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          result = super
+          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+
+          # Extract file information if available
+          file_size = file.size if file&.respond_to?(:size)
+          file_info = if file
+            {
+              identifier: identifier,
+              filename: file.filename,
+              content_type: file.content_type,
+              size: file_size,
+              extension: file.extension
+            }
+          else
+            {identifier: identifier}
+          end
+
+          # Log the retrieve operation with structured data
+          log_data = Log::CarrierWave.new(
+            source: Source::CarrierWave,
+            event: LogEvent::Download,
+            duration: duration * 1000.0, # Convert to ms
+            uploader: self.class.name,
+            mounted_as: mounted_as.to_s,
+            storage: storage.class.name,
+            version: version_name.to_s,
+            file: file_info
+          )
+
+          ::Rails.logger.info(log_data)
+          result
         end
       end
     end
