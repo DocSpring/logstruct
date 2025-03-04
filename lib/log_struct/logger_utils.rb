@@ -13,17 +13,17 @@ module LogStruct
       if original_logger.respond_to?(:logdev) && original_logger.logdev
         # Extract device from original logger
         original_logger.logdev.dev
-      elsif defined?(::Rails.logger) && ::Rails.logger.respond_to?(:logdev) && ::Rails.logger.logdev
+      elsif ::Rails.logger.respond_to?(:logdev) && ::Rails.logger.logdev
         # If we can't get from original, use Rails logger
         ::Rails.logger.logdev.dev
-      elsif defined?(::Rails) && ::Rails.env.test? && ::Rails.root
-        # In test mode, use the test log file
-        File.join(::Rails.root, 'log', "#{::Rails.env}.log")
-      elsif defined?(::Rails) && ENV["RAILS_LOG_TO_STDOUT"].present?
+      elsif ENV["RAILS_LOG_TO_STDOUT"].present?
         # Check for the Rails stdout environment variable
         $stdout
+      elsif ::Rails.env.test?
+        # Use the environment log file for test by default
+        Rails.root.join("log", "#{::Rails.env}.log").to_s
       else
-        # Default to stdout
+        # Default to stdout for other environments
         $stdout
       end
     end
