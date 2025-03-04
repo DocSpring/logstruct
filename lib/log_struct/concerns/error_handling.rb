@@ -8,71 +8,89 @@ module LogStruct
       extend T::Sig
 
       # Get the error handling mode for a given source
-      sig { params(source: ErrorSource).returns(ErrorHandlingMode) }
+      sig { params(source: Source).returns(ErrorHandlingMode) }
       def error_handling_mode_for(source)
         config = LogStruct.config
         
-        # Use a case statement for type-safety instead of dynamic dispatch
+        # Use a case statement for type-safety
         case source
-        when ErrorSource::TypeChecking
+        when Source::TypeChecking
           config.error_handling_modes.type_checking_errors
-        when ErrorSource::LogStruct
+        when Source::LogStruct
           config.error_handling_modes.logstruct_errors
-        when ErrorSource::Security
+        when Source::Security
           config.error_handling_modes.security_errors
-        when ErrorSource::Request
-          config.error_handling_modes.request_errors
-        when ErrorSource::Application
-          config.error_handling_modes.application_errors
+        when Source::Request, 
+             Source::App,
+             Source::Job, 
+             Source::Storage,
+             Source::Mailer,
+             Source::Shrine,
+             Source::CarrierWave, 
+             Source::Sidekiq
+          config.error_handling_modes.standard_errors
         else
-          # This should never happen if we've defined all error sources
+          # This shouldn't happen if we've defined all possible error sources
           T.absurd(source)
         end
       end
 
-      # Handle an exception according to the configured error handling mode
-      sig { params(error: StandardError, source: ErrorSource, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-      def handle_exception(error, source, context = nil)
-        mode = error_handling_mode_for(source)
-
-        case mode
-        when ErrorHandlingMode::Ignore
-          # Do nothing
-        when ErrorHandlingMode::Log
-          ::Rails.logger.error(error)
-        when ErrorHandlingMode::Report
-          # Use the configured handler if available, fall back to MultiErrorReporter
-          report_error(error, context, source)
-        when ErrorHandlingMode::LogProduction
-          if mode.should_raise?
-            Kernel.raise(error)
-          else
-            ::Rails.logger.error(error)
-          end
-        when ErrorHandlingMode::ReportProduction
-          if mode.should_raise?
-            Kernel.raise(error)
-          else
-            report_error(error, context, source)
-          end
-        when ErrorHandlingMode::Raise, ErrorHandlingMode::RaiseError
-          Kernel.raise(error)
-        else
-          T.absurd(mode)
-        end
+      # Log an exception with structured data
+      sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
+      def log_exception(error, source:, context: nil)
+        # Create structured log entry
+        exception_log = Log::Exception.from_exception(
+          source, 
+          LogEvent::Error,
+          error,
+          context || {}
+        )
+        
+        # Use the structured log entry directly with Rails logger
+        # The JSONFormatter will handle proper serialization
+        ::Rails.logger.error(exception_log)
       end
       
-      private
-      
-      # Report an error using the configured handler or MultiErrorReporter
-      sig { params(error: StandardError, context: T.nilable(T::Hash[Symbol, T.untyped]), source: ErrorSource).void }
-      def report_error(error, context = nil, source = ErrorSource::Application)
+      # Report an exception using the configured handler or MultiErrorReporter
+      sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
+      def report_exception(error, source:, context: nil)
         if LogStruct.config.exception_reporting_handler
           # Use the configured handler
           LogStruct.config.exception_reporting_handler.call(error, context, source)
         else
           # Fall back to MultiErrorReporter
           LogStruct::MultiErrorReporter.report_exception(error, context)
+        end
+      end
+
+      # Handle an exception according to the configured error handling mode
+      sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
+      def handle_exception(error, source:, context: nil)
+        mode = error_handling_mode_for(source)
+
+        case mode
+        when ErrorHandlingMode::Ignore
+          # Do nothing
+        when ErrorHandlingMode::Log
+          log_exception(error, source: source, context: context)
+        when ErrorHandlingMode::Report
+          report_exception(error, source: source, context: context)
+        when ErrorHandlingMode::LogProduction
+          if mode.should_raise?
+            Kernel.raise(error)
+          else
+            log_exception(error, source: source, context: context)
+          end
+        when ErrorHandlingMode::ReportProduction
+          if mode.should_raise?
+            Kernel.raise(error)
+          else
+            report_exception(error, source: source, context: context)
+          end
+        when ErrorHandlingMode::Raise, ErrorHandlingMode::RaiseError
+          Kernel.raise(error)
+        else
+          T.absurd(mode)
         end
       end
     end

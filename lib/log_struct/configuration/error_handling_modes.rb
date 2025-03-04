@@ -18,31 +18,6 @@ module LogStruct
       prop :logstruct_errors, ErrorHandlingMode, default: ErrorHandlingMode::LogProduction
       prop :security_errors, ErrorHandlingMode, default: ErrorHandlingMode::Report
       prop :standard_errors, ErrorHandlingMode, default: ErrorHandlingMode::Raise
-      
-      # Get the appropriate error handling mode for the given source
-      sig { params(source: Source).returns(ErrorHandlingMode) }
-      def for_source(source)
-        case source
-        when Source::TypeChecking
-          type_checking_errors
-        when Source::LogStruct
-          logstruct_errors
-        when Source::Security
-          security_errors
-        when Source::Request,
-             Source::App,
-             Source::Job, 
-             Source::Storage,
-             Source::Mailer,
-             Source::Shrine,
-             Source::CarrierWave, 
-             Source::Sidekiq
-          # All other sources use standard error handling
-          standard_errors
-        else
-          T.absurd(source)
-        end
-      end
     end
   end
 end
