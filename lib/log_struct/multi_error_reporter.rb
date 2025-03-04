@@ -7,7 +7,7 @@ require_relative "enums/error_reporter"
   require gem_name
   true
 rescue LoadError
-  # If none of these gems are not available we'll fall back to Rails.logger
+  # If none of these gems are available we'll fall back to Rails.logger
 end
 
 module LogStruct
@@ -17,19 +17,41 @@ module LogStruct
   # NOTE: This is used for cases where an error should be reported
   # but the operation should be allowed to continue (e.g. scrubbing log data.)
   class MultiErrorReporter
-    # Use T.let to properly declare the class variable at the class level
-    @error_reporter = T.let(ErrorReporter::RailsLogger, ErrorReporter)
+    # Class variable to store the selected reporter
+    @reporter = T.let(nil, T.nilable(ErrorReporter))
 
     class << self
       extend T::Sig
 
       sig { returns(ErrorReporter) }
-      attr_reader :error_reporter
+      def reporter
+        @reporter ||= detect_reporter
+      end
 
-      # Initialize the error reporter once
+      sig { params(reporter_type: T.any(ErrorReporter, Symbol)).returns(ErrorReporter) }
+      def reporter=(reporter_type)
+        @reporter = case reporter_type
+        when ErrorReporter
+          reporter_type
+        when Symbol
+          case reporter_type
+          when :sentry then ErrorReporter::Sentry
+          when :bugsnag then ErrorReporter::Bugsnag
+          when :rollbar then ErrorReporter::Rollbar
+          when :honeybadger then ErrorReporter::Honeybadger
+          when :rails_logger then ErrorReporter::RailsLogger
+          else
+            raise ArgumentError, "Unknown reporter type: #{reporter_type}. Valid types are: :sentry, :bugsnag, :rollbar, :honeybadger, :rails_logger"
+          end
+        else
+          raise ArgumentError, "Reporter must be an ErrorReporter or Symbol, got: #{reporter_type.class}"
+        end
+      end
+
+      # Auto-detect which error reporting service to use
       sig { returns(ErrorReporter) }
-      def initialize_reporter
-        @error_reporter = if defined?(::Sentry)
+      def detect_reporter
+        if defined?(::Sentry)
           ErrorReporter::Sentry
         elsif defined?(::Bugsnag)
           ErrorReporter::Bugsnag
@@ -45,9 +67,8 @@ module LogStruct
       # Report an exception to the configured error reporting service
       sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
-
         # Call the appropriate reporter method based on what's available
-        case @error_reporter
+        case reporter
         when ErrorReporter::Sentry
           report_to_sentry(exception, context)
         when ErrorReporter::Bugsnag
@@ -123,8 +144,5 @@ module LogStruct
         LogStruct.log(exception_log)
       end
     end
-
-    # Initialize the reporter when the class is loaded
-    initialize_reporter
   end
 end

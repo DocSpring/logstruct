@@ -2,14 +2,21 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
+require "debug"
+require "irb"
+require "irb/completion"
+
 require_relative "../lib/log_struct"
 
-# You can add fixtures and/or initialization code here to make experimenting
-# with your gem easier. You can also use a different console, if you like.
+module LogStruct
+  def self.console
+    IRB.setup(nil)
+    workspace = IRB::WorkSpace.new(binding)
+    irb = IRB::Irb.new(workspace)
+    IRB.conf[:MAIN_CONTEXT] = irb.context
+    trap("SIGINT") { irb.signal_handle }
+    catch(:IRB_EXIT) { irb.eval_input }
+  end
+end
 
-# (If you use this, don't forget to add pry to your Gemfile!)
-# require "pry"
-# Pry.start
-
-require "irb"
-IRB.start(__FILE__)
+LogStruct.console
