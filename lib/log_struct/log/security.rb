@@ -9,7 +9,7 @@ require_relative "shared/data_merging"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../log_level"
+require_relative "../enums/log_level"
 require_relative "../log_security_event"
 require_relative "../log_keys"
 

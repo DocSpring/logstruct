@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch/middleware/host_authorization"
+require_relative "../enums/log_event"
 
 module LogStruct
   module Integrations
@@ -24,7 +25,7 @@ module LogStruct
 
             # Create a structured security log entry
             security_log = Log::Security.new(
-              sec_event: LogSecurityEvent::BlockedHost,
+              event: LogEvent::BlockedHost,
               message: "Blocked host detected: #{request.host}",
               blocked_host: request.host,
               blocked_hosts: blocked_hosts,

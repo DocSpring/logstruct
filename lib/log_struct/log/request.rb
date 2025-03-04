@@ -7,7 +7,7 @@ require_relative "shared/serialize_common"
 require_relative "shared/add_request_fields"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../log_level"
+require_relative "../enums/log_level"
 require_relative "../log_keys"
 
 module LogStruct
