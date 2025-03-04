@@ -145,8 +145,10 @@ module LogStruct
     end
 
     # Serializes Log (or string) into JSON
-    sig { params(severity: String, time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
+    sig { params(severity: T.any(String, Integer), time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
+      # Convert severity to string if it's an integer (for compatibility with tests)
+      severity = severity.to_s if severity.is_a?(Integer)
       data = log_value_to_hash(log_value, time: time)
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments

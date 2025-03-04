@@ -8,7 +8,7 @@ require_relative "enums/log_level"
 
 # Log Structs
 require_relative "log/carrierwave"
-require_relative "log/active_mailer"
+require_relative "log/action_mailer"
 require_relative "log/active_storage"
 require_relative "log/active_job"
 require_relative "log/error"
