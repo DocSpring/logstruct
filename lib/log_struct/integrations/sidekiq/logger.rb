@@ -1,67 +1,39 @@
-# typed: true
+# typed: strict
 # frozen_string_literal: true
+
+require_relative "../../../logger"
+require_relative "../../../log/sidekiq"
+require_relative "../../../source"
 
 module LogStruct
   module Integrations
     module Sidekiq
-      # Formatter for Sidekiq logs that outputs structured JSON
-      class Formatter < ::Sidekiq::Logger::Formatters::Base
-        def call(severity, time, _program_name, message)
-          log = Log::Sidekiq.new(
+      # Custom Logger for Sidekiq that formats logs using LogStruct::Log::Sidekiq
+      class Logger < LogStruct::Logger
+        extend T::Sig
+
+        protected
+
+        # Override process_log_data to create Sidekiq log structs
+        sig { override.params(severity: String, message: T.nilable(T.untyped), progname: T.nilable(String)).returns(T.untyped) }
+        def process_log_data(severity, message, progname)
+          # Create a Sidekiq log struct with the message
+          LogStruct::Log::Sidekiq.new(
+            level: LogStruct::LogLevel.from_string(severity),
+            message: (message || progname).to_s,
             process_id: ::Process.pid,
             thread_id: tid,
-            level: severity,
-            message: message,
             context: ::Sidekiq::Context.current || {}
           )
-          # Return the hash to be processed by the JSON formatter
-          ::Sidekiq.dump_json(hash) << "\n"
         end
-      end
-    end
-  end
-end
 
-class Logger < ::Logger
-  module Formatters
-    COLORS = {
-      "DEBUG" => "\e[1;32mDEBUG\e[0m", # green
-      "INFO" => "\e[1;34mINFO \e[0m", # blue
-      "WARN" => "\e[1;33mWARN \e[0m", # yellow
-      "ERROR" => "\e[1;31mERROR\e[0m", # red
-      "FATAL" => "\e[1;35mFATAL\e[0m" # pink
-    }
-    class Base < ::Logger::Formatter
-      def tid
-        Thread.current["sidekiq_tid"] ||= (Thread.current.object_id ^ ::Process.pid).to_s(36)
-      end
+        private
 
-      def format_context(ctxt = Sidekiq::Context.current)
-        (ctxt.size == 0) ? "" : " #{ctxt.map { |k, v|
-          case v
-          when Array
-            "#{k}=#{v.join(",")}"
-          else
-            "#{k}=#{v}"
-          end
-        }.join(" ")}"
-      end
-    end
-    x
-
-    class JSON < Base
-      def call(severity, time, program_name, message)
-        hash = {
-          ts: time.utc.iso8601(3),
-          pid: ::Process.pid,
-          tid: tid,
-          lvl: severity,
-          msg: message
-        }
-        c = Sidekiq::Context.current
-        hash["ctx"] = c unless c.empty?
-
-        Sidekiq.dump_json(hash) << "\n"
+        # Get thread ID
+        sig { returns(String) }
+        def tid
+          Thread.current["sidekiq_tid"] ||= (Thread.current.object_id ^ ::Process.pid).to_s(36)
+        end
       end
     end
   end

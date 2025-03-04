@@ -8,7 +8,6 @@ rescue LoadError
 end
 
 if defined?(::ActionMailer)
-  require_relative "action_mailer/logger"
   require_relative "action_mailer/metadata_collection"
   require_relative "action_mailer/event_logging"
   require_relative "action_mailer/error_handling"
