@@ -9,7 +9,7 @@ module LogStruct
         extend T::Sig
         extend T::Helpers
 
-        # Needed for #raise
+        # Needed for raise
         requires_ancestor { Module }
 
         # Get the error handling mode for a given source
@@ -25,17 +25,11 @@ module LogStruct
             config.error_handling_modes.logstruct_errors
           when Source::Security
             config.error_handling_modes.security_errors
-          when Source::Request,
-               Source::App,
-               Source::Job,
-               Source::Storage,
-               Source::Mailer,
-               Source::Shrine,
-               Source::CarrierWave,
-               Source::Sidekiq
+          when Source::Request, Source::App, Source::Job, Source::Storage, Source::Mailer,
+               Source::Shrine, Source::CarrierWave, Source::Sidekiq
             config.error_handling_modes.standard_errors
           else
-            # This shouldn't happen if we've defined all possible error sources
+            # Ensures the case statement is exhaustive
             T.absurd(source)
           end
         end
@@ -50,21 +44,19 @@ module LogStruct
             error,
             context || {}
           )
-
-          # Use the structured log entry directly with Rails logger
-          # The JSONFormatter will handle proper serialization
-          ::Rails.logger.error(exception_log)
+          LogStruct.log(exception_log)
         end
 
         # Report an exception using the configured handler or MultiErrorReporter
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-        def report_exception(error, source:, context: nil)
+        def log_and_report_exception(error, source:, context: nil)
+          log_exception(error, source: source, context: context)
           exception_handler = LogStruct.config.exception_reporting_handler
           if exception_handler
             # Use the configured handler
             exception_handler.call(error, context, source)
           else
-            # Fall back to MultiErrorReporter
+            # Fall back to MultiErrorReporter (detects Sentry, Bugsnag, etc.)
             LogStruct::MultiErrorReporter.report_exception(error, context || {})
           end
         end
@@ -74,30 +66,27 @@ module LogStruct
         def handle_exception(error, source:, context: nil)
           mode = error_handling_mode_for(source)
 
+          # Log / report in production, raise locally (dev/test)
+          if mode == ErrorHandlingMode::LogProduction || mode == ErrorHandlingMode::ReportProduction
+            raise(error) if !LogStruct.is_production?
+          end
+
           case mode
           when ErrorHandlingMode::Ignore
             # Do nothing
 
-          when ErrorHandlingMode::Log
-            log_exception(error, source: source, context: context)
-
-          when ErrorHandlingMode::Report
-            report_exception(error, source: source, context: context)
-
-          when ErrorHandlingMode::LogProduction
-            raise(error) unless LogStruct.is_production?
-            log_exception(error, source: source, context: context)
-
-          when ErrorHandlingMode::ReportProduction
-            raise(error) unless LogStruct.is_production?
-            report_exception(error, source: source, context: context)
-
           when ErrorHandlingMode::Raise
             raise(error)
 
-          else
-            T.absurd(mode)
+          when ErrorHandlingMode::Log, ErrorHandlingMode::LogProduction
+            log_exception(error, source: source, context: context)
 
+          when ErrorHandlingMode::Report, ErrorHandlingMode::ReportProduction
+            log_and_report_exception(error, source: source, context: context)
+
+          else
+            # Ensures the case statement is exhaustive
+            T.absurd(mode)
           end
         end
       end
