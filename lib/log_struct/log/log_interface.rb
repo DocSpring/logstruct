@@ -9,7 +9,6 @@ module LogStruct
   module Log
     # Common interface that all log entry types must implement
     module LogInterface
-      extend T::Sig
       extend T::Helpers
 
       interface!

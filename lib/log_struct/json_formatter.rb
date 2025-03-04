@@ -14,8 +14,6 @@ require_relative "multi_error_reporter"
 
 module LogStruct
   class JSONFormatter < Logger::Formatter
-    extend T::Sig
-
     # Add current_tags method to support ActiveSupport::TaggedLogging
     sig { returns(T::Array[String]) }
     def current_tags

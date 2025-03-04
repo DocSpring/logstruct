@@ -9,8 +9,6 @@ module LogStruct
   # It is used by JSONFormatter to determine which keys should be filtered
   class ParamFilters
     class << self
-      extend T::Sig
-
       # Check if a key should be filtered based on our defined sensitive keys
       sig { params(key: T.any(String, Symbol)).returns(T::Boolean) }
       def should_filter_key?(key)

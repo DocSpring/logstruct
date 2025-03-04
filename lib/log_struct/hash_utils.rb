@@ -6,11 +6,7 @@ require "digest"
 module LogStruct
   # Utility module for hashing sensitive data
   module HashUtils
-    extend T::Sig
-
     class << self
-      extend T::Sig
-
       # Create a hash of a string value for tracing while preserving privacy
       sig { params(value: String).returns(String) }
       def hash_value(value)

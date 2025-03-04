@@ -20,8 +20,6 @@ module LogStruct
 
         # Define class methods in a separate module
         module ClassMethods
-          extend T::Sig
-
           # Defines a callback that will get called right before the
           # message is sent to the delivery method.
           sig { params(filters: T.untyped, blk: T.nilable(T.proc.bind(T.untyped).void)).void }
@@ -48,8 +46,6 @@ module LogStruct
 
         # Module to patch ActionMailer::MessageDelivery with callback support
         module MessageDeliveryCallbacks
-          extend T::Sig
-
           sig { params(block: T.proc.void).returns(T.untyped) }
           def handle_exceptions(&block)
             processed_mailer.handle_exceptions do

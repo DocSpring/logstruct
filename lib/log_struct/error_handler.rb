@@ -4,8 +4,6 @@
 module LogStruct
   # Module for handling errors according to configured modes
   module ErrorHandler
-    extend T::Sig
-
     # Handle an exception according to the configured error handling mode
     sig { params(error: StandardError, source: ErrorSource, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
     def handle_exception(error, source, context = nil)

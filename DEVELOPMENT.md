@@ -5,6 +5,7 @@
 - We use `sorbet-runtime` for runtime type checking. This is a hard dependency for the gem.
 - `T::Sig` is available globally - we extend it once in `sorbet.rb` and it's available to all modules
 - No need to `extend T::Sig` in individual files
+- You do need to `extend T::Helpers` in modules if they use other Sorbet features (e.g `requires_ancestor`)
 
 # Core Dependencies
 

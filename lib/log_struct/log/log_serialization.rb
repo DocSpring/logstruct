@@ -6,7 +6,6 @@ module LogStruct
   module Log
     # Common log serialization method
     module LogSerialization
-      extend T::Sig
       extend T::Helpers
 
       requires_ancestor { LogInterface }

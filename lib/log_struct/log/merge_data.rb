@@ -7,7 +7,6 @@ module LogStruct
   module Log
     # Helper module for merging additional data into serialized logs
     module MergeData
-      extend T::Sig
       extend T::Helpers
 
       # This module is designed to be included in T::Struct classes with a data field

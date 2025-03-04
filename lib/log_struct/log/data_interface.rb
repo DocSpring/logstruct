@@ -5,7 +5,6 @@ module LogStruct
   module Log
     # Common interface for logs that include a data field
     module DataInterface
-      extend T::Sig
       extend T::Helpers
 
       interface!
