@@ -42,7 +42,7 @@ module LogStruct
 
         # Handle an error from a mailer
         sig { params(mailer: T.untyped, error: StandardError, message: String).void }
-        def self.log_structured_error(mailer, error, message)
+        def log_structured_error(mailer, error, message)
           # Create a structured exception log with context
           context = {
             mailer_class: mailer.class.to_s,
@@ -68,7 +68,7 @@ module LogStruct
           message = error_message_for(error, reraise)
 
           # Use structured error logging
-          ErrorHandling.log_structured_error(self, error, message)
+          log_structured_error(self, error, message)
 
           # Handle notifications and reporting
           handle_error_notifications(error, notify, report, reraise)

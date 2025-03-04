@@ -24,7 +24,7 @@ module LogStruct
     initializer "logstruct.setup", before: :build_middleware_stack do |app|
       next unless LogStruct.enabled?
 
-      # Set up all integrations 
+      # Set up all integrations
       Integrations.setup_integrations
     end
   end

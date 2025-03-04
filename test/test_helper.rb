@@ -30,6 +30,7 @@ require "active_support/test_case"
 
 # Create a minimal Rails application for testing
 class TestApp < Rails::Application
+  extend T::Sig
   sig { returns(T::Boolean) }
   def self.eager_load_frameworks
     false
@@ -56,20 +57,7 @@ require "logstruct"
 
 # Configure LogStruct
 LogStruct.configure do |config|
-  config.enabled = true
-  config.lograge_enabled = true
-  config.actionmailer_integration_enabled = true
-  config.activejob_integration_enabled = true
-  config.sidekiq_integration_enabled = true
-  config.shrine_integration_enabled = true
-  config.active_storage_integration_enabled = true
-  config.carrierwave_integration_enabled = true
-  config.rack_middleware_enabled = true
-  config.host_authorization_enabled = true
-
-  # Email hash settings
-  config.hash_salt = "test"
-  config.hash_length = 12
+  # change any defaults if needed
 end
 
 # Load all test support files

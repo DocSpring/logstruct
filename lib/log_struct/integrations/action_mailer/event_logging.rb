@@ -89,15 +89,15 @@ module LogStruct
 
           log_data
         end
-        
+
         # Extract message ID from the mailer
         sig { returns(T.nilable(String)) }
         def extract_message_id
           return nil unless respond_to?(:message)
-          
+
           mail_message = message
           return nil unless mail_message.respond_to?(:message_id)
-          
+
           mail_message.message_id
         end
       end

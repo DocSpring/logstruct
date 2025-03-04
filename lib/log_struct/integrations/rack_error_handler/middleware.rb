@@ -76,7 +76,7 @@ module LogStruct
           rescue => error
             # Extract request context for error reporting
             context = extract_request_context(env)
-            
+
             # Create and log a structured exception with request context
             exception_log = Log::Exception.from_exception(
               Source::Request,
@@ -107,7 +107,6 @@ module LogStruct
           # If we can't extract request context, return minimal info
           {error_extracting_context: error.message}
         end
-
       end
     end
   end
