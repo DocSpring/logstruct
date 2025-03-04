@@ -10,12 +10,13 @@ module LogStruct
     # Falls back to Rails.logger or stdout if available
     sig { params(original_logger: T.nilable(Logger)).returns(T.any(String, IO)) }
     def self.determine_log_target(original_logger = nil)
-      if original_logger.respond_to?(:logdev) && original_logger.logdev
+      if original_logger&.respond_to?(:instance_variable_get) &&
+          (logger_dev = original_logger.instance_variable_get(:@logdev))
         # Extract device from original logger
-        original_logger.logdev.dev
-      elsif ::Rails.logger.respond_to?(:logdev) && ::Rails.logger.logdev
+        logger_dev.dev
+      elsif (logger_dev = ::Rails.logger.instance_variable_get(:@logdev))
         # If we can't get from original, use Rails logger
-        ::Rails.logger.logdev.dev
+        logger_dev.dev
       elsif ENV["RAILS_LOG_TO_STDOUT"].present?
         # Check for the Rails stdout environment variable
         $stdout
