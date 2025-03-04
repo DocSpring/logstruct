@@ -12,6 +12,8 @@ module LogStruct
   module Log
     # Plain log entry for structured logging
     class Plain < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include SerializeCommon
 

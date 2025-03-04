@@ -15,6 +15,8 @@ module LogStruct
   module Log
     # Exception log entry for Ruby exceptions with class, message, and backtrace
     class Exception < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include DataInterface
       include MessageInterface

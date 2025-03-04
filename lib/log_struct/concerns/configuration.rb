@@ -10,21 +10,17 @@ module LogStruct
       module ClassMethods
         extend T::Sig
 
-        sig { params(block: T.proc.params(config: Untyped::Configuration).void).void }
-        def configure(&block)
-          yield(LogStruct::Untyped::Configuration.new(configuration))
-        end
-
         sig { params(block: T.proc.params(config: LogStruct::Configuration).void).void }
-        def configure_typed(&block)
+        def configure(&block)
           yield(configuration)
         end
 
         sig { returns(LogStruct::Configuration) }
         def configuration
-          LogStruct::Configuration.configuration
+          LogStruct::Configuration.instance
         end
 
+        # (Can't use alias_method since this module is extended into LogStruct)
         sig { returns(LogStruct::Configuration) }
         def config
           configuration

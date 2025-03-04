@@ -9,6 +9,7 @@ module LogStruct
   module Log
     # Helper module for merging additional data into serialized logs
     module MergeDataFields
+      extend T::Sig
       extend T::Helpers
 
       include SerializeCommon

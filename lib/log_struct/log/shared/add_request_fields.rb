@@ -8,6 +8,7 @@ module LogStruct
   module Log
     # Common log serialization method
     module AddRequestFields
+      extend T::Sig
       extend T::Helpers
 
       requires_ancestor { RequestInterface }

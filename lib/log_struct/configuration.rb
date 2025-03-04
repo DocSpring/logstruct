@@ -5,7 +5,6 @@ require_relative "handlers"
 require_relative "configuration/error_handling_modes"
 require_relative "configuration/integrations"
 require_relative "configuration/filters"
-require_relative "untyped/configuration"
 
 module LogStruct
   # Core configuration class that provides a type-safe API
@@ -24,10 +23,10 @@ module LogStruct
 
     # Custom log scrubbing handler for any additional string scrubbing
     # Default: nil
-    prop :string_scrubbing_handler, T.nilable(LogStruct::CustomHandlers::StringScrubber)
+    prop :string_scrubbing_handler, T.nilable(Handlers::StringScrubber)
 
     # Custom handler for exception reporting
-    # Default: Errors are handled by LogStruct::MultiErrorReporter
+    # Default: Errors are handled by MultiErrorReporter
     # (auto-detects Sentry, Bugsnag, Rollbar, Honeybadger, etc.)
     prop :exception_reporting_handler, T.nilable(Handlers::ExceptionReporter), default: nil
 
@@ -43,11 +42,11 @@ module LogStruct
     # -------------------------------------------------------------------------------------
 
     # Class‐instance variable
-    @configuration = T.let(nil, T.nilable(Configuration))
+    @instance = T.let(nil, T.nilable(Configuration))
 
     sig { returns(Configuration) }
-    def self.configuration
-      @configuration ||= T.let(Configuration.new, T.nilable(Configuration))
+    def self.instance
+      @instance ||= T.let(Configuration.new, T.nilable(Configuration))
     end
 
     # -------------------------------------------------------------------------------------

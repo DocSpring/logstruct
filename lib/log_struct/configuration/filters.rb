@@ -33,7 +33,7 @@ module LogStruct
       # Keys where string values should include an SHA256 hash.
       # Useful for tracing emails across requests (e.g. sign in, sign up) while protecting privacy.
       # Default: [:email, :email_address]
-      prop :filtered_keys_with_string_hash,
+      prop :filtered_keys_with_string_hashing,
         T::Array[Symbol],
         factory: -> { %i[email email_address] }
 

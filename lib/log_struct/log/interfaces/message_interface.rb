@@ -5,6 +5,7 @@ module LogStruct
   module Log
     # Common interface for logs that include a message field
     module MessageInterface
+      extend T::Sig
       extend T::Helpers
 
       interface!

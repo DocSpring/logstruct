@@ -17,6 +17,8 @@ module LogStruct
   module Log
     # Security log entry for structured logging of security-related events
     class Security < T::Struct
+      extend T::Sig
+
       SecurityLogEvent = T.type_alias {
         T.any(LogEvent::IPSpoofing, LogEvent::CSRFViolation, LogEvent::BlockedHost)
       }

@@ -14,6 +14,8 @@ module LogStruct
   module Log
     # Request log entry for structured logging
     class Request < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include RequestInterface
       include SerializeCommon

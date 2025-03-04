@@ -14,6 +14,8 @@ module LogStruct
   module Log
     # Job log entry for structured logging
     class Job < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include DataInterface
       include SerializeCommon

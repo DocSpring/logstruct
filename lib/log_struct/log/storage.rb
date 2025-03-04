@@ -11,6 +11,8 @@ module LogStruct
   module Log
     # Storage log entry for structured logging
     class Storage < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include SerializeCommon
       # Common fields

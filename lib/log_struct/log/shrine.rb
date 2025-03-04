@@ -12,6 +12,8 @@ module LogStruct
   module Log
     # Shrine log entry for structured logging
     class Shrine < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include SerializeCommon
 

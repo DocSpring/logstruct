@@ -14,6 +14,8 @@ module LogStruct
   module Log
     # CarrierWave log entry for structured logging
     class CarrierWave < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include DataInterface
       include SerializeCommon

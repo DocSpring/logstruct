@@ -12,6 +12,8 @@ module LogStruct
   module Log
     # Sidekiq log entry for structured logging
     class Sidekiq < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include SerializeCommon
 

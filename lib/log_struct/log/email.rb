@@ -14,6 +14,8 @@ module LogStruct
   module Log
     # Email log entry for structured logging
     class Email < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include DataInterface
       include SerializeCommon

@@ -15,6 +15,8 @@ module LogStruct
   module Log
     # Error log entry for general error logging (not related to Ruby exceptions)
     class Error < T::Struct
+      extend T::Sig
+
       include CommonInterface
       include DataInterface
       include MessageInterface

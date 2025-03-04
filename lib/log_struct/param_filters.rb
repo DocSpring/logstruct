@@ -19,7 +19,7 @@ module LogStruct
       # Check if a key should be hashed rather than completely filtered
       sig { params(key: T.any(String, Symbol)).returns(T::Boolean) }
       def should_include_string_hash?(key)
-        LogStruct.configuration.filters.filtered_keys_with_string_hash.include?(key.to_s.downcase.to_sym)
+        LogStruct.configuration.filters.filtered_keys_with_string_hashing.include?(key.to_s.downcase.to_sym)
       end
 
       # Convert a value to a filtered summary hash (e.g. { _filtered: { class: "String", ... }})

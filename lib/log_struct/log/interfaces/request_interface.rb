@@ -6,6 +6,7 @@ module LogStruct
     # Common interface for request-related fields
     # Used by both Request and Security logs to ensure consistency
     module RequestInterface
+      extend T::Sig
       extend T::Helpers
 
       interface!
