@@ -33,16 +33,10 @@ module LogStruct
     # Falls back to Rails.logger or INFO if available
     sig { params(original_logger: T.nilable(Logger)).returns(T.any(Integer, Symbol, String)) }
     def self.determine_log_level(original_logger = nil)
-      if original_logger.respond_to?(:level)
-        # Use original logger's level
-        original_logger.level
-      elsif defined?(::Rails.logger) && ::Rails.logger.respond_to?(:level)
-        # Use Rails logger level
-        ::Rails.logger.level
-      else
-        # Default to info level
-        Logger::INFO
-      end
+      # Use original logger's level if possible
+      return original_logger.level if original_logger&.respond_to?(:level)
+
+      ::Rails.logger.level
     end
 
     # Create a new LogStruct logger with appropriate logger class
@@ -54,10 +48,12 @@ module LogStruct
         options: T::Hash[Symbol, T.untyped]
       ).returns(LogStruct::Logger)
     end
-    def self.create_logger(logger_class, original_logger = nil, **options)
-      log_target = options[:logdev] || determine_log_target(original_logger)
-      log_level = options[:level] || determine_log_level(original_logger)
+    def self.create_logger(logger_class, original_logger: nil, options: {})
+      # Extract options or fall back to determined values
+      log_target = options.key?(:logdev) ? options[:logdev] : determine_log_target(original_logger)
+      log_level = options.key?(:level) ? options[:level] : determine_log_level(original_logger)
 
+      # Create the logger with the correct parameters
       logger_class.new(log_target, level: log_level)
     end
   end

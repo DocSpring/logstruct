@@ -27,7 +27,7 @@ module LogStruct
           ::Sidekiq.configure_server do |config|
             config.logger = LogStruct::LoggerUtils.create_logger(
               LogStruct::Integrations::Sidekiq::Logger,
-              config.logger
+              original_logger: config.logger
             )
           end
 
@@ -35,7 +35,7 @@ module LogStruct
           ::Sidekiq.configure_client do |config|
             config.logger = LogStruct::LoggerUtils.create_logger(
               LogStruct::Integrations::Sidekiq::Logger,
-              config.logger
+              original_logger: config.logger
             )
           end
 
