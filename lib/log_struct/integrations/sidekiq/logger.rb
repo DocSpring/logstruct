@@ -1,9 +1,9 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../../logger"
-require_relative "../../../log/sidekiq"
-require_relative "../../../enums/source"
+require_relative "../../logger"
+require_relative "../../log/sidekiq"
+require_relative "../../enums/source"
 
 module LogStruct
   module Integrations

@@ -1,16 +1,16 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "interfaces/log_interface"
-require_relative "interfaces/request_interface"
-require_relative "interfaces/msg_interface"
+require_relative "interfaces/common_interface"
 require_relative "interfaces/data_interface"
-require_relative "shared/data_merging"
+require_relative "interfaces/message_interface"
+require_relative "interfaces/request_interface"
+require_relative "shared/add_request_fields"
 require_relative "shared/merge_data_fields"
-require_relative "../enums/source"
+require_relative "shared/serialize_common"
 require_relative "../enums/log_event"
 require_relative "../enums/log_level"
-require_relative "../log_security_event"
+require_relative "../enums/source"
 require_relative "../log_keys"
 
 module LogStruct
@@ -20,9 +20,9 @@ module LogStruct
       extend T::Sig
 
       include CommonInterface
-      include RequestInterface
-      include MessageInterface
       include DataInterface
+      include MessageInterface
+      include RequestInterface
       include SerializeCommon
       include AddRequestFields
       include MergeDataFields

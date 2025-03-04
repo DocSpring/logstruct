@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "log_interface"
+require_relative "interfaces/common_interface"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
 require_relative "../enums/log_event"

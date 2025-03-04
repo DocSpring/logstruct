@@ -1,9 +1,9 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "data_interface"
-require_relative "serialize_common"
 require_relative "../../log_keys"
+require_relative "../interfaces/data_interface"
+require_relative "serialize_common"
 
 module LogStruct
   module Log

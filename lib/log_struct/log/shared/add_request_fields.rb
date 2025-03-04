@@ -1,8 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../interfaces/log_interface"
 require_relative "../../log_keys"
+require_relative "../interfaces/request_interface"
 
 module LogStruct
   module Log
