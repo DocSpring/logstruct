@@ -8,10 +8,43 @@ module LogStruct
       class Middleware
         extend T::Sig
 
-        CONTENT_TYPE_HEADER = "Content-Type"
-        CONTENT_TYPE_TEXT = "text/plain"
-        IP_SPOOF_RESPONSE = "Forbidden: IP Spoofing Detected"
-        CSRF_RESPONSE = "Forbidden: CSRF Error"
+        # IP Spoofing error response
+        IP_SPOOF_HTML = T.let(
+          "<html><head><title>IP Spoofing Detected</title></head><body>" \
+          "<h1>Forbidden</h1>" \
+          "<p>IP spoofing detected. This request has been blocked for security reasons.</p>" \
+          "</body></html>",
+          String
+        )
+
+        # CSRF error response
+        CSRF_HTML = T.let(
+          "<html><head><title>CSRF Error</title></head><body>" \
+          "<h1>Forbidden</h1>" \
+          "<p>Invalid authenticity token. This request has been blocked to prevent cross-site request forgery.</p>" \
+          "</body></html>",
+          String
+        )
+
+        # Response headers calculated at load time
+        IP_SPOOF_HEADERS = T.let(
+          {
+            "Content-Type" => "text/html",
+            "Content-Length" => IP_SPOOF_HTML.bytesize.to_s
+          }.freeze,
+          T::Hash[String, String]
+        )
+
+        CSRF_HEADERS = T.let(
+          {
+            "Content-Type" => "text/html",
+            "Content-Length" => CSRF_HTML.bytesize.to_s
+          }.freeze,
+          T::Hash[String, String]
+        )
+
+        # HTTP status code for forbidden responses
+        FORBIDDEN_STATUS = T.let(403, Integer)
 
         sig { params(app: T.untyped).void }
         def initialize(app)
@@ -50,7 +83,7 @@ module LogStruct
 
             # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
-            [403, {CONTENT_TYPE_HEADER => CONTENT_TYPE_TEXT}, [IP_SPOOF_RESPONSE]]
+            [FORBIDDEN_STATUS, IP_SPOOF_HEADERS, [IP_SPOOF_HTML]]
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
             # Create a security log for CSRF error
             request = ::ActionDispatch::Request.new(env)
@@ -72,7 +105,7 @@ module LogStruct
 
             # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
-            [403, {CONTENT_TYPE_HEADER => CONTENT_TYPE_TEXT}, [CSRF_RESPONSE]]
+            [FORBIDDEN_STATUS, CSRF_HEADERS, [CSRF_HTML]]
           rescue => error
             # Extract request context for error reporting
             context = extract_request_context(env)
