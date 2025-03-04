@@ -31,7 +31,7 @@ module LogStruct
 
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-      def serialize_log(strict = true)
+      def serialize(strict = true)
         hash = serialize_common(strict)
 
         # Add Sidekiq-specific fields if they're present

@@ -111,8 +111,8 @@ module LogStruct
     def log_value_to_hash(log_value, time:)
       case log_value
       when Log::Interfaces::CommonFields
-        # Our log classes all implement a custom #serialize_log method that use symbol keys
-        log_value.serialize_log
+        # Our log classes all implement a custom #serialize method that use symbol keys
+        log_value.serialize
 
       when T::Struct
         # Default T::Struct.serialize methods returns a hash with string keys, so convert them to symbols
@@ -156,7 +156,8 @@ module LogStruct
       data[:src] ||= Source::App
       data[:evt] ||= LogEvent::Log
       data[:ts] ||= time.iso8601(3)
-      data[:lvl] = severity.downcase
+      # Our log structs already use their own level field, so this is just a fallback
+      data[:lvl] ||= LogLevel.from_severity_int(severity)
       data[:prog] = progname if progname.present?
 
       generate_json(data)
