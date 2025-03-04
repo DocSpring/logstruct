@@ -1,4 +1,4 @@
-# typed: false
+# typed: true
 # frozen_string_literal: true
 
 require "test_helper"
@@ -29,7 +29,7 @@ module LogStruct
       skip "Sentry is not available" unless defined?(::Sentry)
 
       # Create a stub to assert capture_exception was called
-      called = false
+      called = T.let(false, T::Boolean)
       capture_stub = ->(exception, options) {
         called = true
 

@@ -1,4 +1,4 @@
-# typed: false
+# typed: true
 # frozen_string_literal: true
 
 require "test_helper"
@@ -106,7 +106,9 @@ module LogStruct
     end
 
     def test_tagged_method
-      result = nil
+      # Give the result variable a specific type
+      result = T.let(nil, T.nilable(LogStruct::Formatter))
+      
       @formatter.tagged(["tag1", "tag2"]) do |f|
         assert_equal %w[tag1 tag2], f.current_tags
         result = f
@@ -268,7 +270,7 @@ module LogStruct
         end
 
         def to_global_id
-          GlobalID.new("gid://logstruct/User/#{id}")
+          GlobalID.new("gid://logstruct/User/#{@id}")
         end
 
         def self.name
