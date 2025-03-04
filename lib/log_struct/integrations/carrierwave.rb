@@ -27,6 +27,7 @@ module LogStruct
 
       # Methods to add logging to CarrierWave operations
       module LoggingMethods
+        extend T::Sig
         extend T::Helpers
         requires_ancestor { ::CarrierWave::Uploader::Base }
 

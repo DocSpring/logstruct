@@ -32,7 +32,8 @@ module LogStruct
 
           payload = event.payload
           # Extract operation from event name (e.g., "service_upload.active_storage" -> "upload")
-          operation = event.name.split(".").first.sub("service_", "")
+          first_part = event.name.split(".").first || ''
+          operation = first_part.sub("service_", "")
           service = payload[:service] || "unknown"
 
           # Map operation to appropriate event type
