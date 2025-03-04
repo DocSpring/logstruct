@@ -61,3 +61,28 @@ Style/EmptyMethod:
     - sorbet/**/*
     - lib/log_struct/log/interfaces/**/*
     - "**/*_interface.rb"
+
+# Ban typed: false everywhere
+Sorbet/FalseSigil:
+  Enabled: false
+
+# Require typed: strict for all files except test files
+Sorbet/StrictSigil:
+  Enabled: true
+  Exclude:
+    - 'test/**/*'
+    - 'sorbet/**/*'
+  SuggestedStrictness: strict
+
+# Require typed: true for test files
+Sorbet/TrueSigil:
+  Enabled: true
+  Include:
+    - 'test/**/*.rb'
+  SuggestedStrictness: true
+
+# Don't try to validate typing on generated Sorbet RBI files
+Sorbet:
+  Enabled: true
+  Exclude:
+    - 'sorbet/**/*.rbi'
