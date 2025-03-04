@@ -9,7 +9,7 @@ end
 
 current_validation_error_handler = T::Configuration.instance_variable_get(:@call_validation_error_handler)
 T::Configuration.call_validation_error_handler = lambda do |signature, opts|
-  if signature.method.owner.name.start_with?("LogStruct")
+  if signature&.method&.owner&.name && signature.method.owner.name.start_with?("LogStruct")
     error = TypeError.new(opts[:pretty_message])
     LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
   elsif current_validation_error_handler

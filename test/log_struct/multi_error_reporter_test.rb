@@ -135,6 +135,10 @@ module LogStruct
       original_constants[:Rollbar] = ::Rollbar if defined?(::Rollbar)
       original_constants[:Honeybadger] = ::Honeybadger if defined?(::Honeybadger)
 
+      # Back up the original error handler that might cause our test to fail
+      original_sig_handler = T::Configuration.instance_variable_get(:@call_validation_error_handler)
+      T::Configuration.call_validation_error_handler = ->(signature, opts) {}
+      
       begin
         # Reset the reporter to force reinitialization
         MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
@@ -160,10 +164,6 @@ module LogStruct
         # Verify the reporter was initialized to use fallback
         assert_equal ErrorReporter::RailsLogger, MultiErrorReporter.error_reporter
       ensure
-        # Ensure we mock the type error handler too
-        original_sig_handler = T::Configuration.instance_variable_get(:@call_validation_error_handler)
-        T::Configuration.call_validation_error_handler = ->(signature, opts) {}
-
         # Restore constants and handlers
         original_constants.each do |const, value|
           Object.const_set(const, value) if value

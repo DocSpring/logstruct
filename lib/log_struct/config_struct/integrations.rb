@@ -8,6 +8,10 @@ module LogStruct
     class Integrations < T::Struct
       include Sorbet::SerializeSymbolKeys
 
+      # Enable or disable Sorbet error handler integration
+      # Default: true
+      prop :enable_sorbet_error_handler, T::Boolean, default: true
+
       # Enable or disable Lograge integration
       # Default: true
       prop :enable_lograge, T::Boolean, default: true
