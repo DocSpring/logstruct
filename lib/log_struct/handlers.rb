@@ -5,7 +5,13 @@ module LogStruct
   # Module for custom handlers used throughout the library
   module Handlers
     # Type for exception reporting handlers
-    ExceptionReporter = T.type_alias { T.proc.params(error: StandardError, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
+    ExceptionReporter = T.type_alias { 
+      T.proc.params(
+        error: StandardError, 
+        context: T.nilable(T::Hash[Symbol, T.untyped]),
+        source: LogStruct::ErrorSource
+      ).void 
+    }
     
     # Type for string scrubbing handlers 
     StringScrubber = T.type_alias { T.proc.params(string: String).returns(String) }

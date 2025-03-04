@@ -16,17 +16,17 @@ module LogStruct
     # Props
     # -------------------------------------------------------------------------------------
 
-    const :error_handling_modes, Configuration::ErrorHandlingModes
-    const :integrations, Configuration::Integrations
-    const :filters, Configuration::Filters
     prop :enabled, T::Boolean, default: true
-    prop :environments, T::Array[Symbol], default: [:test, :production]
-    prop :local_environments, T::Array[Symbol], default: [:development, :test]
+    prop :environments, T::Array[Symbol], factory: -> { [:test, :production] }
+    prop :local_environments, T::Array[Symbol], factory: -> { [:development, :test] }
+    const :integrations, Configuration::Integrations, factory: -> { Configuration::Integrations.new }
+    const :filters, Configuration::Filters, factory: -> { Configuration::Filters.new }
+    const :error_handling_modes, Configuration::ErrorHandlingModes, factory: -> { Configuration::ErrorHandlingModes.new }
     
     # Custom handler for exception reporting
     # Default: Errors are handled by LogStruct::MultiErrorReporter 
     # (auto-detects Sentry, Bugsnag, Rollbar, Honeybadger, etc.)
-    prop :exception_reporting_handler, Handlers::ExceptionReporter
+    prop :exception_reporting_handler, Handlers::ExceptionReporter, factory: -> { default_exception_handler }
 
     # -------------------------------------------------------------------------------------
     # Class Methods
@@ -38,12 +38,20 @@ module LogStruct
 
       sig { returns(Configuration) }
       def configuration
-        @configuration ||= T.let(Configuration.new(
-          error_handling: Configuration::ErrorHandling.new,
-          integrations: Configuration::Integrations.new,
-          filters: Configuration::Filters.new
-        ),
-          T.nilable(Configuration))
+        @configuration ||= T.let(Configuration.new, T.nilable(Configuration))
+      end
+      
+      sig { returns(Handlers::ExceptionReporter) }
+      def default_exception_handler
+        lambda do |error, context, source = LogStruct::LogSource::App|
+          exception_data = LogStruct::Log::Exception.from_exception(
+            source,
+            LogStruct::LogEvent::Error,
+            error,
+            context
+          )
+          ::Rails.logger.error(exception_data)
+        end
       end
     end
 
@@ -63,7 +71,7 @@ module LogStruct
 
     sig { returns(T::Boolean) }
     def should_raise?
-      environments.exclude?(Rails.env.to_sym)
+      environments.exclude?(::Rails.env.to_sym)
     end
   end
 end
