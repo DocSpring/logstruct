@@ -2,6 +2,8 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "log_struct/configuration"
+require "log_struct/error_handling_mode"
 
 module LogStruct
   class ConfigurationTest < ActiveSupport::TestCase
@@ -119,6 +121,69 @@ module LogStruct
       @config.hash_length = 16
 
       assert_equal 16, @config.hash_length
+    end
+
+    def test_default_error_handling_modes
+      assert_equal ErrorHandlingMode::LogProduction, @config.error_handling[:type_errors]
+      assert_equal ErrorHandlingMode::LogProduction, @config.error_handling[:logstruct_errors]
+      assert_equal ErrorHandlingMode::Raise, @config.error_handling[:standard_errors]
+    end
+
+    def test_setting_individual_error_handling_mode
+      @config.error_handling[:type_errors] = :ignore
+
+      assert_equal ErrorHandlingMode::Ignore, @config.error_handling[:type_errors]
+    end
+
+    def test_setting_multiple_error_handling_modes
+      @config.error_handling = {
+        type_errors: :ignore,
+        logstruct_errors: :raise
+      }
+
+      assert_equal ErrorHandlingMode::Ignore, @config.error_handling[:type_errors]
+      assert_equal ErrorHandlingMode::Raise, @config.error_handling[:logstruct_errors]
+      assert_equal ErrorHandlingMode::Raise, @config.error_handling[:standard_errors] # Default preserved
+    end
+
+    def test_setting_invalid_error_handling_mode
+      error = assert_raises(ArgumentError) do
+        @config.error_handling[:type_errors] = :invalid_mode
+      end
+
+      assert_match(/Invalid error handling mode: :invalid_mode/, error.message)
+    end
+
+    def test_setting_invalid_error_handling_modes
+      error = assert_raises(ArgumentError) do
+        @config.error_handling = {
+          type_errors: :ignore,
+          logstruct_errors: :invalid_mode
+        }
+      end
+
+      assert_match(/Invalid error handling mode: :invalid_mode/, error.message)
+    end
+
+    def test_configure_block_with_error_handling
+      LogStruct.configure do |config|
+        config.error_handling[:type_errors] = :ignore
+      end
+
+      assert_equal ErrorHandlingMode::Ignore, LogStruct.config.error_handling[:type_errors]
+    end
+
+    def test_configure_block_with_multiple_error_handling_modes
+      LogStruct.configure do |config|
+        config.error_handling = {
+          type_errors: :ignore,
+          logstruct_errors: :raise
+        }
+      end
+
+      assert_equal ErrorHandlingMode::Ignore, LogStruct.config.error_handling[:type_errors]
+      assert_equal ErrorHandlingMode::Raise, LogStruct.config.error_handling[:logstruct_errors]
+      assert_equal ErrorHandlingMode::Raise, LogStruct.config.error_handling[:standard_errors] # Default preserved
     end
   end
 end
