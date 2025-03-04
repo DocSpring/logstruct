@@ -127,7 +127,7 @@ module LogStruct
         # log_value can be literally anything: Integer, Float, Boolean, NilClass, etc.
         log_message = case log_value
         # Handle all the basic types without any further processing
-        when String, Symbol, Numeric, TrueClass, FalseClass, NilClass, Array, Hash, Time
+        when String, Symbol, TrueClass, FalseClass, NilClass, Array, Hash, Time, Numeric
           log_value
         else
           if log_value.respond_to?(:as_json)

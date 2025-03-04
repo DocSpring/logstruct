@@ -29,8 +29,8 @@ module LogStruct
       assert_equal "app", result["src"]
       assert_equal "log", result["evt"]
       assert_equal @iso_time, result["ts"]
-      assert_equal "info", result["level"]
-      assert_equal @progname, result["progname"]
+      assert_equal "info", result["lvl"]
+      assert_equal @progname, result["prog"]
     end
 
     def test_call_applies_string_scrubber_to_message
@@ -205,7 +205,7 @@ module LogStruct
       result = @formatter.log_value_to_hash(log_entry, time: @time)
 
       assert_equal "Struct message", result[:msg]
-      assert_equal "app", result[:src]
+      assert_equal :app, result[:src]
     end
 
     def test_log_value_to_hash_with_other_types

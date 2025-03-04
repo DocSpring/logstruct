@@ -27,8 +27,8 @@ module LogStruct
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
-      # Log message
-      const :message, String
+      # Log message (can be String, Number, or other basic types)
+      const :message, T.untyped
 
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }

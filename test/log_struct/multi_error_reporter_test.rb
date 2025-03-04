@@ -9,9 +9,10 @@ module LogStruct
       # Create a test exception and context
       @exception = StandardError.new("Test error")
       @context = {user_id: 123, action: "test"}
-
-      # Reset the error reporter before each test
+      
+      # Reset the error reporter before each test by calling initialize_reporter directly
       MultiErrorReporter.instance_variable_set(:@error_reporter, nil)
+      MultiErrorReporter.initialize_reporter
 
       # Stub stdout to capture output
       @original_stdout = $stdout
