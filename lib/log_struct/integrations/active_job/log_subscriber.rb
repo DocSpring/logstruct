@@ -12,16 +12,20 @@ module LogStruct
       # Structured logging for ActiveJob
       class LogSubscriber < ::ActiveJob::LogSubscriber
         extend T::Sig
+        
+        sig { params(event: T.untyped).void }
         def enqueue(event)
           job = event.payload[:job]
           log_job_event(LogEvent::Enqueue, job, event)
         end
 
+        sig { params(event: T.untyped).void }
         def enqueue_at(event)
           job = event.payload[:job]
           log_job_event(LogEvent::Schedule, job, event, scheduled_at: job.scheduled_at)
         end
 
+        sig { params(event: T.untyped).void }
         def perform(event)
           job = event.payload[:job]
           exception = event.payload[:exception_object]
@@ -34,6 +38,7 @@ module LogStruct
           end
         end
 
+        sig { params(event: T.untyped).void }
         def perform_start(event)
           job = event.payload[:job]
           log_job_event(LogEvent::Start, job, event)
@@ -41,6 +46,7 @@ module LogStruct
 
         private
 
+        sig { params(event_type: T.any(LogEvent::Enqueue, LogEvent::Schedule, LogEvent::Start, LogEvent::Finish), job: T.untyped, _event: T.untyped, additional_data: T::Hash[Symbol, T.untyped]).void }
         def log_job_event(event_type, job, _event, additional_data = {})
           # Create structured log data
           log_data = Log::Job.new(
@@ -63,6 +69,7 @@ module LogStruct
           logger.info(log_data)
         end
 
+        sig { params(exception: StandardError, job: T.untyped, _event: T.untyped).void }
         def log_exception(exception, job, _event)
           # Create job context data for the exception
           job_context = {
@@ -87,6 +94,7 @@ module LogStruct
           logger.error(log_data)
         end
 
+        sig { returns(::ActiveSupport::Logger) }
         def logger
           ::ActiveJob::Base.logger
         end

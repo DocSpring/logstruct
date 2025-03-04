@@ -62,10 +62,6 @@ module LogStruct
             :source_ip
           ).compact
 
-          # We'll set these in the formatter
-          # options[:src] = Source::Rails
-          # options[:evt] = LogEvent::Request
-
           if event.payload[:params].present?
             options[:params] = event.payload[:params].except("controller", "action")
           end
