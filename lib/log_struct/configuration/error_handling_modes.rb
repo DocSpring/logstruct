@@ -4,8 +4,6 @@
 module LogStruct
   class Configuration
     class ErrorHandlingModes < T::Struct
-      extend T::Sig
-
       # How to handle different types of errors
       # Modes:
       # - :ignore - always ignore the error
@@ -14,45 +12,33 @@ module LogStruct
       # - :log_production - log in production, raise locally
       # - :report_production - report in production, raise locally
       # - :raise - always raise regardless of environment
-      #
-      # Errors are categorized by source:
-      # - type_checking_errors: Errors from type checking (Sorbet, etc)
-      # - logstruct_errors: Errors from LogStruct itself (e.g. scrubbing, filtering, JSON formatting)
-      # - security_errors: Security-related errors (CSRF, IP spoofing)
-      # - request_errors: Errors from request handling
-      # - application_errors: Application errors that don't fit into other categories
-      
-      prop :type_checking_errors, LogStruct::ErrorHandlingMode
-      prop :logstruct_errors, LogStruct::ErrorHandlingMode
-      prop :security_errors, LogStruct::ErrorHandlingMode
-      prop :request_errors, LogStruct::ErrorHandlingMode
-      prop :application_errors, LogStruct::ErrorHandlingMode
 
-      sig { void }
-      def initialize
-        super(
-          type_checking_errors: LogStruct::ErrorHandlingMode::LogProduction,
-          logstruct_errors: LogStruct::ErrorHandlingMode::LogProduction,
-          security_errors: LogStruct::ErrorHandlingMode::Report,
-          request_errors: LogStruct::ErrorHandlingMode::Log,
-          application_errors: LogStruct::ErrorHandlingMode::Raise
-        )
-      end
+      # Configurable error handling categories
+      prop :type_checking_errors, ErrorHandlingMode, default: ErrorHandlingMode::LogProduction
+      prop :logstruct_errors, ErrorHandlingMode, default: ErrorHandlingMode::LogProduction
+      prop :security_errors, ErrorHandlingMode, default: ErrorHandlingMode::Report
+      prop :standard_errors, ErrorHandlingMode, default: ErrorHandlingMode::Raise
       
-      # Get the appropriate error handling mode for the given error source
-      sig { params(source: LogStruct::ErrorSource).returns(LogStruct::ErrorHandlingMode) }
+      # Get the appropriate error handling mode for the given source
+      sig { params(source: Source).returns(ErrorHandlingMode) }
       def for_source(source)
         case source
-        when LogStruct::ErrorSource::TypeChecking
+        when Source::TypeChecking
           type_checking_errors
-        when LogStruct::ErrorSource::LogStruct
+        when Source::LogStruct
           logstruct_errors
-        when LogStruct::ErrorSource::Security
+        when Source::Security
           security_errors
-        when LogStruct::ErrorSource::Request
-          request_errors
-        when LogStruct::ErrorSource::Application
-          application_errors
+        when Source::Request,
+             Source::App,
+             Source::Job, 
+             Source::Storage,
+             Source::Mailer,
+             Source::Shrine,
+             Source::CarrierWave, 
+             Source::Sidekiq
+          # All other sources use standard error handling
+          standard_errors
         else
           T.absurd(source)
         end

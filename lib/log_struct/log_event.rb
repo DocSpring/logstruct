@@ -5,35 +5,35 @@ module LogStruct
   # Define log event types as an enum
   class LogEvent < T::Enum
     enums do
-      # Plain log message (e.g. calling Rails.logger.info with a string)
+      # Plain log messages
       Log = new(:log)
 
-      # Request logs (from Lograge)
+      # Request events
       Request = new(:request)
-      # Request error logs (from Rack::ErrorHandlingMiddleware)
-      RequestError = new(:request_error)
-      # Security logs (from HostAuthorization - IP spoof, CSRF, blocked hosts, etc.)
-      Security = new(:security)
-      # Job execution logs (from ActiveJob)
-      JobExecution = new(:job_execution)
-      # Notification logs (from ActiveSupport::Notifications)
-      Notification = new(:notification)
 
-      # File storage event types (Shrine, CarrierWave, ActiveStorage)
+      # Security events
+      IPSpoofing = new(:ip_spoofing)
+      CSRFViolation = new(:csrf_violation)
+      BlockedHost = new(:blocked_host)
+
+      # Job events
+      JobExecution = new(:job_execution)
+
+      # File storage events
       Upload = new(:upload)
       Download = new(:download)
       Delete = new(:delete)
       Metadata = new(:metadata)
-      Exist = new(:exist) # ActiveStorage: exist, Shrine: exists
+      Exist = new(:exist)
 
-      # Email Event Types
+      # Email events
       Delivery = new(:delivery)
       Delivered = new(:delivered)
 
-      # Error event types
+      # Error events
       Error = new(:error)
 
-      # Fallback for unknown event types
+      # Fallback
       Unknown = new(:unknown)
     end
   end

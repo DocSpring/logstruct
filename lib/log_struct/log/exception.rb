@@ -3,7 +3,7 @@
 
 require_relative "log_interface"
 require_relative "log_serialization"
-require_relative "../log_source"
+require_relative "../source"
 require_relative "../log_event"
 require_relative "../log_level"
 
@@ -15,7 +15,7 @@ module LogStruct
       include LogSerialization
 
       # Common fields
-      const :src, LogSource # Used by all sources, should not have a default.
+      const :src, Source # Used by all sources, should not have a default.
       const :evt, LogEvent
       const :ts, Time, factory: -> { Time.now }
       const :lvl, LogLevel, default: T.let(LogLevel::Error, LogLevel)
@@ -43,7 +43,7 @@ module LogStruct
       end
 
       # Create an Exception log from a Ruby exception
-      sig { params(src: LogSource, evt: LogEvent, ex: StandardError, data: T::Hash[Symbol, T.untyped]).returns(Exception) }
+      sig { params(src: Source, evt: LogEvent, ex: StandardError, data: T::Hash[Symbol, T.untyped]).returns(Exception) }
       def self.from_exception(src, evt, ex, data = {})
         new(
           src: src,

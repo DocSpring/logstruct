@@ -7,6 +7,7 @@ alwaysApply: true
 - You should never `extend T::Sig` in individual files
 - We use `sorbet-runtime` for runtime type checking. This is a hard dependency for the gem.
 - You do need to `extend T::Helpers` in modules if they use other Sorbet features (e.g `requires_ancestor`)
+- Never use `LogStruct::` when you're inside the `module LogStruct` scope (same for nested modules/classes.)
 
 ### Type Safety
 
