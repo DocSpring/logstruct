@@ -34,12 +34,12 @@ module LogStruct
     
     def test_from_severity_with_integer
       # Test conversion from standard Logger constants
-      assert_equal LogLevel::Debug, LogLevel.from_severity(Logger::DEBUG)
-      assert_equal LogLevel::Info, LogLevel.from_severity(Logger::INFO)
-      assert_equal LogLevel::Warn, LogLevel.from_severity(Logger::WARN)
-      assert_equal LogLevel::Error, LogLevel.from_severity(Logger::ERROR)
-      assert_equal LogLevel::Fatal, LogLevel.from_severity(Logger::FATAL)
-      assert_equal LogLevel::Unknown, LogLevel.from_severity(Logger::UNKNOWN)
+      assert_equal LogLevel::Debug, LogLevel.from_severity(::Logger::DEBUG)
+      assert_equal LogLevel::Info, LogLevel.from_severity(::Logger::INFO)
+      assert_equal LogLevel::Warn, LogLevel.from_severity(::Logger::WARN)
+      assert_equal LogLevel::Error, LogLevel.from_severity(::Logger::ERROR)
+      assert_equal LogLevel::Fatal, LogLevel.from_severity(::Logger::FATAL)
+      assert_equal LogLevel::Unknown, LogLevel.from_severity(::Logger::UNKNOWN)
       
       # Test with an invalid integer
       assert_equal LogLevel::Unknown, LogLevel.from_severity(99)
@@ -52,12 +52,12 @@ module LogStruct
     
     def test_to_severity_int
       # Test conversion from LogLevel to Logger constants
-      assert_equal Logger::DEBUG, LogLevel::Debug.to_severity_int
-      assert_equal Logger::INFO, LogLevel::Info.to_severity_int
-      assert_equal Logger::WARN, LogLevel::Warn.to_severity_int
-      assert_equal Logger::ERROR, LogLevel::Error.to_severity_int
-      assert_equal Logger::FATAL, LogLevel::Fatal.to_severity_int
-      assert_equal Logger::UNKNOWN, LogLevel::Unknown.to_severity_int
+      assert_equal ::Logger::DEBUG, LogLevel::Debug.to_severity_int
+      assert_equal ::Logger::INFO, LogLevel::Info.to_severity_int
+      assert_equal ::Logger::WARN, LogLevel::Warn.to_severity_int
+      assert_equal ::Logger::ERROR, LogLevel::Error.to_severity_int
+      assert_equal ::Logger::FATAL, LogLevel::Fatal.to_severity_int
+      assert_equal ::Logger::UNKNOWN, LogLevel::Unknown.to_severity_int
     end
   end
 end

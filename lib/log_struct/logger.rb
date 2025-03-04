@@ -28,7 +28,7 @@ module LogStruct
       level_enum = LogLevel.from_severity(severity)
       severity_int = level_enum.to_severity_int
       
-      return true if severity.nil? || (@level && @level > severity_int)
+      return true if (@level && @level > severity_int)
 
       # Get message from block if block is given
       if block
