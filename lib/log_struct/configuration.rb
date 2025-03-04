@@ -1,10 +1,10 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "configuration/untyped"
 require_relative "configuration/error_handling"
 require_relative "configuration/integrations"
 require_relative "configuration/filters"
+require_relative "untyped/configuration"
 
 module LogStruct
   # Core configuration class that provides a type-safe API
@@ -15,9 +15,9 @@ module LogStruct
     # Props
     # -------------------------------------------------------------------------------------
 
-    const :error_handling, ErrorHandling
-    const :integrations, Integrations
-    const :filters, Filters
+    const :error_handling, Configuration::ErrorHandling
+    const :integrations, Configuration::Integrations
+    const :filters, Configuration::Filters
     prop :enabled, T::Boolean, default: true
     prop :environments, T::Array[Symbol], default: [:test, :production]
     prop :local_environments, T::Array[Symbol], default: [:development, :test]
@@ -33,9 +33,9 @@ module LogStruct
       sig { returns(Configuration) }
       def configuration
         @configuration ||= T.let(Configuration.new(
-          error_handling: ErrorHandling.new,
-          integrations: Integrations.new,
-          filters: Filters.new
+          error_handling: Configuration::ErrorHandling.new,
+          integrations: Configuration::Integrations.new,
+          filters: Configuration::Filters.new
         ),
           T.nilable(Configuration))
       end
@@ -50,5 +50,14 @@ module LogStruct
       super.deep_symbolize_keys
     end
     alias_method :to_h, :serialize
+
+    # -------------------------------------------------------------------------------------
+    # Environment Detection
+    # -------------------------------------------------------------------------------------
+
+    sig { returns(T::Boolean) }
+    def should_raise?
+      !environments.include?(Rails.env.to_sym)
+    end
   end
 end

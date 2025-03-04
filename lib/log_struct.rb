@@ -5,11 +5,9 @@
 require "log_struct/sorbet"
 require "log_struct/version"
 require "log_struct/configuration"
-require "log_struct/configuration/untyped"
 require "log_struct/json_formatter"
 require "log_struct/railtie"
 require "log_struct/error_source"
-require "log_struct/error_handling_mode"
 require "log_struct/error_handler"
 
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to support hash input/output
@@ -30,19 +28,19 @@ module LogStruct
     end
     alias_method :config, :configuration
 
-    sig { params(block: T.proc.params(config: Configuration::Untyped).void).void }
+    sig { params(block: T.proc.params(config: Untyped::Configuration).void).void }
     def configure(&block)
-      yield(Configuration::Untyped.new(configuration))
+      yield(Untyped::Configuration.new(configuration))
     end
 
     sig { params(block: T.proc.params(config: Configuration).void).void }
     def configure_typed(&block)
-      Configuration.configure_typed(&block)
+      yield(configuration)
     end
 
     sig { returns(T::Boolean) }
     def enabled?
-      configuration.enabled_for_environment?
+      configuration.enabled
     end
   end
 end
