@@ -47,7 +47,9 @@ module LogStruct
         # Add exception-specific fields
         hash[LogKeys::ERR_CLASS] = err_class.name
         hash[LogKeys::MSG] = message
-        hash[LogKeys::BACKTRACE] = backtrace if backtrace
+        if backtrace.is_a?(Array) && backtrace&.any?
+          hash[LogKeys::BACKTRACE] = backtrace&.first(10)
+        end
 
         hash
       end
