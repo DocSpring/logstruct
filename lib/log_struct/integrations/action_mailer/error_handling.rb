@@ -40,6 +40,27 @@ module LogStruct
 
         private
 
+        # Handle an error from a mailer
+        sig { params(mailer: T.untyped, error: StandardError, message: String).void }
+        def self.log_structured_error(mailer, error, message)
+          # Create a structured exception log with context
+          context = {
+            mailer_class: mailer.class.to_s,
+            mailer_action: mailer.respond_to?(:action_name) ? mailer.action_name : nil,
+            message: message
+          }
+
+          # Create the structured exception log
+          exception_data = Log::Exception.from_exception(
+            Source::Mailer,
+            error,
+            context
+          )
+
+          # Log the structured error
+          LogStruct.log(exception_data)
+        end
+
         # Log when email delivery fails
         sig { params(error: StandardError, notify: T::Boolean, report: T::Boolean, reraise: T::Boolean).void }
         def log_email_delivery_error(error, notify: false, report: true, reraise: true)
@@ -47,7 +68,7 @@ module LogStruct
           message = error_message_for(error, reraise)
 
           # Use structured error logging
-          Logger.log_structured_error(self, error, message)
+          ErrorHandling.log_structured_error(self, error, message)
 
           # Handle notifications and reporting
           handle_error_notifications(error, notify, report, reraise)
@@ -85,7 +106,7 @@ module LogStruct
             )
 
             # Log the exception with structured data
-            Rails.logger.error(exception_data)
+            LogStruct.log(exception_data)
 
             # Call the error handler
             LogStruct.handle_exception(error, source: Source::Mailer, context: context)
@@ -110,7 +131,7 @@ module LogStruct
           )
 
           # Log the error at info level since it's not a critical error
-          Rails.logger.info(exception_data)
+          LogStruct.log(exception_data)
         end
 
         sig { params(error: StandardError).returns(String) }

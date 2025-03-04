@@ -13,8 +13,11 @@ module LogStruct
     class Sidekiq < T::Struct
       extend T::Sig
 
+      include CommonInterface
+
       # Common fields (without event)
       const :source, Source::Sidekiq, default: T.let(Source::Sidekiq, Source::Sidekiq)
+      const :event, LogEvent, default: T.let(LogEvent::Log, LogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
@@ -29,6 +32,7 @@ module LogStruct
       def serialize
         {
           LogKeys::SRC => source.serialize,
+          LogKeys::EVT => event.serialize,
           LogKeys::TS => timestamp.iso8601(3),
           LogKeys::LVL => level.serialize,
           LogKeys::MSG => message,
