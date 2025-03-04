@@ -28,6 +28,8 @@ module LogStruct
       # Methods to add logging to CarrierWave operations
       module LoggingMethods
         extend T::Sig
+        extend T::Helpers
+        requires_ancestor { ::CarrierWave::Uploader::Base }
 
         # Log file storage operations
         sig { params(args: T.untyped).returns(T.untyped) }
@@ -54,11 +56,17 @@ module LogStruct
             duration: duration * 1000.0, # Convert to ms
             model: model.class.name,
             uploader: self.class.name,
-            mounted_as: mounted_as.to_s,
             storage: storage.class.name,
-            version: version_name.to_s,
-            processing: processing.to_s,
-            file: file_info
+            mount_point: mounted_as.to_s,
+            filename: file.filename,
+            mime_type: file.content_type,
+            size: file_size,
+            file_id: identifier,
+            data: {
+              version: version_name.to_s,
+              store_path: store_path,
+              extension: file.extension
+            }
           )
 
           ::Rails.logger.info(log_data)
@@ -74,28 +82,22 @@ module LogStruct
 
           # Extract file information if available
           file_size = file.size if file&.respond_to?(:size)
-          file_info = if file
-            {
-              identifier: identifier,
-              filename: file.filename,
-              content_type: file.content_type,
-              size: file_size,
-              extension: file.extension
-            }
-          else
-            {identifier: identifier}
-          end
-
+          
           # Log the retrieve operation with structured data
           log_data = Log::CarrierWave.new(
             source: Source::CarrierWave,
             event: LogEvent::Download,
             duration: duration * 1000.0, # Convert to ms
             uploader: self.class.name,
-            mounted_as: mounted_as.to_s,
             storage: storage.class.name,
-            version: version_name.to_s,
-            file: file_info
+            mount_point: mounted_as.to_s,
+            file_id: identifier,
+            filename: file&.filename,
+            mime_type: file&.content_type,
+            size: file_size,
+            data: {
+              version: version_name.to_s
+            }
           )
 
           ::Rails.logger.info(log_data)

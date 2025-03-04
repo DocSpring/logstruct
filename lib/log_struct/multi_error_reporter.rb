@@ -45,8 +45,6 @@ module LogStruct
       # Report an exception to the configured error reporting service
       sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def report_exception(exception, context = {})
-        # Initialize reporter if it hasn't been done
-        initialize_reporter if @error_reporter.nil?
 
         # Call the appropriate reporter method based on what's available
         case @error_reporter
