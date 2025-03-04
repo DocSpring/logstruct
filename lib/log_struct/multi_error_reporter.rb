@@ -28,6 +28,7 @@ module LogStruct
         @reporter ||= detect_reporter
       end
 
+      # Set the reporter to use (user-friendly API that accepts symbols)
       sig { params(reporter_type: T.any(ErrorReporter, Symbol)).returns(ErrorReporter) }
       def reporter=(reporter_type)
         @reporter = case reporter_type
@@ -41,10 +42,9 @@ module LogStruct
           when :honeybadger then ErrorReporter::Honeybadger
           when :rails_logger then ErrorReporter::RailsLogger
           else
-            raise ArgumentError, "Unknown reporter type: #{reporter_type}. Valid types are: :sentry, :bugsnag, :rollbar, :honeybadger, :rails_logger"
+            valid_types = ErrorReporter.values.map { |v| ":#{v.serialize}" }.join(", ")
+            raise ArgumentError, "Unknown reporter type: #{reporter_type}. Valid types are: #{valid_types}"
           end
-        else
-          raise ArgumentError, "Reporter must be an ErrorReporter or Symbol, got: #{reporter_type.class}"
         end
       end
 
