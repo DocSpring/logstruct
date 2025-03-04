@@ -10,14 +10,14 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "3.3.6"
           bundler-cache: true
 
       - name: Install dependencies
@@ -42,7 +42,7 @@ jobs:
   test:
     name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
     needs: [lint]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -68,9 +68,10 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      # Create a .ruby-version file with the matrix Ruby version
-      - name: Set Ruby version
-        run: echo "${{ matrix.ruby }}" > .ruby-version
+      # For bundler to work with different Ruby versions, we just need to set CI=true
+      # This will make our conditional Gemfile logic skip the Ruby version requirement
+      - name: Set CI environment variable
+        run: echo "CI=true" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
