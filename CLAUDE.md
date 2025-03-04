@@ -4,7 +4,8 @@
 
 - Setup: `bin/setup`
 - Run all tests: `bin/test`
-- Run single test: `bin/test test/path_to_test.rb:LINE_NUMBER`
+- Run single test file: `bin/test test/path_to_test.rb`
+- Run test at specific line: `bin/test test/path_to_test.rb:LINE_NUMBER`
 - Typecheck: `bin/typecheck`
 - Format code: `bin/format`
 - Lint: `bin/rubocop`
@@ -23,3 +24,4 @@
   - Methods/variables: `snake_case`
   - Boolean methods should end with `?`
 - Handle errors explicitly via type-safe interfaces
+- NEVER ignore warnings (especially deprecation warnings) - keep the logs clean

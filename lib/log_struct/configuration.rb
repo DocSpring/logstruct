@@ -11,6 +11,8 @@ module LogStruct
   class Configuration < T::Struct
     extend T::Sig
 
+    include Sorbet::SerializeSymbolKeys
+
     # -------------------------------------------------------------------------------------
     # Props
     # -------------------------------------------------------------------------------------
@@ -48,20 +50,10 @@ module LogStruct
     def self.instance
       @instance ||= T.let(Configuration.new, T.nilable(Configuration))
     end
-    
+
     sig { params(config: Configuration).void }
     def self.set_instance(config)
       @instance = config
     end
-
-    # -------------------------------------------------------------------------------------
-    # Serialization
-    # -------------------------------------------------------------------------------------
-
-    sig { returns(T::Hash[Symbol, T.untyped]) }
-    def serialize
-      super.deep_symbolize_keys
-    end
-    alias_method :to_h, :serialize
   end
 end

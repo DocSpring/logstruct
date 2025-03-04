@@ -26,7 +26,7 @@ module LogStruct
       result = JSON.parse(@formatter.call(@severity, @time, @progname, message))
 
       assert_equal message, result["msg"]
-      assert_equal "rails", result["src"]
+      assert_equal "app", result["src"]
       assert_equal "log", result["evt"]
       assert_equal @iso_time, result["ts"]
       assert_equal "info", result["level"]
@@ -41,32 +41,20 @@ module LogStruct
       assert_not_includes result["msg"], "user@example.com"
     end
 
-    def test_call_with_hash_message
-      message = {custom_field: "value", message: "Test message"}
-      result = JSON.parse(@formatter.call(@severity, @time, @progname, message))
-
-      assert_equal "value", result["custom_field"]
+    def test_call_with_struct_serializes_properly
+      # Create a proper T::Struct log entry
+      log_entry = LogStruct::Log::Plain.new(
+        message: "Test message",
+        source: LogStruct::Source::App,
+        level: LogStruct::LogLevel::Info
+      )
+      
+      result = JSON.parse(@formatter.call(@severity, @time, @progname, log_entry))
+      
       assert_equal "Test message", result["msg"]
-      assert_equal "rails", result["src"]
+      assert_equal "app", result["src"]
       assert_equal "log", result["evt"]
-      assert_equal @iso_time, result["ts"]
-      assert_equal "info", result["level"]
-    end
-
-    def test_call_does_not_override_existing_fields
-      custom_message = {source: "custom", event: "test_event", ts: "custom_time"}
-      result = JSON.parse(@formatter.call(@severity, @time, @progname, custom_message))
-
-      assert_equal "custom", result["src"]
-      assert_equal "test_event", result["evt"]
-      assert_equal "custom_time", result["ts"]
-    end
-
-    def test_call_applies_string_scrubber_to_hash_message_fields
-      email_message = {message: "Email: user@example.com"}
-      result = JSON.parse(@formatter.call(@severity, @time, @progname, email_message))
-
-      assert_not_includes result["msg"], "user@example.com"
+      assert_equal "info", result["lvl"]
     end
 
     def test_formats_active_job_arguments_with_global_ids

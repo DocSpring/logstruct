@@ -1,10 +1,12 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "active_support/notifications"
+
 module LogStruct
   module ConfigStruct
     class Integrations < T::Struct
-      extend T::Sig
+      include Sorbet::SerializeSymbolKeys
 
       # Enable or disable Lograge integration
       # Default: true

@@ -4,6 +4,8 @@
 module LogStruct
   module ConfigStruct
     class ErrorHandlingModes < T::Struct
+      include Sorbet::SerializeSymbolKeys
+
       # How to handle different types of errors
       # Modes:
       # - :ignore - always ignore the error

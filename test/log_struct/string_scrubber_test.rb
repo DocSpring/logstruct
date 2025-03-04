@@ -53,9 +53,6 @@ module LogStruct
     end
 
     def test_scrub_url_passwords
-      # Enable URL password filtering
-      LogStruct.config.filter_url_passwords = true
-
       # Test with a URL containing a password
       input = "Database URL: postgres://user:password123@localhost:5432/mydb"
       result = StringScrubber.scrub(input)
@@ -73,9 +70,6 @@ module LogStruct
     end
 
     def test_scrub_credit_card_numbers
-      # Enable credit card filtering
-      LogStruct.config.filter_credit_cards = true
-
       # Test with a 16-digit card number
       input = "Card: 4111111111111111"
       result = StringScrubber.scrub(input)
@@ -92,9 +86,6 @@ module LogStruct
     end
 
     def test_scrub_phone_numbers
-      # Enable phone number filtering
-      LogStruct.config.filter_phones = true
-
       # Test with a formatted phone number
       input = "Call us at 555-123-4567"
       result = StringScrubber.scrub(input)
@@ -104,9 +95,6 @@ module LogStruct
     end
 
     def test_scrub_ssns
-      # Enable SSN filtering
-      LogStruct.config.filter_ssns = true
-
       # Test with a formatted SSN
       input = "SSN: 123-45-6789"
       result = StringScrubber.scrub(input)
@@ -116,9 +104,6 @@ module LogStruct
     end
 
     def test_scrub_ip_addresses
-      # Enable IP filtering
-      LogStruct.config.filter_ips = true
-
       # Test with an IP address
       input = "IP: 192.168.1.1"
       result = StringScrubber.scrub(input)
@@ -128,9 +113,6 @@ module LogStruct
     end
 
     def test_scrub_mac_addresses
-      # Enable MAC filtering
-      LogStruct.config.filter_macs = true
-
       # Test with a MAC address
       input = "MAC: 00:11:22:33:44:55"
       result = StringScrubber.scrub(input)
@@ -140,14 +122,19 @@ module LogStruct
     end
 
     def test_disabled_filters
-      # Disable all filters
-      LogStruct.config.filter_emails = false
-      LogStruct.config.filter_url_passwords = false
-      LogStruct.config.filter_credit_cards = false
-      LogStruct.config.filter_phones = false
-      LogStruct.config.filter_ssns = false
-      LogStruct.config.filter_ips = false
-      LogStruct.config.filter_macs = false
+      # Create a config with all filters disabled
+      test_config = LogStruct::Configuration.new(
+        filters: ConfigStruct::Filters.new(
+          filter_emails: false,
+          filter_url_passwords: false,
+          filter_credit_cards: false,
+          filter_phone_numbers: false,
+          filter_ssns: false,
+          filter_ips: false,
+          filter_macs: false
+        )
+      )
+      LogStruct.configuration = test_config
 
       # Test with sensitive data
       input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567"
@@ -158,8 +145,13 @@ module LogStruct
     end
 
     def test_custom_scrubbing_handler
-      # Set a custom scrubbing handler
-      LogStruct.config.string_scrubbing_handler = ->(msg) { msg.gsub("SECRET", "[REDACTED]") }
+      # Create a config with custom handler
+      custom_handler = ->(msg) { msg.gsub("SECRET", "[REDACTED]") }
+      test_config = LogStruct::Configuration.new(
+        filters: LogStruct.config.filters,
+        string_scrubbing_handler: custom_handler
+      )
+      LogStruct.configuration = test_config
 
       # Test with custom data
       input = "This contains a SECRET value"
@@ -171,11 +163,6 @@ module LogStruct
     end
 
     def test_multiple_filters
-      # Enable multiple filters
-      LogStruct.config.filter_emails = true
-      LogStruct.config.filter_credit_cards = true
-      LogStruct.config.filter_phones = true
-
       # Test with multiple sensitive data types
       input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567"
       result = StringScrubber.scrub(input)

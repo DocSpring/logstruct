@@ -4,7 +4,7 @@
 module LogStruct
   module ConfigStruct
     class Filters < T::Struct
-      extend T::Sig
+      include Sorbet::SerializeSymbolKeys
 
       # Keys that should be filtered in nested structures such as request params and job arguments.
       # Filtered data includes information about Hashes and Arrays.

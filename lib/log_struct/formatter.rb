@@ -129,8 +129,8 @@ module LogStruct
       data = process_values(data)
 
       # Add standard fields if not already present
-      data[:src] ||= "rails"
-      data[:evt] ||= "log"
+      data[:src] ||= Source::App
+      data[:evt] ||= LogEvent::Log
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = severity.downcase
       data[:prog] = progname if progname.present?

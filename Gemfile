@@ -27,6 +27,7 @@ end
 
 # Add these gems to silence Ruby 3.4 warnings
 gem "bigdecimal"
+gem "drb"  # For ActiveSupport::TestCase
 gem "mutex_m"
 
 # Supported integrations
@@ -41,6 +42,7 @@ gem "sidekiq", "~> 7.2"
 group :development, :test do
   gem "dalli"
   gem "debug"
+  gem "amazing_print"
   gem "listen", require: false
   gem "minitest", "~> 5.20"
   gem "minitest-reporters", "~> 1.6"
