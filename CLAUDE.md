@@ -7,6 +7,7 @@
 - Run single test file: `bin/test test/path_to_test.rb`
 - Run test at specific line: `bin/test test/path_to_test.rb:LINE_NUMBER`
 - Run test by name: `bin/test -n=test_method_name`
+- Debug a specific test: Add `debugger` statements (developer only)
 - Typecheck: `bin/typecheck`
 - Format code: `bin/format`
 - Lint: `bin/rubocop`
@@ -26,3 +27,10 @@
   - Boolean methods should end with `?`
 - Handle errors explicitly via type-safe interfaces
 - NEVER ignore warnings (especially deprecation warnings) - keep the logs clean
+- When handling objects with as_json method in Rails apps, consider whether ActiveSupport's default implementation or a custom implementation is being used
+
+## Code Comments
+- Comments should explain why code exists, not what it does
+- Do not reference previous versions/iterations in comments
+- When receiving feedback, incorporate it into the code without mentioning the feedback
+- Never use words like "proper" or "correctly" in comments as they imply previous code was improper

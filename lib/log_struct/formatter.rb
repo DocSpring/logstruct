@@ -103,7 +103,13 @@ module LogStruct
         arg
       end
     rescue => e
-      MultiErrorReporter.report_exception(e)
+      # Report error through LogStruct's framework
+      context = {
+        processor_method: "process_values",
+        value_type: arg.class.name,
+        recursion_depth: recursion_depth
+      }
+      LogStruct.handle_exception(e, source: Source::LogStruct, context: context)
       arg
     end
 
@@ -148,8 +154,15 @@ module LogStruct
               # For plain objects with only the default ActiveSupport as_json
               log_value.to_s
             end
-          rescue => _e
-            # If any error accessing the method, fall back to to_s
+          rescue => e
+            # Handle serialization errors
+            context = {
+              object_class: log_value.class.name,
+              object_inspect: log_value.inspect.truncate(100)
+            }
+            LogStruct.handle_exception(e, source: Source::LogStruct, context: context)
+            
+            # Fall back to the string representation to ensure we continue processing
             log_value.to_s
           end
         end
