@@ -53,7 +53,7 @@ end
 Rails.application.initialize!
 
 # Require the gem
-require "logstruct"
+require "log_struct"
 
 # Configure LogStruct
 LogStruct.configure do |config|
