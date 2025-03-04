@@ -37,7 +37,7 @@ module LogStruct
 
         # Log a mailer event with the given event type
         sig do
-          params(event_type: LogEvent,
+          params(event_type: Log::Email::EmailLogEvent,
             level: Symbol,
             additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped)
         end
@@ -83,10 +83,7 @@ module LogStruct
             subject: subject,
             data: data
           )
-
-          # Log the structured data
-          ::Rails.logger.public_send(level, log_data)
-
+          LogStruct.log(log_data)
           log_data
         end
 

@@ -23,8 +23,8 @@ module LogStruct
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
       # Storage-specific fields
+      const :operation, T.nilable(Symbol), default: nil
       const :storage, T.nilable(String), default: nil
-      const :operation, T.nilable(String), default: nil
       const :file_id, T.nilable(String), default: nil
       const :filename, T.nilable(String), default: nil
       const :mime_type, T.nilable(String), default: nil

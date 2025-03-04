@@ -78,7 +78,7 @@ module LogStruct
           log_data = Log::CarrierWave.new(
             source: Source::CarrierWave,
             event: event_type,
-            operation: operation.to_s,
+            operation: operation,
             storage: storage.to_s,
             file_id: identifier,
             filename: file_info.try(:original_filename) || file_info.try(:filename),
