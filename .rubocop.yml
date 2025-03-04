@@ -70,19 +70,19 @@ Sorbet/FalseSigil:
 Sorbet/StrictSigil:
   Enabled: true
   Exclude:
-    - 'test/**/*'
-    - 'sorbet/**/*'
+    - "test/**/*"
+    - "sorbet/**/*"
   SuggestedStrictness: strict
 
 # Require typed: true for test files
 Sorbet/TrueSigil:
   Enabled: true
   Include:
-    - 'test/**/*.rb'
+    - "test/**/*.rb"
   SuggestedStrictness: true
 
 # Don't try to validate typing on generated Sorbet RBI files
 Sorbet:
   Enabled: true
   Exclude:
-    - 'sorbet/**/*.rbi'
+    - "sorbet/**/*.rbi"

@@ -25,56 +25,38 @@ jobs:
           # Make sure bundler is using the correct Ruby version
           ruby -v
           bundle install
-          npm install prettier
+          yarn install
 
-      - name: Rubocop
-        run: bin/rubocop
-
-      - name: Sorbet Typecheck
-        run: bin/typecheck
-
-      - name: Spellcheck
-        run: bin/spellcheck
-
-      - name: Prettier (Format Check)
-        run: npx prettier --check "**/*.{js,json,md}"
-        
-  tapioca:
-    name: Tapioca RBI Check
-    runs-on: ubuntu-latest
-    needs: [lint]
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.3.6"
-          bundler-cache: true
-          
-      - name: Install dependencies
-        run: |
-          ruby -v
-          bundle install
-          
       - name: Generate and verify RBI files
         run: |
           bundle exec tapioca gems --verify
           bundle exec tapioca dsl --verify
-          
+
       - name: Check for RBI changes
         run: |
           # Check if there are any uncommitted changes to RBI files
           git status --porcelain sorbet/rbi/
           if [[ -n $(git status --porcelain sorbet/rbi/) ]]; then
-            echo "Error: RBI files are out of date. Please run 'bundle exec tapioca gems' and 'bundle exec tapioca dsl' and commit the changes."
+            echo "Error: RBI files are out of date. Please run 'tapioca gems' and 'tapioca dsl' and commit the changes."
             git diff sorbet/rbi/
             exit 1
           fi
 
+      - name: RuboCop
+        run: bin/rubocop
+
+      - name: Sorbet Typecheck
+        run: bin/typecheck
+
+      - name: CSpell (Spellcheck)
+        run: bin/spellcheck
+
+      - name: Prettier (Check Formatting for .md, .yml, etc.)
+        run: bin/prettier --check
+
   test:
     name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
-    needs: [lint, tapioca]
+    needs: [lint]
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false

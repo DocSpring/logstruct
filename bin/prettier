@@ -2,5 +2,4 @@
 set -euo pipefail
 
 # Format files using Prettier
-npx prettier --write "**/*.{js,json,md}" 
-rubocop -A
+npx prettier . --write "$@"
