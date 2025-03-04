@@ -2,8 +2,7 @@
 # frozen_string_literal: true
 
 require "rails"
-require_relative "logger"
-require_relative "logger_utils"
+require_relative "formatter"
 
 module LogStruct
   # Railtie to integrate with Rails
@@ -21,22 +20,9 @@ module LogStruct
       end
     end
 
-    # Setup complete logging system later, when config is fully loaded
+    # Setup all integrations after logger setup is complete
     initializer "logstruct.setup", before: :build_middleware_stack do |app|
       next unless LogStruct.enabled?
-
-      # If we want a complete logger replacement, do it here
-      if LogStruct.config.replace_rails_logger
-        original_logger = ::Rails.logger
-        logger = LogStruct::LoggerUtils.create_logger(
-          LogStruct::Logger,
-          original_logger
-        )
-        
-        # Replace Rails.logger and app.config.logger
-        ::Rails.logger = logger
-        app.config.logger = logger
-      end
 
       # Set up all integrations 
       Integrations.setup_integrations
