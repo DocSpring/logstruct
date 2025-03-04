@@ -40,7 +40,7 @@ module LogStruct
 
           # Extract file information
           file_size = file.size if file.respond_to?(:size)
-          file_info = {
+          {
             identifier: identifier,
             filename: file.filename,
             content_type: file.content_type,

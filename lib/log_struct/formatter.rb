@@ -143,12 +143,12 @@ module LogStruct
           # 3. For basic objects that only have ActiveSupport's as_json: Use to_s
           begin
             method_owner = log_value.method(:as_json).owner
-            
+
             # If it's ActiveRecord, ActiveModel, or a custom implementation, use as_json
-            if method_owner.to_s.include?("ActiveRecord") || 
-               method_owner.to_s.include?("ActiveModel") || 
-               !method_owner.to_s.include?("ActiveSupport::CoreExtensions") && 
-               !method_owner.to_s.include?("Object")
+            if method_owner.to_s.include?("ActiveRecord") ||
+                method_owner.to_s.include?("ActiveModel") ||
+                method_owner.to_s.exclude?("ActiveSupport::CoreExtensions") &&
+                    method_owner.to_s.exclude?("Object")
               log_value.as_json
             else
               # For plain objects with only the default ActiveSupport as_json
@@ -161,7 +161,7 @@ module LogStruct
               object_inspect: log_value.inspect.truncate(100)
             }
             LogStruct.handle_exception(e, source: Source::LogStruct, context: context)
-            
+
             # Fall back to the string representation to ensure we continue processing
             log_value.to_s
           end

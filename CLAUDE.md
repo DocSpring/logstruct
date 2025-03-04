@@ -16,6 +16,7 @@
 ## Code Style
 
 - Use strict Sorbet typing with `# typed: strict` annotations
+- You can use `# typed: true` in tests, `T.let` can be annoying
 - Method signatures must include proper return types
 - Use `::` prefixes for external modules (Rails/third-party gems)
 - Avoid `T.unsafe` - use proper typing or `T.let`/`T.cast` when necessary
@@ -30,6 +31,7 @@
 - When handling objects with as_json method in Rails apps, consider whether ActiveSupport's default implementation or a custom implementation is being used
 
 ## Code Comments
+
 - Comments should explain why code exists, not what it does
 - Do not reference previous versions/iterations in comments
 - When receiving feedback, incorporate it into the code without mentioning the feedback

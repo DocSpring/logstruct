@@ -108,7 +108,7 @@ module LogStruct
     def test_tagged_method
       # Give the result variable a specific type
       result = T.let(nil, T.nilable(LogStruct::Formatter))
-      
+
       @formatter.tagged(["tag1", "tag2"]) do |f|
         assert_equal %w[tag1 tag2], f.current_tags
         result = f

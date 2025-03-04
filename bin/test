@@ -18,23 +18,22 @@ if ARGV.any?
     elsif arg.include?(":")
       # Handle file:line_number format by finding the test at that line
       file, line = arg.split(":")
-      
+
       # If line number is provided, locate the test method at that line
       if line
         file_content = File.exist?(file) ? File.read(file) : ""
         line_num = line.to_i
-        
+
         # Simple approach - find the last test_* method defined before this line
         method_matches = file_content.lines[0...line_num].join.scan(/def\s+(test_\w+)/)
         if method_matches.any?
           test_method = method_matches.last[0]
           puts "Running test: #{test_method} at line #{line}"
           name_pattern = test_method
-          file  # Return just the file, not file:line
         else
           puts "No test method found before line #{line} in #{file}"
-          file  # Return the file anyway
         end
+        file
       else
         arg  # Return arg unchanged
       end
@@ -42,14 +41,14 @@ if ARGV.any?
       arg  # Return arg unchanged
     end
   end
-  
+
   # Specify test name pattern
   if name_pattern
     # Using TESTOPTS with --name= works for both line number based lookup and explicit name
-    ENV["TESTOPTS"] = "--name=#{name_pattern}" 
+    ENV["TESTOPTS"] = "--name=#{name_pattern}"
     puts "Using test name pattern: #{name_pattern}"
   end
-  
+
   # Delegate to Rake test task with filtered arguments
   ARGV.replace(filtered_args)
 end

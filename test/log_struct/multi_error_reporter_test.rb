@@ -79,36 +79,31 @@ module LogStruct
       # Set the reporter explicitly for this test
       MultiErrorReporter.reporter = :bugsnag
 
-      report_mock = Object.new
-      metadata_added = false
+      # Create a test class for our report mock
+      report_mock_class = Class.new do
+        attr_accessor :key, :data
 
-      # Create a method to check add_metadata was called
-      def report_mock.add_metadata(key, data)
-        @key = key
-        @data = data
-        @called = true
+        def add_metadata(key, data)
+          @key = key
+          @data = data
+          @called = true
+        end
+
+        def called?
+          @called || false
+        end
       end
 
-      def report_mock.called?
-        @called || false
-      end
-
-      def report_mock.key
-        @key
-      end
-
-      def report_mock.data
-        @data
-      end
+      report_mock = report_mock_class.new
 
       # Mock Bugsnag.notify to yield our report mock
-      bugsnag_notify_block = nil
+      bugsnag_notify_block = T.let(nil, T.untyped)
 
       # Use Minitest stub
       ::Bugsnag.stub(:notify,
         ->(exception, &block) {
           bugsnag_notify_block = block
-          block.call(report_mock) if block
+          block&.call(report_mock)
         }) do
         MultiErrorReporter.report_exception(@exception, @context)
       end
@@ -126,9 +121,9 @@ module LogStruct
       MultiErrorReporter.reporter = :rollbar
 
       # Track whether Rollbar.error was called
-      error_called = false
-      exception_arg = nil
-      context_arg = nil
+      error_called = T.let(false, T::Boolean)
+      exception_arg = T.let(nil, T.untyped)
+      context_arg = T.let(nil, T.untyped)
 
       ::Rollbar.stub(:error,
         ->(exception, context) {
@@ -151,9 +146,9 @@ module LogStruct
       MultiErrorReporter.reporter = :honeybadger
 
       # Track whether Honeybadger.notify was called
-      notify_called = false
-      exception_arg = nil
-      options_arg = nil
+      notify_called = T.let(false, T::Boolean)
+      exception_arg = T.let(nil, T.untyped)
+      options_arg = T.let(nil, T.untyped)
 
       ::Honeybadger.stub(:notify,
         ->(exception, options) {
