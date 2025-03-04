@@ -10,6 +10,7 @@ require_relative "integrations/shrine"
 require_relative "integrations/sidekiq"
 require_relative "integrations/active_storage"
 require_relative "integrations/carrierwave"
+require_relative "integrations/sorbet"
 
 module LogStruct
   module Integrations
@@ -28,6 +29,7 @@ module LogStruct
       Integrations::Shrine.setup if config.integrations.enable_shrine
       Integrations::ActiveStorage.setup if config.integrations.enable_active_storage
       Integrations::CarrierWave.setup if config.integrations.enable_carrierwave
+      Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handler
     end
   end
 end
