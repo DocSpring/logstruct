@@ -1,39 +1,94 @@
-name: Test
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          # Make sure bundler is using the correct Ruby version
+          ruby -v
+          bundle install
+          npm install prettier
+
+      - name: Rubocop
+        run: bin/rubocop
+
+      - name: Sorbet Typecheck
+        run: bin/typecheck
+
+      - name: Spellcheck
+        run: bin/spellcheck
+
+      - name: Prettier (Format Check)
+        run: npx prettier --check "**/*.{js,json,md}"
+
   test:
+    name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
+    needs: [lint]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ruby: ["3.0", "3.1", "3.2", "3.3", "3.4"]
+        ruby: ["2.7", "3.0", "3.2", "3.4"]
         rails: ["7.0", "7.1", "8.0"]
         exclude:
+          # Rails 8.0 requires Ruby 3.1+
+          - ruby: "2.7"
+            rails: "8.0"
           - ruby: "3.0"
             rails: "8.0"
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}
+      RUBY_VERSION: ${{ matrix.ruby }}
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Ruby
+      - name: Setup Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
+      # Create a .ruby-version file with the matrix Ruby version
+      - name: Set Ruby version
+        run: echo "${{ matrix.ruby }}" > .ruby-version
+
       - name: Install dependencies
         run: |
+          # Make sure bundler is using the correct Ruby version
+          ruby -v
+          # Configure bundler
           bundle config set --local without 'development'
+          # Install dependencies with the specific Rails version
           bundle install
 
       - name: Run tests
-        run: bundle exec rake test
+        run: bin/test
+
+      # Optional: Save coverage data as an artifact
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
+          path: coverage/
+          retention-days: 5
