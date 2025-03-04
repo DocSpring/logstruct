@@ -59,18 +59,18 @@ require "log_struct"
 # Configure LogStruct
 LogStruct.configure do |config|
   config.enabled = true
-  
+
   # Configure integrations
   config.integrations.enable_lograge = true
   config.integrations.enable_actionmailer = true
   config.integrations.enable_activejob = true
   config.integrations.enable_sidekiq = true
-  config.integrations.enable_shrine = true  
+  config.integrations.enable_shrine = true
   config.integrations.enable_active_storage = true
   config.integrations.enable_carrierwave = true
   config.integrations.enable_rack_error_handler = true
   config.integrations.enable_host_authorization = true
-  
+
   # Configure filters
   config.filters.hash_salt = "test"
   config.filters.hash_length = 12
