@@ -9,7 +9,7 @@
 
 # Core Dependencies
 
-This gem requires Rails and will always have access to these core Rails modules:
+This gem requires Rails 7.0+ and will always have access to these core Rails modules:
 
 - `::Rails`
 - `::ActiveSupport`
@@ -37,10 +37,10 @@ You do not need to check if these are defined with `defined?` - they are guarant
   ```
 
 - This applies to all external modules including but not limited to:
-  - Rails modules: `::ActiveSupport`, `::ActionMailer`, `::ActiveJob`, `::ActionDispatch`, `::ActionController`
+  - Rails modules: `::ActiveSupport`, `::ActionMailer`, `::ActiveJob`, `::ActionDispatch`, `::ActionController`, `::ActiveStorage`
   - Error reporting: `::Sentry`, `::Bugsnag`, `::Rollbar`, `::Honeybadger`
   - Background jobs: `::Sidekiq`
-  - File uploads: `::Shrine`
+  - File uploads: `::Shrine`, `::CarrierWave`
 
 ### Available Modules
 
@@ -55,11 +55,14 @@ However, some apps might skip certain parts of Rails and only require what they 
 
 - `defined?(::ActionMailer)`
 - `defined?(::ActiveJob)`
+- `defined?(::ActiveStorage)`
 
 And you always need to check for any third-party gems that are not part of Rails:
 
 - `defined?(::Sentry)`
 - `defined?(::Shrine)`
+- `defined?(::CarrierWave)`
+- `defined?(::Sidekiq)`
 - etc.
 
 ### Type Safety
@@ -76,6 +79,9 @@ And you always need to check for any third-party gems that are not part of Rails
 - Follow test-driven development principles
 - Write tests for all new features
 - Ensure all tests pass before submitting a pull request
+- Regular tests: `bin/test`
+- Rails integration tests: `bin/test_with_rails`
+- You can specify Rails version for integration tests: `RAILS_VERSION=7.1.3 bin/test_with_rails`
 
 ## Working with Sorbet and Tapioca
 
@@ -330,11 +336,17 @@ Remember: Taking shortcuts with Sorbet defeats the purpose of having static type
 
 ## Releasing
 
-1. Update the version number in `version.rb`
+1. Update the version number in `lib/log_struct/version.rb`
 2. Update the `CHANGELOG.md` file
 3. Create a git tag for the version
 4. Push the tag to GitHub
 5. Build and push the gem to RubyGems
+
+```bash
+# Update version in lib/log_struct/version.rb first!
+bundle exec rake build
+gem push pkg/logstruct-x.y.z.gem
+```
 
 ## Documentation
 

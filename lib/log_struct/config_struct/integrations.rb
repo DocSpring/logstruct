@@ -46,7 +46,7 @@ module LogStruct
 
       # Enable or disable ActiveStorage integration
       # Default: true
-      prop :enable_active_storage, T::Boolean, default: true
+      prop :enable_activestorage, T::Boolean, default: true
 
       # Enable or disable CarrierWave integration
       # Default: true

@@ -29,7 +29,7 @@ module LogStruct
       Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization
       Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
       Integrations::Shrine.setup(config) if config.integrations.enable_shrine
-      Integrations::ActiveStorage.setup(config) if config.integrations.enable_active_storage
+      Integrations::ActiveStorage.setup(config) if config.integrations.enable_activestorage
       Integrations::CarrierWave.setup(config) if config.integrations.enable_carrierwave
       Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handler
     end

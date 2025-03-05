@@ -17,7 +17,7 @@ module LogStruct
       def self.setup(config)
         return unless defined?(::ActiveStorage)
         return unless config.enabled
-        return unless config.integrations.enable_active_storage
+        return unless config.integrations.enable_activestorage
 
         # Subscribe to all ActiveStorage service events
         ::ActiveSupport::Notifications.subscribe(/service_.*\.active_storage/) do |*args|
@@ -31,7 +31,7 @@ module LogStruct
       sig { params(event: ActiveSupport::Notifications::Event, config: LogStruct::Configuration).void }
       def self.process_active_storage_event(event, config)
         return unless config.enabled
-        return unless config.integrations.enable_active_storage
+        return unless config.integrations.enable_activestorage
 
         # Extract key information from the event
         event_name = event.name.sub(/\.active_storage$/, "")

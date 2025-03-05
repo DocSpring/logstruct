@@ -1,14 +1,16 @@
+# typed: true
+
 # Configure LogStruct
 LogStruct.configure do |config|
   # Enable LogStruct in all environments for testing
   config.enabled = true
-  
+
   # Specify which environments to enable in
   config.environments = [:development, :test, :production]
-  
+
   # Specify which environments are considered local/development
   config.local_environments = [:development, :test]
-  
+
   # Configure integrations
   config.integrations.enable_lograge = true
   config.integrations.enable_actionmailer = true
@@ -17,8 +19,8 @@ LogStruct.configure do |config|
   config.integrations.enable_sidekiq = defined?(Sidekiq)
   config.integrations.enable_shrine = defined?(Shrine)
   config.integrations.enable_carrierwave = defined?(CarrierWave)
-  config.integrations.enable_active_storage = true
-  
+  config.integrations.enable_activestorage = true
+
   # Configure string scrubbing filters
   config.filters.email_addresses = true
   config.filters.url_passwords = true
@@ -27,7 +29,7 @@ LogStruct.configure do |config|
   config.filters.ssns = true
   config.filters.ip_addresses = true
   config.filters.mac_addresses = true
-  
+
   # Configure error handling modes
   config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
   config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report

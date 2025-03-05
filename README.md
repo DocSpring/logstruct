@@ -24,15 +24,17 @@ We support all your other gems too, like Sidekiq, Sentry, Shrine, Postmark, and 
 
 The following table lists the gems that LogStruct integrates with and their supported versions:
 
-| Gem          | Supported Versions | Notes                          |
-| ------------ | ------------------ | ------------------------------ |
-| Rails        | >= 6.0             | Core dependency                |
-| ActionMailer | >= 6.0             | Part of Rails                  |
-| ActiveJob    | >= 6.0             | Part of Rails                  |
-| Sidekiq      | >= 6.0             | For background job logging     |
-| Shrine       | >= 3.0             | For file upload logging        |
-| Lograge      | >= 0.11            | For structured request logging |
-| Sorbet       | >= 0.5             | For type checking              |
+| Gem           | Supported Versions | Notes                          |
+| ------------- | ------------------ | ------------------------------ |
+| Rails         | >= 7.0             | Core dependency                |
+| ActionMailer  | >= 7.0             | Part of Rails                  |
+| ActiveJob     | >= 7.0             | Part of Rails                  |
+| ActiveStorage | >= 7.0             | Part of Rails                  |
+| Sidekiq       | >= 6.0             | For background job logging     |
+| Shrine        | >= 3.0             | For file upload logging        |
+| CarrierWave   | >= 2.0             | For file upload logging        |
+| Lograge       | >= 0.11            | For structured request logging |
+| Sorbet        | >= 0.5             | For type checking              |
 
 ## Installation
 
@@ -65,17 +67,22 @@ Add the following to your `config/initializers/logstruct.rb`:
 ```ruby
 # Configure the gem
 LogStruct.configure do |config|
+  # Enable or disable all structured logging
+  config.enabled = true
+
   # Enable or disable specific integrations
-  config.lograge_enabled = true
-  config.actionmailer_integration_enabled = true
-  config.activejob_integration_enabled = true
-  config.sidekiq_integration_enabled = true
-  config.shrine_integration_enabled = true
-  config.rack_middleware_enabled = true
-  config.host_authorization_enabled = true
+  config.integrations.enable_lograge = true
+  config.integrations.enable_actionmailer = true
+  config.integrations.enable_activejob = true
+  config.integrations.enable_sidekiq = true
+  config.integrations.enable_shrine = true
+  config.integrations.enable_activestorage = true
+  config.integrations.enable_carrierwave = true
+  config.integrations.enable_rack_error_handler = true
+  config.integrations.enable_host_authorization = true
 
   # Salt for SHA256 hashes in filtered email addresses
-  config.email_hashing_salt = ENV['email_hashing_salt']
+  config.filters.hash_salt = ENV['email_hashing_salt']
 
   # Other configuration options...
 end
@@ -250,7 +257,7 @@ You can disable the ActionMailer integration in your configuration if needed:
 
 ```ruby
 LogStruct.configure do |config|
-  config.actionmailer_integration_enabled = false
+  config.integrations.enable_actionmailer = false
 end
 ```
 
@@ -267,7 +274,24 @@ You can disable this integration in your configuration if needed:
 
 ```ruby
 LogStruct.configure do |config|
-  config.activejob_integration_enabled = false
+  config.integrations.enable_activejob = false
+end
+```
+
+### ActiveStorage Integration
+
+The gem automatically integrates with ActiveStorage to provide structured logging for file storage operations. When enabled, it will:
+
+- Subscribe to ActiveStorage notifications for various service events
+- Log events such as uploads, downloads, deletions, and URL generation
+- Include detailed information such as service name, file key, checksum, and operation duration
+- Format logs in a consistent JSON structure that matches other logs in your application
+
+This integration is enabled by default but can be disabled:
+
+```ruby
+LogStruct.configure do |config|
+  config.integrations.enable_activestorage = false
 end
 ```
 
@@ -283,7 +307,7 @@ This integration is enabled by default but can be disabled:
 
 ```ruby
 LogStruct.configure do |config|
-  config.sidekiq_integration_enabled = false
+  config.integrations.enable_sidekiq = false
 end
 ```
 
@@ -300,7 +324,24 @@ This integration is enabled by default but can be disabled:
 
 ```ruby
 LogStruct.configure do |config|
-  config.shrine_integration_enabled = false
+  config.integrations.enable_shrine = false
+end
+```
+
+### CarrierWave Integration
+
+The gem automatically integrates with CarrierWave to provide structured logging for file uploads. When enabled, it will:
+
+- Patch CarrierWave's base uploader to add logging for key operations
+- Log file store and retrieve operations with detailed metadata
+- Include information such as file size, content type, and operation duration
+- Track the model and mount point associated with each upload
+
+This integration is enabled by default but can be disabled:
+
+```ruby
+LogStruct.configure do |config|
+  config.integrations.enable_carrierwave = false
 end
 ```
 
@@ -399,6 +440,12 @@ LogStruct.configure do |config|
 
   # Enable or disable Shrine integration
   config.shrine_integration_enabled = true
+
+  # Enable or disable ActiveStorage integration
+  config.active_storage_integration_enabled = true
+
+  # Enable or disable CarrierWave integration
+  config.carrierwave_integration_enabled = true
 
   # Enable or disable Rack middleware for error logging
   config.rack_middleware_enabled = true

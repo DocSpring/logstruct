@@ -70,7 +70,7 @@ LogStruct.configure do |config|
   config.integrations.enable_activejob = true
   config.integrations.enable_sidekiq = true
   config.integrations.enable_shrine = true
-  config.integrations.enable_active_storage = true
+  config.integrations.enable_activestorage = true
   config.integrations.enable_carrierwave = true
   config.integrations.enable_rack_error_handler = true
   config.integrations.enable_host_authorization = true
