@@ -27,10 +27,10 @@ module LogStruct
     # Default: nil
     prop :string_scrubbing_handler, T.nilable(Handlers::StringScrubber)
 
-    # Custom handler for exception reporting
+    # Custom handler for error reporting
     # Default: Errors are handled by MultiErrorReporter
     # (auto-detects Sentry, Bugsnag, Rollbar, Honeybadger, etc.)
-    prop :exception_reporting_handler, T.nilable(Handlers::ExceptionReporter), default: nil
+    prop :error_reporting_handler, T.nilable(Handlers::ErrorReporter), default: nil
 
     # How to handle errors from various sources
     const :error_handling_modes,

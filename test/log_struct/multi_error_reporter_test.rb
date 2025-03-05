@@ -61,7 +61,7 @@ module LogStruct
         ::Sentry.stub(:capture_exception, ->(_exception, _options) { raise "Sentry error" }) do
           # Expect log to be called with an Exception log struct with source LogStruct
           log_mock.expect(:call, nil) do |log_entry|
-            assert_instance_of Log::Exception, log_entry
+            assert_instance_of Log::Error, log_entry
             assert_equal Source::LogStruct, log_entry.source
             assert_equal LogEvent::Error, log_entry.event
             true
@@ -184,7 +184,7 @@ module LogStruct
         # Create a log mock to verify LogStruct.log was called correctly
         log_mock = Minitest::Mock.new
         log_mock.expect(:call, nil) do |log_entry|
-          assert_instance_of Log::Exception, log_entry
+          assert_instance_of Log::Error, log_entry
           assert_equal Source::LogStruct, log_entry.source
           assert_equal "Test error", log_entry.message
           assert_equal StandardError, log_entry.err_class

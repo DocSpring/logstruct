@@ -85,50 +85,6 @@ export default function IntegrationsPage() {
           </SyntaxHighlighter>
         </TabsContent>
       </Tabs>
-      
-      <h3 className="text-xl font-semibold mt-6 mb-3">Using Callbacks</h3>
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: "0.875rem",
-            fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
-          }}
-        >
-          {`# ActionMailer callback usage (added by LogStruct)
-class ApplicationMailer < ActionMailer::Base
-  # Called before the email is delivered
-  before_deliver :track_email_sent
-
-  # Called after the email is delivered
-  after_deliver :update_user_last_emailed_at
-
-  # Called around the email delivery
-  around_deliver :set_delivery_context
-
-  private
-
-  def track_email_sent
-    # Log or track that an email is about to be sent
-  end
-
-  def update_user_last_emailed_at
-    # Update the user's last_emailed_at timestamp
-  end
-
-  def set_delivery_context
-    # Set up context before delivery
-    yield
-    # Clean up after delivery
-  end
-end`}
-        </SyntaxHighlighter>
-      </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">ActiveJob Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">

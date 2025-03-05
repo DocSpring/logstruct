@@ -38,7 +38,7 @@ module LogStruct
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def log_exception(error, source:, context: nil)
           # Create structured log entry
-          exception_log = Log::Exception.from_exception(
+          exception_log = Log::Error.from_exception(
             source,
             error,
             context || {}
@@ -48,9 +48,9 @@ module LogStruct
 
         # Report an exception using the configured handler or MultiErrorReporter
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-        def log_and_report_exception(error, source:, context: nil)
+        def log_and_report_error(error, source:, context: nil)
           log_exception(error, source: source, context: context)
-          exception_handler = LogStruct.config.exception_reporting_handler
+          exception_handler = LogStruct.config.error_reporting_handler
           if exception_handler
             # Use the configured handler
             exception_handler.call(error, context, source)
@@ -62,7 +62,7 @@ module LogStruct
 
         # Handle an exception according to the configured error handling mode (log, report, raise, etc)
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-        def handle_exception(error, source:, context: nil)
+        def handle_error(error, source:, context: nil)
           mode = error_handling_mode_for(source)
 
           # Log / report in production, raise locally (dev/test)
@@ -81,7 +81,7 @@ module LogStruct
             log_exception(error, source: source, context: context)
 
           when ErrorHandlingMode::Report, ErrorHandlingMode::ReportProduction
-            log_and_report_exception(error, source: source, context: context)
+            log_and_report_error(error, source: source, context: context)
 
           else
             # Ensures the case statement is exhaustive

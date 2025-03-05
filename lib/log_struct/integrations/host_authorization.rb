@@ -57,7 +57,7 @@ module LogStruct
           }
 
           # Handle exception according to configured mode (log, report, raise)
-          LogStruct.handle_exception(blocked_host_error, source: Source::Security, context: context)
+          LogStruct.handle_error(blocked_host_error, source: Source::Security, context: context)
 
           # Use pre-defined headers and response if we are only logging or reporting
           [FORBIDDEN_STATUS, RESPONSE_HEADERS, [RESPONSE_HTML]]

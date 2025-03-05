@@ -33,8 +33,8 @@ class LoggingController < ApplicationController
       # Standard Rails error logging
       Rails.logger.error("Error encountered: #{e.message}")
 
-      # For more structured logging, use LogStruct::Log::Exception
-      exception_log = LogStruct::Log::Exception.new(
+      # For more structured logging, use LogStruct::Log::Error
+      exception_log = LogStruct::Log::Error.new(
         source: LogStruct::Source::App,
         err_class: e.class,
         message: e.message,
@@ -43,9 +43,9 @@ class LoggingController < ApplicationController
       Rails.logger.error(exception_log)
     end
 
-    # Using the LogStruct.handle_exception helper (will trigger error reporting)
+    # Using the LogStruct.handle_error helper (will trigger error reporting)
     custom_error = ArgumentError.new("Custom error for testing")
-    LogStruct.handle_exception(custom_error, source: LogStruct::Source::App)
+    LogStruct.handle_error(custom_error, source: LogStruct::Source::App)
 
     render json: {status: "ok", message: "Error logging completed"}
   end
@@ -87,7 +87,7 @@ class LoggingController < ApplicationController
     Rails.logger.info(http_log)
 
     # Example of using log structures for exceptions (without actually raising)
-    exception_log = LogStruct::Log::Exception.new(
+    exception_log = LogStruct::Log::Error.new(
       exception: RuntimeError.new("Test exception"),
       err_class: "RuntimeError",
       message: "Structured exception log example",

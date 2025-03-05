@@ -84,7 +84,7 @@ module LogStruct
           job_context[:arguments] = job.arguments if job.class.log_arguments?
 
           # Create exception log with job source and context
-          log_data = Log::Exception.from_exception(
+          log_data = Log::Error.from_exception(
             Source::Job,
             exception,
             job_context

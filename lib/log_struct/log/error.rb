@@ -13,28 +13,29 @@ require_relative "../log_keys"
 
 module LogStruct
   module Log
-    # Error log entry for general error logging (not related to Ruby exceptions)
+    # Exception log entry for Ruby exceptions with class, message, and backtrace
     class Error < T::Struct
       extend T::Sig
 
       include Interfaces::CommonFields
       include Interfaces::DataField
       include Interfaces::MessageField
-      include SerializeCommon
       include MergeDataFields
 
-      ErrorLogEvent = T.type_alias {
+      ExceptionLogEvent = T.type_alias {
         LogEvent::Error
       }
 
       # Common fields
       const :source, Source # Used by all sources, should not have a default.
-      const :event, ErrorLogEvent
+      const :event, ExceptionLogEvent, default: T.let(LogEvent::Error, ExceptionLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
-      # Error-specific fields
+      # Exception-specific fields
+      const :err_class, T.class_of(StandardError)
       const :message, String
+      const :backtrace, T.nilable(T::Array[String]), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
@@ -43,10 +44,32 @@ module LogStruct
         hash = serialize_common(strict)
         merge_data_fields(hash)
 
-        # Add error-specific fields
+        # Add exception-specific fields
+        hash[LogKeys::ERR_CLASS] = err_class.name
         hash[LogKeys::MSG] = message
+        if backtrace.is_a?(Array) && backtrace&.any?
+          hash[LogKeys::BACKTRACE] = backtrace&.first(10)
+        end
 
         hash
+      end
+
+      # Create an Exception log from a Ruby exception
+      sig {
+        params(
+          source: Source,
+          ex: StandardError,
+          data: T::Hash[Symbol, T.untyped]
+        ).returns(Log::Error)
+      }
+      def self.from_exception(source, ex, data = {})
+        new(
+          source: source,
+          message: ex.message,
+          err_class: ex.class,
+          backtrace: ex.backtrace,
+          data: data
+        )
       end
     end
   end

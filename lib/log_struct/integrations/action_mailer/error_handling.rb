@@ -15,26 +15,26 @@ module LogStruct
 
         included do
           # Log and reraise by default. These errors are retried.
-          rescue_from StandardError, with: :log_and_reraise_exception
+          rescue_from StandardError, with: :log_and_reraise_error
         end
 
         protected
 
         # Just log the error without reporting or retrying
         sig { params(ex: StandardError).void }
-        def log_and_ignore_exception(ex)
+        def log_and_ignore_error(ex)
           log_email_delivery_error(ex, notify: false, report: false, reraise: false)
         end
 
         # Log and report to error service, but doesn't reraise.
         sig { params(ex: StandardError).void }
-        def log_and_report_exception(ex)
+        def log_and_report_error(ex)
           log_email_delivery_error(ex, notify: false, report: true, reraise: false)
         end
 
         # Log, report to error service, and reraise for retry
         sig { params(ex: StandardError).void }
-        def log_and_reraise_exception(ex)
+        def log_and_reraise_error(ex)
           log_email_delivery_error(ex, notify: false, report: true, reraise: true)
         end
 
@@ -51,7 +51,7 @@ module LogStruct
           }
 
           # Create the structured exception log
-          exception_data = Log::Exception.from_exception(
+          exception_data = Log::Error.from_exception(
             Source::Mailer,
             error,
             context
@@ -99,7 +99,7 @@ module LogStruct
             }
 
             # Create an exception log for structured logging
-            exception_data = Log::Exception.from_exception(
+            exception_data = Log::Error.from_exception(
               Source::Mailer,
               error,
               context
@@ -109,7 +109,7 @@ module LogStruct
             LogStruct.log(exception_data)
 
             # Call the error handler
-            LogStruct.handle_exception(error, source: Source::Mailer, context: context)
+            LogStruct.handle_error(error, source: Source::Mailer, context: context)
           end
 
           # Re-raise the error if requested
@@ -120,7 +120,7 @@ module LogStruct
         sig { params(error: StandardError).void }
         def log_notification_event(error)
           # Create an error log data object
-          exception_data = Log::Exception.from_exception(
+          exception_data = Log::Error.from_exception(
             Source::Mailer,
             error,
             {

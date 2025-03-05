@@ -185,8 +185,8 @@ Rails.logger.info(request_log)
 
 # Create a typed error log entry
 error_log = LogStruct::LogEntries::Error.new(
-  src: LogStruct::LogSource::Rails,
-  evt: LogStruct::LogEvent::Exception,
+  src: LogStruct::Source::Rails,
+  evt: LogStruct::LogEvent::Error,
   error_class: "ArgumentError",
   message: "Invalid parameter",
   backtrace: exception.backtrace&.first(10)

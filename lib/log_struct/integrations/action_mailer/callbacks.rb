@@ -52,15 +52,15 @@ module LogStruct
           extend T::Sig
 
           sig { params(block: T.proc.void).returns(T.untyped) }
-          def handle_exceptions(&block)
-            processed_mailer.handle_exceptions do
+          def handle_errors(&block)
+            processed_mailer.handle_errors do
               yield
             end
           end
 
           sig { returns(T.untyped) }
           def deliver_now
-            processed_mailer.handle_exceptions do
+            processed_mailer.handle_errors do
               processed_mailer.run_callbacks(:deliver) do
                 message.deliver
               end
@@ -69,7 +69,7 @@ module LogStruct
 
           sig { returns(T.untyped) }
           def deliver_now!
-            processed_mailer.handle_exceptions do
+            processed_mailer.handle_errors do
               processed_mailer.run_callbacks(:deliver) do
                 message.deliver!
               end
@@ -82,8 +82,8 @@ module LogStruct
           # Return early if we've already patched
           return true if @patched_message_delivery
 
-          # Only prepend our module if handle_exceptions method doesn't exist
-          unless ::ActionMailer::MessageDelivery.method_defined?(:handle_exceptions)
+          # Only prepend our module if handle_errors method doesn't exist
+          unless ::ActionMailer::MessageDelivery.method_defined?(:handle_errors)
             ::ActionMailer::MessageDelivery.prepend(MessageDeliveryCallbacks)
           end
 

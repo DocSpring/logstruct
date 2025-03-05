@@ -79,9 +79,9 @@ module LogStruct
 
             # Report the error
             context = extract_request_context(env)
-            LogStruct.handle_exception(ip_spoof_error, source: Source::Security, context: context)
+            LogStruct.handle_error(ip_spoof_error, source: Source::Security, context: context)
 
-            # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
+            # If handle_error raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
             [FORBIDDEN_STATUS, IP_SPOOF_HEADERS, [IP_SPOOF_HTML]]
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
@@ -101,9 +101,9 @@ module LogStruct
 
             # Report to error reporting service and/or re-raise
             context = extract_request_context(env)
-            LogStruct.handle_exception(invalid_auth_token_error, source: Source::Security, context: context)
+            LogStruct.handle_error(invalid_auth_token_error, source: Source::Security, context: context)
 
-            # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
+            # If handle_error raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
             [FORBIDDEN_STATUS, CSRF_HEADERS, [CSRF_HTML]]
           rescue => error
@@ -111,7 +111,7 @@ module LogStruct
             context = extract_request_context(env)
 
             # Create and log a structured exception with request context
-            exception_log = Log::Exception.from_exception(
+            exception_log = Log::Error.from_exception(
               Source::Request,
               error,
               context

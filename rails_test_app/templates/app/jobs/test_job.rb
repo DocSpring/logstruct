@@ -19,7 +19,7 @@ class TestJob < ApplicationJob
       logger.error("Job error: #{e.message}")
 
       # Example of enhanced structured logging
-      exception_log = LogStruct::Log::Exception.new(
+      exception_log = LogStruct::Log::Error.new(
         source: LogStruct::Source::Job,
         err_class: e.class,
         message: e.message,

@@ -14,7 +14,7 @@ end
 module LogStruct
   # MultiErrorReporter provides a unified interface for reporting errors to various services.
   # You can also override this with your own error reporter by setting
-  # LogStruct#.config.exception_reporting_handler
+  # LogStruct#.config.error_reporting_handler
   # NOTE: This is used for cases where an error should be reported
   # but the operation should be allowed to continue (e.g. scrubbing log data.)
   class MultiErrorReporter
@@ -65,84 +65,84 @@ module LogStruct
         end
       end
 
-      # Report an exception to the configured error reporting service
-      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
-      def report_exception(exception, context = {})
+      # Report an error to the configured error reporting service
+      sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
+      def report_error(error, context = {})
         # Call the appropriate reporter method based on what's available
         case reporter
         when ErrorReporter::Sentry
-          report_to_sentry(exception, context)
+          report_to_sentry(error, context)
         when ErrorReporter::Bugsnag
-          report_to_bugsnag(exception, context)
+          report_to_bugsnag(error, context)
         when ErrorReporter::Rollbar
-          report_to_rollbar(exception, context)
+          report_to_rollbar(error, context)
         when ErrorReporter::Honeybadger
-          report_to_honeybadger(exception, context)
+          report_to_honeybadger(error, context)
         else
-          fallback_logging(exception, context)
+          fallback_logging(error, context)
         end
       end
 
       private
 
       # Report to Sentry
-      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
-      def report_to_sentry(exception, context = {})
+      sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
+      def report_to_sentry(error, context = {})
         return unless defined?(::Sentry)
 
         # Use the proper Sentry interface defined in the RBI
-        ::Sentry.capture_exception(exception, extra: context)
+        ::Sentry.capture_exception(error, extra: context)
       rescue => e
-        fallback_logging(e, {original_exception: exception.class.to_s})
+        fallback_logging(e, {original_error: error.class.to_s})
       end
 
       # Report to Bugsnag
-      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
-      def report_to_bugsnag(exception, context = {})
+      sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
+      def report_to_bugsnag(error, context = {})
         return unless defined?(::Bugsnag)
 
-        ::Bugsnag.notify(exception) do |report|
+        ::Bugsnag.notify(error) do |report|
           report.add_metadata(:context, context)
         end
       rescue => e
-        fallback_logging(e, {original_exception: exception.class.to_s})
+        fallback_logging(e, {original_error: error.class.to_s})
       end
 
       # Report to Rollbar
-      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
-      def report_to_rollbar(exception, context = {})
+      sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
+      def report_to_rollbar(error, context = {})
         return unless defined?(::Rollbar)
 
-        ::Rollbar.error(exception, context)
+        ::Rollbar.error(error, context)
       rescue => e
-        fallback_logging(e, {original_exception: exception.class.to_s})
+        fallback_logging(e, {original_error: error.class.to_s})
       end
 
       # Report to Honeybadger
-      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
-      def report_to_honeybadger(exception, context = {})
+      sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
+      def report_to_honeybadger(error, context = {})
         return unless defined?(::Honeybadger)
 
-        ::Honeybadger.notify(exception, context: context)
+        ::Honeybadger.notify(error, context: context)
       rescue => e
-        fallback_logging(e, {original_exception: exception.class.to_s})
+        fallback_logging(e, {original_error: error.class.to_s})
       end
 
       # Fallback logging when no error reporting services are available
-      # Uses the LogStruct.log method to properly log the exception
-      sig { params(exception: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
-      def fallback_logging(exception, context = {})
-        return if exception.nil?
+      # Uses the LogStruct.log method to properly log the error
+      sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
+      def fallback_logging(error, context = {})
+        return if error.nil?
 
-        # Create a proper exception log entry
-        exception_log = Log::Exception.from_exception(
+        # Create a proper error log entry
+        error_log = Log::Error.from_error(
           Source::LogStruct,
-          exception,
+          error,
           context
         )
 
-        # Use LogStruct.log to properly log the exception
-        LogStruct.log(exception_log)
+        # Use LogStruct.log to properly log the error
+        LogStruct.log(error_log)
       end
     end
   end
