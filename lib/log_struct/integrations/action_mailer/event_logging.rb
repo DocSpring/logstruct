@@ -57,7 +57,7 @@ module LogStruct
           MetadataCollection.add_context_metadata(self, data)
           data.merge!(additional_data) if additional_data.present?
 
-          # Extract email fields (these will be filtered if filter_emails=true)
+          # Extract email fields (these will be filtered if email_addresses=true)
           to = mailer_message&.to
           from = mailer_message&.from&.first
           subject = mailer_message&.subject

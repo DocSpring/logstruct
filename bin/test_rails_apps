@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This script runs tests for Rails applications in test/rails_apps directory
+
+# Create test apps if they don't exist
+if [ ! -d "test/rails_apps" ] || [ -z "$(ls -A test/rails_apps 2>/dev/null)" ]; then
+  echo "No test apps found, creating them..."
+  bin/create_test_apps
+fi
+
+# Function to run tests for a Rails app
+run_tests() {
+  local app_dir=$1
+  echo "===================================================================="
+  echo "Running tests for $app_dir"
+  echo "===================================================================="
+  
+  # Change to the app directory
+  cd "$app_dir"
+  
+  # Run the Rails tests
+  bin/rails test
+  
+  # Return to the original directory
+  cd - > /dev/null
+}
+
+# Find all Rails test apps
+rails_apps=$(find test/rails_apps -maxdepth 1 -type d -name "rails_*")
+
+# Run tests for each app
+for app in $rails_apps; do
+  run_tests "$app"
+done
+
+echo "All Rails app tests completed successfully!"

@@ -1,4 +1,4 @@
-# typed: strong
+# typed: strict
 # frozen_string_literal: true
 
 require "digest"
@@ -45,10 +45,10 @@ module LogStruct
         config = LogStruct.config.filters
 
         # Passwords in URLs
-        string.gsub!(URL_PASSWORD_REGEX, URL_PASSWORD_REPLACEMENT) if config.filter_url_passwords
+        string.gsub!(URL_PASSWORD_REGEX, URL_PASSWORD_REPLACEMENT) if config.url_passwords
 
         # Emails
-        if config.filter_emails
+        if config.email_addresses
           string.gsub!(EMAIL_REGEX) do |email|
             email_hash = HashUtils.hash_value(email)
             "[EMAIL:#{email_hash}]"
@@ -56,22 +56,22 @@ module LogStruct
         end
 
         # Credit card numbers
-        if config.filter_credit_cards
+        if config.credit_card_numbers
           string.gsub!(CREDIT_CARD_REGEX_SHORT, CREDIT_CARD_REPLACEMENT)
           string.gsub!(CREDIT_CARD_REGEX_DELIMITERS, CREDIT_CARD_REPLACEMENT)
         end
 
         # Phone numbers
-        string.gsub!(PHONE_REGEX, PHONE_REPLACEMENT) if config.filter_phone_numbers
+        string.gsub!(PHONE_REGEX, PHONE_REPLACEMENT) if config.phone_numbers
 
         # SSNs
-        string.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.filter_ssns
+        string.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.ssns
 
         # IPs
-        string.gsub!(IP_REGEX, IP_REPLACEMENT) if config.filter_ips
+        string.gsub!(IP_REGEX, IP_REPLACEMENT) if config.ip_addresses
 
         # MAC addresses
-        string.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.filter_macs
+        string.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.mac_addresses
 
         # Custom scrubber
         custom_scrubber = LogStruct.config.string_scrubbing_handler

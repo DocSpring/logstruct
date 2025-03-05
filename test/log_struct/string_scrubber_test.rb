@@ -12,13 +12,13 @@ module LogStruct
       # Create a new configuration for testing
       test_config = LogStruct::Configuration.new(
         filters: ConfigStruct::Filters.new(
-          filter_emails: true,
-          filter_url_passwords: true,
-          filter_credit_cards: true,
-          filter_phone_numbers: true,
-          filter_ssns: true,
-          filter_ips: true,
-          filter_macs: true,
+          email_addresses: true,
+          url_passwords: true,
+          credit_card_numbers: true,
+          phone_numbers: true,
+          ssns: true,
+          ip_addresses: true,
+          mac_addresses: true,
           hash_salt: "test_salt",
           hash_length: 8
         ),
@@ -127,13 +127,13 @@ module LogStruct
       # Create a config with all filters disabled
       test_config = LogStruct::Configuration.new(
         filters: ConfigStruct::Filters.new(
-          filter_emails: false,
-          filter_url_passwords: false,
-          filter_credit_cards: false,
-          filter_phone_numbers: false,
-          filter_ssns: false,
-          filter_ips: false,
-          filter_macs: false
+          email_addresses: false,
+          url_passwords: false,
+          credit_card_numbers: false,
+          phone_numbers: false,
+          ssns: false,
+          ip_addresses: false,
+          mac_addresses: false
         )
       )
       LogStruct.configuration = test_config

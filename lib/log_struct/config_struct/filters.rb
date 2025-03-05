@@ -20,7 +20,7 @@ module LogStruct
       # Default: [:password, :password_confirmation, :pass, :pw, :token, :secret,
       #           :credentials, :creds, :auth, :authentication, :authorization]
       #
-      prop :filtered_keys,
+      prop :filter_keys,
         T::Array[Symbol],
         factory: -> {
           %i[
@@ -33,7 +33,7 @@ module LogStruct
       # Keys where string values should include an SHA256 hash.
       # Useful for tracing emails across requests (e.g. sign in, sign up) while protecting privacy.
       # Default: [:email, :email_address]
-      prop :filtered_keys_with_string_hashing,
+      prop :filter_keys_with_hashes,
         T::Array[Symbol],
         factory: -> { %i[email email_address] }
 
@@ -50,31 +50,31 @@ module LogStruct
       # Filter email addresses. Also controls email filtering for the ActionMailer integration
       # (to, from, recipient fields, etc.)
       # Default: true
-      prop :filter_emails, T::Boolean, default: true
+      prop :email_addresses, T::Boolean, default: true
 
       # Filter URL passwords
       # Default: true
-      prop :filter_url_passwords, T::Boolean, default: true
+      prop :url_passwords, T::Boolean, default: true
 
       # Filter credit card numbers
       # Default: true
-      prop :filter_credit_cards, T::Boolean, default: true
+      prop :credit_card_numbers, T::Boolean, default: true
 
       # Filter phone numbers
       # Default: true
-      prop :filter_phone_numbers, T::Boolean, default: true
+      prop :phone_numbers, T::Boolean, default: true
 
       # Filter social security numbers
       # Default: true
-      prop :filter_ssns, T::Boolean, default: true
+      prop :ssns, T::Boolean, default: true
 
       # Filter IP addresses
       # Default: false
-      prop :filter_ips, T::Boolean, default: false
+      prop :ip_addresses, T::Boolean, default: false
 
       # Filter MAC addresses
       # Default: false
-      prop :filter_macs, T::Boolean, default: false
+      prop :mac_addresses, T::Boolean, default: false
     end
   end
 end
