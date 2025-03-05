@@ -11,7 +11,7 @@ const logTemplates = [
   { src: "rails", evt: "req", lvl: "info", path: "/users", method: "POST", controller: "UsersController", action: "create", status: 200, duration: 0, ip: "192.168.1.1" },
   { src: "job", evt: "start", lvl: "info", job_id: "", queue: "default", class: "ProcessJob", args: ["arg1", { _filtered: { _class: "Hash", _keys_count: 2, _keys: ["password", "confirm_password"], _bytes: 42 } }] },
   { src: "rails", evt: "req", lvl: "info", path: "/api/users", method: "GET", controller: "Api::UsersController", action: "index", status: 200, duration: 0, params: { page: 1, per_page: 10 } },
-  { src: "mailer", evt: "deliver", lvl: "info", mailer: "UserMailer", action: "welcome", to: "[EMAIL:f7d9a8]", subject: "Welcome to our app!" },
+  { src: "mailer", evt: "deliver", lvl: "info", mailer: "UserMailer", action: "welcome", to: "[EMAIL:hash]", subject: "Welcome to our app!" },
   { src: "mailer", evt: "error", lvl: "error", mailer: "NotificationMailer", error: "SMTP connection failed", message: "Failed to connect to SMTP server" },
   { src: "rack", evt: "ratelimit", lvl: "warn", ip: "[IP]", path: "/login", threshold: 5, period: 60, count: 0 },
   { src: "security", evt: "ip_spoof", lvl: "error", client_ip: "[IP]", x_forwarded_for: "[IP]", path: "/api/users", method: "GET" },
@@ -73,6 +73,16 @@ export function LogScroller() {
   const [isPaused, setIsPaused] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   
+  // Generate a random SHA-256 style hash string (using LogStruct's default length of 12)
+  const generateHashString = (length = 12) => {
+    const chars = '0123456789abcdef';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
   // Generate a random log entry
   const generateLogEntry = () => {
     // Pick a random log template
@@ -106,6 +116,23 @@ export function LogScroller() {
       log.job_id = Math.random().toString(36).substring(2, 10);
     }
     
+    // Generate random hash for email references
+    const emailHash = generateHashString();
+    
+    // Replace email hash placeholders with dynamic values
+    if (log.to && log.to.includes('[EMAIL:')) {
+      log.to = `[EMAIL:${emailHash}]`;
+    }
+    
+    if (log.msg && log.msg.includes('[EMAIL:')) {
+      log.msg = log.msg.replace(/\[EMAIL:[^\]]+\]/, `[EMAIL:${emailHash}]`);
+    }
+    
+    // Replace hash in filtered email objects
+    if (log.email && log.email._filtered && log.email._filtered._hash) {
+      log.email._filtered._hash = emailHash;
+    }
+    
     // For requests, randomize status codes occasionally
     if (log.status !== undefined && Math.random() > 0.7) {
       const statuses = [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500];
@@ -131,7 +158,7 @@ export function LogScroller() {
     setLogs(initialLogs);
   }, []);
 
-  // Add a new log entry at an interval
+  // Add a new log entry at an interval, but not when user is hovering (isPaused)
   useInterval(() => {
     if (!isPaused) {
       setLogs((prevLogs) => {
@@ -140,7 +167,7 @@ export function LogScroller() {
         return newLogs.slice(-15);
       });
     }
-  }, 1500);
+  }, 2500);
 
   // Scroll to the bottom when logs change
   useEffect(() => {
@@ -164,12 +191,12 @@ export function LogScroller() {
       }}
     >
       <div className="flex items-center bg-neutral-900 px-4 py-2">
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 absolute">
           <div className="w-3 h-3 rounded-full bg-red-500"></div>
           <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
-        <div className="text-white text-xs mx-auto font-mono">Rails Server Logs</div>
+        <div className="text-white text-xs w-full text-center font-sans">Rails Server Logs</div>
       </div>
       
       <div 
