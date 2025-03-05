@@ -100,7 +100,7 @@ export function LogScroller() {
             <SyntaxHighlighter
               language="json"
               style={atomDark}
-              lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}}
+              lineProps={{style: {wordBreak: 'normal', whiteSpace: 'pre-wrap'}}}
               wrapLines
               wrapLongLines
               customStyle={{
