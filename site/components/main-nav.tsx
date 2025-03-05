@@ -4,29 +4,46 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 export function MainNav() {
   const pathname = usePathname();
-  
+
   return (
     <div className="mr-4 flex w-full items-center justify-between">
-      <Link href="/" className="flex items-center space-x-2">
-        <span className="font-bold text-xl">LogStruct</span>
-        <span className="text-xs text-neutral-500">by DocSpring</span>
-      </Link>
-      
+      <div className="flex items-end space-x-2">
+        <Link href="/" className="font-bold text-xl leading-none">
+          LogStruct
+        </Link>
+        <a
+          href="https://docspring.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+        >
+          by DocSpring
+        </a>
+      </div>
+
       {/* Desktop Navigation */}
       <div className="hidden md:block">
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link href="/docs" legacyBehavior passHref>
-                <NavigationMenuLink 
+                <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
-                  active={pathname.startsWith('/docs')}
+                  active={pathname.startsWith("/docs")}
                 >
                   Documentation
                 </NavigationMenuLink>
@@ -46,7 +63,8 @@ export function MainNav() {
                           Getting Started
                         </div>
                         <p className="text-sm leading-tight text-white/90">
-                          Quick setup guide for adding LogStruct to your Rails application
+                          Quick setup guide for adding LogStruct to your Rails
+                          application
                         </p>
                       </a>
                     </NavigationMenuLink>
@@ -100,9 +118,9 @@ export function MainNav() {
               </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <a 
-                href="/api/index.html" 
-                target="_blank" 
+              <a
+                href="/api/index.html"
+                target="_blank"
                 rel="noopener noreferrer"
                 className={navigationMenuTriggerStyle()}
               >
@@ -110,9 +128,9 @@ export function MainNav() {
               </a>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <a 
-                href="https://github.com/DocSpring/logstruct" 
-                target="_blank" 
+              <a
+                href="https://github.com/DocSpring/logstruct"
+                target="_blank"
                 rel="noopener noreferrer"
                 className={navigationMenuTriggerStyle()}
               >
@@ -122,7 +140,7 @@ export function MainNav() {
           </NavigationMenuList>
         </NavigationMenu>
       </div>
-      
+
       {/* Mobile Navigation */}
       <div className="md:hidden">
         <Sheet>
@@ -132,52 +150,65 @@ export function MainNav() {
           </SheetTrigger>
           <SheetContent side="right" className="w-[280px] p-0">
             <div className="flex flex-col gap-4 p-6">
-              <Link href="/" className="flex items-center space-x-2">
-                <span className="font-bold text-xl">LogStruct</span>
-                <span className="text-xs text-neutral-500">by DocSpring</span>
-              </Link>
+              <div className="flex items-end space-x-2">
+                <Link href="/" className="font-bold text-xl leading-none">
+                  LogStruct
+                </Link>
+                <a
+                  href="https://docspring.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                >
+                  by DocSpring
+                </a>
+              </div>
               <div className="flex flex-col gap-3 mt-4">
-                <Link 
-                  href="/docs" 
-                  className={cn("text-lg font-medium", pathname.startsWith('/docs') && "text-neutral-900 dark:text-neutral-50")}
+                <Link
+                  href="/docs"
+                  className={cn(
+                    "text-lg font-medium",
+                    pathname.startsWith("/docs") &&
+                      "text-neutral-900 dark:text-neutral-50"
+                  )}
                 >
                   Documentation
                 </Link>
-                <Link 
-                  href="/docs/getting-started" 
+                <Link
+                  href="/docs/getting-started"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Getting Started
                 </Link>
-                <Link 
-                  href="/docs/configuration" 
+                <Link
+                  href="/docs/configuration"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Configuration
                 </Link>
-                <Link 
-                  href="/docs/integrations" 
+                <Link
+                  href="/docs/integrations"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Integrations
                 </Link>
-                <Link 
-                  href="/docs/type-safety" 
+                <Link
+                  href="/docs/type-safety"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Type Safety
                 </Link>
-                <a 
-                  href="/api/index.html" 
-                  target="_blank" 
+                <a
+                  href="/api/index.html"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-lg font-medium mt-2"
                 >
                   YARD Docs
                 </a>
-                <a 
-                  href="https://github.com/DocSpring/logstruct" 
-                  target="_blank" 
+                <a
+                  href="https://github.com/DocSpring/logstruct"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-lg font-medium"
                 >
