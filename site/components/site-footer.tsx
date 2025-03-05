@@ -44,7 +44,7 @@ function ThemeToggle() {
 export function SiteFooter() {
   return (
     <footer className="w-full border-t border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-      <div className="container flex flex-col items-center justify-between py-10 px-4 sm:px-6 lg:px-8 md:h-20 md:flex-row md:py-0">
+      <div className="container mx-auto flex flex-col items-center justify-between py-10 px-6 sm:px-8 md:h-20 md:flex-row md:py-0">
         <div className="flex flex-col items-center gap-4 md:flex-row md:gap-2">
           <p className="text-center text-sm leading-loose text-neutral-600 dark:text-neutral-400 md:text-left">
             <Link
@@ -66,7 +66,7 @@ export function SiteFooter() {
             </Link>
           </p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 mt-6 md:mt-0">
           <Link
             href="https://github.com/DocSpring/logstruct"
             target="_blank"
