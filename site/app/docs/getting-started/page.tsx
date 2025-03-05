@@ -1,5 +1,6 @@
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { EditPageLink } from "@/components/edit-page-link";
 
 export default function GettingStartedPage() {
   return (
@@ -143,6 +144,8 @@ end`}
         <li><a href="/docs/integrations" className="text-blue-600 dark:text-blue-400 hover:underline">Integrations</a> - Explore built-in integrations with popular gems</li>
         <li><a href="/docs/type-safety" className="text-blue-600 dark:text-blue-400 hover:underline">Type Safety</a> - Advanced logging with Sorbet type checking</li>
       </ul>
+      
+      <EditPageLink />
     </div>
   );
 }

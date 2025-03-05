@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { EditPageLink } from "@/components/edit-page-link";
 
 export default function DocsPage() {
   return (
@@ -119,6 +120,8 @@ Rails.logger.info(request_log)`}
           View on GitHub
         </a>
       </div>
+      
+      <EditPageLink />
     </div>
   );
 }
