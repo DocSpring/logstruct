@@ -26,9 +26,9 @@ export default function Home() {
               </Link>
             </Button>
             <Button variant="secondary" size="lg" asChild>
-              <Link href="/api" target="_blank">
-                API Documentation
-              </Link>
+              <a href="/api/index.html" target="_blank" rel="noopener noreferrer">
+                YARD Docs
+              </a>
             </Button>
           </div>
         </div>

@@ -17,9 +17,9 @@ export default function APIDocRedirect() {
       
       <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
         <Button asChild size="lg" className="w-full">
-          <Link href="/api/index.html" target="_blank">
+          <a href="/api/index.html" target="_blank">
             Browse API Documentation
-          </Link>
+          </a>
         </Button>
         <Button variant="outline" asChild size="lg" className="w-full">
           <Link href="/docs" className="w-full">

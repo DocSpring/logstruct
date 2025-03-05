@@ -94,14 +94,14 @@ export function MainNav() {
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/api" legacyBehavior passHref>
-              <NavigationMenuLink 
-                className={navigationMenuTriggerStyle()}
-                active={pathname.startsWith('/api')}
-              >
-                API
-              </NavigationMenuLink>
-            </Link>
+            <a 
+              href="/api/index.html" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={navigationMenuTriggerStyle()}
+            >
+              YARD Docs
+            </a>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <a 
