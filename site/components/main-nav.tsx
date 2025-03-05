@@ -119,7 +119,7 @@ export function MainNav() {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <a
-                href="/api/index.html"
+                href="/yard/index.html"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={navigationMenuTriggerStyle()}
@@ -199,7 +199,7 @@ export function MainNav() {
                   Type Safety
                 </Link>
                 <a
-                  href="/api/index.html"
+                  href="/yard/index.html"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-lg font-medium mt-2"

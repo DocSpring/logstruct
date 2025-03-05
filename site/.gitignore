@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Generated YARD API docs
-public/api/
+# Generated HTML - YARD docs, coverage reports, etc.
+public/yard/
+public/coverage/

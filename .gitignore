@@ -11,3 +11,5 @@
 /vendor/bundle
 /plans
 /log
+
+# Next.js site ignore rules are in ./site/.gitignore

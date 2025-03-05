@@ -10,22 +10,22 @@ YARD::Rake::YardocTask.new(:yard) do |t|
                "--markup=markdown",
                "--markup-provider=redcarpet",
                "--readme=README.md",
-               "--title=LogStruct API Documentation",
-               "--output-dir=site/public/api"]
+               "--title=LogStruct YARD Documentation",
+               "--output-dir=site/public/yard"]
   t.stats_options = ["--list-undoc"]
 end
 
 desc "Generate YARD documentation and open in browser"
 task :'yard:open' => :yard do
   require "launchy"
-  Launchy.open("site/public/api/index.html")
+  Launchy.open("site/public/yard/index.html")
 rescue LoadError
   puts "Install the 'launchy' gem to open docs automatically"
 end
 
 desc "Clean YARD documentation directory"
 task :'yard:clean' do
-  FileUtils.rm_rf("site/public/api")
+  FileUtils.rm_rf("site/public/yard")
 end
 
 desc "Regenerate YARD documentation"

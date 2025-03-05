@@ -67,12 +67,12 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                 <h2 className="mt-6 mb-3 text-lg font-semibold">API Reference</h2>
                 <nav className="space-y-1">
                   <DocNavItem 
-                    href="#" 
+                    href="/yard/index.html" 
                     title="YARD Documentation" 
                     active={false} 
                   />
                   <DocNavItem 
-                    href="#" 
+                    href="/coverage/index.html" 
                     title="Code Coverage" 
                     active={false} 
                   />

@@ -33,7 +33,7 @@ export default function Home() {
             </Button>
             <Button variant="secondary" size="lg" asChild>
               <a
-                href="/api/index.html"
+                href="/yard/index.html"
                 target="_blank"
                 rel="noopener noreferrer"
               >

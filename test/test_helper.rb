@@ -11,6 +11,7 @@ SimpleCov.start do
   add_filter "test/"
   enable_coverage :branch
   primary_coverage :branch
+  coverage_dir "site/public/coverage"
 end
 
 require "minitest/autorun"
