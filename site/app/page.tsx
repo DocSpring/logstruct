@@ -44,7 +44,7 @@ export default function Home() {
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
             <h3 className="mb-4 text-xl font-semibold">1. Add to your Gemfile</h3>
             <pre className="overflow-x-auto rounded-md bg-neutral-100 p-4 dark:bg-neutral-900">
-              <code className="text-sm font-mono">gem "logstruct"</code>
+              <code className="text-sm font-mono">{`gem "logstruct"`}</code>
             </pre>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">

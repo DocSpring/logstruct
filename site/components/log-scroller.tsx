@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import useInterval from "use-interval";
@@ -188,8 +188,8 @@ const generateDynamicLogs = () => {
   });
 };
 
-// Initial set of logs
-const exampleLogs = generateDynamicLogs();
+// These logs are used in the useEffect hook below
+const dynamicLogs = generateDynamicLogs();
 
 export function LogScroller() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -197,22 +197,22 @@ export function LogScroller() {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   // Generate a random SHA-256 style hash string (using LogStruct's default length of 12)
-  const generateHashString = (length = 12) => {
+  const generateHashString = useCallback((length = 12) => {
     const chars = "0123456789abcdef";
     let result = "";
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
-  };
+  }, []);
 
   // Generate a random IP address
-  const generateRandomIP = () => {
+  const generateRandomIP = useCallback(() => {
     return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
-  };
+  }, []);
 
   // Generate a random log entry
-  const generateLogEntry = () => {
+  const generateLogEntry = useCallback(() => {
     // Pick a random log template
     const templateIndex = Math.floor(Math.random() * logTemplates.length);
 
@@ -291,7 +291,7 @@ export function LogScroller() {
       .replace(/}/g, " }");
 
     return jsonStr;
-  };
+  }, [generateHashString, generateRandomIP]);
 
   // Initialize with some log entries
   useEffect(() => {
@@ -299,7 +299,7 @@ export function LogScroller() {
       .fill(0)
       .map(() => generateLogEntry());
     setLogs(initialLogs);
-  }, []);
+  }, [generateLogEntry]);
 
   // Add a new log entry at an interval, but not when user is hovering (isPaused)
   useInterval(() => {

@@ -32,7 +32,7 @@ Rails.logger.info({
               </pre>
             </div>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
-              This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.
+              {`This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.`}
             </p>
           </TabsContent>
           <TabsContent value="typed" className="mt-4">
