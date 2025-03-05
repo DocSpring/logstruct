@@ -289,7 +289,7 @@ export function LogScroller() {
         }, 100);
       }}
     >
-      <div className="flex items-center bg-neutral-900 px-6 py-2 w-full">
+      <div className="flex items-center bg-[#393937] px-6 py-2 w-full">
         <div className="flex space-x-2">
           <div className="w-3 h-3 rounded-full bg-red-500"></div>
           <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -302,7 +302,7 @@ export function LogScroller() {
 
       <div
         ref={scrollerRef}
-        className="h-[333px] overflow-auto px-6 py-2 bg-[#171717] relative"
+        className="h-[333px] overflow-auto px-6 py-2 bg-[#111421] relative"
       >
         <SyntaxHighlighter
           language="json"
@@ -312,7 +312,7 @@ export function LogScroller() {
           wrapLongLines
           customStyle={{
             fontSize: "11px",
-            backgroundColor: "#171717",
+            backgroundColor: "#111421",
             padding: "12px",
             borderRadius: "0px",
           }}
