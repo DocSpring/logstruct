@@ -147,50 +147,6 @@ const logTemplates = [
   },
 ];
 
-// Generate random logs with dynamic values
-const generateDynamicLogs = () => {
-  return logTemplates.map((template) => {
-    // Create a deep copy of the template
-    const log = JSON.parse(JSON.stringify(template));
-
-    // Add current timestamp
-    log.ts = new Date().toISOString();
-
-    // Randomize numeric values
-    if (log.duration !== undefined) {
-      log.duration = Math.round(Math.random() * 2990 + 10) / 10; // 10-3000ms with 1 decimal place
-    }
-
-    if (log.pid !== undefined) {
-      log.pid = Math.floor(Math.random() * 60000) + 1000;
-    }
-
-    if (log.size !== undefined) {
-      log.size = Math.floor(Math.random() * 10000000) + 1000;
-    }
-
-    if (log.count !== undefined) {
-      log.count = Math.floor(Math.random() * 20) + 1;
-    }
-
-    if (log.job_id !== undefined) {
-      // Generate random alphanumeric job ID
-      log.job_id = Math.random().toString(36).substring(2, 10);
-    }
-
-    // For requests, randomize status codes occasionally
-    if (log.status !== undefined && Math.random() > 0.7) {
-      const statuses = [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500];
-      log.status = statuses[Math.floor(Math.random() * statuses.length)];
-    }
-
-    return log;
-  });
-};
-
-// These logs are used in the useEffect hook below
-const dynamicLogs = generateDynamicLogs();
-
 export function LogScroller() {
   const [logs, setLogs] = useState<string[]>([]);
   const [isPaused, setIsPaused] = useState(false);
