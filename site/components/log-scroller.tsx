@@ -5,23 +5,23 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import useInterval from "use-interval";
 
-// Sample log entries based on the examples from homepage_ideas.txt
+// Sample log entries based on LogStruct's actual format
 const exampleLogs = [
-  { src: "puma", evt: "boot", pid: 12345, time: "2025-03-05T12:34:56Z" },
-  { path: "/cool", method: "POST", status: 200, duration: 45.2, user_id: 123 },
-  { src: "job", evt: "start", job_id: "abc123", queue: "default", class: "ProcessJob" },
-  { src: "rails", evt: "req", path: "/api/users", method: "GET", status: 200, duration: 12.3 },
-  { src: "mailer", evt: "deliver", mailer: "UserMailer", action: "welcome", to: "[EMAIL]@example.com" },
-  { src: "mailer", evt: "error", mailer: "NotificationMailer", error: "SMTP connection failed" },
-  { src: "rack", evt: "ratelimit", ip: "1.2.3.4", path: "/login", threshold: 5, period: 60 },
-  { src: "rails", evt: "security", sec_evt: "ip_spoof", ip: "10.0.0.1", forwarded_for: "192.168.1.1" },
-  { src: "rails", evt: "security", sec_evt: "csrf_error", path: "/form", method: "POST" },
-  { src: "rails", evt: "security", sec_evt: "blocked_host", host: "evil-site.com" },
-  { src: "sidekiq", evt: "process", pid: 56789, queues: ["default", "mailers", "active_storage"] },
-  { src: "shrine", evt: "upload", storage: "s3", size: 1024567, mime_type: "image/jpeg" },
-  { src: "activestorage", evt: "download", service: "s3", key: "abc123.jpg", checksum: "sha256:abc123" },
-  { user_id: 123, email: "[EMAIL HASH:f7d9a8]", password: "[FILTERED]", ssn: "[FILTERED]" },
-  { src: "carrierwave", evt: "store", uploader: "AvatarUploader", model: "User", file: "profile.jpg" },
+  { src: "puma", evt: "boot", pid: 12345, ts: "2025-03-05T12:34:56.789Z", lvl: "info" },
+  { src: "rails", evt: "req", lvl: "info", ts: "2025-03-05T12:34:57.123Z", path: "/users", method: "POST", controller: "UsersController", action: "create", status: 200, duration: 45.2, ip: "192.168.1.1" },
+  { src: "job", evt: "start", lvl: "info", ts: "2025-03-05T12:34:58.456Z", job_id: "abc123", queue: "default", class: "ProcessJob", args: ["arg1", { _filtered: { _class: "Hash", _keys_count: 2, _keys: ["password", "confirm_password"], _bytes: 42 } }] },
+  { src: "rails", evt: "req", lvl: "info", ts: "2025-03-05T12:34:59.789Z", path: "/api/users", method: "GET", controller: "Api::UsersController", action: "index", status: 200, duration: 12.3, params: { page: 1, per_page: 10 } },
+  { src: "mailer", evt: "deliver", lvl: "info", ts: "2025-03-05T12:35:00.123Z", mailer: "UserMailer", action: "welcome", to: "[EMAIL:f7d9a8]", subject: "Welcome to our app!" },
+  { src: "mailer", evt: "error", lvl: "error", ts: "2025-03-05T12:35:01.456Z", mailer: "NotificationMailer", error: "SMTP connection failed", message: "Failed to connect to SMTP server" },
+  { src: "rack", evt: "ratelimit", lvl: "warn", ts: "2025-03-05T12:35:02.789Z", ip: "[IP]", path: "/login", threshold: 5, period: 60, count: 6 },
+  { src: "rails", evt: "security", lvl: "warn", ts: "2025-03-05T12:35:03.123Z", sec_evt: "ip_spoof", ip: "[IP]", forwarded_for: "[IP]" },
+  { src: "rails", evt: "security", lvl: "warn", ts: "2025-03-05T12:35:04.456Z", sec_evt: "csrf_error", path: "/form", method: "POST" },
+  { src: "rails", evt: "security", lvl: "warn", ts: "2025-03-05T12:35:05.789Z", sec_evt: "blocked_host", host: "evil-site.com" },
+  { src: "sidekiq", evt: "process", lvl: "info", ts: "2025-03-05T12:35:06.123Z", pid: 56789, queues: ["default", "mailers", "active_storage"] },
+  { src: "shrine", evt: "upload", lvl: "info", ts: "2025-03-05T12:35:07.456Z", storage: "s3", size: 1024567, mime_type: "image/jpeg", file_id: "uploads/abc123.jpg" },
+  { src: "activestorage", evt: "download", lvl: "info", ts: "2025-03-05T12:35:08.789Z", service: "s3", key: "abc123.jpg", checksum: "sha256:abc123" },
+  { src: "rails", evt: "log", lvl: "info", ts: "2025-03-05T12:35:09.123Z", msg: "User 123 signed up with [EMAIL:a1b2c3]", email: { _filtered: { _class: "String", _bytes: 24, _hash: "a1b2c3" } }, phone: "[PHONE]", ssn: "[SSN]", credit_card: "[CREDIT_CARD]" },
+  { src: "carrierwave", evt: "store", lvl: "info", ts: "2025-03-05T12:35:10.456Z", uploader: "AvatarUploader", model: "User", file: "profile.jpg" },
 ];
 
 export function LogScroller() {
@@ -32,7 +32,14 @@ export function LogScroller() {
   // Generate a random log entry
   const generateLogEntry = () => {
     const log = exampleLogs[Math.floor(Math.random() * exampleLogs.length)];
-    return JSON.stringify(log, null, 0);
+    // Format with some spacing to make it more readable
+    let jsonStr = JSON.stringify(log, null, 0);
+    // Add spaces after commas, colons, and between braces
+    jsonStr = jsonStr.replace(/,/g, ", ")
+                     .replace(/:/g, ": ")
+                     .replace(/{/g, "{ ")
+                     .replace(/}/g, " }");
+    return jsonStr;
   };
 
   // Initialize with some log entries
@@ -63,7 +70,7 @@ export function LogScroller() {
 
   return (
     <div
-      className="w-full max-w-3xl h-[300px] bg-black rounded-lg overflow-hidden"
+      className="w-full max-w-[800px] h-[300px] bg-black rounded-lg overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => {
         setIsPaused(false);
@@ -88,23 +95,13 @@ export function LogScroller() {
         ref={scrollerRef} 
         className="h-[258px] overflow-auto p-4 transition-all"
       >
-        {logs.map((log, index) => (
-          <div key={index} className="mb-2">
-            <SyntaxHighlighter
-              language="json"
-              style={atomDark}
-              customStyle={{
-                margin: 0,
-                padding: "8px",
-                borderRadius: "4px",
-                fontSize: "13px",
-                backgroundColor: "transparent"
-              }}
-            >
-              {log}
-            </SyntaxHighlighter>
+        <div className="w-[650px] break-words overflow-hidden">
+          <div className="max-w-full">
+            <pre className="text-xs bg-neutral-900 p-3 rounded font-mono text-white whitespace-pre-wrap break-words">
+              {logs.join('\n\n')}
+            </pre>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
