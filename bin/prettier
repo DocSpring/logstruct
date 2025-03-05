@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PRETTIER_ARG="${1:---write}"
+
+# Format / check files with Prettier
+npx prettier . "$PRETTIER_ARG"

@@ -1,0 +1,86 @@
+---
+description: Working with Sorbet and Rails constants
+globs: 
+alwaysApply: true
+---
+- `T::Sig` is not available globally, we must extend it whenever we need it (we're building a library, not an application.)
+- You are FORBIDDEN from removing `T.absurd` calls. FIX the error, don't loosen the case statement.
+- We use `sorbet-runtime` for runtime type checking. This is a hard dependency for the gem.
+- You do need to `extend T::Helpers` in modules if they use other Sorbet features (e.g `requires_ancestor`)
+- Never use `LogStruct::` when you're inside the `module LogStruct` scope (same for nested modules/classes.)
+
+### Type Safety
+
+- Use Sorbet type annotations for all methods
+- Ensure all files have the appropriate `# typed:` annotation
+- **NEVER use `T.unsafe` calls**. Instead, properly type your code or use appropriate type assertions with `T.let` or `T.cast` when absolutely necessary.
+- `T.untyped` is generally ok for Hash values when they come from unknown sources.
+- When dealing with external libraries, create proper type signatures or use extension methods rather than resorting to `T.unsafe`.
+- **NEVER use `class.name`** anywhere - this is a Sorbet quirk that hides the `name` method from all base classes. Prefer just using Classes themselves as the type. `"#{class}"` will automatically call `.to_s`. Similarly, `to_json` will automatically call `.to_s` - but you can call `.to_s` manually if you really need it.
+- **REMEMBER:** Taking shortcuts with Sorbet defeats the purpose of having static type checking. Always invest the time to properly type your code. If you get stuck, search the internet or ask the developer. There is almost always a clean, type-safe solution.
+
+#### Block Context Typing
+
+When working with blocks where methods are called on `self` that belong to a different class (like in configuration blocks), always use `T.bind`:
+
+```ruby
+# GOOD
+SomeGem.configure do
+  T.bind(self, SomeGem::Configuration)
+  add_option "value"  # Now Sorbet knows this method exists
+end
+
+# BAD
+SomeGem.configure do
+  T.unsafe(self).add_option "value"  # NEVER do this!
+end
+```
+
+#### Handling External Libraries
+
+1. **Always check the RBI files first**: Before resorting to `T.unsafe` or other workarounds, check the generated RBI files to understand the proper types. Run tapioca commands to fetch gem RBIs and annotations.
+
+2. **Use proper binding for DSLs**: Many Ruby libraries use DSLs where the context (`self`) inside a block is an instance of a specific class. Always use `T.bind(self, CorrectClass)` to inform Sorbet about this.
+
+3. **Add missing type signatures**: If a gem lacks proper type definitions, contribute by adding them to your project's `sorbet/rbi/overrides/` directory.
+
+# Core Dependencies
+
+This gem doesn't work without Rails, so it will always have access to any core Rails modules:
+
+- `::Rails`
+- `::ActiveSupport`
+- `::ActionDispatch`
+- `::ActionController`
+
+You never need to check if these are defined with `defined?` - they are guaranteed to be available.
+
+You DO always need to check for any optional third-party gems that are not part of Rails:
+
+- `defined?(::Sentry)`
+- `defined?(::Shrine)`
+- etc.
+
+## Code Style and Conventions
+
+### Module References
+
+- **Always use `::` prefixes for external modules**: All references to Rails modules and third-party gems (`ActiveSupport`, `ActionMailer`, `ActiveJob`, `Sidekiq`, `Bugsnag`, etc.) MUST use the `::` prefix, even at the top-level. This is because we define our own nested modules with similar names, so we must follow this convention for clarity, maintainability, and to avoid conflicts.
+
+  ```ruby
+  # GOOD
+  if defined?(::Sidekiq)
+    # ...
+  end
+
+  # BAD
+  if defined?(Sidekiq)
+    # ...
+  end
+  ```
+
+- This applies to all external modules including but not limited to:
+  - Rails modules: `::ActiveSupport`, `::ActionMailer`, `::ActiveJob`, `::ActionDispatch`, `::ActionController`
+  - Error reporting: `::Sentry`, `::Bugsnag`, `::Rollbar`, `::Honeybadger`
+  - Background jobs: `::Sidekiq`
+  - File uploads: `::Shrine`

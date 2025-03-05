@@ -1,0 +1,4 @@
+{
+  "rubyLsp.formatter": "rubocop",
+  "rubocop.safeAutocorrect": false
+}

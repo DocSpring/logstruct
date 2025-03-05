@@ -1,0 +1,38 @@
+gem:
+  # Add your `gem` command parameters here:
+  #
+  exclude:
+    - ast
+    - crass
+    - debug
+    - diff-lcs
+    - language_server-protocol
+    - lint_roller
+    - method_source
+    - prism
+    - racc
+    - rbi
+    - rdoc
+    - rubocop
+    - rubocop-ast
+    - rubocop-performance
+    - rubocop-rails
+    - rubocop-sorbet
+    - rubocop-minitest
+    - ruby-progressbar
+    - solargraph
+    - spoom
+    - standard
+    - standard-sorbet
+    - tapioca
+    - yard
+    - yard-sorbet
+    - zeitwerk
+  # doc: true
+  # workers: 5
+dsl:
+  # Add your `dsl` command parameters here:
+  #
+  # exclude:
+  # - SomeGeneratorName
+  # workers: 5

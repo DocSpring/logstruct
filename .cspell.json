@@ -1,0 +1,25 @@
+{
+  "ignorePaths": [
+    "sorbet/rbi/annotations/**",
+    "sorbet/rbi/dsl/**",
+    "sorbet/rbi/gems/**",
+    "vendor/**",
+    "node_modules/**"
+  ],
+  "overrides": [],
+  "ignoreRegExpList": [],
+  "useGitignore": true,
+  "dictionaryDefinitions": [
+    {
+      "name": "project-words",
+      "path": "./.cspell/project-words.txt",
+      "addWords": true
+    },
+    {
+      "name": "lockfile-words",
+      "path": "./.cspell/lockfile-words.txt",
+      "addWords": false
+    }
+  ],
+  "dictionaries": ["project-words", "lockfile-words"]
+}

@@ -1,0 +1,12 @@
+--no-private
+--protected
+--markup=markdown
+--markup-provider=redcarpet
+--readme=README.md
+--title=LogStruct API Documentation
+--output-dir=site/public/api
+--plugin sorbet
+'lib/**/*.rb'
+- README.md
+- DEVELOPMENT.md
+- DOCS.md

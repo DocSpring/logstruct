@@ -1,0 +1,29 @@
+{
+  "name": "logstruct",
+  "version": "0.1.0",
+  "description": "Adds JSON structured logging to any Rails app",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/docspring/logstruct.git"
+  },
+  "keywords": [
+    "rails",
+    "logging",
+    "json",
+    "structured",
+    "type-safe",
+    "sorbet"
+  ],
+  "author": "DocSpring",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/docspring/logstruct/issues"
+  },
+  "homepage": "https://github.com/docspring/logstruct#readme",
+  "devDependencies": {
+    "@docspring/cspell-lockfile-dicts": "^1.1.1",
+    "cspell": "^8.17.5",
+    "prettier": "^3.5.2"
+  }
+}

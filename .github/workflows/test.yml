@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.6"
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          # Make sure bundler is using the correct Ruby version
+          ruby -v
+          bundle install
+          yarn install
+
+      - name: CSpell (Spellcheck)
+        run: bin/spellcheck
+
+      - name: Prettier (Formatting)
+        run: bin/prettier --check
+
+      - name: Tapioca (Verify RBI files)
+        run: |
+          # Add a few excluded gems to tapioca config (different RBI on Mac vs. Linux)
+          ruby -r yaml -e '
+            CONFIG_FILE = "sorbet/tapioca/config.yml"
+            config = YAML.load_file(CONFIG_FILE)
+            config["gem"]["exclude"] += ["rack", "amazing_print"]
+            config["gem"]["exclude"].sort!.uniq!
+            File.write(CONFIG_FILE, config.to_yaml)
+          '
+          bundle exec tapioca gems --verify
+          bundle exec tapioca dsl --verify
+          git checkout sorbet/tapioca/config.yml || true
+
+      - name: Check for RBI changes
+        run: |
+          # Check if there are any uncommitted changes to RBI files
+          git status --porcelain sorbet/rbi/
+          if [[ -n $(git status --porcelain sorbet/rbi/) ]]; then
+            echo "Error: RBI files are out of date. Please run 'tapioca gems' and 'tapioca dsl' and commit the changes."
+            git diff sorbet/rbi/
+            exit 1
+          fi
+
+      - name: RuboCop (Linting/Formatting)
+        run: bin/rubocop
+
+      - name: Sorbet (Typecheck)
+        run: bin/typecheck
+
+  pilot:
+    name: "Pilot Test: Ruby 3.0 / Rails 7.0"
+    runs-on: ubuntu-22.04
+    env:
+      RAILS_VERSION: "7.0"
+      RUBY_VERSION: "3.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby 3.0
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"
+          bundler-cache: true
+
+      # For bundler to work with different Ruby versions
+      - name: Set CI environment variable
+        run: echo "CI=true" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          ruby -v
+          bundle config set --local without 'development'
+          bundle install
+
+      - name: Run tests
+        run: bin/test
+
+      # Save coverage data as an artifact
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: coverage-pilot-ruby3.0-rails7.0
+          path: coverage/
+          retention-days: 5
+
+  matrix:
+    name: "Tests: ${{ matrix.name }}"
+    needs: [lint, pilot]
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "Ruby 2.7 / Rails 7.0"
+            ruby: "2.7"
+            rails: "7.0"
+
+          - name: "Ruby 3.2 / Rails 7.1"
+            ruby: "3.2"
+            rails: "7.1"
+
+          - name: "Ruby 3.4 / Rails 8.0"
+            ruby: "3.4"
+            rails: "8.0"
+
+    env:
+      RAILS_VERSION: ${{ matrix.rails }}
+      RUBY_VERSION: ${{ matrix.ruby }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+
+      # For bundler to work with different Ruby versions, we just need to set CI=true
+      # This will make our conditional Gemfile logic skip the Ruby version requirement
+      - name: Set CI environment variable
+        run: echo "CI=true" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          # Make sure bundler is using the correct Ruby version
+          ruby -v
+          # Configure bundler
+          bundle config set --local without 'development'
+          # Install dependencies with the specific Rails version
+          bundle install
+
+      - name: Run tests
+        run: bin/test
+
+      # Optional: Save coverage data as an artifact
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
+          path: coverage/
+          retention-days: 5

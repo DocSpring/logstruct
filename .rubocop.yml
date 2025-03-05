@@ -1,0 +1,88 @@
+require:
+  - standard
+  - rubocop-minitest
+  - rubocop-rails
+  - rubocop-performance
+  - rubocop-sorbet
+
+inherit_gem:
+  standard: config/base.yml
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - node_modules/**/*
+    - public/**/*
+    - vendor/**/*
+    - tmp/**/*
+    - sorbet/rbi/dsl/**/*
+    - sorbet/rbi/gems/**/*
+    - sorbet/rbi/annotations/**/*
+
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: true
+Layout/MultilineMethodArgumentLineBreaks:
+  Enabled: true
+
+Bundler/DuplicatedGem:
+  Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
+
+# We use UTC for all timestamps, no timezones required for logs
+Rails/TimeZone:
+  Enabled: false
+# We don't use ApplicationMailer in this gem
+Rails/ApplicationMailer:
+  Enabled: false
+# Not a Rails app
+Rails/RakeEnvironment:
+  Enabled: false
+
+Performance/OpenStruct:
+  Exclude:
+    - test/**/*
+
+# Testing
+# ------------------------------------------------------------------------------
+Minitest/MultipleAssertions:
+  Enabled: false
+Minitest/ReturnInTestMethod:
+  Enabled: false
+
+# Sorbet RBI Rules
+# ------------------------------------------------------------------------------
+Style/SingleLineMethods:
+  Exclude:
+    - sorbet/**/*
+    - lib/log_struct/log/interfaces/**/*
+    - "**/*_interface.rb"
+
+Style/EmptyMethod:
+  Exclude:
+    - sorbet/**/*
+    - lib/log_struct/log/interfaces/**/*
+    - "**/*_interface.rb"
+
+# Ban typed: false everywhere
+Sorbet/FalseSigil:
+  Enabled: false
+
+# Require typed: strict for all files except test files
+Sorbet/StrictSigil:
+  Enabled: true
+  Exclude:
+    - "test/**/*"
+    - "sorbet/**/*"
+  SuggestedStrictness: strict
+
+# Require typed: true for test files
+Sorbet/TrueSigil:
+  Enabled: true
+  Include:
+    - "test/**/*.rb"
+  SuggestedStrictness: true
+
+# Don't try to validate typing on generated Sorbet RBI files
+Sorbet:
+  Enabled: true
+  Exclude:
+    - "sorbet/**/*.rbi"
