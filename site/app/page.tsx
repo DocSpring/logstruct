@@ -6,9 +6,9 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-16">
       {/* Hero Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-24 py-12 px-2">
-        <div className="space-y-6 max-w-xl">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl leading-tight mt-2">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-24 pt-4 pb-12 xl:py-12 px-2">
+        <div className="space-y-6 max-w-xl mx-auto xl:mx-0">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl leading-tight xl:mt-2">
             Zero-configuration JSON logging for Ruby on Rails
           </h1>
           <p className="text-lg text-neutral-600 dark:text-neutral-400 my-10">
@@ -16,7 +16,7 @@ export default function Home() {
             the gem to your Gemfile, and your Rails app prints beautiful JSON
             logs that are easy to search, filter, and visualize.
           </p>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
             <Button asChild size="lg">
               <Link href="/docs/getting-started">Get Started</Link>
             </Button>
