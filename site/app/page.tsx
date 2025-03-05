@@ -6,8 +6,8 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-16">
       {/* Hero Section */}
-      <div className="flex flex-col items-center justify-between py-12 lg:flex-row lg:space-x-12">
-        <div className="max-w-2xl space-y-6">
+      <div className="flex flex-col items-center justify-between py-12 xl:flex-row xl:space-x-16">
+        <div className="w-full max-w-xl space-y-6 xl:pr-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Zero-configuration JSON logging for Ruby on Rails
           </h1>
@@ -32,7 +32,7 @@ export default function Home() {
             </Button>
           </div>
         </div>
-        <div className="mt-12 lg:mt-0">
+        <div className="mt-12 xl:mt-0 hidden md:block w-full">
           <LogScroller />
         </div>
       </div>

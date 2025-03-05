@@ -167,10 +167,33 @@ export function LogScroller() {
     return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
   }, []);
 
-  // Generate a random log entry
+  // Generate the Puma boot log entry (always first)
+  const generatePumaBootLogEntry = useCallback(() => {
+    // Use the first template which is the Puma boot log
+    const log = JSON.parse(JSON.stringify(logTemplates[0]));
+    
+    // Add current timestamp
+    log.ts = new Date().toISOString();
+    
+    // Add pid
+    log.pid = Math.floor(Math.random() * 60000) + 1000;
+    
+    // Format with some spacing to make it more readable
+    let jsonStr = JSON.stringify(log, null, 0);
+    // Add spaces after commas, colons, and between braces
+    jsonStr = jsonStr
+      .replace(/,/g, ", ")
+      .replace(/(\w"):/g, "$1: ")
+      .replace(/{/g, "{ ")
+      .replace(/}/g, " }");
+    
+    return jsonStr;
+  }, []);
+
+  // Generate a random log entry (for logs after the Puma boot)
   const generateLogEntry = useCallback(() => {
-    // Pick a random log template
-    const templateIndex = Math.floor(Math.random() * logTemplates.length);
+    // Pick a random log template (skip the first one which is Puma boot)
+    const templateIndex = Math.floor(Math.random() * (logTemplates.length - 1)) + 1;
 
     // Create a deep copy of the template
     const log = JSON.parse(JSON.stringify(logTemplates[templateIndex]));
@@ -249,13 +272,16 @@ export function LogScroller() {
     return jsonStr;
   }, [generateHashString, generateRandomIP]);
 
-  // Initialize with some log entries
+  // Initialize with an empty log list
   useEffect(() => {
-    const initialLogs = Array(5)
-      .fill(0)
-      .map(() => generateLogEntry());
-    setLogs(initialLogs);
-  }, [generateLogEntry]);
+    // Start with only the Puma boot log
+    setLogs([]);
+    
+    // Add the Puma boot log after a small delay
+    setTimeout(() => {
+      setLogs([generatePumaBootLogEntry()]);
+    }, 1000);
+  }, [generatePumaBootLogEntry]);
 
   // Add a new log entry at an interval, but not when user is hovering (isPaused)
   useInterval(() => {
@@ -277,7 +303,7 @@ export function LogScroller() {
 
   return (
     <div
-      className="w-full max-w-[800px] h-[375px] bg-black rounded-lg overflow-hidden"
+      className="w-full h-[375px] bg-black rounded-lg overflow-hidden"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => {
         setIsPaused(false);
@@ -302,23 +328,30 @@ export function LogScroller() {
 
       <div
         ref={scrollerRef}
-        className="h-[333px] overflow-auto px-6 py-2 bg-[#111421] relative"
+        className="h-[333px] flex flex-col overflow-auto px-6 py-2 bg-[#111421] relative"
       >
-        <SyntaxHighlighter
-          language="json"
-          style={atomDark}
-          lineProps={{ style: { wordBreak: "normal", whiteSpace: "pre-wrap" } }}
-          wrapLines
-          wrapLongLines
-          customStyle={{
-            fontSize: "11px",
-            backgroundColor: "#111421",
-            padding: "12px",
-            borderRadius: "0px",
-          }}
-        >
-          {logs.join("\n\n")}
-        </SyntaxHighlighter>
+        <div className="flex-grow w-full">
+          {logs.length > 0 ? (
+            <SyntaxHighlighter
+              language="json"
+              style={atomDark}
+              lineProps={{ style: { wordBreak: "normal", whiteSpace: "pre-wrap" } }}
+              wrapLines
+              wrapLongLines
+              customStyle={{
+                fontSize: "11px",
+                backgroundColor: "#111421",
+                padding: "12px",
+                borderRadius: "0px",
+                minHeight: "300px",
+              }}
+            >
+              {logs.join("\n\n")}
+            </SyntaxHighlighter>
+          ) : (
+            <div className="w-full h-[300px]"></div>
+          )}
+        </div>
       </div>
     </div>
   );
