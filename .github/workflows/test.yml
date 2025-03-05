@@ -12,7 +12,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -84,7 +84,7 @@ jobs:
       RUBY_VERSION: ${{ matrix.ruby }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1
@@ -111,7 +111,7 @@ jobs:
 
       # Optional: Save coverage data as an artifact
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: success()
         with:
           name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
