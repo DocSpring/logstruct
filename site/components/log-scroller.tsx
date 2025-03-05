@@ -97,9 +97,21 @@ export function LogScroller() {
       >
         <div className="w-[650px] break-words overflow-hidden">
           <div className="max-w-full">
-            <pre className="text-xs bg-neutral-900 p-3 rounded font-mono text-white whitespace-pre-wrap break-words">
+            <SyntaxHighlighter
+              language="json"
+              style={atomDark}
+              lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}}
+              wrapLines
+              wrapLongLines
+              customStyle={{
+                fontSize: "11px",
+                backgroundColor: "#171717",
+                padding: "12px",
+                borderRadius: "6px",
+              }}
+            >
               {logs.join('\n\n')}
-            </pre>
+            </SyntaxHighlighter>
           </div>
         </div>
       </div>
