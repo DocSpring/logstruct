@@ -34,35 +34,35 @@ module LogStruct
           end
         end
 
-        # Log an exception with structured data
+        # Log an errors with structured data
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-        def log_exception(error, source:, context: nil)
+        def log_error(error, source:, context: nil)
           # Create structured log entry
-          exception_log = Log::Error.from_exception(
+          error_log = Log::Error.from_exception(
             source,
             error,
             context || {}
           )
-          LogStruct.log(exception_log)
+          LogStruct.log(error_log)
         end
 
-        # Report an exception using the configured handler or MultiErrorReporter
+        # Report an error using the configured handler or MultiErrorReporter
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def log_and_report_error(error, source:, context: nil)
-          log_exception(error, source: source, context: context)
-          exception_handler = LogStruct.config.error_reporting_handler
-          if exception_handler
+          log_error(error, source: source, context: context)
+          error_handler = LogStruct.config.error_reporting_handler
+          if error_handler
             # Use the configured handler
-            exception_handler.call(error, context, source)
+            error_handler.call(error, context, source)
           else
             # Fall back to MultiErrorReporter (detects Sentry, Bugsnag, etc.)
-            LogStruct::MultiErrorReporter.report_exception(error, context || {})
+            LogStruct::MultiErrorReporter.report_error(error, context || {})
           end
         end
 
-        # Handle an exception according to the configured error handling mode (log, report, raise, etc)
+        # Handle an error according to the configured error handling mode (log, report, raise, etc)
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-        def handle_error(error, source:, context: nil)
+        def handle_exception(error, source:, context: nil)
           mode = error_handling_mode_for(source)
 
           # Log / report in production, raise locally (dev/test)
@@ -78,7 +78,7 @@ module LogStruct
             raise(error)
 
           when ErrorHandlingMode::Log, ErrorHandlingMode::LogProduction
-            log_exception(error, source: source, context: context)
+            log_error(error, source: source, context: context)
 
           when ErrorHandlingMode::Report, ErrorHandlingMode::ReportProduction
             log_and_report_error(error, source: source, context: context)

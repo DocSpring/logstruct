@@ -43,9 +43,9 @@ class LoggingController < ApplicationController
       Rails.logger.error(exception_log)
     end
 
-    # Using the LogStruct.handle_error helper (will trigger error reporting)
+    # Using the LogStruct.handle_exception helper (will trigger error reporting)
     custom_error = ArgumentError.new("Custom error for testing")
-    LogStruct.handle_error(custom_error, source: LogStruct::Source::App)
+    LogStruct.handle_exception(custom_error, source: LogStruct::Source::App)
 
     render json: {status: "ok", message: "Error logging completed"}
   end

@@ -135,7 +135,7 @@ module LogStruct
         return if error.nil?
 
         # Create a proper error log entry
-        error_log = Log::Error.from_error(
+        error_log = Log::Error.from_exception(
           Source::LogStruct,
           error,
           context

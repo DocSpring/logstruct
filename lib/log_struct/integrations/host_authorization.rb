@@ -41,7 +41,7 @@ module LogStruct
           # This can be helpful later when reviewing logs.
           blocked_hosts = env["action_dispatch.blocked_hosts"]
 
-          # Create a security exception to be handled
+          # Create a security error to be handled
           blocked_host_error = ::ActionController::BadRequest.new("Blocked host detected: #{request.host}")
 
           # Create request context hash
@@ -56,8 +56,8 @@ module LogStruct
             allow_ip_hosts: blocked_hosts.allow_ip_hosts
           }
 
-          # Handle exception according to configured mode (log, report, raise)
-          LogStruct.handle_error(blocked_host_error, source: Source::Security, context: context)
+          # Handle error according to configured mode (log, report, raise)
+          LogStruct.handle_exception(blocked_host_error, source: Source::Security, context: context)
 
           # Use pre-defined headers and response if we are only logging or reporting
           [FORBIDDEN_STATUS, RESPONSE_HEADERS, [RESPONSE_HTML]]

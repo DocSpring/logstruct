@@ -356,11 +356,11 @@ gem push pkg/logstruct-x.y.z.gem
 
 ## Principles
 
-### Exception Handling
+### Error Handling
 
 #### Use StandardError, not Exception
 
-In Ruby, `StandardError` is a subclass of `Exception`. We use the term "exception" generically in our code to refer to errors, but we specifically use the `StandardError` class (or its subclasses) in our method signatures and error handling code. We NEVER use the base `Exception` class because:
+NEVER rescue the `Exception` class because:
 
 - `Exception` includes critical system errors like `NoMemoryError`, `SystemExit`, `SignalException`, etc. which should not be caught by normal application code.
 - Catching `Exception` can interfere with Ruby's process management and signal handling.
@@ -370,14 +370,14 @@ Always specify `StandardError` (or specific subclasses) in your method signature
 
 ```ruby
 # GOOD
-sig { params(exception: StandardError, context: T::Hash[Symbol, T.untyped]).void }
-def report_exception(exception, context = {})
+sig { params(error: StandardError, context: T::Hash[Symbol, T.untyped]).void }
+def report_error(error, context = {})
   # ...
 end
 
 # BAD
-sig { params(exception: Exception, context: T::Hash[Symbol, T.untyped]).void }
-def report_exception(exception, context = {})
+sig { params(error: Exception, context: T::Hash[Symbol, T.untyped]).void }
+def report_error(error, context = {})
   # ...
 end
 ```

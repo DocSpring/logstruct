@@ -24,7 +24,7 @@ module LogStruct
       $stdout = @original_stdout
     end
 
-    def test_report_exception_with_sentry
+    def test_report_error_with_sentry
       # Create a stub to assert capture_exception was called
       called = T.let(false, T::Boolean)
       capture_stub = ->(exception, options) {
@@ -44,13 +44,13 @@ module LogStruct
       # Stub the Sentry method
       ::Sentry.stub(:capture_exception, capture_stub) do
         # Make the call to test
-        MultiErrorReporter.report_exception(@exception, @context)
+        MultiErrorReporter.report_error(@exception, @context)
       end
 
       assert called, "Sentry.capture_exception should have been called"
     end
 
-    def test_report_exception_with_sentry_error_fallback
+    def test_report_error_with_sentry_error_fallback
       # Skip if Sentry is not defined
       skip "Sentry is not available" unless defined?(::Sentry)
 
@@ -67,7 +67,7 @@ module LogStruct
             true
           end
 
-          MultiErrorReporter.report_exception(@exception, @context)
+          MultiErrorReporter.report_error(@exception, @context)
         end
       end
 
@@ -75,7 +75,7 @@ module LogStruct
       assert_mock log_mock
     end
 
-    def test_report_exception_with_bugsnag
+    def test_report_error_with_bugsnag
       # Set the reporter explicitly for this test
       MultiErrorReporter.reporter = :bugsnag
 
@@ -105,7 +105,7 @@ module LogStruct
           bugsnag_notify_block = block
           block&.call(report_mock)
         }) do
-        MultiErrorReporter.report_exception(@exception, @context)
+        MultiErrorReporter.report_error(@exception, @context)
       end
 
       # Verify notification occurred
@@ -116,7 +116,7 @@ module LogStruct
       assert_equal ErrorReporter::Bugsnag, MultiErrorReporter.reporter
     end
 
-    def test_report_exception_with_rollbar
+    def test_report_error_with_rollbar
       # Set the reporter explicitly for this test
       MultiErrorReporter.reporter = :rollbar
 
@@ -131,7 +131,7 @@ module LogStruct
           exception_arg = exception
           context_arg = context
         }) do
-        MultiErrorReporter.report_exception(@exception, @context)
+        MultiErrorReporter.report_error(@exception, @context)
       end
 
       # Verify error was called with correct args
@@ -141,7 +141,7 @@ module LogStruct
       assert_equal ErrorReporter::Rollbar, MultiErrorReporter.reporter
     end
 
-    def test_report_exception_with_honeybadger
+    def test_report_error_with_honeybadger
       # Set the reporter explicitly for this test
       MultiErrorReporter.reporter = :honeybadger
 
@@ -156,7 +156,7 @@ module LogStruct
           exception_arg = exception
           options_arg = options
         }) do
-        MultiErrorReporter.report_exception(@exception, @context)
+        MultiErrorReporter.report_error(@exception, @context)
       end
 
       # Verify notify was called with correct args
@@ -166,7 +166,7 @@ module LogStruct
       assert_equal ErrorReporter::Honeybadger, MultiErrorReporter.reporter
     end
 
-    def test_report_exception_with_no_service
+    def test_report_error_with_no_service
       # Temporarily undefine all error reporting services
       original_constants = {}
       original_constants[:Sentry] = Object.send(:remove_const, :Sentry) if defined?(::Sentry)
@@ -192,9 +192,9 @@ module LogStruct
           true
         end
 
-        # This is where we actually call report_exception with our mock
+        # This is where we actually call report_error with our mock
         LogStruct.stub(:log, log_mock) do
-          MultiErrorReporter.report_exception(@exception, @context)
+          MultiErrorReporter.report_error(@exception, @context)
         end
 
         # Verify our mock was called

@@ -42,7 +42,7 @@ module LogStruct
     FROM = :from
     SUBJECT = :subject
 
-    # Error and Exception fields
+    # Error fields
     ERR_CLASS = :err_class
     BACKTRACE = :backtrace
 

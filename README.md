@@ -189,7 +189,7 @@ error_log = LogStruct::LogEntries::Error.new(
   evt: LogStruct::LogEvent::Error,
   error_class: "ArgumentError",
   message: "Invalid parameter",
-  backtrace: exception.backtrace&.first(10)
+  backtrace: error.backtrace&.first(10)
 )
 
 # Log the typed error
@@ -268,7 +268,7 @@ The gem automatically integrates with ActiveJob to provide structured logging fo
 - Replace the default ActiveJob logger with a structured JSON logger
 - Log job enqueuing, execution, and completion events
 - Include detailed information such as job ID, class, queue, arguments (if allowed), and execution time
-- Capture and log exceptions that occur during job execution
+- Capture and log errors that occur during job execution
 
 You can disable this integration in your configuration if needed:
 
@@ -350,7 +350,7 @@ end
 The gem includes a Rack middleware that enhances error logging with structured data. When enabled, it will:
 
 - Catch and log security violations like IP spoofing attacks and CSRF token errors
-- Log detailed information about exceptions that occur during request processing
+- Log detailed information about errors that occur during request processing
 - Include request context such as path, method, IP, user agent, etc.
 - Return appropriate responses for security violations
 

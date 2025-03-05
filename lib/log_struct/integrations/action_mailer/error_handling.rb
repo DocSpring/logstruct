@@ -109,7 +109,7 @@ module LogStruct
             LogStruct.log(exception_data)
 
             # Call the error handler
-            LogStruct.handle_error(error, source: Source::Mailer, context: context)
+            LogStruct.handle_exception(error, source: Source::Mailer, context: context)
           end
 
           # Re-raise the error if requested

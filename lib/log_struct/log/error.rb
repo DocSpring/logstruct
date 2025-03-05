@@ -22,13 +22,13 @@ module LogStruct
       include Interfaces::MessageField
       include MergeDataFields
 
-      ExceptionLogEvent = T.type_alias {
+      ErrorLogEvent = T.type_alias {
         LogEvent::Error
       }
 
       # Common fields
       const :source, Source # Used by all sources, should not have a default.
-      const :event, ExceptionLogEvent, default: T.let(LogEvent::Error, ExceptionLogEvent)
+      const :event, ErrorLogEvent, default: T.let(LogEvent::Error, ErrorLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
@@ -54,7 +54,7 @@ module LogStruct
         hash
       end
 
-      # Create an Exception log from a Ruby exception
+      # Create an Error log from a Ruby StandardError
       sig {
         params(
           source: Source,

@@ -14,7 +14,6 @@ module LogStruct
         extend T::Helpers
 
         interface!
-        sealed!
 
         # The source of the log entry (JSON property: src)
         sig { abstract.returns(Source) }

@@ -88,8 +88,8 @@ module LogStruct
       # Create an instance of it
       error_obj = my_gid_class.new
 
-      # Need to stub LogStruct.handle_error to avoid actually reporting an error
-      LogStruct.stub(:handle_error, nil) do
+      # Need to stub LogStruct.handle_exception to avoid actually reporting an error
+      LogStruct.stub(:handle_exception, nil) do
         # Test the error handling path in process_values
         result = @formatter.process_values(error_obj)
 
