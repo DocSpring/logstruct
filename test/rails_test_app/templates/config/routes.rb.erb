@@ -1,0 +1,12 @@
+Rails.application.routes.draw do
+  # Testing routes
+  get '/logging/basic', to: 'logging#basic'
+  get '/logging/error', to: 'logging#error'
+  get '/logging/model', to: 'logging#model'
+  get '/logging/job', to: 'logging#job'
+  get '/logging/structured', to: 'logging#structured'
+  get '/logging/context', to: 'logging#context'
+  
+  # Healthcheck route
+  get '/healthcheck', to: proc { [200, {}, ['OK']] }
+end

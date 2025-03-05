@@ -1,0 +1,23 @@
+ENV["RAILS_ENV"] ||= "test"
+require_relative "../config/environment"
+require "rails/test_help"
+require "minitest/reporters"
+
+# Configure colorful test output
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
+# Configure the test database
+class ActiveSupport::TestCase
+  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+  fixtures :all
+
+  # Add more helper methods to be used by all tests here...
+  
+  # Helper method to run jobs synchronously
+  def perform_enqueued_jobs
+    jobs = ActiveJob::Base.queue_adapter.enqueued_jobs
+    jobs.each do |job|
+      ActiveJob::Base.execute job
+    end
+  end
+end
