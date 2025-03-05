@@ -1,3 +1,6 @@
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+
 export default function GettingStartedPage() {
   return (
     <div className="space-y-6">
@@ -11,18 +14,38 @@ export default function GettingStartedPage() {
         {`Add this line to your application's Gemfile:`}
       </p>
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <pre className="text-sm font-mono">
+        <SyntaxHighlighter
+          language="ruby"
+          style={atomDark}
+          customStyle={{
+            fontSize: "0.875rem",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            backgroundColor: "transparent",
+            padding: "0",
+            borderRadius: "0px",
+          }}
+        >
           {`gem 'logstruct'`}
-        </pre>
+        </SyntaxHighlighter>
       </div>
       
       <p className="text-neutral-600 dark:text-neutral-400 mt-6 mb-4">
         And then execute:
       </p>
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <pre className="text-sm font-mono">
+        <SyntaxHighlighter
+          language="bash"
+          style={atomDark}
+          customStyle={{
+            fontSize: "0.875rem",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            backgroundColor: "transparent",
+            padding: "0",
+            borderRadius: "0px",
+          }}
+        >
           bundle install
-        </pre>
+        </SyntaxHighlighter>
       </div>
       
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">
@@ -35,7 +58,17 @@ export default function GettingStartedPage() {
       </p>
       
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <pre className="text-sm font-mono">
+        <SyntaxHighlighter
+          language="ruby"
+          style={atomDark}
+          customStyle={{
+            fontSize: "0.875rem",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            backgroundColor: "transparent",
+            padding: "0",
+            borderRadius: "0px",
+          }}
+        >
 {`# Configure the gem
 LogStruct.configure do |config|
   # Enable or disable all structured logging
@@ -58,7 +91,7 @@ end
 
 # Set up all integrations
 LogStruct.initialize`}
-        </pre>
+        </SyntaxHighlighter>
       </div>
       
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Usage</h2>
@@ -67,7 +100,17 @@ LogStruct.initialize`}
       </p>
       
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <pre className="text-sm font-mono">
+        <SyntaxHighlighter
+          language="ruby"
+          style={atomDark}
+          customStyle={{
+            fontSize: "0.875rem",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            backgroundColor: "transparent",
+            padding: "0",
+            borderRadius: "0px",
+          }}
+        >
 {`# Log a simple message
 Rails.logger.info "User signed in"
 
@@ -84,7 +127,7 @@ Rails.logger.tagged("Authentication") do
   Rails.logger.info "User signed in"
   Rails.logger.info({ user_id: user.id, ip_address: request.remote_ip })
 end`}
-        </pre>
+        </SyntaxHighlighter>
       </div>
       
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">
