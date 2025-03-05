@@ -171,13 +171,13 @@ export function LogScroller() {
   const generatePumaBootLogEntry = useCallback(() => {
     // Use the first template which is the Puma boot log
     const log = JSON.parse(JSON.stringify(logTemplates[0]));
-    
+
     // Add current timestamp
     log.ts = new Date().toISOString();
-    
+
     // Add pid
     log.pid = Math.floor(Math.random() * 60000) + 1000;
-    
+
     // Format with some spacing to make it more readable
     let jsonStr = JSON.stringify(log, null, 0);
     // Add spaces after commas, colons, and between braces
@@ -186,14 +186,15 @@ export function LogScroller() {
       .replace(/(\w"):/g, "$1: ")
       .replace(/{/g, "{ ")
       .replace(/}/g, " }");
-    
+
     return jsonStr;
   }, []);
 
   // Generate a random log entry (for logs after the Puma boot)
   const generateLogEntry = useCallback(() => {
     // Pick a random log template (skip the first one which is Puma boot)
-    const templateIndex = Math.floor(Math.random() * (logTemplates.length - 1)) + 1;
+    const templateIndex =
+      Math.floor(Math.random() * (logTemplates.length - 1)) + 1;
 
     // Create a deep copy of the template
     const log = JSON.parse(JSON.stringify(logTemplates[templateIndex]));
@@ -272,15 +273,10 @@ export function LogScroller() {
     return jsonStr;
   }, [generateHashString, generateRandomIP]);
 
-  // Initialize with an empty log list
+  // Initialize with the Puma boot log
   useEffect(() => {
     // Start with only the Puma boot log
-    setLogs([]);
-    
-    // Add the Puma boot log after a small delay
-    setTimeout(() => {
-      setLogs([generatePumaBootLogEntry()]);
-    }, 1000);
+    setLogs([generatePumaBootLogEntry()]);
   }, [generatePumaBootLogEntry]);
 
   // Add a new log entry at an interval, but not when user is hovering (isPaused)
@@ -315,13 +311,13 @@ export function LogScroller() {
         }, 100);
       }}
     >
-      <div className="flex items-center bg-[#393937] px-6 py-2 w-full">
-        <div className="flex space-x-2">
+      <div className="relative flex items-center bg-[#393937] px-6 py-2 w-full">
+        <div className="absolute left-3 flex space-x-2">
           <div className="w-3 h-3 rounded-full bg-red-500"></div>
           <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
-        <div className="text-white text-xs w-full text-center font-sans">
+        <div className="w-full text-center text-[#b5b5b3] font-extrabold text-xs font-sans">
           Rails Server Logs
         </div>
       </div>
@@ -335,7 +331,9 @@ export function LogScroller() {
             <SyntaxHighlighter
               language="json"
               style={atomDark}
-              lineProps={{ style: { wordBreak: "normal", whiteSpace: "pre-wrap" } }}
+              lineProps={{
+                style: { wordBreak: "normal", whiteSpace: "pre-wrap" },
+              }}
               wrapLines
               wrapLongLines
               customStyle={{

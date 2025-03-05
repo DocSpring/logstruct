@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-16">
       {/* Hero Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-24 pt-4 pb-12 xl:py-12 px-2">
+      <div className="grid grid-cols-1 xl:grid-cols-[42fr_58fr] gap-24 2xl:gap-36 pt-4 pb-12 xl:py-12 px-2">
         <div className="space-y-6 max-w-xl mx-auto xl:mx-0">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl leading-tight xl:mt-2">
             Zero-configuration JSON logging for Ruby on Rails
