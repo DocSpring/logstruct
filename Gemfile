@@ -6,8 +6,10 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in logstruct.gemspec
 gemspec
 
-# Use Ruby version from ENV or fallback to .ruby-version file
-ruby ENV["RUBY_VERSION"] || File.read(File.expand_path(".ruby-version", __dir__)).strip
+# Skip Ruby version check if RUBY_VERSION is set (e.g. on CI)
+unless ENV["RUBY_VERSION"]
+  ruby File.read(File.expand_path(".ruby-version", __dir__)).strip
+end
 
 # Define Rails version based on environment variable
 rails_version = ENV["RAILS_VERSION"] || "7.0"

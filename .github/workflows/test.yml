@@ -65,7 +65,6 @@ jobs:
 
   pilot:
     name: "Pilot Test: Ruby 3.0 / Rails 7.0"
-    needs: [lint]
     runs-on: ubuntu-22.04
     env:
       RAILS_VERSION: "7.0"
@@ -91,7 +90,7 @@ jobs:
 
       - name: Run tests
         run: bin/test
-        
+
       # Save coverage data as an artifact
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -101,7 +100,7 @@ jobs:
           path: coverage/
           retention-days: 5
 
-  test:
+  matrix:
     name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
     needs: [lint, pilot]
     runs-on: ubuntu-22.04
