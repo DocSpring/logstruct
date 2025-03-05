@@ -8,5 +8,5 @@ Rails.application.routes.draw do
   get '/logging/context', to: 'logging#context'
   
   # Healthcheck route
-  get '/healthcheck', to: proc { [200, {}, ['OK']] }
+  get '/health', to: proc { [200, {}, ['OK']] }
 end

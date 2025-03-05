@@ -33,8 +33,8 @@ module LogStruct
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)
 
       # Exception-specific fields
-      const :message, String
       const :err_class, T.class_of(StandardError)
+      const :message, String
       const :backtrace, T.nilable(T::Array[String]), default: nil
       const :data, T::Hash[Symbol, T.untyped], default: {}
 

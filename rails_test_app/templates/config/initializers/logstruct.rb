@@ -1,4 +1,4 @@
-# typed: true
+# typed: strict
 
 # Configure LogStruct
 LogStruct.configure do |config|
@@ -16,9 +16,9 @@ LogStruct.configure do |config|
   config.integrations.enable_actionmailer = true
   config.integrations.enable_activejob = true
   config.integrations.enable_rack_error_handler = true
-  config.integrations.enable_sidekiq = defined?(Sidekiq)
-  config.integrations.enable_shrine = defined?(Shrine)
-  config.integrations.enable_carrierwave = defined?(CarrierWave)
+  config.integrations.enable_sidekiq = !!defined?(Sidekiq)
+  config.integrations.enable_shrine = !!defined?(Shrine)
+  config.integrations.enable_carrierwave = !!defined?(CarrierWave)
   config.integrations.enable_activestorage = true
 
   # Configure string scrubbing filters

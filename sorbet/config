@@ -3,4 +3,5 @@
 --ignore=tmp/
 --ignore=vendor/
 --ignore=spec/
+--ignore=rails_test_app/templates/
 --enable-experimental-requires-ancestor
