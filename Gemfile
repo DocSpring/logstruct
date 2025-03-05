@@ -61,4 +61,7 @@ group :development, :test do
   gem "thor"
   gem "standard", ">= 1.35.1", require: false
   gem "tapioca", require: false
+  gem "yard", "~> 0.9.36"
+  gem "yard-sorbet", "~> 0.9.0"
+  gem "redcarpet", "~> 3.6"
 end

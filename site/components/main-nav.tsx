@@ -94,6 +94,16 @@ export function MainNav() {
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
+            <Link href="/api" legacyBehavior passHref>
+              <NavigationMenuLink 
+                className={navigationMenuTriggerStyle()}
+                active={pathname.startsWith('/api')}
+              >
+                API
+              </NavigationMenuLink>
+            </Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
             <a 
               href="https://github.com/DocSpring/logstruct" 
               target="_blank" 

@@ -25,6 +25,11 @@ export default function Home() {
                 View on GitHub
               </Link>
             </Button>
+            <Button variant="secondary" size="lg" asChild>
+              <Link href="/api" target="_blank">
+                API Documentation
+              </Link>
+            </Button>
           </div>
         </div>
         <div className="mt-12 lg:mt-0">
