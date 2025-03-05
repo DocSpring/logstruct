@@ -63,6 +63,15 @@ export function SiteFooter() {
               className="font-medium underline underline-offset-4"
             >
               DocSpring
+            </Link>{" "}
+            and is released under the{" "}
+            <Link
+              href="https://github.com/DocSpring/logstruct/blob/main/LICENSE"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium underline underline-offset-4"
+            >
+              MIT License
             </Link>
           </p>
         </div>
