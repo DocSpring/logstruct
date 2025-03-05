@@ -24,6 +24,10 @@ require "json"
 require "ostruct"
 require "debug"
 require "logger"
+require "fileutils"
+
+# Ensure log directory exists
+FileUtils.mkdir_p(File.expand_path("../log", __dir__))
 
 # Require Rails
 require "rails"
