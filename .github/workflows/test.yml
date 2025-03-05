@@ -63,9 +63,47 @@ jobs:
       - name: Sorbet (Typecheck)
         run: bin/typecheck
 
+  pilot:
+    name: "Pilot Test: Ruby 3.0 / Rails 7.0"
+    needs: [lint]
+    runs-on: ubuntu-22.04
+    env:
+      RAILS_VERSION: "7.0"
+      RUBY_VERSION: "3.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby 3.0
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"
+          bundler-cache: true
+
+      # For bundler to work with different Ruby versions
+      - name: Set CI environment variable
+        run: echo "CI=true" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          ruby -v
+          bundle config set --local without 'development'
+          bundle install
+
+      - name: Run tests
+        run: bin/test
+        
+      # Save coverage data as an artifact
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: coverage-pilot-ruby3.0-rails7.0
+          path: coverage/
+          retention-days: 5
+
   test:
     name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"
-    needs: [lint]
+    needs: [lint, pilot]
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -78,6 +116,9 @@ jobs:
             rails: "8.0"
           - ruby: "3.0"
             rails: "8.0"
+          # Exclude the pilot combination that we already ran
+          - ruby: "3.0"
+            rails: "7.0"
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}
