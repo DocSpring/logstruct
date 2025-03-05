@@ -27,10 +27,25 @@ jobs:
           bundle install
           yarn install
 
-      - name: Generate and verify RBI files
+      - name: CSpell (Spellcheck)
+        run: bin/spellcheck
+
+      - name: Prettier (Formatting)
+        run: bin/prettier --check
+
+      - name: Tapioca (Verify RBI files)
         run: |
+          # Add a few excluded gems to tapioca config (different RBI on Mac vs. Linux)
+          ruby -r yaml -e '
+            CONFIG_FILE = "sorbet/tapioca/config.yml"
+            config = YAML.load_file(CONFIG_FILE)
+            config["gem"]["exclude"] += ["rack", "amazing_print"]
+            config["gem"]["exclude"].sort!.uniq!
+            File.write(CONFIG_FILE, config.to_yaml)
+          '
           bundle exec tapioca gems --verify
           bundle exec tapioca dsl --verify
+          git checkout sorbet/tapioca/config.yml || true
 
       - name: Check for RBI changes
         run: |
@@ -42,17 +57,11 @@ jobs:
             exit 1
           fi
 
-      - name: RuboCop
+      - name: RuboCop (Linting/Formatting)
         run: bin/rubocop
 
-      - name: Sorbet Typecheck
+      - name: Sorbet (Typecheck)
         run: bin/typecheck
-
-      - name: CSpell (Spellcheck)
-        run: bin/spellcheck
-
-      - name: Prettier (Check Formatting for .md, .yml, etc.)
-        run: bin/prettier --check
 
   test:
     name: "Tests: Ruby ${{ matrix.ruby }} / Rails ${{ matrix.rails }}"

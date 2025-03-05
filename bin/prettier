@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Format files using Prettier
-npx prettier . --write "$@"
+PRETTIER_ARG="${1:---write}"
+
+# Format / check files with Prettier
+npx prettier . "$PRETTIER_ARG"
