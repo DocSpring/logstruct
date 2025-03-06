@@ -1,5 +1,10 @@
-site/lib/log-generation/sample-data.ts
 site/.next
 site/out
+
+# Keep this formatting since it's more concise
+site/lib/log-generation/sample-data.ts
+
+# Don't format generated files
+site/lib/log-generation/log-types.ts
 site/public/coverage
 site/public/yard
