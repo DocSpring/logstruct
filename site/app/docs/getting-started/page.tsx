@@ -1,6 +1,5 @@
 import { EditPageLink } from '@/components/edit-page-link';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeBlock } from '@/components/code-block';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 
 export default function GettingStartedPage() {
@@ -17,40 +16,18 @@ export default function GettingStartedPage() {
         {`Add this line to your application's Gemfile:`}
       </p>
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
+        <CodeBlock language="ruby">
           {`gem 'logstruct'`}
-        </SyntaxHighlighter>
+        </CodeBlock>
       </div>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6 mb-4">
         And then execute:
       </p>
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="bash"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
+        <CodeBlock language="bash">
           bundle install
-        </SyntaxHighlighter>
+        </CodeBlock>
       </div>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">
@@ -79,18 +56,7 @@ export default function GettingStartedPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
+        <CodeBlock language="ruby">
           {`# Log a simple message
 Rails.logger.info "User signed in"
 
@@ -107,7 +73,7 @@ Rails.logger.tagged("Authentication") do
   Rails.logger.info "User signed in"
   Rails.logger.info({ user_id: user.id, ip_address: request.remote_ip })
 end`}
-        </SyntaxHighlighter>
+        </CodeBlock>
       </div>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">

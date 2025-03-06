@@ -1,8 +1,7 @@
 import { LogScroller } from '@/components/log-scroller';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeBlock } from '@/components/code-block';
 
 export default function Home() {
   return (
@@ -60,41 +59,17 @@ export default function Home() {
               1. Add to your Gemfile
             </h3>
             <div className="overflow-x-auto rounded-md bg-neutral-100 p-4 dark:bg-neutral-900">
-              <SyntaxHighlighter
-                language="ruby"
-                style={atomDark}
-                customStyle={{
-                  fontSize: '0.875rem',
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                  backgroundColor: 'transparent',
-                  padding: '0',
-                  borderRadius: '0px',
-                  margin: '0',
-                }}
-              >
+              <CodeBlock language="ruby">
                 {`gem "logstruct"`}
-              </SyntaxHighlighter>
+              </CodeBlock>
             </div>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
             <h3 className="mb-4 text-xl font-semibold">2. Bundle install</h3>
             <div className="overflow-x-auto rounded-md bg-neutral-100 p-4 dark:bg-neutral-900">
-              <SyntaxHighlighter
-                language="bash"
-                style={atomDark}
-                customStyle={{
-                  fontSize: '0.875rem',
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                  backgroundColor: 'transparent',
-                  padding: '0',
-                  borderRadius: '0px',
-                  margin: '0',
-                }}
-              >
+              <CodeBlock language="bash">
                 bundle install
-              </SyntaxHighlighter>
+              </CodeBlock>
             </div>
           </div>
         </div>
