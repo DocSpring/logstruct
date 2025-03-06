@@ -151,14 +151,14 @@ jobs:
       - name: Run Ruby tests
         run: bin/test
 
-      # Optional: Save coverage data as an artifact
+      # Save coverage data as an artifact for site deployment
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
           path: coverage/
-          retention-days: 5
+          retention-days: 30
           
   typescript:
     name: "TypeScript Tests"
