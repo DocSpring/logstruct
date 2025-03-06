@@ -1,17 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Auto-generated TypeScript definitions for LogStruct
-// Generated on 2025-03-06 15:05:27
+// Generated on 2025-03-06 15:19:34
 
 // Enum types
-export enum LogLevel {
-  DEBUG = "debug",
-  INFO = "info",
-  WARN = "warn",
-  ERROR = "error",
-  FATAL = "fatal",
-  UNKNOWN = "unknown",
-}
-
 export enum Source {
   TYPE_CHECKING = "type_checking",
   LOGSTRUCT = "logstruct",
@@ -24,6 +15,15 @@ export enum Source {
   SHRINE = "shrine",
   CARRIERWAVE = "carrierwave",
   SIDEKIQ = "sidekiq",
+}
+
+export enum LogLevel {
+  DEBUG = "debug",
+  INFO = "info",
+  WARN = "warn",
+  ERROR = "error",
+  FATAL = "fatal",
+  UNKNOWN = "unknown",
 }
 
 export enum LogEvent {
@@ -47,6 +47,23 @@ export enum LogEvent {
   BLOCKED_HOST = "blocked_host",
   ERROR = "error",
   UNKNOWN = "unknown",
+}
+
+export enum ErrorReporter {
+  RAILS_LOGGER = "rails_logger",
+  SENTRY = "sentry",
+  BUGSNAG = "bugsnag",
+  ROLLBAR = "rollbar",
+  HONEYBADGER = "honeybadger",
+}
+
+export enum ErrorHandlingMode {
+  IGNORE = "ignore",
+  LOG = "log",
+  REPORT = "report",
+  LOG_PRODUCTION = "log_production",
+  REPORT_PRODUCTION = "report_production",
+  RAISE = "raise",
 }
 
 // Log Types
@@ -136,7 +153,7 @@ export interface PlainLog {
   event: LogEvent;
   timestamp: string;
   level: LogLevel;
-  message: any[];
+  message: any;
 }
 
 export interface ErrorLog {

@@ -27,8 +27,11 @@ module LogStruct
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 
-      # Log message (can be String, Number, Boolean, Hash, Array, or other basic types)
-      const :message, T.any(String, Numeric, Symbol, NilClass, TrueClass, FalseClass, T::Hash[T.untyped, T.untyped], T::Array[T.untyped])
+      # Plain log messages can be any type (String, Number, Array, Hash, etc.)
+      # Developers might do something like Rails.logger.info(123) or Rails.logger.info(@variable)
+      # when debugging, or gems might send all kinds of random stuff to the logger.
+      # We don't want to crash with a type error in any of these cases.
+      const :message, T.untyped # rubocop:disable Sorbet/ForbidUntypedStructProps
 
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }

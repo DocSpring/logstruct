@@ -88,6 +88,24 @@ class LogStructLogTypesExporterTest < Minitest::Test
     assert_equal "string[]", ts_type, "Backtrace TypeScript type should be string[]"
   end
   
+  def test_plain_log_message_is_any_type
+    # Get the actual Plain log struct class
+    plain_struct = LogStruct::Log::Plain
+    
+    # Get the message prop info
+    message_prop_info = plain_struct.props[:message]
+    
+    # Extract the type info using our exporter
+    type_info = @exporter.extract_type_info(message_prop_info)
+    
+    # Test that it's correctly identified as any type
+    assert_equal "any", type_info[:type], "Plain log message should be identified as any type"
+    
+    # Test the resulting TypeScript type
+    ts_type = @exporter.typescript_type_for(type_info)
+    assert_equal "any", ts_type, "Plain log message TypeScript type should be any"
+  end
+  
   def test_log_level_is_enum_type
     # Test with the actual LogLevel enum field from a log class
     request_struct = LogStruct::Log::Request
