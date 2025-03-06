@@ -16,19 +16,19 @@
       "addWords": true
     },
     {
-      "name": "root-lockfile-words",
-      "path": "./.cspell/root-lockfile-words.txt",
+      "name": "lockfile-words-root",
+      "path": "./.cspell/generated-lockfile-words-root.txt",
       "addWords": false
     },
     {
-      "name": "site-lockfile-words",
-      "path": "./.cspell/site-lockfile-words.txt",
+      "name": "lockfile-words-site",
+      "path": "./.cspell/generated-lockfile-words-site.txt",
       "addWords": false
     }
   ],
   "dictionaries": [
     "project-words",
-    "root-lockfile-words",
-    "site-lockfile-words"
+    "lockfile-words-root",
+    "lockfile-words-site"
   ]
 }

@@ -28,6 +28,10 @@ jobs:
           yarn install
           cd site && yarn install && cd ..
 
+      - name: Generate CSpell dictionaries from package lockfiles
+        run: |
+          bin/generate_lockfile_words
+
       - name: CSpell (Spellcheck)
         run: bin/spellcheck
 

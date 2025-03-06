@@ -12,3 +12,6 @@
 /log
 
 # Next.js site ignore rules are in ./site/.gitignore
+
+# CSpell generated wordlists (from package lockfiles)
+.cspell/generated-*.txt
