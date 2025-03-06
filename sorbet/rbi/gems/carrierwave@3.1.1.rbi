@@ -5,6 +5,15 @@
 # Please instead update this file by running `bin/tapioca gem carrierwave`.
 
 
+class ActiveRecord::Base
+  include ::ActiveModel::ForbiddenAttributesProtection
+  include ::ActiveModel::AttributeAssignment
+  include ::ActiveModel::Access
+  include ::ActiveModel::Serialization
+  extend ::CarrierWave::Mount
+  extend ::CarrierWave::ActiveRecord
+end
+
 # source://carrierwave//lib/carrierwave.rb#8
 module CarrierWave
   class << self
@@ -60,6 +69,16 @@ module CarrierWave
     # source://carrierwave//lib/carrierwave.rb#12
     def tmp_path=(_arg0); end
   end
+end
+
+# source://carrierwave//lib/carrierwave/orm/activerecord.rb#5
+module CarrierWave::ActiveRecord
+  include ::CarrierWave::Mount
+
+  private
+
+  # source://carrierwave//lib/carrierwave/orm/activerecord.rb#11
+  def mount_base(column, uploader = T.unsafe(nil), options = T.unsafe(nil), &block); end
 end
 
 # source://carrierwave//lib/carrierwave/uploader/cache.rb#11
@@ -3019,7 +3038,7 @@ module CarrierWave::Uploader::Cache
   # source://carrierwave//lib/carrierwave/uploader/cache.rb#165
   def retrieve_from_cache!(cache_name); end
 
-  # source://activesupport/7.0.8.7/lib/active_support/deprecation/method_wrappers.rb#63
+  # source://activesupport/7.2.2.1/lib/active_support/deprecation/method_wrappers.rb#46
   def sanitized_file(*args, **_arg1, &block); end
 
   protected
@@ -4069,7 +4088,7 @@ module CarrierWave::Uploader::Versions
   #
   # @return [Boolean]
   #
-  # source://activesupport/7.0.8.7/lib/active_support/deprecation/method_wrappers.rb#63
+  # source://activesupport/7.2.2.1/lib/active_support/deprecation/method_wrappers.rb#46
   def version_exists?(*args, **_arg1, &block); end
 
   # === Returns
@@ -4272,6 +4291,62 @@ CarrierWave::Utilities::Uri::PATH_UNSAFE = T.let(T.unsafe(nil), Regexp)
 
 # source://carrierwave//lib/carrierwave/version.rb#2
 CarrierWave::VERSION = T.let(T.unsafe(nil), String)
+
+# == Active Model Presence Validator
+#
+# source://carrierwave//lib/carrierwave/validations/active_model.rb#7
+module CarrierWave::Validations; end
+
+# source://carrierwave//lib/carrierwave/validations/active_model.rb#8
+module CarrierWave::Validations::ActiveModel
+  extend ::ActiveSupport::Concern
+  include ::CarrierWave::Validations::ActiveModel::HelperMethods
+
+  mixes_in_class_methods ::CarrierWave::Validations::ActiveModel::HelperMethods
+end
+
+# source://carrierwave//lib/carrierwave/validations/active_model.rb#29
+class CarrierWave::Validations::ActiveModel::DownloadValidator < ::ActiveModel::EachValidator
+  # source://carrierwave//lib/carrierwave/validations/active_model.rb#31
+  def validate_each(record, attribute, value); end
+end
+
+# source://carrierwave//lib/carrierwave/validations/active_model.rb#38
+module CarrierWave::Validations::ActiveModel::HelperMethods
+  # Makes the record invalid if the remote file couldn't be downloaded
+  #
+  # Accepts the usual parameters for validations in Rails (:if, :unless, etc...)
+  #
+  # source://carrierwave//lib/carrierwave/validations/active_model.rb#65
+  def validates_download_of(*attr_names); end
+
+  # Makes the record invalid if the file couldn't be uploaded due to an integrity error
+  #
+  # Accepts the usual parameters for validations in Rails (:if, :unless, etc...)
+  #
+  # source://carrierwave//lib/carrierwave/validations/active_model.rb#45
+  def validates_integrity_of(*attr_names); end
+
+  # Makes the record invalid if the file couldn't be processed (assuming the process failed
+  # with a CarrierWave::ProcessingError)
+  #
+  # Accepts the usual parameters for validations in Rails (:if, :unless, etc...)
+  #
+  # source://carrierwave//lib/carrierwave/validations/active_model.rb#55
+  def validates_processing_of(*attr_names); end
+end
+
+# source://carrierwave//lib/carrierwave/validations/active_model.rb#20
+class CarrierWave::Validations::ActiveModel::IntegrityValidator < ::ActiveModel::EachValidator
+  # source://carrierwave//lib/carrierwave/validations/active_model.rb#22
+  def validate_each(record, attribute, value); end
+end
+
+# source://carrierwave//lib/carrierwave/validations/active_model.rb#11
+class CarrierWave::Validations::ActiveModel::ProcessingValidator < ::ActiveModel::EachValidator
+  # source://carrierwave//lib/carrierwave/validations/active_model.rb#13
+  def validate_each(record, attribute, value); end
+end
 
 # This module simplifies manipulation with vips by providing a set
 # of convenient helper methods. If you want to use them, you'll need to

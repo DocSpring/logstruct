@@ -40,6 +40,12 @@ class Thor
   # source://thor//lib/thor.rb#663
   def help(command = T.unsafe(nil), subcommand = T.unsafe(nil)); end
 
+  # source://honeybadger/5.26.4/lib/honeybadger/plugins/thor.rb#16
+  def invoke_command(*args); end
+
+  # source://thor//lib/thor/invocation.rb#122
+  def invoke_command_without_honeybadger(command, *args); end
+
   class << self
     # Adds and declares option group for required at least one of options in the
     # block of arguments. You can declare options as the outside of the block.

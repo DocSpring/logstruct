@@ -99,7 +99,7 @@ module Lograge
   # source://lograge//lib/lograge.rb#224
   def lograge_config; end
 
-  # source://lograge//lib/lograge.rb#238
+  # source://lograge//lib/lograge.rb#234
   def notification_listeners_for(name); end
 
   # source://lograge//lib/lograge.rb#207
@@ -224,7 +224,7 @@ module Lograge
     # source://lograge//lib/lograge.rb#224
     def lograge_config; end
 
-    # source://lograge//lib/lograge.rb#238
+    # source://lograge//lib/lograge.rb#234
     def notification_listeners_for(name); end
 
     # source://lograge//lib/lograge.rb#109

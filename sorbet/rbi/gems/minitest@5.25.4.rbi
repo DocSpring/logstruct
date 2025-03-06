@@ -1292,7 +1292,7 @@ end
 # source://minitest//lib/minitest.rb#592
 Minitest::Reportable::BASE_DIR = T.let(T.unsafe(nil), String)
 
-# source://minitest//lib/minitest.rb#735
+# source://minitest//lib/minitest.rb#733
 class Minitest::Reporter < ::Minitest::AbstractReporter
   # @return [Reporter] a new instance of Reporter
   #
@@ -1494,6 +1494,9 @@ class Minitest::Runnable
     # source://minitest//lib/minitest.rb#464
     def on_signal(name, action); end
 
+    # source://minitest//lib/minitest.rb#481
+    def original_runnable_methods; end
+
     # source://minitest//lib/minitest.rb#394
     def reset; end
 
@@ -1516,8 +1519,6 @@ class Minitest::Runnable
     # method to return all runnable methods. See #methods_matching.
     #
     # @raise [NotImplementedError]
-    #
-    # source://minitest//lib/minitest.rb#481
     def runnable_methods; end
 
     # Returns all subclasses of Runnable.

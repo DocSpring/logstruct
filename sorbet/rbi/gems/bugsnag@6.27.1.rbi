@@ -2113,6 +2113,17 @@ end
 # source://bugsnag//lib/bugsnag/middleware/breadcrumbs.rb#1
 module Bugsnag::Middleware; end
 
+# source://bugsnag//lib/bugsnag/middleware/active_job.rb#2
+class Bugsnag::Middleware::ActiveJob
+  # @return [ActiveJob] a new instance of ActiveJob
+  #
+  # source://bugsnag//lib/bugsnag/middleware/active_job.rb#3
+  def initialize(bugsnag); end
+
+  # source://bugsnag//lib/bugsnag/middleware/active_job.rb#7
+  def call(report); end
+end
+
 # Adds breadcrumbs to the report
 #
 # source://bugsnag//lib/bugsnag/middleware/breadcrumbs.rb#4
@@ -2502,6 +2513,65 @@ Bugsnag::Rack::FRAMEWORK_ATTRIBUTES = T.let(T.unsafe(nil), Hash)
 
 # source://bugsnag//lib/bugsnag/integrations/rails/rails_breadcrumbs.rb#1
 module Bugsnag::Rails; end
+
+# source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#2
+module Bugsnag::Rails::ActiveJob
+  private
+
+  # source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#81
+  def _bugsnag_extract_metadata(job); end
+
+  # source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#71
+  def _bugsnag_get_adapter_name(job); end
+
+  class << self
+    # @private
+    #
+    # source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#29
+    def included(base); end
+  end
+end
+
+# source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#9
+Bugsnag::Rails::ActiveJob::EXISTING_INTEGRATIONS = T.let(T.unsafe(nil), Set)
+
+# source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#17
+Bugsnag::Rails::ActiveJob::INLINE_ADAPTER = T.let(T.unsafe(nil), String)
+
+# these methods were added after the first Active Job release so
+# may not be present, depending on the Rails version
+#
+# source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#21
+Bugsnag::Rails::ActiveJob::MAYBE_MISSING_METHODS = T.let(T.unsafe(nil), Array)
+
+# source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#3
+Bugsnag::Rails::ActiveJob::SEVERITY = T.let(T.unsafe(nil), String)
+
+# source://bugsnag//lib/bugsnag/integrations/rails/active_job.rb#4
+Bugsnag::Rails::ActiveJob::SEVERITY_REASON = T.let(T.unsafe(nil), Hash)
+
+# source://bugsnag//lib/bugsnag/integrations/rails/controller_methods.rb#2
+module Bugsnag::Rails::ControllerMethods
+  mixes_in_class_methods ::Bugsnag::Rails::ControllerMethods::ClassMethods
+
+  class << self
+    # @private
+    #
+    # source://bugsnag//lib/bugsnag/integrations/rails/controller_methods.rb#3
+    def included(base); end
+  end
+end
+
+# source://bugsnag//lib/bugsnag/integrations/rails/controller_methods.rb#7
+module Bugsnag::Rails::ControllerMethods::ClassMethods
+  private
+
+  # source://bugsnag//lib/bugsnag/integrations/rails/controller_methods.rb#14
+  def _add_bugsnag_notify_callback(callback_key, *methods, &block); end
+
+  # source://bugsnag//lib/bugsnag/integrations/rails/controller_methods.rb#10
+  def before_bugsnag_notify(*methods, &block); end
+end
 
 # source://bugsnag//lib/bugsnag/integrations/rails/rails_breadcrumbs.rb#2
 Bugsnag::Rails::DEFAULT_RAILS_BREADCRUMBS = T.let(T.unsafe(nil), Array)

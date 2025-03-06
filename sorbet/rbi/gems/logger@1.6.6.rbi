@@ -423,36 +423,6 @@ class Logger
   # source://logger//lib/logger.rb#689
   def <<(msg); end
 
-  # Creates a log entry, which may or may not be written to the log,
-  # depending on the entry's severity and on the log level.
-  # See {Log Level}[rdoc-ref:Logger@Log+Level]
-  # and {Entries}[rdoc-ref:Logger@Entries] for details.
-  #
-  # Examples:
-  #
-  #   logger = Logger.new($stdout, progname: 'mung')
-  #   logger.add(Logger::INFO)
-  #   logger.add(Logger::ERROR, 'No good')
-  #   logger.add(Logger::ERROR, 'No good', 'gnum')
-  #
-  # Output:
-  #
-  #   I, [2022-05-12T16:25:31.469726 #36328]  INFO -- mung: mung
-  #   E, [2022-05-12T16:25:55.349414 #36328] ERROR -- mung: No good
-  #   E, [2022-05-12T16:26:35.841134 #36328] ERROR -- gnum: No good
-  #
-  # These convenience methods have implicit severity:
-  #
-  # - #debug.
-  # - #info.
-  # - #warn.
-  # - #error.
-  # - #fatal.
-  # - #unknown.
-  #
-  # source://logger//lib/logger.rb#656
-  def add(severity, message = T.unsafe(nil), progname = T.unsafe(nil)); end
-
   # Closes the logger; returns +nil+:
   #
   #   logger = Logger.new('t.log')

@@ -79,6 +79,40 @@ jobs:
       - name: Sorbet (Typecheck)
         run: bin/typecheck
 
+  site:
+    name: "Next.js Site Tests"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ".ruby-version"
+          bundler-cache: true
+
+      - name: Setup Node.js (site)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: "site/package-lock.json"
+
+      - name: Install site dependencies
+        run: cd site && npm ci
+
+      - name: Export TypeScript types from LogStruct
+        run: |
+          ruby scripts/export_typescript_types.rb
+
+      - name: TypeScript type checking
+        run: |
+          cd site && npx tsc --noEmit
+
+      - name: Run TypeScript tests
+        run: |
+          cd site && npm test
+
   pilot:
     name: "Pilot Test: Ruby 3.2 / Rails 7.0"
     runs-on: ubuntu-22.04
@@ -120,10 +154,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Ruby 3.2 / Rails 7.1"
-            ruby: "3.2"
-            rails: "7.1"
-
           - name: "Ruby 3.3 / Rails 7.1"
             ruby: "3.3"
             rails: "7.1"
@@ -162,38 +192,3 @@ jobs:
           name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
           path: coverage/
           retention-days: 30
-
-  typescript:
-    name: "TypeScript Tests"
-    needs: [matrix]
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ".ruby-version"
-          bundler-cache: true
-
-      - name: Setup Node.js (site)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: "site/package-lock.json"
-
-      - name: Install site dependencies
-        run: cd site && npm ci
-
-      - name: Export TypeScript types
-        run: |
-          ruby scripts/export_typescript_types.rb
-
-      - name: TypeScript type checking
-        run: |
-          cd site && npx tsc --noEmit
-
-      - name: Run TypeScript tests
-        run: |
-          cd site && npm test

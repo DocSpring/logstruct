@@ -39,14 +39,14 @@ module LogStruct
 
         puts "Exported log types to #{@output_ts_file}"
       end
-      
+
       # Public method to generate TypeScript definitions as a string
       # This is the method we can test easily without file I/O
       sig { returns(String) }
       def generate_typescript_definitions
         # Get the data
         log_types_data = generate_data
-        
+
         # Transform data to TypeScript
         generate_typescript(log_types_data)
       end
@@ -62,12 +62,12 @@ module LogStruct
           logs: export_log_structs
         }
       end
-      
+
       # Find and export all T::Enum subclasses in the LogStruct module
       sig { returns(T::Hash[Symbol, T::Array[String]]) }
       def export_enums
         enum_hash = {}
-        
+
         # Find all T::Enum subclasses in the LogStruct module
         T::Enum.subclasses
           .select { |klass| klass.name.to_s.start_with?("LogStruct::") }
@@ -75,11 +75,11 @@ module LogStruct
             # Extract enum name (last part of the class name)
             enum_name = enum_class.name.to_s.split("::").last&.to_sym
             next if enum_name.nil? # Skip if we couldn't get a valid name
-            
+
             # Add enum values to the hash
             enum_hash[enum_name] = enum_class.values.map(&:serialize)
           end
-        
+
         enum_hash
       end
       private :generate_data
@@ -176,12 +176,12 @@ module LogStruct
         # Extract type information from prop_info
         type_obj = prop_info[:type]
         type_str = type_obj.to_s
-        
+
         # Uncomment for debugging
         # puts "Extracting type info for: #{type_str}"
         # puts "Array key present? #{prop_info.key?(:array)}" if prop_info.key?(:array)
         # puts "Array value: #{prop_info[:array]}" if prop_info.key?(:array)
-        
+
         # Check if this is optional (nilable)
         is_optional = type_str.include?("T.nilable")
 
@@ -200,20 +200,20 @@ module LogStruct
           result[:values] = "LogEvent"
         elsif type_str.include?("T::Array") || type_str.include?("TypedArray") || (type_str == "T::Array[String]") || prop_info.key?(:array)
           result[:type] = "array"
-          
+
           # Get array item type if available
           if prop_info[:array]
             item_type = prop_info[:array].to_s
-            if item_type.include?("String")
-              result[:item_type] = "string"
+            result[:item_type] = if item_type.include?("String")
+              "string"
             elsif item_type.include?("Integer")
-              result[:item_type] = "integer"
+              "integer"
             elsif item_type.include?("Float")
-              result[:item_type] = "number"
+              "number"
             elsif item_type.include?("Boolean") || item_type.include?("TrueClass") || item_type.include?("FalseClass")
-              result[:item_type] = "boolean"
+              "boolean"
             else
-              result[:item_type] = "any"
+              "any"
             end
           end
         elsif type_str.include?("String")
@@ -237,7 +237,7 @@ module LogStruct
         # Uncomment for debugging
         # puts "Detected type: #{result[:type]}"
         # puts "Item type: #{result[:item_type]}" if result[:item_type]
-        
+
         result
       end
 
@@ -248,10 +248,8 @@ module LogStruct
           field_info[:values]
         when "string"
           if field_info[:format] == "date-time"
-            "string" # Could use Date, but string is more compatible
-          else
-            "string"
           end
+          "string"
         when "integer", "number"
           "number"
         when "boolean"

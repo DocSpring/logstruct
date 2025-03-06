@@ -5,6 +5,15 @@
 # Please instead update this file by running `bin/tapioca gem honeybadger`.
 
 
+class ActionDispatch::DebugExceptions
+  include ::Honeybadger::Plugins::Rails::ExceptionsCatcher
+  include ::Rollbar::ExceptionReporter
+end
+
+class ActiveSupport::LogSubscriber < ::ActiveSupport::Subscriber
+  include ::Honeybadger::Breadcrumbs::LogSubscriberInjector
+end
+
 # Honeybadger's public API is made up of two parts: the {Honeybadger} singleton
 # module, and the {Agent} class. The singleton module delegates its methods to
 # a global agent instance, {Agent#instance}; this allows methods to be accessed
@@ -235,6 +244,68 @@ module Honeybadger
   #
   # source://honeybadger//lib/honeybadger/singleton.rb#104
   def ignored_exception?(exception); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#65
+class Honeybadger::ActionControllerCacheSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#66
+  def format_payload(payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#59
+class Honeybadger::ActionControllerSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#60
+  def format_payload(payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#135
+class Honeybadger::ActionMailerSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#136
+  def format_payload(payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#97
+class Honeybadger::ActionViewSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#100
+  def format_payload(payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#98
+Honeybadger::ActionViewSubscriber::PROJECT_ROOT = T.let(T.unsafe(nil), String)
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#122
+class Honeybadger::ActiveJobSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#123
+  def format_payload(payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#108
+class Honeybadger::ActiveRecordSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#109
+  def format_payload(payload); end
+
+  # @return [Boolean]
+  #
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#116
+  def process?(event, payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#151
+class Honeybadger::ActiveStorageSubscriber < ::Honeybadger::NotificationSubscriber; end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#79
+class Honeybadger::ActiveSupportCacheMultiSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#86
+  def expand_cache_keys_from_payload(data); end
+
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#80
+  def format_payload(payload); end
+end
+
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#72
+class Honeybadger::ActiveSupportCacheSubscriber < ::Honeybadger::NotificationSubscriber
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#73
+  def format_payload(payload); end
 end
 
 # The Honeybadger agent contains all the methods for interacting with the
@@ -1368,6 +1439,53 @@ class Honeybadger::Breadcrumbs::Collector
   #
   # source://honeybadger//lib/honeybadger/breadcrumbs/collector.rb#76
   def initialize_dup(source); end
+end
+
+# This module is designed to be prepended into the
+# ActiveSupport::LogSubscriber for the sole purpose of silencing breadcrumb
+# log events. Since we already have specific breadcrumb events for each
+# class that provides LogSubscriber events, we want to filter out those
+# logs as they just become noise.
+#
+# @api private
+#
+# source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#41
+module Honeybadger::Breadcrumbs::LogSubscriberInjector
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#43
+  def debug(*args, &block); end
+
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#43
+  def error(*args, &block); end
+
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#43
+  def fatal(*args, &block); end
+
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#43
+  def info(*args, &block); end
+
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#43
+  def unknown(*args, &block); end
+
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#43
+  def warn(*args, &block); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#5
+module Honeybadger::Breadcrumbs::LogWrapper
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#6
+  def add(severity, message = T.unsafe(nil), progname = T.unsafe(nil)); end
+
+  private
+
+  # @api private
+  # @return [Boolean]
+  #
+  # source://honeybadger//lib/honeybadger/breadcrumbs/logging.rb#26
+  def should_ignore_log?(message, progname); end
 end
 
 # source://honeybadger//lib/honeybadger/breadcrumbs/ring_buffer.rb#3
@@ -2672,6 +2790,7 @@ end
 #
 # source://honeybadger//lib/honeybadger/logging.rb#68
 class Honeybadger::Logging::BootLogger < ::Honeybadger::Logging::Base
+  include ::Singleton::SingletonInstanceMethods
   include ::Singleton
   extend ::Singleton::SingletonClassMethods
 
@@ -3624,6 +3743,31 @@ Honeybadger::Notice::TAG_SANITIZER = T.let(T.unsafe(nil), Regexp)
 # source://honeybadger//lib/honeybadger/notice.rb#56
 Honeybadger::Notice::TAG_SEPERATOR = T.let(T.unsafe(nil), Regexp)
 
+# source://honeybadger//lib/honeybadger/notification_subscriber.rb#5
+class Honeybadger::NotificationSubscriber
+  include ::Honeybadger::InstrumentationHelper
+
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#12
+  def finish(name, id, payload); end
+
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#54
+  def format_payload(payload); end
+
+  # @return [Boolean]
+  #
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#50
+  def process?(event, payload); end
+
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#24
+  def record(name, payload); end
+
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#35
+  def record_metrics(name, payload); end
+
+  # source://honeybadger//lib/honeybadger/notification_subscriber.rb#8
+  def start(name, id, payload); end
+end
+
 # Substitution for project root in backtrace lines.
 #
 # @api private
@@ -3915,6 +4059,373 @@ end
 # source://honeybadger//lib/honeybadger/const.rb#14
 module Honeybadger::Plugins; end
 
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/active_job.rb#5
+module Honeybadger::Plugins::ActiveJob
+  class << self
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/active_job.rb#23
+    def context(job); end
+
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/active_job.rb#10
+    def perform_around(job, block); end
+  end
+end
+
+# Ignore the adapters that we support with their own plugins
+#
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/active_job.rb#7
+Honeybadger::Plugins::ActiveJob::EXCLUDED_ADAPTERS = T.let(T.unsafe(nil), Array)
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/autotuner.rb#6
+module Honeybadger::Plugins::Autotuner; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/faktory.rb#6
+module Honeybadger::Plugins::Faktory; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/faktory.rb#7
+class Honeybadger::Plugins::Faktory::Middleware
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/faktory.rb#8
+  def call(worker, job); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/lambda.rb#6
+module Honeybadger::Plugins::LambdaExtension
+  # Wrap Lambda handlers so exceptions can be automatically captured
+  #
+  # Usage:
+  #
+  # # Automatically included in the top-level main object
+  # hb_wrap_handler :my_handler_1, :my_handler_2
+  #
+  # def my_handler_1(event:, context:)
+  # end
+  #
+  # class MyLambdaApp
+  #   extend ::Honeybadger::Plugins::LambdaExtension
+  #
+  #   hb_wrap_handler :my_handler_1, :my_handler_2
+  #
+  #   def self.my_handler_1(event:, context:)
+  #   end
+  # end
+  #
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/lambda.rb#25
+  def hb_wrap_handler(*handler_names); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/local_variables.rb#6
+module Honeybadger::Plugins::LocalVariables; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/local_variables.rb#7
+module Honeybadger::Plugins::LocalVariables::ExceptionExtension
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/local_variables.rb#21
+  def __honeybadger_bindings_stack; end
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/local_variables.rb#13
+  def set_backtrace_with_honeybadger(*args, &block); end
+
+  class << self
+    # @api private
+    # @private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/local_variables.rb#8
+    def included(base); end
+  end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/net_http.rb#8
+module Honeybadger::Plugins::Net; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/net_http.rb#9
+module Honeybadger::Plugins::Net::HTTP
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/net_http.rb#50
+  def build_uri(request_data); end
+
+  # @api private
+  # @return [Boolean]
+  #
+  # source://honeybadger//lib/honeybadger/plugins/net_http.rb#38
+  def hb?; end
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/net_http.rb#42
+  def parsed_uri_data(request_data); end
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/net_http.rb#16
+  def request(request_data, body = T.unsafe(nil), &block); end
+
+  class << self
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/net_http.rb#12
+    def set_hb_config(config); end
+  end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/passenger.rb#6
+module Honeybadger::Plugins::Passenger; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/rails.rb#6
+module Honeybadger::Plugins::Rails; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/rails.rb#33
+class Honeybadger::Plugins::Rails::ErrorSubscriber
+  class << self
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/rails.rb#34
+    def report(exception, handled:, severity:, context: T.unsafe(nil), source: T.unsafe(nil)); end
+
+    # @api private
+    # @return [Boolean]
+    #
+    # source://honeybadger//lib/honeybadger/plugins/rails.rb#47
+    def source_ignored?(source); end
+  end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/rails.rb#7
+module Honeybadger::Plugins::Rails::ExceptionsCatcher
+  # Adds additional Honeybadger info to Request env when an
+  # exception is rendered in Rails' middleware.
+  #
+  # @api private
+  # @param arg [Hash, ActionDispatch::Request] The Rack env +Hash+ in
+  #   Rails 3.0-4.2. After Rails 5 +arg+ is an +ActionDispatch::Request+.
+  # @param exception [Exception] The error which was rescued.
+  # @return The super value of the middleware's +#render_exception()+
+  #   method.
+  #
+  # source://honeybadger//lib/honeybadger/plugins/rails.rb#17
+  def render_exception(arg, exception, *args); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/breadcrumbs.rb#60
+class Honeybadger::Plugins::RailsBreadcrumbs
+  class << self
+    # Used internally for sending out Rails Instrumentation breadcrumbs.
+    #
+    # @api private
+    # @option notification_config
+    # @option notification_config
+    # @option notification_config
+    # @option notification_config
+    # @option notification_config
+    # @param name [String] The ActiveSupport instrumentation key
+    # @param duration [Number] The time spent in the instrumentation event
+    # @param notification_config [Hash] The instrumentation event configuration
+    # @param data [Hash] Custom metadata from the instrumentation event
+    #
+    # source://honeybadger//lib/honeybadger/plugins/breadcrumbs.rb#75
+    def send_breadcrumb_notification(name, duration, notification_config, data = T.unsafe(nil)); end
+
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/breadcrumbs.rb#102
+    def subscribe_to_notification(name, notification_config); end
+  end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/resque.rb#6
+module Honeybadger::Plugins::Resque; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/resque.rb#7
+module Honeybadger::Plugins::Resque::Extension
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/resque.rb#14
+  def after_perform_with_honeybadger(*args); end
+
+  # Executed before +on_failure+ hook; the flush is necessary so that
+  # errors reported within jobs get sent before the worker dies.
+  #
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/resque.rb#10
+  def around_perform_with_honeybadger(*args); end
+
+  # Error notifications must be synchronous as the +on_failure+ hook is
+  # executed after +around_perform+.
+  #
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/resque.rb#20
+  def on_failure_with_honeybadger(e, *args); end
+
+  # @api private
+  # @return [Boolean]
+  #
+  # source://honeybadger//lib/honeybadger/plugins/resque.rb#26
+  def send_exception_to_honeybadger?(e, args); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/resque.rb#36
+module Honeybadger::Plugins::Resque::Installer
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/resque.rb#42
+  def payload_class_with_honeybadger; end
+
+  class << self
+    # @api private
+    # @private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/resque.rb#37
+    def included(base); end
+  end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/shoryuken.rb#6
+module Honeybadger::Plugins::Shoryuken; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/shoryuken.rb#7
+class Honeybadger::Plugins::Shoryuken::Middleware
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/shoryuken.rb#8
+  def call(_worker, _queue, sqs_msg, body); end
+
+  private
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/shoryuken.rb#24
+  def attempt_threshold; end
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/shoryuken.rb#34
+  def notification_params(body); end
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/shoryuken.rb#28
+  def receive_count(sqs_msg); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#7
+module Honeybadger::Plugins::Sidekiq; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#53
+class Honeybadger::Plugins::Sidekiq::ClientMiddlewareInstrumentation
+  include ::Honeybadger::InstrumentationHelper
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#56
+  def call(worker, msg, queue, _redis); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#8
+class Honeybadger::Plugins::Sidekiq::Middleware
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#9
+  def call(_worker, _msg, _queue); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#15
+class Honeybadger::Plugins::Sidekiq::ServerMiddlewareInstrumentation
+  include ::Honeybadger::InstrumentationHelper
+
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/sidekiq.rb#18
+  def call(worker, msg, queue, &block); end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/solid_queue.rb#3
+module Honeybadger::Plugins::SolidQueue; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/system.rb#6
+module Honeybadger::Plugins::System; end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/plugins/thor.rb#6
+module Honeybadger::Plugins::Thor
+  # @api private
+  #
+  # source://honeybadger//lib/honeybadger/plugins/thor.rb#16
+  def invoke_command_with_honeybadger(*args); end
+
+  class << self
+    # @api private
+    # @private
+    #
+    # source://honeybadger//lib/honeybadger/plugins/thor.rb#7
+    def included(base); end
+  end
+end
+
 # Matches lines beginning with ./
 #
 # @api private
@@ -4058,54 +4569,6 @@ class Honeybadger::Rack::UserInformer
   def agent; end
 end
 
-# Patch Rake::Application to handle errors with Honeybadger
-#
-# @api private
-#
-# source://honeybadger//lib/honeybadger/init/rake.rb#6
-module Honeybadger::RakeHandler
-  # @api private
-  #
-  # source://honeybadger//lib/honeybadger/init/rake.rb#15
-  def display_error_message_with_honeybadger(ex); end
-
-  # @api private
-  #
-  # source://honeybadger//lib/honeybadger/init/rake.rb#22
-  def reconstruct_command_line; end
-
-  class << self
-    # @api private
-    # @private
-    #
-    # source://honeybadger//lib/honeybadger/init/rake.rb#7
-    def included(klass); end
-  end
-end
-
-# This module brings Rake 0.8.7 error handling to 0.9.0 standards
-#
-# @api private
-#
-# source://honeybadger//lib/honeybadger/init/rake.rb#27
-module Honeybadger::RakeHandler::Rake087Methods
-  # Method extracted from Rake 0.8.7 source
-  #
-  # @api private
-  #
-  # source://honeybadger//lib/honeybadger/init/rake.rb#48
-  def display_error_message(ex); end
-
-  # Method taken from Rake 0.9.0 source
-  #
-  # Provide standard exception handling for the given block.
-  #
-  # @api private
-  #
-  # source://honeybadger//lib/honeybadger/init/rake.rb#31
-  def standard_exception_handling; end
-end
-
 # source://honeybadger//lib/honeybadger/registry.rb#2
 class Honeybadger::Registry
   # @return [Registry] a new instance of Registry
@@ -4223,6 +4686,34 @@ Honeybadger::Util::HTTP::ERRORS = T.let(T.unsafe(nil), Array)
 #
 # source://honeybadger//lib/honeybadger/util/http.rb#17
 Honeybadger::Util::HTTP::HEADERS = T.let(T.unsafe(nil), Hash)
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/util/lambda.rb#3
+class Honeybadger::Util::Lambda
+  class << self
+    # @api private
+    # @return [Boolean]
+    #
+    # source://honeybadger//lib/honeybadger/util/lambda.rb#16
+    def lambda_execution?; end
+
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/util/lambda.rb#20
+    def normalized_data; end
+
+    # @api private
+    #
+    # source://honeybadger//lib/honeybadger/util/lambda.rb#26
+    def trace_id; end
+  end
+end
+
+# @api private
+#
+# source://honeybadger//lib/honeybadger/util/lambda.rb#4
+Honeybadger::Util::Lambda::AWS_ENV_MAP = T.let(T.unsafe(nil), Hash)
 
 # Constructs a request hash from a Rack::Request matching the /v1/notices
 # API specification.
@@ -4810,3 +5301,11 @@ Honeybadger::Worker::SHUTDOWN = T.let(T.unsafe(nil), Symbol)
 #
 # source://honeybadger//lib/honeybadger/worker.rb#15
 class Honeybadger::Worker::Thread < ::Thread; end
+
+class Logger
+  include ::Honeybadger::Breadcrumbs::LogWrapper
+end
+
+class Thor
+  include ::Honeybadger::Plugins::Thor
+end

@@ -842,6 +842,7 @@ Rake::EMPTY_TASK_ARGS = T.let(T.unsafe(nil), Rake::TaskArguments)
 # source://rake//lib/rake/early_time.rb#5
 class Rake::EarlyTime
   include ::Comparable
+  include ::Singleton::SingletonInstanceMethods
   include ::Singleton
   extend ::Singleton::SingletonClassMethods
 
@@ -1015,6 +1016,12 @@ class Rake::FileList
   def compact!(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
+  def compact_blank(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def compact_blank!(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
   def concat(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
@@ -1109,6 +1116,9 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#150
   def exclude(*patterns, &block); end
 
+  # source://rake//lib/rake/file_list.rb#77
+  def exclude?(*args, &block); end
+
   # Should the given file name be excluded from the list?
   #
   # NOTE: This method was formerly named "exclude?", but Rails
@@ -1150,10 +1160,13 @@ class Rake::FileList
   def ext(newext = T.unsafe(nil)); end
 
   # source://rake//lib/rake/file_list.rb#77
+  def extract_options!(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
   def fetch(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
-  def fifth(*args, &block); end
+  def fetch_values(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
   def fill(*args, &block); end
@@ -1188,15 +1201,6 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#77
   def flatten!(*args, &block); end
 
-  # source://rake//lib/rake/file_list.rb#77
-  def forty_two(*args, &block); end
-
-  # source://rake//lib/rake/file_list.rb#77
-  def fourth(*args, &block); end
-
-  # source://rake//lib/rake/file_list.rb#77
-  def from(*args, &block); end
-
   # source://rake//lib/rake/file_list.rb#68
   def grep(*args, &block); end
 
@@ -1224,6 +1228,9 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#391
   def import(array); end
 
+  # source://rake//lib/rake/file_list.rb#77
+  def in_order_of(*args, &block); end
+
   # Add file names defined by glob patterns to the file list.  If an array
   # is given, add each element of the array.
   #
@@ -1242,6 +1249,12 @@ class Rake::FileList
 
   # source://rake//lib/rake/file_list.rb#77
   def index(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def index_by(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def index_with(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
   def inject(*args, &block); end
@@ -1287,6 +1300,9 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#77
   def length(*args, &block); end
 
+  # source://rake//lib/rake/file_list.rb#77
+  def many?(*args, &block); end
+
   # source://rake//lib/rake/file_list.rb#68
   def map(*args, &block); end
 
@@ -1300,6 +1316,9 @@ class Rake::FileList
   def max_by(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
+  def maximum(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
   def member?(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
@@ -1307,6 +1326,9 @@ class Rake::FileList
 
   # source://rake//lib/rake/file_list.rb#77
   def min_by(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def minimum(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
   def minmax(*args, &block); end
@@ -1340,7 +1362,13 @@ class Rake::FileList
   def permutation(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
+  def pick(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
   def place(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def pluck(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
   def pop(*args, &block); end
@@ -1401,12 +1429,6 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#77
   def sample(*args, &block); end
 
-  # source://rake//lib/rake/file_list.rb#77
-  def second(*args, &block); end
-
-  # source://rake//lib/rake/file_list.rb#77
-  def second_to_last(*args, &block); end
-
   # source://rake//lib/rake/file_list.rb#68
   def select(*args, &block); end
 
@@ -1442,6 +1464,9 @@ class Rake::FileList
 
   # source://rake//lib/rake/file_list.rb#77
   def slice_when(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def sole(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#68
   def sort(*args, &block); end
@@ -1481,15 +1506,6 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#77
   def tally(*args, &block); end
 
-  # source://rake//lib/rake/file_list.rb#77
-  def third(*args, &block); end
-
-  # source://rake//lib/rake/file_list.rb#77
-  def third_to_last(*args, &block); end
-
-  # source://rake//lib/rake/file_list.rb#77
-  def to(*args, &block); end
-
   # Return the internal array object.
   #
   # source://rake//lib/rake/file_list.rb#176
@@ -1499,9 +1515,6 @@ class Rake::FileList
   #
   # source://rake//lib/rake/file_list.rb#182
   def to_ary; end
-
-  # source://rake//lib/rake/file_list.rb#77
-  def to_default_s(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
   def to_formatted_s(*args, &block); end
@@ -1937,6 +1950,7 @@ Rake::LATE = T.let(T.unsafe(nil), Rake::LateTime)
 # source://rake//lib/rake/late_time.rb#4
 class Rake::LateTime
   include ::Comparable
+  include ::Singleton::SingletonInstanceMethods
   include ::Singleton
   extend ::Singleton::SingletonClassMethods
 

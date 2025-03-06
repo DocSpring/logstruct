@@ -22,7 +22,7 @@ module LogStruct
     end
 
     # Override add to ensure proper log level handling
-    sig { params(severity: T.any(String, Integer), message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
+    sig { params(severity: Integer, message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
     def add(severity, message = nil, progname = nil, &block)
       # Get the numeric severity level for comparison
       level_enum = LogLevel.from_severity(severity)

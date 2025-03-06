@@ -5,6 +5,11 @@
 # Please instead update this file by running `bin/tapioca gem rollbar`.
 
 
+class ActionDispatch::DebugExceptions
+  include ::Rollbar::ExceptionReporter
+  include ::Rollbar::Middleware::Rails::ShowExceptions
+end
+
 # The Rollbar module. It stores a Rollbar::Notifier per thread and
 # provides some module methods in order to use the current thread notifier.
 #
@@ -1401,6 +1406,23 @@ class Rollbar::ErrorSubscriber
   def report(error, handled:, severity:, context:, source: T.unsafe(nil)); end
 end
 
+# source://rollbar//lib/rollbar/exception_reporter.rb#2
+module Rollbar::ExceptionReporter
+  # @return [Boolean]
+  #
+  # source://rollbar//lib/rollbar/exception_reporter.rb#29
+  def capture_uncaught?; end
+
+  # source://rollbar//lib/rollbar/exception_reporter.rb#40
+  def exception_data(exception); end
+
+  # source://rollbar//lib/rollbar/exception_reporter.rb#34
+  def log_exception_message(exception); end
+
+  # source://rollbar//lib/rollbar/exception_reporter.rb#3
+  def report_exception_to_rollbar(env, exception); end
+end
+
 # source://rollbar//lib/rollbar/exceptions.rb#2
 class Rollbar::Ignore < ::StandardError; end
 
@@ -1916,6 +1938,65 @@ class Rollbar::LoggerProxy
 
   # source://rollbar//lib/rollbar/logger_proxy.rb#38
   def acceptable_levels; end
+end
+
+# source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#5
+module Rollbar::Middleware; end
+
+# source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#6
+module Rollbar::Middleware::Rails; end
+
+# source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#7
+class Rollbar::Middleware::Rails::RollbarMiddleware
+  include ::Rollbar::RequestDataExtractor
+  include ::Rollbar::ExceptionReporter
+
+  # @return [RollbarMiddleware] a new instance of RollbarMiddleware
+  #
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#11
+  def initialize(app); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#15
+  def call(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#79
+  def context(request_data); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#60
+  def extract_request_data(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#41
+  def fetch_scope(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#64
+  def person_data_proc(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#52
+  def request_data(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/rollbar.rb#56
+  def request_data=(value); end
+end
+
+# source://rollbar//lib/rollbar/middleware/rails/show_exceptions.rb#4
+module Rollbar::Middleware::Rails::ShowExceptions
+  include ::Rollbar::ExceptionReporter
+
+  # source://rollbar//lib/rollbar/middleware/rails/show_exceptions.rb#26
+  def call_with_rollbar(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/show_exceptions.rb#39
+  def extract_scope_from(env); end
+
+  # source://rollbar//lib/rollbar/middleware/rails/show_exceptions.rb#7
+  def render_exception_with_rollbar(env, exception, wrapper = T.unsafe(nil)); end
+
+  class << self
+    # @private
+    #
+    # source://rollbar//lib/rollbar/middleware/rails/show_exceptions.rb#50
+    def included(base); end
+  end
 end
 
 # The notifier class. It has the core functionality
@@ -2532,6 +2613,30 @@ class Rollbar::Plugins
   def loaded?(name); end
 end
 
+# source://rollbar//lib/rollbar/plugins/rails/controller_methods.rb#5
+module Rollbar::Rails; end
+
+# source://rollbar//lib/rollbar/plugins/rails/controller_methods.rb#6
+module Rollbar::Rails::ControllerMethods
+  include ::Rollbar::RequestDataExtractor
+
+  # for backwards compatabilty with the old ratchetio-gem
+  #
+  # source://rollbar//lib/rollbar/plugins/rails/controller_methods.rb#46
+  def ratchetio_person_data; end
+
+  # for backwards compatabilty with the old ratchetio-gem
+  #
+  # source://rollbar//lib/rollbar/plugins/rails/controller_methods.rb#51
+  def ratchetio_request_data; end
+
+  # source://rollbar//lib/rollbar/plugins/rails/controller_methods.rb#9
+  def rollbar_person_data; end
+
+  # source://rollbar//lib/rollbar/plugins/rails/controller_methods.rb#41
+  def rollbar_request_data; end
+end
+
 # source://rollbar//lib/rollbar/plugins/rails/railtie32.rb#5
 class Rollbar::Railtie < ::Rails::Railtie
   include ::Rollbar::RailtieMixin
@@ -2578,6 +2683,85 @@ module Rollbar::Rake::Handler
     def included(base); end
   end
 end
+
+# source://rollbar//lib/rollbar/request_data_extractor.rb#12
+module Rollbar::RequestDataExtractor
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#16
+  def extract_person_data_from_controller(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#31
+  def extract_request_data_from_rack(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#79
+  def scrub_params(params, sensitive_params); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#66
+  def scrub_url(url, sensitive_params); end
+
+  private
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#187
+  def find_not_private_ip(ips); end
+
+  # @return [Boolean]
+  #
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#236
+  def json_request?(rack_req); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#91
+  def mergeable_raw_body_params(rack_req); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#227
+  def read_raw_body(body); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#199
+  def rollbar_get_params(rack_req); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#108
+  def rollbar_headers(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#205
+  def rollbar_post_params(rack_req); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#211
+  def rollbar_raw_body_params(rack_req); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#265
+  def rollbar_request_cookies(rack_req); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#104
+  def rollbar_request_method(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#257
+  def rollbar_request_session(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#242
+  def rollbar_route_params(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#135
+  def rollbar_url(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#157
+  def rollbar_user_ip(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#275
+  def sensitive_headers_list; end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#271
+  def sensitive_params_list(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#173
+  def user_ip_at_configured_key(env); end
+
+  # source://rollbar//lib/rollbar/request_data_extractor.rb#179
+  def x_forwarded_for_client(header_value); end
+end
+
+# source://rollbar//lib/rollbar/request_data_extractor.rb#14
+Rollbar::RequestDataExtractor::ALLOWED_BODY_PARSEABLE_METHODS = T.let(T.unsafe(nil), Array)
+
+# source://rollbar//lib/rollbar/request_data_extractor.rb#13
+Rollbar::RequestDataExtractor::ALLOWED_HEADERS_REGEX = T.let(T.unsafe(nil), Regexp)
 
 # source://rollbar//lib/rollbar/scrubbers.rb#2
 module Rollbar::Scrubbers
@@ -2654,6 +2838,69 @@ Rollbar::Scrubbers::Params::SCRUB_ALL = T.let(T.unsafe(nil), Symbol)
 
 # source://rollbar//lib/rollbar/scrubbers/params.rb#12
 Rollbar::Scrubbers::Params::SKIPPED_CLASSES = T.let(T.unsafe(nil), Array)
+
+# source://rollbar//lib/rollbar/scrubbers/url.rb#8
+class Rollbar::Scrubbers::URL
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#15
+  def call(options = T.unsafe(nil)); end
+
+  private
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#34
+  def ascii_encode(url); end
+
+  # Builds a regex to match with any of the received fields.
+  # The built regex will also match array params like 'user_ids[]'.
+  #
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#71
+  def build_regex(fields); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#49
+  def build_whitelist_regex(whitelist); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#99
+  def decode_www_form(query); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#103
+  def encode_www_form(params); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#56
+  def filter(url, regex, scrub_user, scrub_password, randomize_scrub_length, scrub_all, whitelist); end
+
+  # @return [Boolean]
+  #
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#129
+  def filter_key?(key, regex, scrub_all, whitelist); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#81
+  def filter_password(password, scrub_password, randomize_scrub_length); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#90
+  def filter_query(query, regex, randomize_scrub_length, scrub_all, whitelist); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#116
+  def filter_query_params(params, regex, randomize_scrub_length, scrub_all, whitelist); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#77
+  def filter_user(user, scrub_user, randomize_scrub_length); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#133
+  def filtered_value(value, randomize_scrub_length); end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#145
+  def random_filtered_value; end
+
+  # source://rollbar//lib/rollbar/scrubbers/url.rb#107
+  def restore_square_brackets(query); end
+
+  class << self
+    # source://rollbar//lib/rollbar/scrubbers/url.rb#11
+    def call(*args); end
+  end
+end
+
+# source://rollbar//lib/rollbar/scrubbers/url.rb#9
+Rollbar::Scrubbers::URL::SCRUB_ALL = T.let(T.unsafe(nil), Symbol)
 
 # source://rollbar//lib/rollbar/plugins/thread.rb#3
 module Rollbar::ThreadPlugin
@@ -2955,6 +3202,28 @@ module Rollbar::Util::Hash
 
     # source://rollbar//lib/rollbar/util/hash.rb#35
     def replace_seen_children(thing, seen); end
+  end
+end
+
+# source://rollbar//lib/rollbar/util/ip_anonymizer.rb#3
+module Rollbar::Util::IPAnonymizer
+  class << self
+    # source://rollbar//lib/rollbar/util/ip_anonymizer.rb#6
+    def anonymize_ip(ip_string); end
+
+    # source://rollbar//lib/rollbar/util/ip_anonymizer.rb#16
+    def anonymize_ipv4(ip); end
+
+    # source://rollbar//lib/rollbar/util/ip_anonymizer.rb#24
+    def anonymize_ipv6(ip); end
+  end
+end
+
+# source://rollbar//lib/rollbar/util/ip_obfuscator.rb#3
+module Rollbar::Util::IPObfuscator
+  class << self
+    # source://rollbar//lib/rollbar/util/ip_obfuscator.rb#7
+    def obfuscate_ip(ip_string); end
   end
 end
 

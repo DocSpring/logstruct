@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "===> Running typecheck"
+bin/typecheck
+
+echo "===> Running rubocop (lint)"
+bin/rubocop
+
+echo "===> Running prettier"
+bin/prettier --check
+
+echo "===> Running spellcheck"
+bin/spellcheck
+
+echo "===> Running tests"
+bin/test
+
+echo "All checks passed! ✅"

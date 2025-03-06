@@ -2211,12 +2211,6 @@ class Dalli::Socket::SSLSocket < ::OpenSSL::SSL::SSLSocket
 
   # source://dalli//lib/dalli/socket.rb#66
   def options; end
-
-  # source://dalli//lib/dalli/socket.rb#71
-  def wait_readable(timeout = T.unsafe(nil)); end
-
-  # source://dalli//lib/dalli/socket.rb#77
-  def wait_writable(timeout = T.unsafe(nil)); end
 end
 
 # A standard TCP socket between the Dalli client and the Memcached server.
@@ -2337,18 +2331,15 @@ module Process
   extend ::ConnectionPool::ForkTracker
   extend ::RedisClient::PIDCache::CoreExt
   extend ::Dalli::PIDCache::CoreExt
-  extend ::ActiveSupport::ForkTracker::ModernCoreExt
+  extend ::ActiveSupport::ForkTracker::CoreExt
   extend ::FFI::ModernForkTracking
 end
 
 # source://dalli//lib/rack/session/dalli.rb#8
 module Rack
   class << self
-    # source://rack/2.2.11/lib/rack/version.rb#26
+    # source://rack/3.1.11/lib/rack/version.rb#18
     def release; end
-
-    # source://rack/2.2.11/lib/rack/version.rb#19
-    def version; end
   end
 end
 
