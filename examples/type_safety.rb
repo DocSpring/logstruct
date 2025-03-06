@@ -66,20 +66,6 @@ module Examples
     # END CODE EXAMPLE: log_enums
     # ----------------------------------------------------------
     # rubocop:enable Lint/Void
-
-    # ----------------------------------------------------------
-    # BEGIN CODE EXAMPLE: sorbet_setup
-    # ----------------------------------------------------------
-    # In your Gemfile
-    # gem 'sorbet', group: :development
-    # gem 'sorbet-runtime'
-
-    # Then run
-    # bundle install
-    # bundle exec srb init
-    # ----------------------------------------------------------
-    # END CODE EXAMPLE: sorbet_setup
-    # ----------------------------------------------------------
   end
 
   # ----------------------------------------------------------

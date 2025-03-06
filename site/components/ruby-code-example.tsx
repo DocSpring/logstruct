@@ -52,6 +52,8 @@ export function RubyCodeExample({
             padding: '1rem',
             fontSize: '0.9rem',
             borderRadius: '0.5rem',
+            fontFamily:
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
           }}
         >
           {example.code}

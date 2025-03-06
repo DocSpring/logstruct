@@ -68,12 +68,10 @@ export default function GettingStartedPage() {
         with the following content:
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="basic_configuration"
-          title="config/initializers/logstruct.rb"
-        />
-      </div>
+      <RubyCodeExample
+        name="basic_configuration"
+        title="config/initializers/logstruct.rb"
+      />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Usage</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">

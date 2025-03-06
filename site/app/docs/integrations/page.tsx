@@ -219,12 +219,7 @@ export default function IntegrationsPage() {
         response status, controller and action names, and request duration.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="lograge_custom_options"
-          title="Customizing Lograge Options"
-        />
-      </div>
+      <RubyCodeExample name="lograge_custom_options" />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Shrine Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -297,8 +292,9 @@ export default function IntegrationsPage() {
       <h2 className="text-2xl font-bold mt-10 mb-4">Sorbet Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct integrates with Sorbet to handle type checking errors
-        appropriately based on the environment, using the &quot;fail hard in
-        development, fail soft in production&quot; philosophy.
+        appropriately based on the environment. We raise any logging-related
+        errors in test/development and log or report them in production to avoid
+        crashing your application.
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
@@ -333,12 +329,10 @@ config.integrations.enable_sorbet_error_handlers = true
         configuration:
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="integrations_configuration"
-          title="Configuring LogStruct Integrations"
-        />
-      </div>
+      <RubyCodeExample
+        name="integrations_configuration"
+        title="Configuring LogStruct Integrations"
+      />
 
       <EditPageLink />
     </div>

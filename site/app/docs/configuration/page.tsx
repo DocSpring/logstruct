@@ -41,10 +41,7 @@ export default function ConfigurationPage() {
         specific integrations:
       </p>
 
-      <RubyCodeExample
-        name="integrations_configuration"
-        title="Integrations Configuration"
-      />
+      <RubyCodeExample name="integrations_configuration" />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Filtering Sensitive Data

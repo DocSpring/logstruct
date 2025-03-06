@@ -1,5 +1,7 @@
 import { EditPageLink } from '@/components/edit-page-link';
 import { RubyCodeExample } from '@/components/ruby-code-example';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function TypeSafetyPage() {
   return (
@@ -20,12 +22,10 @@ export default function TypeSafetyPage() {
         fields are always present.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="basic_typed_logging"
-          title="Basic Typed Logging Example"
-        />
-      </div>
+      <RubyCodeExample
+        name="basic_typed_logging"
+        title="Basic Typed Logging Example"
+      />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Available Log Structures
@@ -102,12 +102,7 @@ export default function TypeSafetyPage() {
         LogStruct provides typed enums for common values used in logs:
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="log_enums"
-          title="Log Levels and Enums"
-        />
-      </div>
+      <RubyCodeExample name="log_enums" title="Log Levels and Enums" />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Adding Sorbet to Your Application
@@ -117,11 +112,26 @@ export default function TypeSafetyPage() {
         Sorbet to your application:
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="sorbet_setup"
-          title="Setting Up Sorbet"
-        />
+      <div className="rounded-lg ">
+        <SyntaxHighlighter
+          language="bash"
+          style={atomDark}
+          customStyle={{
+            fontSize: '0.9rem',
+            fontFamily:
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+          }}
+        >
+          {`# In your Gemfile
+gem "sorbet", group: :development
+gem "sorbet-runtime"
+
+# Then run
+# bundle install
+# bundle exec srb init`}
+        </SyntaxHighlighter>
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Benefits of Type Safety</h2>
@@ -149,12 +159,10 @@ export default function TypeSafetyPage() {
         errors.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="sorbet_error_handler"
-          title="Sorbet Error Handler Configuration"
-        />
-      </div>
+      <RubyCodeExample
+        name="sorbet_error_handler"
+        title="Sorbet Error Handler Configuration"
+      />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Creating Custom Log Structures
@@ -164,12 +172,10 @@ export default function TypeSafetyPage() {
         LogStruct&apos;s base classes:
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="custom_log_structure"
-          title="Creating Custom Log Structures"
-        />
-      </div>
+      <RubyCodeExample
+        name="custom_log_structure"
+        title="Creating Custom Log Structures"
+      />
 
       <EditPageLink />
     </div>
