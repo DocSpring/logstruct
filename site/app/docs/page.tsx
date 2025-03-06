@@ -1,6 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 
 export default function DocsPage() {
@@ -21,18 +20,7 @@ export default function DocsPage() {
           </TabsList>
           <TabsContent value="ruby" className="mt-4">
             <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-              <SyntaxHighlighter
-                language="ruby"
-                style={atomDark}
-                customStyle={{
-                  fontSize: '0.875rem',
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                  backgroundColor: 'transparent',
-                  padding: '0',
-                  borderRadius: '0px',
-                }}
-              >
+              <CodeBlock language="ruby">
                 {`# Log a simple string
 Rails.logger.info "User signed in"
 
@@ -43,7 +31,7 @@ Rails.logger.info({
   ip_address: "192.168.1.1",
   custom_field: "any value you want"
 })`}
-              </SyntaxHighlighter>
+              </CodeBlock>
             </div>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
               {`This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.`}
@@ -51,18 +39,7 @@ Rails.logger.info({
           </TabsContent>
           <TabsContent value="typed" className="mt-4">
             <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-              <SyntaxHighlighter
-                language="ruby"
-                style={atomDark}
-                customStyle={{
-                  fontSize: '0.875rem',
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                  backgroundColor: 'transparent',
-                  padding: '0',
-                  borderRadius: '0px',
-                }}
-              >
+              <CodeBlock language="ruby">
                 {`# Create a typed request log entry
 request_log = LogStruct::Log::Request.new(
   source: LogStruct::Source::Rails,
@@ -74,7 +51,7 @@ request_log = LogStruct::Log::Request.new(
 
 # Log the typed struct
 Rails.logger.info(request_log)`}
-              </SyntaxHighlighter>
+              </CodeBlock>
             </div>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
               This approach provides several benefits: type checking at

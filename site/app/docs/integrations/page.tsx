@@ -1,5 +1,4 @@
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RubyCodeExample } from '@/components/ruby-code-example';
@@ -35,19 +34,7 @@ export default function IntegrationsPage() {
           value="deliver"
           className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900"
         >
-          <SyntaxHighlighter
-            language="json"
-            style={atomDark}
-            customStyle={{
-              fontSize: '0.875rem',
-              fontFamily:
-                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-              backgroundColor: 'transparent',
-              padding: '0',
-              margin: '0',
-              borderRadius: '0px',
-            }}
-          >
+          <CodeBlock language="json">
             {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "mailer",
@@ -60,25 +47,13 @@ export default function IntegrationsPage() {
   "message_id": "<abc123@example.com>",
   "duration_ms": 125.45
 }`}
-          </SyntaxHighlighter>
+          </CodeBlock>
         </TabsContent>
         <TabsContent
           value="error"
           className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900"
         >
-          <SyntaxHighlighter
-            language="json"
-            style={atomDark}
-            customStyle={{
-              fontSize: '0.875rem',
-              fontFamily:
-                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-              backgroundColor: 'transparent',
-              padding: '0',
-              margin: '0',
-              borderRadius: '0px',
-            }}
-          >
+          <CodeBlock language="json">
             {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "mailer",
@@ -91,7 +66,7 @@ export default function IntegrationsPage() {
   "message": "Failed to connect to SMTP server",
   "backtrace": ["app/mailers/notification_mailer.rb:25:in 'weekly_digest'", "..."]
 }`}
-          </SyntaxHighlighter>
+          </CodeBlock>
         </TabsContent>
       </Tabs>
 
@@ -102,18 +77,7 @@ export default function IntegrationsPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
+        <CodeBlock language="ruby">
           {`# Example of logged information for ActiveJob
 {
   "ts": "2023-09-15T12:34:56.789Z",
@@ -126,7 +90,7 @@ export default function IntegrationsPage() {
   "arguments": ["user_123", {"action": "update"}],
   "duration_ms": 125.45
 }`}
-        </SyntaxHighlighter>
+        </CodeBlock>
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sidekiq Integration</h2>
@@ -145,18 +109,7 @@ export default function IntegrationsPage() {
 
         <TabsContent value="process" className="mt-4">
           <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-            <SyntaxHighlighter
-              language="json"
-              style={atomDark}
-              customStyle={{
-                fontSize: '0.875rem',
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                backgroundColor: 'transparent',
-                padding: '0',
-                borderRadius: '0px',
-              }}
-            >
+            <CodeBlock language="json">
               {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "sidekiq",
@@ -172,24 +125,13 @@ export default function IntegrationsPage() {
   "duration_ms": 234.56,
   "retry_count": 0
 }`}
-            </SyntaxHighlighter>
+            </CodeBlock>
           </div>
         </TabsContent>
 
         <TabsContent value="error" className="mt-4">
           <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-            <SyntaxHighlighter
-              language="json"
-              style={atomDark}
-              customStyle={{
-                fontSize: '0.875rem',
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                backgroundColor: 'transparent',
-                padding: '0',
-                borderRadius: '0px',
-              }}
-            >
+            <CodeBlock language="json">
               {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "sidekiq",
@@ -207,7 +149,7 @@ export default function IntegrationsPage() {
   "retry_count": 2,
   "retry": true
 }`}
-            </SyntaxHighlighter>
+            </CodeBlock>
           </div>
         </TabsContent>
       </Tabs>
