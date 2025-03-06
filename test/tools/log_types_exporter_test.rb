@@ -143,4 +143,27 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     assert_equal "string", ts_type, "Timestamp TypeScript type should be string"
   end
+
+  def test_active_storage_metadata_is_object_type
+    # Test with the actual metadata field from ActiveStorage log class
+    storage_struct = LogStruct::Log::ActiveStorage
+    metadata_prop_info = storage_struct.props[:metadata]
+
+    # Extract type info
+    type_info = @exporter.extract_type_info(metadata_prop_info)
+
+    # Test that it's correctly identified as an object type
+    assert_equal "object", type_info[:type], "Metadata should be identified as an object type"
+
+    # Test the resulting TypeScript type
+    ts_type = @exporter.typescript_type_for(type_info)
+
+    assert_equal "Record<string, any>", ts_type, "Metadata TypeScript type should be Record<string, any>"
+
+    # Verify in the generated TypeScript file
+    content = @exporter.generate_typescript_definitions
+
+    # Check for the metadata field definition in the ActiveStorageLog interface
+    assert_includes content, "metadata?: Record<string, any>;", "ActiveStorageLog should have metadata as optional Record<string, any>"
+  end
 end

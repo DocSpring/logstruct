@@ -188,7 +188,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.filename = this.sample(SampleData.FILE_NAMES);
     log.mime_type = this.sample(SampleData.FILE_TYPES);
     log.size = this.randomInt(1000, 1000000);
-    log.metadata = JSON.stringify({ width: 800, height: 600 });
+    log.metadata = { width: 800, height: 600 };
     log.duration = this.randomDuration();
     log.checksum = this.randomHex(32);
     log.exist = true;
@@ -222,7 +222,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.filename = this.sample(SampleData.FILE_NAMES);
     log.mime_type = this.sample(SampleData.FILE_TYPES);
     log.size = this.randomInt(1000, 1000000);
-    log.metadata = JSON.stringify({ width: 800, height: 600 });
+    log.metadata = { width: 800, height: 600 };
     log.duration = this.randomDuration();
     log.uploader = 'AvatarUploader';
     log.model = 'User';

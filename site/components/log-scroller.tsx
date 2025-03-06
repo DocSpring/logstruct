@@ -4,173 +4,38 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import useInterval from 'use-interval';
+import { LogGenerator } from '../lib/log-generation/log-generator';
+import { LogType } from '../lib/log-generation/log-types';
 
-// Log template entries - will be populated with dynamic data
-const logTemplates = [
-  { src: 'puma', evt: 'boot', pid: 0, lvl: 'info' },
-  {
-    src: 'rails',
-    evt: 'req',
-    lvl: 'info',
-    path: '/users',
-    method: 'POST',
-    controller: 'UsersController',
-    action: 'create',
-    status: 200,
-    duration: 0,
-    ip: '192.168.1.1',
-  },
-  {
-    src: 'job',
-    evt: 'start',
-    lvl: 'info',
-    job_id: '',
-    queue: 'default',
-    class: 'ProcessJob',
-    args: [
-      'arg1',
-      {
-        _filtered: {
-          _class: 'Hash',
-          _keys_count: 2,
-          _keys: ['password', 'confirm_password'],
-          _bytes: 42,
-        },
-      },
-    ],
-  },
-  {
-    src: 'rails',
-    evt: 'req',
-    lvl: 'info',
-    path: '/api/users',
-    method: 'GET',
-    controller: 'Api::UsersController',
-    action: 'index',
-    status: 200,
-    duration: 0,
-    params: { page: 1, per_page: 10 },
-  },
-  {
-    src: 'mailer',
-    evt: 'deliver',
-    lvl: 'info',
-    mailer: 'UserMailer',
-    action: 'welcome',
-    to: '[EMAIL:hash]',
-    subject: 'Welcome to our app!',
-  },
-  {
-    src: 'mailer',
-    evt: 'error',
-    lvl: 'error',
-    mailer: 'NotificationMailer',
-    error: 'SMTP connection failed',
-    message: 'Failed to connect to SMTP server',
-  },
-  {
-    src: 'rack',
-    evt: 'ratelimit',
-    lvl: 'warn',
-    ip: '[IP]',
-    path: '/login',
-    threshold: 5,
-    period: 60,
-    count: 0,
-  },
-  {
-    src: 'security',
-    evt: 'ip_spoof',
-    lvl: 'error',
-    client_ip: '[IP]',
-    x_forwarded_for: '[IP]',
-    path: '/api/users',
-    method: 'GET',
-  },
-  {
-    src: 'security',
-    evt: 'csrf_violation',
-    lvl: 'error',
-    path: '/form',
-    method: 'POST',
-    client_ip: '[IP]',
-  },
-  {
-    src: 'security',
-    evt: 'blocked_host',
-    lvl: 'error',
-    blocked_host: 'evil-site.com',
-    path: '/',
-    method: 'GET',
-  },
-  {
-    src: 'sidekiq',
-    evt: 'process',
-    lvl: 'info',
-    pid: 0,
-    queues: ['default', 'mailers', 'active_storage'],
-  },
-  {
-    src: 'shrine',
-    evt: 'upload',
-    lvl: 'info',
-    storage: 's3',
-    size: 0,
-    mime_type: 'image/jpeg',
-    file_id: 'uploads/abc123.jpg',
-  },
-  {
-    src: 'storage',
-    evt: 'download',
-    lvl: 'info',
-    service: 's3',
-    key: 'abc123.jpg',
-    checksum: 'sha256:abc123',
-  },
-  {
-    src: 'rails',
-    evt: 'log',
-    lvl: 'info',
-    msg: 'User 123 signed up with [EMAIL:a1b2c3]',
-    email: { _filtered: { _class: 'String', _bytes: 24, _hash: 'a1b2c3' } },
-    phone: '[PHONE]',
-    ssn: '[SSN]',
-    credit_card: '[CREDIT_CARD]',
-  },
-  {
-    src: 'carrierwave',
-    evt: 'store',
-    lvl: 'info',
-    uploader: 'AvatarUploader',
-    model: 'User',
-    file: 'profile.jpg',
-  },
-];
+// For generating random logs
+const logGenerator = new LogGenerator();
+
+// Puma boot log template - will always be the first log
+const pumaLogTemplate = { src: 'puma', evt: 'boot', pid: 0, lvl: 'info' };
 
 export function LogScroller() {
   const [logs, setLogs] = useState<string[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
-  // Generate a random SHA-256 style hash string (using LogStruct's default length of 12)
-  const generateHashString = useCallback((length = 12) => {
-    const chars = '0123456789abcdef';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }, []);
+  // Format log for display
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const formatLogForDisplay = useCallback((log: Record<string, any>) => {
+    let jsonStr = JSON.stringify(log, null, 0);
+    // Add spaces after commas, colons, and between braces for better readability
+    jsonStr = jsonStr
+      .replace(/,/g, ', ')
+      .replace(/(\w"):/g, '$1: ')
+      .replace(/{/g, '{ ')
+      .replace(/}/g, ' }');
 
-  // Generate a random IP address
-  const generateRandomIP = useCallback(() => {
-    return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+    return jsonStr;
   }, []);
 
   // Generate the Puma boot log entry (always first)
   const generatePumaBootLogEntry = useCallback(() => {
-    // Use the first template which is the Puma boot log
-    const log = JSON.parse(JSON.stringify(logTemplates[0]));
+    // Use the puma boot template
+    const log = JSON.parse(JSON.stringify(pumaLogTemplate));
 
     // Add current timestamp
     log.ts = new Date().toISOString();
@@ -178,100 +43,42 @@ export function LogScroller() {
     // Add pid
     log.pid = Math.floor(Math.random() * 60000) + 1000;
 
-    // Format with some spacing to make it more readable
-    let jsonStr = JSON.stringify(log, null, 0);
-    // Add spaces after commas, colons, and between braces
-    jsonStr = jsonStr
-      .replace(/,/g, ', ')
-      .replace(/(\w"):/g, '$1: ')
-      .replace(/{/g, '{ ')
-      .replace(/}/g, ' }');
-
-    return jsonStr;
-  }, []);
+    return formatLogForDisplay(log);
+  }, [formatLogForDisplay]);
 
   // Generate a random log entry (for logs after the Puma boot)
   const generateLogEntry = useCallback(() => {
-    // Pick a random log template (skip the first one which is Puma boot)
-    const templateIndex =
-      Math.floor(Math.random() * (logTemplates.length - 1)) + 1;
+    // Pick a random log type
+    const logTypes = Object.values(LogType);
+    const randomLogType = logTypes[Math.floor(Math.random() * logTypes.length)];
 
-    // Create a deep copy of the template
-    const log = JSON.parse(JSON.stringify(logTemplates[templateIndex]));
+    // Generate a random log using the LogGenerator
+    const log = logGenerator.generateLog(randomLogType);
 
-    // Add current timestamp
-    log.ts = new Date().toISOString();
-
-    // Randomize numeric values
-    if (log.duration !== undefined) {
-      log.duration = Math.round(Math.random() * 2990 + 10) / 10; // 10-3000ms with 1 decimal place
+    // Convert timestamp field name from 'timestamp' to 'ts' for display consistency
+    if (log.timestamp) {
+      log.ts = log.timestamp;
+      delete log.timestamp;
     }
 
-    if (log.pid !== undefined) {
-      log.pid = Math.floor(Math.random() * 60000) + 1000;
+    // Map source and event to shorter codes to match UI format
+    if (log.source) {
+      log.src = log.source.toLowerCase();
+      delete log.source;
     }
 
-    if (log.size !== undefined) {
-      log.size = Math.floor(Math.random() * 10000000) + 1000;
+    if (log.event) {
+      log.evt = log.event.toLowerCase();
+      delete log.event;
     }
 
-    if (log.count !== undefined) {
-      log.count = Math.floor(Math.random() * 20) + 1;
+    if (log.level) {
+      log.lvl = log.level.toLowerCase();
+      delete log.level;
     }
 
-    if (log.job_id !== undefined) {
-      // Generate random alphanumeric job ID
-      log.job_id = Math.random().toString(36).substring(2, 10);
-    }
-
-    // Generate random hash for email references
-    const emailHash = generateHashString();
-
-    // Replace email hash placeholders with dynamic values
-    if (log.to && log.to.includes('[EMAIL:')) {
-      log.to = `[EMAIL:${emailHash}]`;
-    }
-
-    if (log.msg && log.msg.includes('[EMAIL:')) {
-      log.msg = log.msg.replace(/\[EMAIL:[^\]]+\]/, `[EMAIL:${emailHash}]`);
-    }
-
-    // Replace hash in filtered email objects
-    if (log.email && log.email._filtered && log.email._filtered._hash) {
-      log.email._filtered._hash = emailHash;
-    }
-
-    // Randomize IP addresses where they're not filtered as [IP]
-    if (log.ip) {
-      log.ip = generateRandomIP();
-    }
-
-    if (log.client_ip) {
-      log.client_ip = '[IP]'; // Keep it filtered for security logs
-    }
-
-    if (log.x_forwarded_for) {
-      log.x_forwarded_for = '[IP]'; // Keep it filtered for security logs
-    }
-
-    // For requests, randomize status codes occasionally
-    if (log.status !== undefined && Math.random() > 0.7) {
-      const statuses = [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500];
-      log.status = statuses[Math.floor(Math.random() * statuses.length)];
-    }
-
-    // Format with some spacing to make it more readable
-    let jsonStr = JSON.stringify(log, null, 0);
-    // Add spaces after commas, colons, and between braces
-    jsonStr = jsonStr
-      .replace(/,/g, ', ')
-      // Replace colons with ": ", but not within [EMAIL:...] or similar tags
-      .replace(/(\w"):/g, '$1: ')
-      .replace(/{/g, '{ ')
-      .replace(/}/g, ' }');
-
-    return jsonStr;
-  }, [generateHashString, generateRandomIP]);
+    return formatLogForDisplay(log);
+  }, [formatLogForDisplay]);
 
   // Initialize with the Puma boot log
   useEffect(() => {

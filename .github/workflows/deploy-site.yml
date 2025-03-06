@@ -60,10 +60,6 @@ jobs:
 
       - name: Generate YARD documentation
         run: |
-          mkdir -p site/public/yard
-          # Install development dependencies for YARD
-          bundle config set --local with 'development'
-          bundle install
           bundle exec yard doc --output-dir=site/public/yard
 
       - name: Export TypeScript types

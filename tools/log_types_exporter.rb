@@ -181,6 +181,11 @@ module LogStruct
         # puts "Extracting type info for: #{type_str}"
         # puts "Array key present? #{prop_info.key?(:array)}" if prop_info.key?(:array)
         # puts "Array value: #{prop_info[:array]}" if prop_info.key?(:array)
+        
+        # Check for TypedHash specifically (handles metadata field correctly)
+        if type_obj.is_a?(T::Types::TypedHash) || type_obj.class.name == "T::Types::TypedHash"
+          return {optional: prop_info[:_tnilable] || false, type: "object"}
+        end
 
         # Check if this is optional (nilable)
         is_optional = type_str.include?("T.nilable")

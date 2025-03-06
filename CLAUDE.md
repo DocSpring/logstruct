@@ -32,6 +32,7 @@
 
 - Generate Sorbet RBI files: `bin/tapioca`
 - Generate spellcheck dictionary: `bin/generate_lockfile_words`
+- Generate TypeScript types from Ruby log structs: `ruby scripts/export_typescript_types.rb`
 
 ## Code Style
 
