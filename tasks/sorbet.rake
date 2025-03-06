@@ -24,7 +24,10 @@ namespace :sorbet do
   end
 end
 
-# Add Sorbet type checking to the default test task
+# Add Sorbet type checking to the default test task only when no arguments are passed
 task :test do
-  Rake::Task["sorbet:typecheck"].invoke
+  # Only run typechecking if no args were passed to the test command
+  if ARGV.empty? || ARGV == ['test']
+    Rake::Task["sorbet:typecheck"].invoke
+  end
 end

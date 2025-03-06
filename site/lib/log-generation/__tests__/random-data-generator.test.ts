@@ -54,13 +54,13 @@ describe("RandomDataGenerator", () => {
   });
 
   test("should generate filtered email addresses", () => {
-    const filteredEmail = generator.randomEmail(true);
+    const filteredEmail = generator.randomFilteredEmailString();
 
     expect(filteredEmail).toMatch(/^\[EMAIL:[a-f0-9]{6}\]$/);
   });
 
   test("should generate filtered email address objects", () => {
-    const filteredEmailObj = generator.randomEmail(true, true) as any;
+    const filteredEmailObj = generator.randomFilteredEmailObject();
 
     expect(filteredEmailObj).toHaveProperty("_filtered");
     expect(filteredEmailObj._filtered).toHaveProperty("_class", "String");

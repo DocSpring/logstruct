@@ -118,7 +118,7 @@ export class LogGenerator extends RandomDataGenerator {
   private generateSecurityLog(log: Partial<SecurityLog>): Partial<SecurityLog> {
     log.message = "Security violation detected";
     log.blocked_host = "malicious-site.com";
-    log.blocked_hosts = "malicious-site.com,evil-domain.net";
+    log.blocked_hosts = ["malicious-site.com", "evil-domain.net"];
     log.client_ip = this.randomIP(false);
     log.x_forwarded_for = this.randomIP(false);
     log.path = this.randomPath();
@@ -182,7 +182,7 @@ export class LogGenerator extends RandomDataGenerator {
   }
   
   private generateActionMailerLog(log: Partial<ActionMailerLog>): Partial<ActionMailerLog> {
-    log.to = this.randomEmail() as string;
+    log.to = [this.randomEmail()];
     log.from = "notifications@example.com";
     log.subject = "Important notification";
     log.data = {
