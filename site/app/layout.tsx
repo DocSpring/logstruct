@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { MainNav } from "@/components/main-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -31,6 +32,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
+        <Script
+          defer
+          data-domain="logstruct.com"
+          src="https://pa.docspring.com/js/script.js"
+          strategy="afterInteractive"
+        />
         <ThemeProvider>
           <div className="relative flex min-h-screen flex-col bg-white dark:bg-neutral-950">
             <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
