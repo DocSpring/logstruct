@@ -10,26 +10,34 @@ module Examples
 
   sig { void }
   def self.configuration_examples
+    # rubocop:disable Layout/EmptyLinesAroundBlockBody
     # ----------------------------------------------------------
     # BEGIN CODE EXAMPLE: basic_configuration
     # ----------------------------------------------------------
-    # Configure LogStruct with a block
     LogStruct.configure do |config|
-      # Enable or disable LogStruct
-      config.enabled = true
 
-      config.environments = [:test, :production]
+      # your configuration here
 
-      # LogStruct will raise errors in local environments,
-      # and log or report errors in production.
-      # (Can be configured with config.error_handling_modes)
-      config.local_environments = [:development, :test]
     end
     # ----------------------------------------------------------
     # END CODE EXAMPLE: basic_configuration
     # ----------------------------------------------------------
+    # rubocop:enable Layout/EmptyLinesAroundBlockBody
 
     LogStruct.configure do |config|
+      # ----------------------------------------------------------
+      # BEGIN CODE EXAMPLE: environment_configuration
+      # ----------------------------------------------------------
+      config.environments = [:test, :production]
+
+      # LogStruct will raise errors in local environments,
+      # and log or report errors in production.
+      # (This can be configured with config.error_handling_modes)
+      config.local_environments = [:development, :test]
+      # ----------------------------------------------------------
+      # END CODE EXAMPLE: environment_configuration
+      # ----------------------------------------------------------
+
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: integrations_configuration
       # ----------------------------------------------------------
@@ -94,17 +102,19 @@ module Examples
       # BEGIN CODE EXAMPLE: error_handling_modes
       # ----------------------------------------------------------
       # Configure error handling modes
-      config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-      config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-      config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
-      config.error_handling_modes.type_checking_errors = LogStruct::ErrorHandlingMode::Raise
+      modes = config.error_handling_modes
+      modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
+      modes.security_errors = LogStruct::ErrorHandlingMode::Report
+      modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
+      modes.type_checking_errors = LogStruct::ErrorHandlingMode::Raise
 
       # Available error handling modes:
-      # - LogStruct::ErrorHandlingMode::Ignore       # Completely ignore errors
-      # - LogStruct::ErrorHandlingMode::Log          # Log errors but don't report them
-      # - LogStruct::ErrorHandlingMode::LogProduction # Log in production, raise in development
-      # - LogStruct::ErrorHandlingMode::Report       # Log and report errors to error service
-      # - LogStruct::ErrorHandlingMode::Raise        # Always raise errors
+      # ------------------------------------------------------------
+      # ::Ignore          # Completely ignore errors
+      # ::Log             # Log errors but don't report them
+      # ::LogProduction   # Log in production, raise in development
+      # ::Report          # Log and report errors to error service
+      # ::Raise           # Always raise errors
       # ----------------------------------------------------------
       # END CODE EXAMPLE: error_handling_modes
       # ----------------------------------------------------------
