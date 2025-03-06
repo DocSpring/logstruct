@@ -13,7 +13,7 @@ Rake::TestTask.new(:test) do |t|
 end
 
 # Load Sorbet tasks
-Dir.glob("lib/tasks/*.rake").each { |r| load r }
+Dir.glob("tasks/*.rake").each { |r| load r }
 
 # Default task runs tests and type checking
 task default: [:test, "sorbet:typecheck"]

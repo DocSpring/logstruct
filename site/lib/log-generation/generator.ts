@@ -1,5 +1,5 @@
-import { SampleData } from './sample-data';
-import logTypeData from '../log_types.json';
+import { SampleData } from "./sample-data";
+import logTypeData from "./log-types.json";
 
 /**
  * Utility for generating random log data with seed support
@@ -60,7 +60,7 @@ export class LogGenerator {
    * Generate a random hex string
    */
   randomHex(length: number): string {
-    let result = '';
+    let result = "";
     for (let i = 0; i < length; i++) {
       result += Math.floor(this.random() * 16).toString(16);
     }
@@ -85,7 +85,9 @@ export class LogGenerator {
    */
   randomTimestamp(daysBack = 7): string {
     const now = new Date();
-    const past = new Date(now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000));
+    const past = new Date(
+      now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000)
+    );
     return past.toISOString();
   }
 
@@ -118,14 +120,14 @@ export class LogGenerator {
       timestamp: this.randomTimestamp(),
       level: this.sample((logTypeData as any).enums.LogLevel),
       source: this.sample((logTypeData as any).enums.Source),
-      event: this.sample((logTypeData as any).enums.LogEvent)
+      event: this.sample((logTypeData as any).enums.LogEvent),
     };
 
     // Add fields based on their types
     const fields = logStructure.fields;
     Object.entries(fields).forEach(([fieldName, fieldInfo]: [string, any]) => {
       // Skip if it's a common field we already set
-      if (['timestamp', 'level', 'source', 'event'].includes(fieldName)) {
+      if (["timestamp", "level", "source", "event"].includes(fieldName)) {
         return;
       }
 
@@ -136,50 +138,55 @@ export class LogGenerator {
 
       // Generate value based on field type
       switch (fieldInfo.type) {
-        case 'string':
-          if (fieldName === 'method') {
+        case "string":
+          if (fieldName === "method") {
             log[fieldName] = this.sample(SampleData.HTTP_METHODS);
-          } else if (fieldName === 'path') {
+          } else if (fieldName === "path") {
             log[fieldName] = this.randomPath();
-          } else if (fieldName === 'controller') {
+          } else if (fieldName === "controller") {
             log[fieldName] = this.sample(SampleData.CONTROLLERS);
-          } else if (fieldName === 'action') {
+          } else if (fieldName === "action") {
             log[fieldName] = this.sample(SampleData.ACTIONS);
-          } else if (fieldInfo.format === 'date-time') {
+          } else if (fieldInfo.format === "date-time") {
             log[fieldName] = this.randomTimestamp();
           } else {
             log[fieldName] = `${fieldName}_${this.randomHex(4)}`;
           }
           break;
-        case 'integer':
-          if (fieldName === 'status') {
+        case "integer":
+          if (fieldName === "status") {
             log[fieldName] = this.sample(SampleData.STATUS_CODES);
           } else {
             log[fieldName] = this.randomInt(1, 1000);
           }
           break;
-        case 'number':
-          if (fieldName === 'duration') {
+        case "number":
+          if (fieldName === "duration") {
             log[fieldName] = this.randomDuration();
           } else {
             log[fieldName] = this.randomFloat(0, 100);
           }
           break;
-        case 'boolean':
+        case "boolean":
           log[fieldName] = this.random() > 0.5;
           break;
-        case 'array':
-          log[fieldName] = Array(this.randomInt(1, 3)).fill(0).map(() => `item_${this.randomHex(4)}`);
+        case "array":
+          log[fieldName] = Array(this.randomInt(1, 3))
+            .fill(0)
+            .map(() => `item_${this.randomHex(4)}`);
           break;
-        case 'object':
-          log[fieldName] = { key1: `value_${this.randomHex(4)}`, key2: this.randomInt(1, 100) };
+        case "object":
+          log[fieldName] = {
+            key1: `value_${this.randomHex(4)}`,
+            key2: this.randomInt(1, 100),
+          };
           break;
-        case 'enum':
-          if (fieldInfo.values === 'LogLevel') {
+        case "enum":
+          if (fieldInfo.values === "LogLevel") {
             log[fieldName] = this.sample((logTypeData as any).enums.LogLevel);
-          } else if (fieldInfo.values === 'Source') {
+          } else if (fieldInfo.values === "Source") {
             log[fieldName] = this.sample((logTypeData as any).enums.Source);
-          } else if (fieldInfo.values === 'LogEvent') {
+          } else if (fieldInfo.values === "LogEvent") {
             log[fieldName] = this.sample((logTypeData as any).enums.LogEvent);
           }
           break;
@@ -196,49 +203,56 @@ export class LogGenerator {
   generateJobSequence(): Record<string, any>[] {
     const jobId = this.randomHex(8);
     const jobClass = this.sample(SampleData.JOB_CLASSES);
-    const queueName = ['default', 'critical', 'low', 'mailers'][this.randomInt(0, 3)];
-    const args = [this.randomInt(1, 100), { action: this.sample(['create', 'update', 'process']) }];
-    
+    const queueName = ["default", "critical", "low", "mailers"][
+      this.randomInt(0, 3)
+    ];
+    const args = [
+      this.randomInt(1, 100),
+      { action: this.sample(["create", "update", "process"]) },
+    ];
+
     // Enqueue event
     const enqueueLog = {
       timestamp: this.randomTimestamp(),
-      level: 'info',
-      source: 'job',
-      event: 'enqueue',
+      level: "info",
+      source: "job",
+      event: "enqueue",
       job_id: jobId,
       job_class: jobClass,
       queue_name: queueName,
-      arguments: args
+      arguments: args,
     };
-    
+
     // Start event (happens a little later)
-    const startTime = new Date(new Date(enqueueLog.timestamp).getTime() + this.randomInt(100, 5000));
+    const startTime = new Date(
+      new Date(enqueueLog.timestamp).getTime() + this.randomInt(100, 5000)
+    );
     const startLog = {
       timestamp: startTime.toISOString(),
-      level: 'info',
-      source: 'job',
-      event: 'start',
+      level: "info",
+      source: "job",
+      event: "start",
       job_id: jobId,
       job_class: jobClass,
       queue_name: queueName,
-      arguments: args
+      arguments: args,
     };
-    
+
     // Finish event (with duration)
     const duration = this.randomFloat(50, 2000);
     const finishTime = new Date(startTime.getTime() + duration);
     const finishLog = {
       timestamp: finishTime.toISOString(),
-      level: 'info',
-      source: 'job',
-      event: 'finish',
+      level: "info",
+      source: "job",
+      event: "finish",
       job_id: jobId,
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
-      duration: duration
+      duration: duration,
     };
-    
+
     return [enqueueLog, startLog, finishLog];
   }
 }

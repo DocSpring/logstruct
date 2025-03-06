@@ -15,10 +15,10 @@ require "optparse"
 output_file = LogStruct::Tools::LogTypesExporter::DEFAULT_OUTPUT_FILE
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: export.rb [options]"
+  opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
 
   opts.on("-o", "--output FILE", "Output file path") do |file|
-    output_file = file
+    output_file = T.cast(file, String)
   end
 
   opts.on("-h", "--help", "Show this help message") do

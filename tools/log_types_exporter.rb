@@ -12,7 +12,7 @@ module LogStruct
     class LogTypesExporter
       extend T::Sig
 
-      DEFAULT_OUTPUT_FILE = "site/lib/log_types.json"
+      DEFAULT_OUTPUT_FILE = "site/lib/log-generation/log-types.json"
 
       sig { params(output_file: String).void }
       def initialize(output_file = DEFAULT_OUTPUT_FILE)
