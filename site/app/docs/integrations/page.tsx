@@ -8,7 +8,10 @@ import {
   getActiveJobLog,
   getSidekiqProcessLog,
   getSidekiqErrorLog,
-  getRackErrorLog,
+  getIPSpoofLog,
+  getCSRFViolationLog,
+  getBlockedHostLog,
+  getGeneralExceptionLog,
   getHostAuthorizationLog,
   getLogRageLog,
   getShrineLog,
@@ -146,15 +149,48 @@ export default function IntegrationsPage() {
         Rails applications. This middleware catches and logs security violations
         and other exceptions with detailed context. The rack error handler logs
         security violations like:
-        <ul className="list-disc list-inside">
-          <li>IP spoofing attacks</li>
-          <li>CSRF token errors</li>
-          <li>Blocked host attempts</li>
-          <li>General exceptions during request processing</li>
-        </ul>
       </p>
 
-      <CodeBlock language="json">{getRackErrorLog()}</CodeBlock>
+      <Tabs defaultValue="ip-spoof">
+        <TabsList className="">
+          <TabsTrigger value="ip-spoof">IP Spoofing</TabsTrigger>
+          <TabsTrigger value="csrf">CSRF Violation</TabsTrigger>
+          <TabsTrigger value="blocked-host">Blocked Host</TabsTrigger>
+          <TabsTrigger value="exception">General Exception</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ip-spoof">
+          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+            <CodeBlock language="json" unwrapped={true}>
+              {getIPSpoofLog()}
+            </CodeBlock>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="csrf">
+          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+            <CodeBlock language="json" unwrapped={true}>
+              {getCSRFViolationLog()}
+            </CodeBlock>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="blocked-host">
+          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+            <CodeBlock language="json" unwrapped={true}>
+              {getBlockedHostLog()}
+            </CodeBlock>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="exception">
+          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+            <CodeBlock language="json" unwrapped={true}>
+              {getGeneralExceptionLog()}
+            </CodeBlock>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Host Authorization</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">

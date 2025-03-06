@@ -97,7 +97,7 @@ export function getSidekiqErrorLog(): string {
   return formatLog(transformed);
 }
 
-export function getRackErrorLog(): string {
+export function getIPSpoofLog(): string {
   const log = logGenerator.generateTypedLog(LogType.SECURITY);
   log.source = Source.SECURITY;
   log.event = LogEvent.IP_SPOOF;
@@ -107,6 +107,73 @@ export function getRackErrorLog(): string {
     ...log,
     timestamp: "2023-09-15T12:34:56.789Z",
   });
+  
+  transformed.message = "IP spoofing attack detected";
+  transformed.client_ip = "192.168.1.1";
+  transformed.x_forwarded_for = "10.0.0.1, 172.16.0.1";
+  
+  return formatLog(transformed);
+}
+
+export function getCSRFViolationLog(): string {
+  const log = logGenerator.generateTypedLog(LogType.SECURITY);
+  log.source = Source.SECURITY;
+  log.event = LogEvent.CSRF_VIOLATION;
+  log.level = LogLevel.ERROR;
+  
+  const transformed = logGenerator.transformLog({
+    ...log,
+    timestamp: "2023-09-15T12:34:56.789Z",
+  });
+  
+  transformed.message = "CSRF token verification failed";
+  transformed.controller = "UsersController";
+  transformed.action = "update";
+  transformed.path = "/users/123";
+  transformed.method = "POST";
+  
+  return formatLog(transformed);
+}
+
+export function getBlockedHostLog(): string {
+  const log = logGenerator.generateTypedLog(LogType.SECURITY);
+  log.source = Source.SECURITY;
+  log.event = LogEvent.BLOCKED_HOST;
+  log.level = LogLevel.ERROR;
+  
+  const transformed = logGenerator.transformLog({
+    ...log,
+    timestamp: "2023-09-15T12:34:56.789Z",
+  });
+  
+  transformed.message = "Blocked host attempt";
+  transformed.blocked_host = "malicious-site.com";
+  transformed.allowed_hosts = ["example.com", "api.example.com"];
+  
+  return formatLog(transformed);
+}
+
+export function getGeneralExceptionLog(): string {
+  const log = logGenerator.generateTypedLog(LogType.ERROR);
+  log.source = Source.REQUEST;
+  log.event = LogEvent.ERROR;
+  log.level = LogLevel.ERROR;
+  
+  const transformed = logGenerator.transformLog({
+    ...log,
+    timestamp: "2023-09-15T12:34:56.789Z",
+  });
+  
+  transformed.message = "Error during request processing";
+  transformed.error = "ActiveRecord::RecordNotFound";
+  transformed.path = "/api/users/999";
+  transformed.method = "GET";
+  transformed.controller = "Api::UsersController";
+  transformed.action = "show";
+  transformed.backtrace = [
+    "app/controllers/api/users_controller.rb:25:in `show'",
+    "..."
+  ];
   
   return formatLog(transformed);
 }
