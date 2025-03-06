@@ -9,6 +9,23 @@ describe('LogGenerator', () => {
     generator = new LogGenerator(12345);
   });
 
+  test('should transform property names to JSON keys', () => {
+    const log = generator.generateLog(LogType.PLAIN);
+
+    // Check common fields use the mapped JSON keys
+    expect(log).toHaveProperty('ts'); // instead of timestamp
+    expect(log).toHaveProperty('lvl'); // instead of level
+    expect(log).toHaveProperty('src'); // instead of source
+    expect(log).toHaveProperty('evt'); // instead of event
+    expect(log).toHaveProperty('msg'); // instead of message
+
+    // Verify the original property names are not present
+    expect(log).not.toHaveProperty('timestamp');
+    expect(log).not.toHaveProperty('level');
+    expect(log).not.toHaveProperty('source');
+    expect(log).not.toHaveProperty('event');
+  });
+
   test('should generate logs of specific types', () => {
     const requestLog = generator.generateLog(LogType.REQUEST);
     expect(requestLog).toHaveProperty('method');
@@ -17,11 +34,28 @@ describe('LogGenerator', () => {
 
     const errorLog = generator.generateLog(LogType.ERROR);
     expect(errorLog).toHaveProperty('err_class');
-    expect(errorLog).toHaveProperty('message');
+    expect(errorLog).toHaveProperty('msg');
     expect(errorLog).toHaveProperty('backtrace');
 
     const plainLog = generator.generateLog(LogType.PLAIN);
-    expect(plainLog).toHaveProperty('message');
+    expect(plainLog).toHaveProperty('msg');
+  });
+
+  test('should use appropriate log levels based on log type', () => {
+    // Regular logs should be INFO level
+    const plainLog = generator.generateLog(LogType.PLAIN);
+    expect(plainLog.lvl).toBe('info');
+
+    const requestLog = generator.generateLog(LogType.REQUEST);
+    expect(requestLog.lvl).toBe('info');
+
+    // Error logs should be ERROR level
+    const errorLog = generator.generateLog(LogType.ERROR);
+    expect(errorLog.lvl).toBe('error');
+
+    // Security logs should be WARN or ERROR level
+    const securityLog = generator.generateLog(LogType.SECURITY);
+    expect(['warn', 'error']).toContain(securityLog.lvl);
   });
 
   test('should generate job sequences', () => {

@@ -18,6 +18,7 @@ import {
   ActionMailerLog,
   CarrierWaveLog,
 } from './log-types';
+import logKeysMap from './log-keys.json';
 
 /**
  * Utility for generating structured log data
@@ -28,13 +29,44 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   /**
-   * Generate a random log of a given type
+   * Transform log properties to JSON keys using the logKeysMap
+   * For example: timestamp -> ts, source -> src, etc.
    */
-  generateLog(logType: LogType): Partial<Log> {
+  transformLog(log: Partial<Log>): Record<string, any> {
+    const transformedLog: Record<string, any> = {};
+    
+    // Process each field in the log
+    Object.entries(log).forEach(([propertyName, value]) => {
+      const jsonKey = (logKeysMap as Record<string, string>)[propertyName];
+      if (jsonKey) {
+        // Use the mapped JSON key
+        transformedLog[jsonKey] = value;
+      } else {
+        // Keep original name if no mapping exists
+        transformedLog[propertyName] = value;
+      }
+    });
+    
+    return transformedLog;
+  }
+
+  /**
+   * Generate a typed log based on log type
+   */
+  generateTypedLog(logType: LogType): Partial<Log> {
+    // Determine appropriate log level based on log type
+    let level = LogLevel.INFO; // Default to INFO for most logs
+    if (logType === LogType.ERROR) {
+      level = LogLevel.ERROR;
+    } else if (logType === LogType.SECURITY) {
+      // Security logs are often warnings or errors
+      level = Math.random() > 0.3 ? LogLevel.WARN : LogLevel.ERROR;
+    }
+    
     // Create a log with common fields
     const log: Partial<Log> = {
       timestamp: new Date().toISOString(),
-      level: this.randomEnum(LogLevel),
+      level: level,
       source: this.randomEnum(Source),
       event: this.randomEnum(LogEvent),
     };
@@ -64,6 +96,18 @@ export class LogGenerator extends RandomDataGenerator {
       default:
         return log;
     }
+  }
+
+  /**
+   * Generate a random log of a given type
+   * Returns a log with field names mapped to JSON keys
+   */
+  generateLog(logType: LogType): Record<string, any> {
+    // Generate a typed log then transform it
+    const typedLog = this.generateTypedLog(logType);
+    
+    // Transform property names to JSON keys
+    return this.transformLog(typedLog);
   }
 
   private generateRequestLog(log: Partial<RequestLog>): Partial<RequestLog> {

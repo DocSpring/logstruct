@@ -26,8 +26,9 @@ export function LogScroller() {
     jsonStr = jsonStr
       .replace(/,/g, ', ')
       .replace(/(\w"):/g, '$1: ')
-      .replace(/{/g, '{ ')
-      .replace(/}/g, ' }');
+      .replace(/({)(?!})/g, '$1 ') // Add space after opening brace only if not followed by closing brace
+      .replace(/(?<!{)(})/g, ' $1') // Add space before closing brace only if not preceded by opening brace
+      .replace(/\{\s+\}/g, '{}');   // Remove spaces between empty braces
 
     return jsonStr;
   }, []);
@@ -54,28 +55,6 @@ export function LogScroller() {
 
     // Generate a random log using the LogGenerator
     const log = logGenerator.generateLog(randomLogType);
-
-    // Convert timestamp field name from 'timestamp' to 'ts' for display consistency
-    if (log.timestamp) {
-      log.ts = log.timestamp;
-      delete log.timestamp;
-    }
-
-    // Map source and event to shorter codes to match UI format
-    if (log.source) {
-      log.src = log.source.toLowerCase();
-      delete log.source;
-    }
-
-    if (log.event) {
-      log.evt = log.event.toLowerCase();
-      delete log.event;
-    }
-
-    if (log.level) {
-      log.lvl = log.level.toLowerCase();
-      delete log.level;
-    }
 
     return formatLogForDisplay(log);
   }, [formatLogForDisplay]);
