@@ -45,10 +45,10 @@ module LogStruct
         merge_data_fields(hash)
 
         # Add exception-specific fields
-        hash[LOG_KEYS[:err_class]] = err_class.name
-        hash[LOG_KEYS[:message]] = message
+        hash[LOG_KEYS.fetch(:err_class)] = err_class.name
+        hash[LOG_KEYS.fetch(:message)] = message
         if backtrace.is_a?(Array) && backtrace&.any?
-          hash[LOG_KEYS[:backtrace]] = backtrace&.first(10)
+          hash[LOG_KEYS.fetch(:backtrace)] = backtrace&.first(10)
         end
 
         hash

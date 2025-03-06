@@ -1,19 +1,23 @@
 import fs from 'fs';
 import path from 'path';
 
-interface CodeExample {
+export interface CodeExample {
   id: string;
   code: string;
   filePath: string;
 }
 
-// Map of example ID to code content
-const CODE_EXAMPLES: Record<string, CodeExample> = generateCodeExamples();
+// Global cache for code examples
+let CODE_EXAMPLES: Record<string, CodeExample> = {};
+
+// Track last load time for development mode
+let lastLoadTime = 0;
+const RELOAD_INTERVAL_MS = 1000; // 1 second
 
 /**
  * Extracts a code example from file content using the BEGIN/END markers with separators
  */
-function extractCodeExample(content: string, id: string): string | null {
+export function extractCodeExample(content: string, id: string): string | null {
   const startPattern = new RegExp(
     `# -+\\s*\n# BEGIN CODE EXAMPLE: ${id}\\s*\n# -+`,
   );
@@ -35,61 +39,97 @@ function extractCodeExample(content: string, id: string): string | null {
 }
 
 /**
- * Generates all code examples at build time
+ * Loads all code examples from the examples directory
+ * In development, this reloads on demand to pick up changes
+ * In production, this loads once and caches the result
  */
-function generateCodeExamples(): Record<string, CodeExample> {
+export function loadCodeExamples(): Record<string, CodeExample> {
   const examples: Record<string, CodeExample> = {};
 
-  // Path to examples directory (relative to project root)
-  const examplesDir = path.join(process.cwd(), '..', 'examples');
+  try {
+    // Path to examples directory (relative to project root)
+    const examplesDir = path.join(process.cwd(), '..', 'examples');
 
-  // Check if directory exists
-  if (!fs.existsSync(examplesDir)) {
-    throw new Error(`Examples directory not found: ${examplesDir}`);
-  }
+    // Check if directory exists
+    if (!fs.existsSync(examplesDir)) {
+      console.warn(`Examples directory not found: ${examplesDir}`);
+      return examples;
+    }
 
-  // Get all Ruby files in the directory
-  const files = fs
-    .readdirSync(examplesDir)
-    .filter((file) => file.endsWith('.rb'));
+    // Get all Ruby files in the directory
+    const files = fs
+      .readdirSync(examplesDir)
+      .filter((file) => file.endsWith('.rb'));
 
-  for (const file of files) {
-    const filePath = path.join(examplesDir, file);
-    const content = fs.readFileSync(filePath, 'utf8');
+    for (const file of files) {
+      const filePath = path.join(examplesDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
 
-    // Extract all example IDs from this file
-    const regex = /# BEGIN CODE EXAMPLE: (\w+)/g;
-    let match;
+      // Extract all example IDs from this file
+      const regex = /# BEGIN CODE EXAMPLE: (\w+)/g;
+      let match;
 
-    while ((match = regex.exec(content)) !== null) {
-      const id = match[1];
-      const code = extractCodeExample(content, id);
+      while ((match = regex.exec(content)) !== null) {
+        const id = match[1];
+        const code = extractCodeExample(content, id);
 
-      if (code) {
-        examples[id] = {
-          id,
-          code,
-          filePath: path.relative(process.cwd(), filePath),
-        };
+        if (code) {
+          examples[id] = {
+            id,
+            code,
+            filePath: path.relative(process.cwd(), filePath),
+          };
+        }
       }
     }
+  } catch (error) {
+    console.error('Error loading code examples:', error);
   }
+
+  // Update the global cache and load time
+  CODE_EXAMPLES = examples;
+  lastLoadTime = Date.now();
 
   return examples;
 }
 
 /**
+ * Ensures examples are loaded and up-to-date
+ * In development, reloads if enough time has passed
+ * In production, loads once at startup
+ */
+function ensureExamplesLoaded(): void {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // In development, reload periodically
+  if (isDevelopment && Date.now() - lastLoadTime > RELOAD_INTERVAL_MS) {
+    loadCodeExamples();
+  } 
+  // In production or if not loaded yet, load once
+  else if (Object.keys(CODE_EXAMPLES).length === 0) {
+    loadCodeExamples();
+  }
+}
+
+/**
  * Gets a code example by ID
  * This can be used in components via static generation or server components
+ * @throws Error if the example with the given ID doesn't exist
  */
-export function getCodeExample(id: string): CodeExample | null {
-  return CODE_EXAMPLES[id] || null;
+export function getCodeExample(id: string): CodeExample {
+  ensureExamplesLoaded();
+  const example = CODE_EXAMPLES[id];
+  if (!example) {
+    throw new Error(`Code example not found: "${id}". Make sure this example exists in the examples directory.`);
+  }
+  return example;
 }
 
 /**
  * Gets all available code examples
  */
 export function getAllCodeExamples(): CodeExample[] {
+  ensureExamplesLoaded();
   return Object.values(CODE_EXAMPLES);
 }
 
@@ -97,5 +137,11 @@ export function getAllCodeExamples(): CodeExample[] {
  * Gets all code example IDs
  */
 export function getAllExampleIds(): string[] {
+  ensureExamplesLoaded();
   return Object.keys(CODE_EXAMPLES);
+}
+
+// Initialize examples in production at module load time
+if (process.env.NODE_ENV === 'production') {
+  loadCodeExamples();
 }

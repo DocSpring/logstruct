@@ -54,20 +54,20 @@ module LogStruct
       def serialize(strict = true)
         hash = serialize_common(strict)
         add_request_fields(hash)
-        hash[LOG_KEYS[:http_method]] = http_method if http_method
-        hash[LOG_KEYS[:path]] = path if path
-        hash[LOG_KEYS[:format]] = format if format
-        hash[LOG_KEYS[:controller]] = controller if controller
-        hash[LOG_KEYS[:action]] = action if action
-        hash[LOG_KEYS[:status]] = status if status
-        hash[LOG_KEYS[:duration]] = duration if duration
-        hash[LOG_KEYS[:view]] = view if view
-        hash[LOG_KEYS[:db]] = db if db
-        hash[LOG_KEYS[:params]] = params if params
-        hash[LOG_KEYS[:source_ip]] = source_ip if source_ip
-        hash[LOG_KEYS[:user_agent]] = user_agent if user_agent
-        hash[LOG_KEYS[:referer]] = referer if referer
-        hash[LOG_KEYS[:request_id]] = request_id if request_id
+        hash[LOG_KEYS.fetch(:http_method)] = http_method if http_method
+        hash[LOG_KEYS.fetch(:path)] = path if path
+        hash[LOG_KEYS.fetch(:format)] = format if format
+        hash[LOG_KEYS.fetch(:controller)] = controller if controller
+        hash[LOG_KEYS.fetch(:action)] = action if action
+        hash[LOG_KEYS.fetch(:status)] = status if status
+        hash[LOG_KEYS.fetch(:duration)] = duration if duration
+        hash[LOG_KEYS.fetch(:view)] = view if view
+        hash[LOG_KEYS.fetch(:db)] = db if db
+        hash[LOG_KEYS.fetch(:params)] = params if params
+        hash[LOG_KEYS.fetch(:source_ip)] = source_ip if source_ip
+        hash[LOG_KEYS.fetch(:user_agent)] = user_agent if user_agent
+        hash[LOG_KEYS.fetch(:referer)] = referer if referer
+        hash[LOG_KEYS.fetch(:request_id)] = request_id if request_id
 
         hash
       end

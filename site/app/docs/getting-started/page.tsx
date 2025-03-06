@@ -55,7 +55,7 @@ export default function GettingStartedPage() {
       </div>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">
-        {`That's it! LogStruct is now installed and will automatically enable JSON structured logging in the test and production environments.`}
+        {`LogStruct is now installed and will automatically enable JSON structured logging in the test and production environments.`}
       </p>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Configuration</h2>
@@ -70,7 +70,7 @@ export default function GettingStartedPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample 
+        <CodeExample
           code={getCodeExample('basic_configuration')?.code || ''}
           language="ruby"
           title="config/initializers/logstruct.rb"

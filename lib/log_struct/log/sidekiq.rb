@@ -35,10 +35,11 @@ module LogStruct
         hash = serialize_common(strict)
 
         # Add Sidekiq-specific fields if they're present
-        hash[LOG_KEYS[:message]] = message if message
-        hash[LOG_KEYS[:context]] = context if context
-        hash[LOG_KEYS[:process_id]] = process_id if process_id
-        hash[LOG_KEYS[:thread_id]] = thread_id if thread_id
+        hash[LOG_KEYS.fetch(:message)] = message if message
+        hash[LOG_KEYS.fetch(:context)] = context if context
+        hash[LOG_KEYS.fetch(:process_id)] = process_id if process_id
+        hash[LOG_KEYS.fetch(:thread_id)] = thread_id if thread_id
+
         hash
       end
     end

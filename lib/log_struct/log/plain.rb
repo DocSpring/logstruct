@@ -37,7 +37,7 @@ module LogStruct
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize(strict = true)
         hash = serialize_common(strict)
-        hash[LOG_KEYS[:message]] = message
+        hash[LOG_KEYS.fetch(:message)] = message
         hash
       end
     end

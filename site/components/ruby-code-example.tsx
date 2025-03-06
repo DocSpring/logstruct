@@ -3,32 +3,27 @@
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { getCodeExample } from '@/lib/codeExamples';
 
-interface CodeExampleProps {
-  code: string;
-  language?: string;
+interface RubyCodeExampleProps {
+  name: string;
   showLineNumbers?: boolean;
   highlightLines?: number[];
   title?: string;
 }
 
 /**
- * Component to display a code example with syntax highlighting
- * The code should be passed in directly from getCodeExample() in server components
- * or via getStaticProps for static site generation
+ * Component to display a Ruby code example with syntax highlighting
+ * Just pass the name of the example and it will be loaded from the examples directory
  */
-export function CodeExample({
-  code,
-  language = 'ruby',
+export function RubyCodeExample({
+  name,
   showLineNumbers = true,
   highlightLines = [],
   title
-}: CodeExampleProps) {
-  if (!code) {
-    // In production, this should crash the build
-    // In development, display a prominent error
-    throw new Error(`Code example is missing or empty for: ${title || 'Unknown example'}`);
-  }
+}: RubyCodeExampleProps) {
+  // This will throw if the example doesn't exist
+  const example = getCodeExample(name);
   
   return (
     <div className="my-6">
@@ -39,7 +34,7 @@ export function CodeExample({
       )}
       <div className="overflow-hidden rounded-lg">
         <SyntaxHighlighter
-          language={language}
+          language="ruby"
           style={atomDark}
           showLineNumbers={showLineNumbers}
           wrapLines={true}
@@ -57,7 +52,7 @@ export function CodeExample({
             borderRadius: '0.5rem',
           }}
         >
-          {code}
+          {example.code}
         </SyntaxHighlighter>
       </div>
     </div>

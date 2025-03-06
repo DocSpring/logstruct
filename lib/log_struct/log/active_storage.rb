@@ -43,19 +43,19 @@ module LogStruct
         hash = serialize_common(strict)
 
         # Add ActiveStorage-specific fields - only include non-nil values
-        hash[LOG_KEYS[:operation]] = operation if operation
-        hash[LOG_KEYS[:storage]] = storage if storage
-        hash[LOG_KEYS[:file_id]] = file_id if file_id
-        hash[LOG_KEYS[:filename]] = filename if filename
-        hash[LOG_KEYS[:mime_type]] = mime_type if mime_type
-        hash[LOG_KEYS[:size]] = size if size
-        hash[LOG_KEYS[:metadata]] = metadata if metadata
-        hash[LOG_KEYS[:duration]] = duration if duration
-        hash[LOG_KEYS[:checksum]] = checksum if checksum
-        hash[LOG_KEYS[:exist]] = exist if !exist.nil?
-        hash[LOG_KEYS[:url]] = url if url
-        hash[LOG_KEYS[:prefix]] = prefix if prefix
-        hash[LOG_KEYS[:range]] = range if range
+        hash[LOG_KEYS.fetch(:operation)] = operation if operation
+        hash[LOG_KEYS.fetch(:storage)] = storage if storage
+        hash[LOG_KEYS.fetch(:file_id)] = file_id if file_id
+        hash[LOG_KEYS.fetch(:filename)] = filename if filename
+        hash[LOG_KEYS.fetch(:mime_type)] = mime_type if mime_type
+        hash[LOG_KEYS.fetch(:size)] = size if size
+        hash[LOG_KEYS.fetch(:metadata)] = metadata if metadata
+        hash[LOG_KEYS.fetch(:duration)] = duration if duration
+        hash[LOG_KEYS.fetch(:checksum)] = checksum if checksum
+        hash[LOG_KEYS.fetch(:exist)] = exist if !exist.nil?
+        hash[LOG_KEYS.fetch(:url)] = url if url
+        hash[LOG_KEYS.fetch(:prefix)] = prefix if prefix
+        hash[LOG_KEYS.fetch(:range)] = range if range
 
         hash
       end

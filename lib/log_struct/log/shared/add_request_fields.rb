@@ -17,12 +17,12 @@ module LogStruct
       sig { params(hash: T::Hash[Symbol, T.untyped]).void }
       def add_request_fields(hash)
         # Add request-specific fields if they're present
-        hash[LOG_KEYS[:path]] = path if path
-        hash[LOG_KEYS[:http_method]] = http_method if http_method # Use `method` in JSON
-        hash[LOG_KEYS[:source_ip]] = source_ip if source_ip
-        hash[LOG_KEYS[:user_agent]] = user_agent if user_agent
-        hash[LOG_KEYS[:referer]] = referer if referer
-        hash[LOG_KEYS[:request_id]] = request_id if request_id
+        hash[LOG_KEYS.fetch(:path)] = path if path
+        hash[LOG_KEYS.fetch(:http_method)] = http_method if http_method # Use `method` in JSON
+        hash[LOG_KEYS.fetch(:source_ip)] = source_ip if source_ip
+        hash[LOG_KEYS.fetch(:user_agent)] = user_agent if user_agent
+        hash[LOG_KEYS.fetch(:referer)] = referer if referer
+        hash[LOG_KEYS.fetch(:request_id)] = request_id if request_id
       end
     end
   end

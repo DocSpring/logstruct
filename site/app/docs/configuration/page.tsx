@@ -1,5 +1,4 @@
-import { CodeExample } from '@/components/code-example';
-import { getCodeExample } from '@/lib/codeExamples';
+import { RubyCodeExample } from '@/components/ruby-code-example';
 import { EditPageLink } from '@/components/edit-page-link';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -26,12 +25,9 @@ export default function ConfigurationPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('basic_configuration')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="basic_configuration"
+          title="Basic Configuration Example"
         />
       </div>
 
@@ -74,12 +70,9 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('integrations_configuration')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="integrations_configuration"
+          title="Integrations Configuration"
         />
       </div>
 
@@ -92,12 +85,9 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('filter_configuration')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="filter_configuration"
+          title="Sensitive Data Filtering Configuration"
         />
       </div>
 
@@ -110,12 +100,9 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('error_handling_modes')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="error_handling_modes"
+          title="Error Handling Modes Configuration"
         />
       </div>
 
@@ -125,12 +112,9 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('lograge_custom_options')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="lograge_custom_options"
+          title="Lograge Custom Options Configuration"
         />
       </div>
 
@@ -140,12 +124,9 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('custom_string_scrubber')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="custom_string_scrubber"
+          title="Custom String Scrubber Example"
         />
       </div>
 
@@ -155,12 +136,9 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('custom_error_reporter')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="custom_error_reporter"
+          title="Custom Error Reporter Example"
         />
       </div>
 

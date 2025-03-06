@@ -50,13 +50,13 @@ module LogStruct
         hash = serialize_common(strict)
 
         # Add Shrine-specific fields if they're present
-        hash[LOG_KEYS[:storage]] = storage if storage
-        hash[LOG_KEYS[:location]] = location if location
-        hash[LOG_KEYS[:upload_options]] = upload_options if upload_options
-        hash[LOG_KEYS[:download_options]] = download_options if download_options
-        hash[LOG_KEYS[:options]] = options if options
-        hash[LOG_KEYS[:uploader]] = uploader if uploader
-        hash[LOG_KEYS[:duration]] = duration if duration
+        hash[LOG_KEYS.fetch(:storage)] = storage if storage
+        hash[LOG_KEYS.fetch(:location)] = location if location
+        hash[LOG_KEYS.fetch(:upload_options)] = upload_options if upload_options
+        hash[LOG_KEYS.fetch(:download_options)] = download_options if download_options
+        hash[LOG_KEYS.fetch(:options)] = options if options
+        hash[LOG_KEYS.fetch(:uploader)] = uploader if uploader
+        hash[LOG_KEYS.fetch(:duration)] = duration if duration
 
         hash
       end
