@@ -60,7 +60,7 @@ module LogStruct
 
       # Verify the password was filtered
       assert_not_includes result, "password123"
-      assert_includes result, "postgres://user:[FILTERED]@localhost:5432/mydb"
+      assert_includes result, "postgres://user:[PASSWORD]@localhost:5432/mydb"
 
       # Test with encoded URL
       # cspell:ignore Fuser Asecret
@@ -68,7 +68,7 @@ module LogStruct
       result = StringScrubber.scrub(input)
 
       assert_not_includes result, "secret"
-      assert_includes result, "[FILTERED]"
+      assert_includes result, "[PASSWORD]"
     end
 
     def test_scrub_credit_card_numbers

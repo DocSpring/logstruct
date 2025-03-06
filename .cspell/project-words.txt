@@ -30,4 +30,5 @@ Sidekiq
 solargraph
 ssns
 testtask
+xorshift
 yardoc

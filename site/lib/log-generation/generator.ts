@@ -69,15 +69,118 @@ export class LogGenerator {
 
   /**
    * Generate a random email address
+   * 
+   * @param filtered Whether to return a filtered format with [EMAIL:hash] syntax
+   * @param useObjectFormat Whether to use the _filtered object format
    */
-  randomEmail(filtered = false): string {
+  randomEmail(filtered = false, useObjectFormat = false): string | object {
+    const emailHash = this.randomHex(6);
+    
     if (filtered) {
-      return `[EMAIL:${this.randomHex(6)}]`;
+      if (useObjectFormat) {
+        // Return the object format with _filtered property
+        return {
+          _filtered: {
+            _class: "String",
+            _bytes: 24 + this.randomInt(0, 10), // Randomize byte size a bit
+            _hash: emailHash
+          }
+        };
+      } else {
+        // Return the simple [EMAIL:hash] format
+        return `[EMAIL:${emailHash}]`;
+      }
     }
+    
+    // Return an actual (fake) email address
     const firstName = this.sample(SampleData.FIRST_NAMES).toLowerCase();
     const lastName = this.sample(SampleData.LAST_NAMES).toLowerCase();
     const domain = this.sample(SampleData.DOMAINS);
     return `${firstName}.${lastName}@${domain}`;
+  }
+  
+  /**
+   * Generate a filtered password
+   */
+  randomPassword(filtered = true): string {
+    if (filtered) {
+      return "[PASSWORD]";
+    }
+    return `password${this.randomInt(100, 999)}!`;
+  }
+  
+  /**
+   * Generate a filtered credit card number
+   */
+  randomCreditCard(filtered = true): string {
+    if (filtered) {
+      return "[CREDIT_CARD]";
+    }
+    return `${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}`;
+  }
+  
+  /**
+   * Generate a filtered phone number
+   */
+  randomPhone(filtered = true): string {
+    if (filtered) {
+      return "[PHONE]";
+    }
+    return `+1-${this.randomInt(100, 999)}-${this.randomInt(100, 999)}-${this.randomInt(1000, 9999)}`;
+  }
+  
+  /**
+   * Generate a filtered IP address
+   */
+  randomIP(filtered = false): string {
+    if (filtered) {
+      return "[IP]";
+    }
+    return this.sample(SampleData.IP_ADDRESSES);
+  }
+  
+  /**
+   * Generate a filtered hash (for nested objects that contain sensitive data)
+   */
+  filteredHash(sensitivity: 'password' | 'pii' | 'json' = 'json'): object {
+    let keys: string[];
+    
+    switch (sensitivity) {
+      case 'password':
+        keys = ["password", "password_confirmation", "current_password", "token"];
+        break;
+      case 'pii':
+        keys = ["ssn", "tax_id", "credit_card", "phone", "address"];
+        break;
+      default: // json
+        keys = ["data", "payload", "attributes", "request_body"];
+    }
+    
+    return {
+      _filtered: {
+        _class: "Hash",
+        _keys_count: keys.length,
+        _keys: keys,
+        _bytes: this.randomInt(20, 500)
+      }
+    };
+  }
+  
+  /**
+   * Generate a filtered array
+   */
+  filteredArray(itemCount: number = 0): object {
+    if (itemCount === 0) {
+      itemCount = this.randomInt(3, 20);
+    }
+    
+    return {
+      _filtered: {
+        _class: "Array",
+        _length: itemCount,
+        _bytes: itemCount * this.randomInt(10, 50)
+      }
+    };
   }
 
   /**
