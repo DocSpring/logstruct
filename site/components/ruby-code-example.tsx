@@ -21,6 +21,7 @@ export function RubyCodeExample({
   title,
 }: RubyCodeExampleProps) {
   // This will throw if the example doesn't exist
+  const example = getCodeExample(name);
 
   return (
     <CodeBlock
@@ -29,7 +30,7 @@ export function RubyCodeExample({
       highlightLines={highlightLines}
       title={title}
     >
-      {getCodeExample(name)}
+      {example.code}
     </CodeBlock>
   );
 }
