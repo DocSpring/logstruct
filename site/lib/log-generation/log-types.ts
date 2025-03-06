@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Auto-generated TypeScript definitions for LogStruct
-// Generated on 2025-03-06 15:19:34
+// Generated on 2025-03-06 15:32:01
 
 // Enum types
 export enum Source {

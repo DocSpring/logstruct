@@ -26,6 +26,7 @@ jobs:
           ruby -v
           bundle install
           yarn install
+          cd site && yarn install && cd ..
 
       - name: CSpell (Spellcheck)
         run: bin/spellcheck
@@ -147,7 +148,7 @@ jobs:
           # Install dependencies with the specific Rails version
           bundle install
 
-      - name: Run tests
+      - name: Run Ruby tests
         run: bin/test
 
       # Optional: Save coverage data as an artifact
@@ -158,3 +159,40 @@ jobs:
           name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
           path: coverage/
           retention-days: 5
+          
+  typescript:
+    name: "TypeScript Tests"
+    needs: [matrix]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3.6"
+          bundler-cache: true
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: 'site/yarn.lock'
+          
+      - name: Install dependencies
+        run: |
+          bundle install
+          cd site && yarn install
+          
+      - name: Export TypeScript types
+        run: |
+          ruby scripts/export_typescript_types.rb
+          
+      - name: TypeScript type checking
+        run: |
+          cd site && npx tsc --noEmit
+          
+      - name: Run TypeScript tests
+        run: |
+          cd site && yarn test
