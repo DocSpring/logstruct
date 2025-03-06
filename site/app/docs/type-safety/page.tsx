@@ -1,6 +1,6 @@
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { EditPageLink } from "@/components/edit-page-link";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { EditPageLink } from '@/components/edit-page-link';
 
 export default function TypeSafetyPage() {
   return (
@@ -26,12 +26,12 @@ export default function TypeSafetyPage() {
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Create a typed request log entry
@@ -69,61 +69,61 @@ Rails.logger.error(error_log)`}
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::Plain
-          </code>{" "}
+          </code>{' '}
           - For general purpose logging with a message and context
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::Request
-          </code>{" "}
+          </code>{' '}
           - For HTTP request details
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::Error
-          </code>{" "}
+          </code>{' '}
           - For exception details with stack traces
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::ActionMailer
-          </code>{" "}
+          </code>{' '}
           - For email delivery events
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::ActiveJob
-          </code>{" "}
+          </code>{' '}
           - For background job execution
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::ActiveStorage
-          </code>{" "}
+          </code>{' '}
           - For file storage operations
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::Shrine
-          </code>{" "}
+          </code>{' '}
           - For Shrine file upload events
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::CarrierWave
-          </code>{" "}
+          </code>{' '}
           - For CarrierWave upload events
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::Sidekiq
-          </code>{" "}
+          </code>{' '}
           - For Sidekiq job processing
         </li>
         <li>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
             LogStruct::Log::Security
-          </code>{" "}
+          </code>{' '}
           - For security-related events
         </li>
       </ul>
@@ -138,12 +138,12 @@ Rails.logger.error(error_log)`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Log levels
@@ -183,12 +183,12 @@ LogStruct::ErrorHandlingMode::Raise        # Always raise errors`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# In your Gemfile
@@ -232,12 +232,12 @@ bundle exec srb init`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# In development and test environments, type errors will raise exceptions
@@ -263,12 +263,12 @@ end`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Define a custom log structure with type checking

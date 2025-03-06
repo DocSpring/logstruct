@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { MoonIcon, SunIcon, MonitorIcon } from "lucide-react";
-import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import { MoonIcon, SunIcon, MonitorIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 function ThemeToggle() {
   const { setTheme, theme } = useTheme();
@@ -24,15 +24,15 @@ function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => setTheme('light')}>
           <SunIcon className="mr-2 h-4 w-4" />
           <span>Light</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
           <MoonIcon className="mr-2 h-4 w-4" />
           <span>Dark</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
           <MonitorIcon className="mr-2 h-4 w-4" />
           <span>System</span>
         </DropdownMenuItem>
@@ -54,8 +54,8 @@ export function SiteFooter() {
               className="font-medium underline underline-offset-4"
             >
               LogStruct
-            </Link>{" "}
-            is made by{" "}
+            </Link>{' '}
+            is made by{' '}
             <Link
               href="https://docspring.com"
               target="_blank"
@@ -63,8 +63,8 @@ export function SiteFooter() {
               className="font-medium underline underline-offset-4"
             >
               DocSpring
-            </Link>{" "}
-            and is released under the{" "}
+            </Link>{' '}
+            and is released under the{' '}
             <Link
               href="https://github.com/DocSpring/logstruct/blob/main/LICENSE"
               target="_blank"

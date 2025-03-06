@@ -1,8 +1,8 @@
-import { LogScroller } from "@/components/log-scroller";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { LogScroller } from '@/components/log-scroller';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function Home() {
   return (
@@ -60,13 +60,13 @@ export default function Home() {
                 language="ruby"
                 style={atomDark}
                 customStyle={{
-                  fontSize: "0.875rem",
+                  fontSize: '0.875rem',
                   fontFamily:
-                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  backgroundColor: "transparent",
-                  padding: "0",
-                  borderRadius: "0px",
-                  margin: "0",
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                  backgroundColor: 'transparent',
+                  padding: '0',
+                  borderRadius: '0px',
+                  margin: '0',
                 }}
               >
                 {`gem "logstruct"`}
@@ -80,13 +80,13 @@ export default function Home() {
                 language="bash"
                 style={atomDark}
                 customStyle={{
-                  fontSize: "0.875rem",
+                  fontSize: '0.875rem',
                   fontFamily:
-                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  backgroundColor: "transparent",
-                  padding: "0",
-                  borderRadius: "0px",
-                  margin: "0",
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                  backgroundColor: 'transparent',
+                  padding: '0',
+                  borderRadius: '0px',
+                  margin: '0',
                 }}
               >
                 bundle install

@@ -1,6 +1,6 @@
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { EditPageLink } from "@/components/edit-page-link";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { EditPageLink } from '@/components/edit-page-link';
 
 export default function ConfigurationPage() {
   return (
@@ -15,10 +15,10 @@ export default function ConfigurationPage() {
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Configuration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         While LogStruct works out of the box with minimal configuration, you may
-        want to customize it to suit your application's needs. Create a file at{" "}
+        want to customize it to suit your application's needs. Create a file at{' '}
         <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
           config/initializers/logstruct.rb
-        </code>{" "}
+        </code>{' '}
         with your desired configuration.
       </p>
 
@@ -27,12 +27,12 @@ export default function ConfigurationPage() {
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Configure LogStruct
@@ -84,12 +84,12 @@ LogStruct.initialize`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Enable LogStruct in specific environments
@@ -114,12 +114,12 @@ config.local_environments = [:development, :test]`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Configure which integrations to enable
@@ -149,12 +149,12 @@ config.integrations.enable_sorbet_error_handler = true # Sorbet type checking er
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Configure sensitive data filtering
@@ -187,12 +187,12 @@ config.filters.hash_length = 12`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Configure error handling modes
@@ -219,12 +219,12 @@ config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogP
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Provide a custom proc to extend Lograge options

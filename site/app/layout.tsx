@@ -1,34 +1,34 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
-import { MainNav } from "@/components/main-nav";
-import { SiteFooter } from "@/components/site-footer";
-import { ThemeProvider } from "@/components/theme-provider";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
+import './globals.css';
+import { MainNav } from '@/components/main-nav';
+import { SiteFooter } from '@/components/site-footer';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "LogStruct - Zero-configuration JSON Logging for Ruby on Rails",
+  title: 'LogStruct - Zero-configuration JSON Logging for Ruby on Rails',
   description:
-    "Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.",
+    'Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.',
   keywords: [
-    "Rails",
-    "Ruby",
-    "logging",
-    "JSON",
-    "structured logging",
-    "Sidekiq",
-    "Sorbet",
-    "TypeScript",
+    'Rails',
+    'Ruby',
+    'logging',
+    'JSON',
+    'structured logging',
+    'Sidekiq',
+    'Sorbet',
+    'TypeScript',
   ],
 };
 

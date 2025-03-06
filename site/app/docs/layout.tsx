@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface DocNavItemProps {
   href: string;
@@ -15,8 +15,8 @@ function DocNavItem({ href, title, active }: DocNavItemProps) {
     <Link
       href={href}
       className={cn(
-        "block py-2 px-4 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors",
-        active && "bg-neutral-100 dark:bg-neutral-800 font-medium",
+        'block py-2 px-4 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
+        active && 'bg-neutral-100 dark:bg-neutral-800 font-medium',
       )}
     >
       {title}
@@ -44,27 +44,27 @@ export default function DocsLayout({
                   <DocNavItem
                     href="/docs"
                     title="Introduction"
-                    active={pathname === "/docs"}
+                    active={pathname === '/docs'}
                   />
                   <DocNavItem
                     href="/docs/getting-started"
                     title="Getting Started"
-                    active={pathname === "/docs/getting-started"}
+                    active={pathname === '/docs/getting-started'}
                   />
                   <DocNavItem
                     href="/docs/configuration"
                     title="Configuration"
-                    active={pathname === "/docs/configuration"}
+                    active={pathname === '/docs/configuration'}
                   />
                   <DocNavItem
                     href="/docs/integrations"
                     title="Integrations"
-                    active={pathname === "/docs/integrations"}
+                    active={pathname === '/docs/integrations'}
                   />
                   <DocNavItem
                     href="/docs/type-safety"
                     title="Type Safety"
-                    active={pathname === "/docs/type-safety"}
+                    active={pathname === '/docs/type-safety'}
                   />
                 </nav>
 

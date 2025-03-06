@@ -1,13 +1,13 @@
-import { LogGenerator } from "../log-generator";
+import { LogGenerator } from '../log-generator';
 import {
   LogType,
   LogLevel,
   Source,
   LogEvent,
   ActiveJobLog,
-} from "../log-types";
+} from '../log-types';
 
-describe("LogGenerator", () => {
+describe('LogGenerator', () => {
   let generator: LogGenerator;
 
   beforeEach(() => {
@@ -15,22 +15,22 @@ describe("LogGenerator", () => {
     generator = new LogGenerator(12345);
   });
 
-  test("should generate logs of specific types", () => {
+  test('should generate logs of specific types', () => {
     const requestLog = generator.generateLog(LogType.REQUEST);
-    expect(requestLog).toHaveProperty("method");
-    expect(requestLog).toHaveProperty("path");
-    expect(requestLog).toHaveProperty("status");
+    expect(requestLog).toHaveProperty('method');
+    expect(requestLog).toHaveProperty('path');
+    expect(requestLog).toHaveProperty('status');
 
     const errorLog = generator.generateLog(LogType.ERROR);
-    expect(errorLog).toHaveProperty("err_class");
-    expect(errorLog).toHaveProperty("message");
-    expect(errorLog).toHaveProperty("backtrace");
+    expect(errorLog).toHaveProperty('err_class');
+    expect(errorLog).toHaveProperty('message');
+    expect(errorLog).toHaveProperty('backtrace');
 
     const plainLog = generator.generateLog(LogType.PLAIN);
-    expect(plainLog).toHaveProperty("message");
+    expect(plainLog).toHaveProperty('message');
   });
 
-  test("should generate job sequences", () => {
+  test('should generate job sequences', () => {
     const sequence = generator.generateJobSequence();
 
     // Should have 3 logs: enqueue, start, finish
@@ -57,9 +57,9 @@ describe("LogGenerator", () => {
     expect(sequence[2].level).toBe(LogLevel.INFO);
 
     // Only the finish event should have a duration
-    expect(sequence[0]).not.toHaveProperty("duration");
-    expect(sequence[1]).not.toHaveProperty("duration");
-    expect(sequence[2]).toHaveProperty("duration");
+    expect(sequence[0]).not.toHaveProperty('duration');
+    expect(sequence[1]).not.toHaveProperty('duration');
+    expect(sequence[2]).toHaveProperty('duration');
 
     // Timestamps should be in chronological order
     const time1 = new Date(sequence[0].timestamp as string).getTime();

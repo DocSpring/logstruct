@@ -2,16 +2,36 @@
 
 ## Commands
 
+### Core Commands
+
 - Setup: `bin/setup`
-- Run all tests: `bin/test`
+- Run all checks: `bin/all` (runs typecheck, export, lint, test, etc.)
+- Interactive console: `bin/console`
+
+### Testing Commands
+
+- Run all Ruby tests: `bin/test`
 - Run single test file: `bin/test test/path_to_test.rb`
 - Run test at specific line: `bin/test test/path_to_test.rb:LINE_NUMBER`
 - Run test by name: `bin/test -n=test_method_name`
 - Debug a specific test: Add `debugger` statements (developer only)
-- Typecheck: `bin/typecheck`
-- Format code: `bin/format`
-- Lint: `bin/rubocop`
+- Run Rails integration tests: `bin/test_with_rails`
+- Run Next.js TypeScript tests: `cd site && npm test`
+
+### Quality Commands
+
+- Ruby typecheck: `bin/typecheck`
+- Next.js typecheck: `cd site && npx tsc --noEmit`
+- Lint Ruby: `bin/rubocop`
+- Format Ruby: `bin/rubocop -A`
+- Format JS/TS/JSON: `bin/prettier --write`
+- Lint JS/TS/JSON: `bin/prettier --check`
 - Spellcheck: `bin/spellcheck`
+
+### Development Commands
+
+- Generate Sorbet RBI files: `bin/tapioca`
+- Generate spellcheck dictionary: `bin/generate_lockfile_words`
 
 ## Code Style
 

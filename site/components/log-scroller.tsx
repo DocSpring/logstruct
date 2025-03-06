@@ -1,149 +1,149 @@
-"use client";
+'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import useInterval from "use-interval";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import useInterval from 'use-interval';
 
 // Log template entries - will be populated with dynamic data
 const logTemplates = [
-  { src: "puma", evt: "boot", pid: 0, lvl: "info" },
+  { src: 'puma', evt: 'boot', pid: 0, lvl: 'info' },
   {
-    src: "rails",
-    evt: "req",
-    lvl: "info",
-    path: "/users",
-    method: "POST",
-    controller: "UsersController",
-    action: "create",
+    src: 'rails',
+    evt: 'req',
+    lvl: 'info',
+    path: '/users',
+    method: 'POST',
+    controller: 'UsersController',
+    action: 'create',
     status: 200,
     duration: 0,
-    ip: "192.168.1.1",
+    ip: '192.168.1.1',
   },
   {
-    src: "job",
-    evt: "start",
-    lvl: "info",
-    job_id: "",
-    queue: "default",
-    class: "ProcessJob",
+    src: 'job',
+    evt: 'start',
+    lvl: 'info',
+    job_id: '',
+    queue: 'default',
+    class: 'ProcessJob',
     args: [
-      "arg1",
+      'arg1',
       {
         _filtered: {
-          _class: "Hash",
+          _class: 'Hash',
           _keys_count: 2,
-          _keys: ["password", "confirm_password"],
+          _keys: ['password', 'confirm_password'],
           _bytes: 42,
         },
       },
     ],
   },
   {
-    src: "rails",
-    evt: "req",
-    lvl: "info",
-    path: "/api/users",
-    method: "GET",
-    controller: "Api::UsersController",
-    action: "index",
+    src: 'rails',
+    evt: 'req',
+    lvl: 'info',
+    path: '/api/users',
+    method: 'GET',
+    controller: 'Api::UsersController',
+    action: 'index',
     status: 200,
     duration: 0,
     params: { page: 1, per_page: 10 },
   },
   {
-    src: "mailer",
-    evt: "deliver",
-    lvl: "info",
-    mailer: "UserMailer",
-    action: "welcome",
-    to: "[EMAIL:hash]",
-    subject: "Welcome to our app!",
+    src: 'mailer',
+    evt: 'deliver',
+    lvl: 'info',
+    mailer: 'UserMailer',
+    action: 'welcome',
+    to: '[EMAIL:hash]',
+    subject: 'Welcome to our app!',
   },
   {
-    src: "mailer",
-    evt: "error",
-    lvl: "error",
-    mailer: "NotificationMailer",
-    error: "SMTP connection failed",
-    message: "Failed to connect to SMTP server",
+    src: 'mailer',
+    evt: 'error',
+    lvl: 'error',
+    mailer: 'NotificationMailer',
+    error: 'SMTP connection failed',
+    message: 'Failed to connect to SMTP server',
   },
   {
-    src: "rack",
-    evt: "ratelimit",
-    lvl: "warn",
-    ip: "[IP]",
-    path: "/login",
+    src: 'rack',
+    evt: 'ratelimit',
+    lvl: 'warn',
+    ip: '[IP]',
+    path: '/login',
     threshold: 5,
     period: 60,
     count: 0,
   },
   {
-    src: "security",
-    evt: "ip_spoof",
-    lvl: "error",
-    client_ip: "[IP]",
-    x_forwarded_for: "[IP]",
-    path: "/api/users",
-    method: "GET",
+    src: 'security',
+    evt: 'ip_spoof',
+    lvl: 'error',
+    client_ip: '[IP]',
+    x_forwarded_for: '[IP]',
+    path: '/api/users',
+    method: 'GET',
   },
   {
-    src: "security",
-    evt: "csrf_violation",
-    lvl: "error",
-    path: "/form",
-    method: "POST",
-    client_ip: "[IP]",
+    src: 'security',
+    evt: 'csrf_violation',
+    lvl: 'error',
+    path: '/form',
+    method: 'POST',
+    client_ip: '[IP]',
   },
   {
-    src: "security",
-    evt: "blocked_host",
-    lvl: "error",
-    blocked_host: "evil-site.com",
-    path: "/",
-    method: "GET",
+    src: 'security',
+    evt: 'blocked_host',
+    lvl: 'error',
+    blocked_host: 'evil-site.com',
+    path: '/',
+    method: 'GET',
   },
   {
-    src: "sidekiq",
-    evt: "process",
-    lvl: "info",
+    src: 'sidekiq',
+    evt: 'process',
+    lvl: 'info',
     pid: 0,
-    queues: ["default", "mailers", "active_storage"],
+    queues: ['default', 'mailers', 'active_storage'],
   },
   {
-    src: "shrine",
-    evt: "upload",
-    lvl: "info",
-    storage: "s3",
+    src: 'shrine',
+    evt: 'upload',
+    lvl: 'info',
+    storage: 's3',
     size: 0,
-    mime_type: "image/jpeg",
-    file_id: "uploads/abc123.jpg",
+    mime_type: 'image/jpeg',
+    file_id: 'uploads/abc123.jpg',
   },
   {
-    src: "storage",
-    evt: "download",
-    lvl: "info",
-    service: "s3",
-    key: "abc123.jpg",
-    checksum: "sha256:abc123",
+    src: 'storage',
+    evt: 'download',
+    lvl: 'info',
+    service: 's3',
+    key: 'abc123.jpg',
+    checksum: 'sha256:abc123',
   },
   {
-    src: "rails",
-    evt: "log",
-    lvl: "info",
-    msg: "User 123 signed up with [EMAIL:a1b2c3]",
-    email: { _filtered: { _class: "String", _bytes: 24, _hash: "a1b2c3" } },
-    phone: "[PHONE]",
-    ssn: "[SSN]",
-    credit_card: "[CREDIT_CARD]",
+    src: 'rails',
+    evt: 'log',
+    lvl: 'info',
+    msg: 'User 123 signed up with [EMAIL:a1b2c3]',
+    email: { _filtered: { _class: 'String', _bytes: 24, _hash: 'a1b2c3' } },
+    phone: '[PHONE]',
+    ssn: '[SSN]',
+    credit_card: '[CREDIT_CARD]',
   },
   {
-    src: "carrierwave",
-    evt: "store",
-    lvl: "info",
-    uploader: "AvatarUploader",
-    model: "User",
-    file: "profile.jpg",
+    src: 'carrierwave',
+    evt: 'store',
+    lvl: 'info',
+    uploader: 'AvatarUploader',
+    model: 'User',
+    file: 'profile.jpg',
   },
 ];
 
@@ -154,8 +154,8 @@ export function LogScroller() {
 
   // Generate a random SHA-256 style hash string (using LogStruct's default length of 12)
   const generateHashString = useCallback((length = 12) => {
-    const chars = "0123456789abcdef";
-    let result = "";
+    const chars = '0123456789abcdef';
+    let result = '';
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -182,10 +182,10 @@ export function LogScroller() {
     let jsonStr = JSON.stringify(log, null, 0);
     // Add spaces after commas, colons, and between braces
     jsonStr = jsonStr
-      .replace(/,/g, ", ")
-      .replace(/(\w"):/g, "$1: ")
-      .replace(/{/g, "{ ")
-      .replace(/}/g, " }");
+      .replace(/,/g, ', ')
+      .replace(/(\w"):/g, '$1: ')
+      .replace(/{/g, '{ ')
+      .replace(/}/g, ' }');
 
     return jsonStr;
   }, []);
@@ -228,11 +228,11 @@ export function LogScroller() {
     const emailHash = generateHashString();
 
     // Replace email hash placeholders with dynamic values
-    if (log.to && log.to.includes("[EMAIL:")) {
+    if (log.to && log.to.includes('[EMAIL:')) {
       log.to = `[EMAIL:${emailHash}]`;
     }
 
-    if (log.msg && log.msg.includes("[EMAIL:")) {
+    if (log.msg && log.msg.includes('[EMAIL:')) {
       log.msg = log.msg.replace(/\[EMAIL:[^\]]+\]/, `[EMAIL:${emailHash}]`);
     }
 
@@ -247,11 +247,11 @@ export function LogScroller() {
     }
 
     if (log.client_ip) {
-      log.client_ip = "[IP]"; // Keep it filtered for security logs
+      log.client_ip = '[IP]'; // Keep it filtered for security logs
     }
 
     if (log.x_forwarded_for) {
-      log.x_forwarded_for = "[IP]"; // Keep it filtered for security logs
+      log.x_forwarded_for = '[IP]'; // Keep it filtered for security logs
     }
 
     // For requests, randomize status codes occasionally
@@ -264,11 +264,11 @@ export function LogScroller() {
     let jsonStr = JSON.stringify(log, null, 0);
     // Add spaces after commas, colons, and between braces
     jsonStr = jsonStr
-      .replace(/,/g, ", ")
+      .replace(/,/g, ', ')
       // Replace colons with ": ", but not within [EMAIL:...] or similar tags
-      .replace(/(\w"):/g, "$1: ")
-      .replace(/{/g, "{ ")
-      .replace(/}/g, " }");
+      .replace(/(\w"):/g, '$1: ')
+      .replace(/{/g, '{ ')
+      .replace(/}/g, ' }');
 
     return jsonStr;
   }, [generateHashString, generateRandomIP]);
@@ -332,19 +332,19 @@ export function LogScroller() {
               language="json"
               style={atomDark}
               lineProps={{
-                style: { wordBreak: "normal", whiteSpace: "pre-wrap" },
+                style: { wordBreak: 'normal', whiteSpace: 'pre-wrap' },
               }}
               wrapLines
               wrapLongLines
               customStyle={{
-                fontSize: "11px",
-                backgroundColor: "#111421",
-                padding: "12px",
-                borderRadius: "0px",
-                minHeight: "300px",
+                fontSize: '11px',
+                backgroundColor: '#111421',
+                padding: '12px',
+                borderRadius: '0px',
+                minHeight: '300px',
               }}
             >
-              {logs.join("\n\n")}
+              {logs.join('\n\n')}
             </SyntaxHighlighter>
           ) : (
             <div className="w-full h-[300px]"></div>

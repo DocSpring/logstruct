@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function EditPageLink() {
   const pathname = usePathname();
@@ -10,10 +10,10 @@ export function EditPageLink() {
   // For /docs/getting-started, the file is at site/app/docs/getting-started/page.tsx
   // Handle special case for root paths to avoid double slashes
   const filePath =
-    pathname === "/" ? "/site/app/page.tsx" : `/site/app${pathname}/page.tsx`;
+    pathname === '/' ? '/site/app/page.tsx' : `/site/app${pathname}/page.tsx`;
 
   // Ensure there are no double slashes in the path
-  const normalizedPath = filePath.replace(/\/\//g, "/");
+  const normalizedPath = filePath.replace(/\/\//g, '/');
 
   const githubEditUrl = `https://github.com/DocSpring/logstruct/edit/main${normalizedPath}`;
 

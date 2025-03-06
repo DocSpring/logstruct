@@ -17,7 +17,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ".ruby-version"
+          ruby-version: '.ruby-version'
           # Install all gems (both test and development)
           bundler-cache: true
 
@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: 'npm'
           cache-dependency-path: |
             package-lock.json
             site/package-lock.json
@@ -80,7 +80,7 @@ jobs:
         run: bin/typecheck
 
   site:
-    name: "Next.js Site Tests"
+    name: 'Next.js Site Tests'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -88,15 +88,15 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ".ruby-version"
+          ruby-version: '.ruby-version'
           bundler-cache: true
 
       - name: Setup Node.js (site)
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
-          cache-dependency-path: "site/package-lock.json"
+          cache: 'npm'
+          cache-dependency-path: 'site/package-lock.json'
 
       - name: Install site dependencies
         run: cd site && npm ci
@@ -114,13 +114,13 @@ jobs:
           cd site && npm test
 
   pilot:
-    name: "Pilot Test: Ruby 3.4 / Rails 8.0"
+    name: 'Pilot Test: Ruby 3.4 / Rails 8.0'
     runs-on: ubuntu-22.04
     env:
-      RAILS_VERSION: "8.0"
-      RUBY_VERSION: "3.4"
-      CI: "true"
-      BUNDLE_WITHOUT: "development"
+      RAILS_VERSION: '8.0'
+      RUBY_VERSION: '3.4'
+      CI: 'true'
+      BUNDLE_WITHOUT: 'development'
     steps:
       - uses: actions/checkout@v4
 
@@ -131,7 +131,7 @@ jobs:
       - name: Setup Ruby 3.4
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: '3.4'
           bundler-cache: true
 
       - name: Run tests
@@ -147,26 +147,26 @@ jobs:
           retention-days: 5
 
   matrix:
-    name: "Tests: ${{ matrix.name }}"
+    name: 'Tests: ${{ matrix.name }}'
     needs: [lint, pilot]
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: "Ruby 3.2 / Rails 7.0"
-            ruby: "3.2"
-            rails: "7.0"
+          - name: 'Ruby 3.2 / Rails 7.0'
+            ruby: '3.2'
+            rails: '7.0'
 
-          - name: "Ruby 3.3 / Rails 7.1"
-            ruby: "3.3"
-            rails: "7.1"
+          - name: 'Ruby 3.3 / Rails 7.1'
+            ruby: '3.3'
+            rails: '7.1'
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}
       RUBY_VERSION: ${{ matrix.ruby }}
-      CI: "true"
-      BUNDLE_WITHOUT: "development"
+      CI: 'true'
+      BUNDLE_WITHOUT: 'development'
 
     steps:
       - uses: actions/checkout@v4

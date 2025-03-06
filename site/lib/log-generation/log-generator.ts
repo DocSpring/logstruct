@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { RandomDataGenerator } from "./random-data-generator";
-import { SampleData } from "./sample-data";
+import { RandomDataGenerator } from './random-data-generator';
+import { SampleData } from './sample-data';
 import {
   LogType,
   Log,
@@ -17,7 +17,7 @@ import {
   ActiveStorageLog,
   ActionMailerLog,
   CarrierWaveLog,
-} from "./log-types";
+} from './log-types';
 
 /**
  * Utility for generating structured log data
@@ -75,31 +75,31 @@ export class LogGenerator extends RandomDataGenerator {
     log.duration = this.randomDuration();
     log.view = this.randomFloat(0, 100);
     log.db = this.randomFloat(0, 50);
-    log.format = "json";
+    log.format = 'json';
     log.params = {
       id: this.randomInt(1, 1000),
       action: log.action,
       controller: log.controller,
     };
     log.source_ip = this.randomIP(false);
-    log.user_agent = "Mozilla/5.0";
-    log.referer = "https://example.com";
+    log.user_agent = 'Mozilla/5.0';
+    log.referer = 'https://example.com';
     log.request_id = this.randomHex(16);
 
     return log;
   }
 
   private generateActiveJobLog(
-    log: Partial<ActiveJobLog>
+    log: Partial<ActiveJobLog>,
   ): Partial<ActiveJobLog> {
     log.job_id = this.randomHex(8);
     log.job_class = this.sample(SampleData.JOB_CLASSES);
-    log.queue_name = ["default", "critical", "low", "mailers"][
+    log.queue_name = ['default', 'critical', 'low', 'mailers'][
       this.randomInt(0, 3)
     ];
     log.arguments = [
       this.randomInt(1, 100),
-      { action: this.sample(["create", "update", "process"]) },
+      { action: this.sample(['create', 'update', 'process']) },
     ];
     log.duration = this.randomDuration();
     log.data = {
@@ -122,7 +122,7 @@ export class LogGenerator extends RandomDataGenerator {
     // Generate 2-4 random backtrace lines
     const numLines = this.randomInt(2, 4);
     log.backtrace = Array.from({ length: numLines }, () =>
-      this.sample(SampleData.BACKTRACE_LINES)
+      this.sample(SampleData.BACKTRACE_LINES),
     );
 
     log.data = {
@@ -133,19 +133,19 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateSecurityLog(log: Partial<SecurityLog>): Partial<SecurityLog> {
-    log.message = "Security violation detected";
-    log.blocked_host = "malicious-site.com";
-    log.blocked_hosts = ["malicious-site.com", "evil-domain.net"];
+    log.message = 'Security violation detected';
+    log.blocked_host = 'malicious-site.com';
+    log.blocked_hosts = ['malicious-site.com', 'evil-domain.net'];
     log.client_ip = this.randomIP(false);
     log.x_forwarded_for = this.randomIP(false);
     log.path = this.randomPath();
     log.http_method = this.sample(SampleData.HTTP_METHODS);
     log.source_ip = this.randomIP(false);
-    log.user_agent = "Mozilla/5.0";
-    log.referer = "https://example.com";
+    log.user_agent = 'Mozilla/5.0';
+    log.referer = 'https://example.com';
     log.request_id = this.randomHex(16);
     log.data = {
-      attempted_action: "suspicious_activity",
+      attempted_action: 'suspicious_activity',
     };
 
     return log;
@@ -157,7 +157,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.upload_options = { public: true };
     log.download_options = {};
     log.options = { metadata: true };
-    log.uploader = "ImageUploader";
+    log.uploader = 'ImageUploader';
     log.duration = this.randomDuration();
     log.data = {
       content_type: this.sample(SampleData.FILE_TYPES),
@@ -170,9 +170,9 @@ export class LogGenerator extends RandomDataGenerator {
   private generateSidekiqLog(log: Partial<SidekiqLog>): Partial<SidekiqLog> {
     log.process_id = this.randomInt(1000, 9999);
     log.thread_id = this.randomHex(8);
-    log.message = "Job processing";
+    log.message = 'Job processing';
     log.context = {
-      queue: "default",
+      queue: 'default',
       job_id: this.randomHex(12),
     };
 
@@ -180,9 +180,9 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateActiveStorageLog(
-    log: Partial<ActiveStorageLog>
+    log: Partial<ActiveStorageLog>,
   ): Partial<ActiveStorageLog> {
-    log.operation = "upload";
+    log.operation = 'upload';
     log.storage = this.sample(SampleData.STORAGE_SERVICES);
     log.file_id = this.randomHex(10);
     log.filename = this.sample(SampleData.FILE_NAMES);
@@ -193,18 +193,18 @@ export class LogGenerator extends RandomDataGenerator {
     log.checksum = this.randomHex(32);
     log.exist = true;
     log.url = `https://storage.example.com/${this.randomHex(8)}`;
-    log.prefix = "uploads";
-    log.range = "bytes=0-1000";
+    log.prefix = 'uploads';
+    log.range = 'bytes=0-1000';
 
     return log;
   }
 
   private generateActionMailerLog(
-    log: Partial<ActionMailerLog>
+    log: Partial<ActionMailerLog>,
   ): Partial<ActionMailerLog> {
     log.to = [this.randomEmail()];
-    log.from = "notifications@example.com";
-    log.subject = "Important notification";
+    log.from = 'notifications@example.com';
+    log.subject = 'Important notification';
     log.data = {
       mailer: this.sample(SampleData.MAILER_CLASSES),
       action: this.sample(SampleData.MAILER_ACTIONS),
@@ -214,9 +214,9 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateCarrierWaveLog(
-    log: Partial<CarrierWaveLog>
+    log: Partial<CarrierWaveLog>,
   ): Partial<CarrierWaveLog> {
-    log.operation = "upload";
+    log.operation = 'upload';
     log.storage = this.sample(SampleData.STORAGE_SERVICES);
     log.file_id = this.randomHex(10);
     log.filename = this.sample(SampleData.FILE_NAMES);
@@ -224,11 +224,11 @@ export class LogGenerator extends RandomDataGenerator {
     log.size = this.randomInt(1000, 1000000);
     log.metadata = JSON.stringify({ width: 800, height: 600 });
     log.duration = this.randomDuration();
-    log.uploader = "AvatarUploader";
-    log.model = "User";
-    log.mount_point = "avatar";
+    log.uploader = 'AvatarUploader';
+    log.model = 'User';
+    log.mount_point = 'avatar';
     log.data = {
-      versions: ["thumb", "medium", "large"],
+      versions: ['thumb', 'medium', 'large'],
     };
 
     return log;
@@ -241,12 +241,12 @@ export class LogGenerator extends RandomDataGenerator {
   generateJobSequence(): Partial<ActiveJobLog>[] {
     const jobId = this.randomHex(8);
     const jobClass = this.sample(SampleData.JOB_CLASSES);
-    const queueName = ["default", "critical", "low", "mailers"][
+    const queueName = ['default', 'critical', 'low', 'mailers'][
       this.randomInt(0, 3)
     ];
     const args = [
       this.randomInt(1, 100),
-      { action: this.sample(["create", "update", "process"]) },
+      { action: this.sample(['create', 'update', 'process']) },
     ];
 
     // Enqueue event
@@ -264,7 +264,7 @@ export class LogGenerator extends RandomDataGenerator {
     // Start event (happens a little later)
     const startTime = new Date(
       new Date(enqueueLog.timestamp as string).getTime() +
-        this.randomInt(100, 5000)
+        this.randomInt(100, 5000),
     );
     const startLog: Partial<ActiveJobLog> = {
       timestamp: startTime.toISOString(),

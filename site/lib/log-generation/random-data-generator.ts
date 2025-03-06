@@ -1,4 +1,4 @@
-import { SampleData } from "./sample-data";
+import { SampleData } from './sample-data';
 
 /**
  * Represents a filtered value in LogStruct
@@ -73,7 +73,7 @@ export class RandomDataGenerator {
    * Generate a random hex string
    */
   randomHex(length: number): string {
-    let result = "";
+    let result = '';
     for (let i = 0; i < length; i++) {
       result += Math.floor(this.random() * 16).toString(16);
     }
@@ -108,7 +108,7 @@ export class RandomDataGenerator {
     // Return the object format with _filtered property
     return {
       _filtered: {
-        _class: "String",
+        _class: 'String',
         _bytes: 24 + this.randomInt(0, 10), // Randomize byte size a bit
         _hash: emailHash,
       },
@@ -120,7 +120,7 @@ export class RandomDataGenerator {
    */
   randomPassword(filtered = true): string {
     if (filtered) {
-      return "[PASSWORD]";
+      return '[PASSWORD]';
     }
     return `password${this.randomInt(100, 999)}!`;
   }
@@ -130,7 +130,7 @@ export class RandomDataGenerator {
    */
   randomCreditCard(filtered = true): string {
     if (filtered) {
-      return "[CREDIT_CARD]";
+      return '[CREDIT_CARD]';
     }
     return `${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}`;
   }
@@ -140,7 +140,7 @@ export class RandomDataGenerator {
    */
   randomPhone(filtered = true): string {
     if (filtered) {
-      return "[PHONE]";
+      return '[PHONE]';
     }
     return `+1-${this.randomInt(100, 999)}-${this.randomInt(100, 999)}-${this.randomInt(1000, 9999)}`;
   }
@@ -150,7 +150,7 @@ export class RandomDataGenerator {
    */
   randomIP(filtered = false): string {
     if (filtered) {
-      return "[IP]";
+      return '[IP]';
     }
     return this.sample(SampleData.IP_ADDRESSES);
   }
@@ -159,29 +159,29 @@ export class RandomDataGenerator {
    * Generate a filtered hash (for nested objects that contain sensitive data)
    */
   filteredHash(
-    sensitivity: "password" | "pii" | "json" = "json",
+    sensitivity: 'password' | 'pii' | 'json' = 'json',
   ): FilteredValue {
     let keys: string[];
 
     switch (sensitivity) {
-      case "password":
+      case 'password':
         keys = [
-          "password",
-          "password_confirmation",
-          "current_password",
-          "token",
+          'password',
+          'password_confirmation',
+          'current_password',
+          'token',
         ];
         break;
-      case "pii":
-        keys = ["ssn", "tax_id", "credit_card", "phone", "address"];
+      case 'pii':
+        keys = ['ssn', 'tax_id', 'credit_card', 'phone', 'address'];
         break;
       default: // json
-        keys = ["data", "payload", "attributes", "request_body"];
+        keys = ['data', 'payload', 'attributes', 'request_body'];
     }
 
     return {
       _filtered: {
-        _class: "Hash",
+        _class: 'Hash',
         _keys_count: keys.length,
         _keys: keys,
         _bytes: this.randomInt(20, 500),
@@ -199,7 +199,7 @@ export class RandomDataGenerator {
 
     return {
       _filtered: {
-        _class: "Array",
+        _class: 'Array',
         _length: itemCount,
         _bytes: itemCount * this.randomInt(10, 50),
       },

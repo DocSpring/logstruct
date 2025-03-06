@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import Link from 'next/link';
+import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { Menu, X } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,9 +12,9 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/navigation-menu';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 
 export function MainNav() {
   const pathname = usePathname();
@@ -43,7 +43,7 @@ export function MainNav() {
               <Link href="/docs" legacyBehavior passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
-                  active={pathname.startsWith("/docs")}
+                  active={pathname.startsWith('/docs')}
                 >
                   Documentation
                 </NavigationMenuLink>
@@ -167,9 +167,9 @@ export function MainNav() {
                 <Link
                   href="/docs"
                   className={cn(
-                    "text-lg font-medium",
-                    pathname.startsWith("/docs") &&
-                      "text-neutral-900 dark:text-neutral-50",
+                    'text-lg font-medium',
+                    pathname.startsWith('/docs') &&
+                      'text-neutral-900 dark:text-neutral-50',
                   )}
                 >
                   Documentation

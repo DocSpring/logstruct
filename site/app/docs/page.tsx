@@ -1,7 +1,7 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { EditPageLink } from "@/components/edit-page-link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { EditPageLink } from '@/components/edit-page-link';
 
 export default function DocsPage() {
   return (
@@ -25,12 +25,12 @@ export default function DocsPage() {
                 language="ruby"
                 style={atomDark}
                 customStyle={{
-                  fontSize: "0.875rem",
+                  fontSize: '0.875rem',
                   fontFamily:
-                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  backgroundColor: "transparent",
-                  padding: "0",
-                  borderRadius: "0px",
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                  backgroundColor: 'transparent',
+                  padding: '0',
+                  borderRadius: '0px',
                 }}
               >
                 {`# Log a simple string
@@ -55,12 +55,12 @@ Rails.logger.info({
                 language="ruby"
                 style={atomDark}
                 customStyle={{
-                  fontSize: "0.875rem",
+                  fontSize: '0.875rem',
                   fontFamily:
-                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  backgroundColor: "transparent",
-                  padding: "0",
-                  borderRadius: "0px",
+                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                  backgroundColor: 'transparent',
+                  padding: '0',
+                  borderRadius: '0px',
                 }}
               >
                 {`# Create a typed request log entry

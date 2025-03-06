@@ -54,13 +54,13 @@ Style/SingleLineMethods:
   Exclude:
     - sorbet/**/*
     - lib/log_struct/log/interfaces/**/*
-    - "**/*_interface.rb"
+    - '**/*_interface.rb'
 
 Style/EmptyMethod:
   Exclude:
     - sorbet/**/*
     - lib/log_struct/log/interfaces/**/*
-    - "**/*_interface.rb"
+    - '**/*_interface.rb'
 
 # Ban typed: false everywhere
 Sorbet/FalseSigil:
@@ -70,22 +70,22 @@ Sorbet/FalseSigil:
 Sorbet/StrictSigil:
   Enabled: true
   Exclude:
-    - "test/**/*"
-    - "sorbet/**/*"
-    - "rails_test_app/**/*.rb"
+    - 'test/**/*'
+    - 'sorbet/**/*'
+    - 'rails_test_app/**/*.rb'
   SuggestedStrictness: strict
 
 # Require typed: true for test files
 Sorbet/TrueSigil:
   Enabled: true
   Include:
-    - "test/**/*.rb"
-    - "rails_test_app/**/*.rb"
+    - 'test/**/*.rb'
+    - 'rails_test_app/**/*.rb'
   SuggestedStrictness: true
 
 # Don't try to validate typing on generated Sorbet RBI files
 Sorbet:
   Enabled: true
   Exclude:
-    - "sorbet/**/*.rbi"
-    - "rails_test_app/templates/**/*.rb"
+    - 'sorbet/**/*.rbi'
+    - 'rails_test_app/templates/**/*.rb'

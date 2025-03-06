@@ -1,6 +1,6 @@
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { EditPageLink } from "@/components/edit-page-link";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { EditPageLink } from '@/components/edit-page-link';
 
 export default function GettingStartedPage() {
   return (
@@ -20,12 +20,12 @@ export default function GettingStartedPage() {
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`gem 'logstruct'`}
@@ -40,12 +40,12 @@ export default function GettingStartedPage() {
           language="bash"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           bundle install
@@ -60,10 +60,10 @@ export default function GettingStartedPage() {
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         While LogStruct works out of the box with zero configuration, you might
         want to customize it to better suit your application. Create a new file
-        at{" "}
+        at{' '}
         <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
           config/initializers/logstruct.rb
-        </code>{" "}
+        </code>{' '}
         with the following content:
       </p>
 
@@ -72,12 +72,12 @@ export default function GettingStartedPage() {
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Configure the gem
@@ -115,12 +115,12 @@ LogStruct.initialize`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Log a simple message
@@ -159,7 +159,7 @@ end`}
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             Configuration
-          </a>{" "}
+          </a>{' '}
           - Learn how to customize LogStruct for your needs
         </li>
         <li>
@@ -168,7 +168,7 @@ end`}
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             Integrations
-          </a>{" "}
+          </a>{' '}
           - Explore built-in integrations with popular gems
         </li>
         <li>
@@ -177,7 +177,7 @@ end`}
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             Type Safety
-          </a>{" "}
+          </a>{' '}
           - Advanced logging with Sorbet type checking
         </li>
       </ul>

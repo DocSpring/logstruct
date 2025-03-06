@@ -1,7 +1,7 @@
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { EditPageLink } from "@/components/edit-page-link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { EditPageLink } from '@/components/edit-page-link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function IntegrationsPage() {
   return (
@@ -38,13 +38,13 @@ export default function IntegrationsPage() {
             language="json"
             style={atomDark}
             customStyle={{
-              fontSize: "0.875rem",
+              fontSize: '0.875rem',
               fontFamily:
-                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-              backgroundColor: "transparent",
-              padding: "0",
-              margin: "0",
-              borderRadius: "0px",
+                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              backgroundColor: 'transparent',
+              padding: '0',
+              margin: '0',
+              borderRadius: '0px',
             }}
           >
             {`{
@@ -69,13 +69,13 @@ export default function IntegrationsPage() {
             language="json"
             style={atomDark}
             customStyle={{
-              fontSize: "0.875rem",
+              fontSize: '0.875rem',
               fontFamily:
-                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-              backgroundColor: "transparent",
-              padding: "0",
-              margin: "0",
-              borderRadius: "0px",
+                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              backgroundColor: 'transparent',
+              padding: '0',
+              margin: '0',
+              borderRadius: '0px',
             }}
           >
             {`{
@@ -105,12 +105,12 @@ export default function IntegrationsPage() {
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Example of logged information for ActiveJob
@@ -148,12 +148,12 @@ export default function IntegrationsPage() {
               language="json"
               style={atomDark}
               customStyle={{
-                fontSize: "0.875rem",
+                fontSize: '0.875rem',
                 fontFamily:
-                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                backgroundColor: "transparent",
-                padding: "0",
-                borderRadius: "0px",
+                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                backgroundColor: 'transparent',
+                padding: '0',
+                borderRadius: '0px',
               }}
             >
               {`{
@@ -181,12 +181,12 @@ export default function IntegrationsPage() {
               language="json"
               style={atomDark}
               customStyle={{
-                fontSize: "0.875rem",
+                fontSize: '0.875rem',
                 fontFamily:
-                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                backgroundColor: "transparent",
-                padding: "0",
-                borderRadius: "0px",
+                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                backgroundColor: 'transparent',
+                padding: '0',
+                borderRadius: '0px',
               }}
             >
               {`{
@@ -223,12 +223,12 @@ export default function IntegrationsPage() {
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Example of customizing Lograge options to add user ID to requests
@@ -280,12 +280,12 @@ end`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# The rack error handler logs security violations like:
@@ -327,12 +327,12 @@ end`}
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`# Enable Sorbet error handling
@@ -359,12 +359,12 @@ config.integrations.enable_sorbet_error_handler = true
           language="ruby"
           style={atomDark}
           customStyle={{
-            fontSize: "0.875rem",
+            fontSize: '0.875rem',
             fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            backgroundColor: "transparent",
-            padding: "0",
-            borderRadius: "0px",
+              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            backgroundColor: 'transparent',
+            padding: '0',
+            borderRadius: '0px',
           }}
         >
           {`LogStruct.configure do |config|
