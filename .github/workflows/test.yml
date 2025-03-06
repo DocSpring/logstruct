@@ -18,6 +18,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ".ruby-version"
+          # Install all gems (both test and development)
           bundler-cache: true
 
       - name: Setup Node.js

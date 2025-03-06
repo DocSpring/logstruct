@@ -23,9 +23,15 @@ Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new(color: true)
 # Require standard libraries
 require "json"
 require "ostruct"
-require "debug"
 require "logger"
 require "fileutils"
+
+# Dev libraries
+begin
+  require "debug"
+rescue LoadError
+  # Debug not available (e.g. on CI)
+end
 
 # Ensure log directory exists
 FileUtils.mkdir_p(File.expand_path("../log", __dir__))
