@@ -55,8 +55,8 @@ jobs:
         with:
           workflow: test.yml
           workflow_conclusion: success
-          name: coverage-ruby3.3-rails7.1
-          path: coverage
+          name: coverage-ruby3.4-rails8.0
+          path: site/public/coverage/
 
       - name: Generate YARD documentation
         run: |
@@ -65,14 +65,6 @@ jobs:
           bundle config set --local with 'development'
           bundle install
           bundle exec yard doc --output-dir=site/public/yard
-
-      - name: Copy coverage to site
-        run: |
-          # Ensure directory exists
-          mkdir -p site/public/coverage
-
-          # Copy coverage reports
-          cp -r coverage/* site/public/coverage/
 
       - name: Export TypeScript types
         run: |

@@ -114,11 +114,11 @@ jobs:
           cd site && npm test
 
   pilot:
-    name: "Pilot Test: Ruby 3.2 / Rails 7.0"
+    name: "Pilot Test: Ruby 3.4 / Rails 8.0"
     runs-on: ubuntu-22.04
     env:
-      RAILS_VERSION: "7.0"
-      RUBY_VERSION: "3.2"
+      RAILS_VERSION: "8.0"
+      RUBY_VERSION: "3.4"
       CI: "true"
       BUNDLE_WITHOUT: "development"
     steps:
@@ -128,10 +128,10 @@ jobs:
       - name: Remove Gemfile.lock for variable Ruby/Rails versions
         run: rm -f Gemfile.lock
 
-      - name: Setup Ruby 3.2
+      - name: Setup Ruby 3.4
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.2"
+          ruby-version: "3.4"
           bundler-cache: true
 
       - name: Run tests
@@ -142,8 +142,8 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: coverage-pilot-ruby3.0-rails7.0
-          path: coverage/
+          name: coverage-pilot-ruby3.4-rails8.0
+          path: site/public/coverage/
           retention-days: 5
 
   matrix:
@@ -154,13 +154,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: "Ruby 3.2 / Rails 7.0"
+            ruby: "3.2"
+            rails: "7.0"
+
           - name: "Ruby 3.3 / Rails 7.1"
             ruby: "3.3"
             rails: "7.1"
-
-          - name: "Ruby 3.4 / Rails 8.0"
-            ruby: "3.4"
-            rails: "8.0"
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}
@@ -190,5 +190,5 @@ jobs:
         if: success()
         with:
           name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
-          path: coverage/
+          path: site/public/coverage/
           retention-days: 30
