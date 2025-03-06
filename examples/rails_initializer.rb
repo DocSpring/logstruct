@@ -6,7 +6,6 @@
 # ----------------------------------------------------------
 # BEGIN CODE EXAMPLE: rails_initializer
 # ----------------------------------------------------------
-
 LogStruct.configure do |config|
   # Basic configuration
   config.enabled = !Rails.env.test? # Disable in test mode to speed up tests

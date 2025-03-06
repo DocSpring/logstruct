@@ -2,8 +2,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { EditPageLink } from '@/components/edit-page-link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CodeExample } from '@/components/code-example';
-import { getCodeExample } from '@/lib/codeExamples';
+import { RubyCodeExample } from '@/components/ruby-code-example';
 
 export default function IntegrationsPage() {
   return (
@@ -221,9 +220,8 @@ export default function IntegrationsPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={getCodeExample('lograge_custom_options')?.code || ''}
-          language="ruby"
+        <RubyCodeExample
+          name="lograge_custom_options"
           title="Customizing Lograge Options"
         />
       </div>
@@ -336,9 +334,8 @@ config.integrations.enable_sorbet_error_handlers = true
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={getCodeExample('integrations_configuration')?.code || ''}
-          language="ruby"
+        <RubyCodeExample
+          name="integrations_configuration"
           title="Configuring LogStruct Integrations"
         />
       </div>

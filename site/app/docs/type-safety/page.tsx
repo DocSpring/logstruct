@@ -1,8 +1,5 @@
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { EditPageLink } from '@/components/edit-page-link';
-import { CodeExample } from '@/components/code-example';
-import { getCodeExample } from '@/lib/codeExamples';
+import { RubyCodeExample } from '@/components/ruby-code-example';
 
 export default function TypeSafetyPage() {
   return (
@@ -24,12 +21,9 @@ export default function TypeSafetyPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('basic_typed_logging')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="basic_typed_logging"
+          title="Basic Typed Logging Example"
         />
       </div>
 
@@ -109,12 +103,9 @@ export default function TypeSafetyPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('log_enums')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="log_enums"
+          title="Log Levels and Enums"
         />
       </div>
 
@@ -127,12 +118,9 @@ export default function TypeSafetyPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('sorbet_setup')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="sorbet_setup"
+          title="Setting Up Sorbet"
         />
       </div>
 
@@ -162,12 +150,9 @@ export default function TypeSafetyPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('sorbet_error_handler')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="sorbet_error_handler"
+          title="Sorbet Error Handler Configuration"
         />
       </div>
 
@@ -180,12 +165,9 @@ export default function TypeSafetyPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={
-            getCodeExample('custom_log_structure')?.code ||
-            '# Code example not found'
-          }
-          language="ruby"
+        <RubyCodeExample
+          name="custom_log_structure"
+          title="Creating Custom Log Structures"
         />
       </div>
 

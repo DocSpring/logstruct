@@ -1,5 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+// Server-side only imports
+import fs from 'node:fs';
+import path from 'node:path';
 
 export interface CodeExample {
   id: string;

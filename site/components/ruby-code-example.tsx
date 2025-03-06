@@ -1,11 +1,10 @@
-'use client';
-
+// Server Component - used at build time for static generation
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getCodeExample } from '@/lib/codeExamples';
 
-interface RubyCodeExampleProps {
+export interface RubyCodeExampleProps {
   name: string;
   showLineNumbers?: boolean;
   highlightLines?: number[];

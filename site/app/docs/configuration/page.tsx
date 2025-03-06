@@ -120,7 +120,7 @@ config.local_environments = [:development, :test]`}
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Custom String Scrubbing</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can implement custom string scrubbers to filter out sensitive data that isn't caught by the built-in filters:
+        You can implement custom string scrubbers to filter out sensitive data that isn&apos;t caught by the built-in filters:
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">

@@ -1,8 +1,7 @@
 import { EditPageLink } from '@/components/edit-page-link';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { CodeExample } from '@/components/code-example';
-import { getCodeExample } from '@/lib/codeExamples';
+import { RubyCodeExample } from '@/components/ruby-code-example';
 
 export default function GettingStartedPage() {
   return (
@@ -70,9 +69,8 @@ export default function GettingStartedPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeExample
-          code={getCodeExample('basic_configuration')?.code || ''}
-          language="ruby"
+        <RubyCodeExample
+          name="basic_configuration"
           title="config/initializers/logstruct.rb"
         />
       </div>
