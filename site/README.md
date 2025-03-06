@@ -21,7 +21,7 @@ This is the documentation website for the LogStruct gem, built with Next.js and 
 1. Install dependencies:
 
 ```bash
-npm install
+yarn install
 ```
 
 2. Start the development server:
