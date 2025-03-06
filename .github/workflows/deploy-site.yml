@@ -45,8 +45,6 @@ jobs:
       - name: Install site dependencies
         run: |
           cd site && npm ci
-          # Install deps needed for x64
-          npm install @tailwindcss/oxide-linux-x64-gnu
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

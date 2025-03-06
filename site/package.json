@@ -54,5 +54,11 @@
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "latest",
+    "lightningcss-linux-x64-gnu": "latest",
+    "@next/swc-linux-x64-gnu": "latest",
+    "@parcel/css-linux-x64-gnu": "latest"
   }
 }

@@ -1,5 +1,6 @@
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { EditPageLink } from '@/components/edit-page-link';
+import { CodeBlock } from '@/components/code-block';
 
 export default function ConfigurationPage() {
   return (
@@ -83,6 +84,26 @@ export default function ConfigurationPage() {
       </p>
 
       <RubyCodeExample name="error_reporting_handler" />
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">Sorbet Integration</h2>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        LogStruct integrates with Sorbet to handle type checking errors based on
+        the environment. We raise type errors or logging-related errors in
+        test/development so you can catch them early, but we only log or report
+        them in production. You can configure a different error handling mode to
+        change this behavior.
+      </p>
+
+      <CodeBlock language="ruby">
+        {`# Enable Sorbet error handling
+config.integrations.enable_sorbet_error_handlers = true
+
+# This configures the following error handlers:
+# - T::Configuration.inline_type_error_handler
+# - T::Configuration.call_validation_error_handler
+# - T::Configuration.sig_builder_error_handler
+# - T::Configuration.sig_validation_error_handler`}
+      </CodeBlock>
 
       <EditPageLink />
     </div>
