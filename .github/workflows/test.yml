@@ -24,16 +24,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "yarn"
+          cache: "npm"
           cache-dependency-path: |
-            yarn.lock
-            site/yarn.lock
+            package-lock.json
+            site/package-lock.json
 
       - name: Install dependencies
         run: |
-          # Install root and site yarn dependencies
-          yarn install
-          cd site && yarn install && cd ..
+          # Install root and site npm dependencies
+          npm ci
+          cd site && npm ci && cd ..
 
           # Make sure bundler is using the correct Ruby version
           ruby -v
@@ -179,11 +179,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "yarn"
-          cache-dependency-path: "site/yarn.lock"
+          cache: "npm"
+          cache-dependency-path: "site/package-lock.json"
 
       - name: Install site dependencies
-        run: cd site && yarn install
+        run: cd site && npm ci
 
       - name: Export TypeScript types
         run: |
@@ -195,4 +195,4 @@ jobs:
 
       - name: Run TypeScript tests
         run: |
-          cd site && yarn test
+          cd site && npm test

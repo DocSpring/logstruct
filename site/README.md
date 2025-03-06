@@ -21,13 +21,13 @@ This is the documentation website for the LogStruct gem, built with Next.js and 
 1. Install dependencies:
 
 ```bash
-yarn install
+npm install
 ```
 
 2. Start the development server:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 3. Open [http://localhost:3001](http://localhost:3001) to view the site in your browser.
@@ -37,7 +37,7 @@ yarn dev
 To build the static site for production:
 
 ```bash
-yarn build
+npm run build
 ```
 
 This will generate static HTML files in the `out` directory that can be deployed to any static web hosting service.
@@ -51,7 +51,7 @@ To manually deploy:
 1. Build the site:
 
 ```bash
-yarn build
+npm run build
 ```
 
 2. The static files will be in the `out` directory, which can be deployed to any static hosting service.

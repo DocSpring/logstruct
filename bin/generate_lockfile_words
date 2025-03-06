@@ -4,9 +4,9 @@ set -euo pipefail
 echo "Generating lockfile words for root"
 npx @docspring/cspell-lockfile-dicts \
   --path .cspell/generated-lockfile-words-root.txt \
-  --lockfiles Gemfile.lock yarn.lock
+  --lockfiles Gemfile.lock package-lock.json
 
 echo "Generating lockfile words for site"
 npx @docspring/cspell-lockfile-dicts \
   --path .cspell/generated-lockfile-words-site.txt \
-  --lockfiles site/yarn.lock
+  --lockfiles site/package-lock.json

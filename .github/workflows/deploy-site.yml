@@ -39,11 +39,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: yarn
-          cache-dependency-path: site/yarn.lock
+          cache: npm
+          cache-dependency-path: site/package-lock.json
 
       - name: Install site dependencies
-        run: cd site && yarn install
+        run: cd site && npm ci
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -79,7 +79,7 @@ jobs:
           ruby scripts/export_typescript_types.rb
 
       - name: Build with Next.js
-        run: cd site && yarn build
+        run: cd site && npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
