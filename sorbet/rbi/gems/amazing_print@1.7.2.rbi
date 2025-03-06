@@ -7,6 +7,8 @@
 
 class ActionView::Base
   include ::ERB::Escape
+  include ::ActiveSupport::CoreExt::ERBUtil
+  include ::ActiveSupport::CoreExt::ERBUtilPrivate
   include ::ActiveSupport::Benchmarkable
   include ::ActionView::Helpers::ActiveModelHelper
   include ::ActionView::Helpers::AssetUrlHelper
@@ -16,6 +18,7 @@ class ActionView::Base
   include ::ActionView::Helpers::AssetTagHelper
   include ::ActionView::Helpers::AtomFeedHelper
   include ::ActionView::Helpers::CacheHelper
+  include ::ActionView::Helpers::ContentExfiltrationPreventionHelper
   include ::ActionView::Helpers::ControllerHelper
   include ::ActionView::Helpers::CspHelper
   include ::ActionView::Helpers::CsrfHelper
@@ -448,6 +451,9 @@ class AmazingPrint::Formatters::BaseFormatter
   def align(value, width); end
 
   # source://amazing_print//lib/amazing_print/formatters/base_formatter.rb#146
+  def colorless(string); end
+
+  # source://amazing_print//lib/amazing_print/formatters/base_formatter.rb#150
   def colorless_size(string); end
 
   # source://amazing_print//lib/amazing_print/formatters/base_formatter.rb#36
@@ -623,10 +629,13 @@ class AmazingPrint::Formatters::HashFormatter < ::AmazingPrint::Formatters::Base
   # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#29
   def empty_hash; end
 
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#68
+  def key_size(key); end
+
   # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#62
   def left_width(keys); end
 
-  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#68
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#78
   def max_key_width(keys); end
 
   # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#37
@@ -637,27 +646,30 @@ class AmazingPrint::Formatters::HashFormatter < ::AmazingPrint::Formatters::Base
   # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#33
   def multiline_hash?; end
 
-  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#98
-  def plain_single_line; end
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#110
+  def plain_single_line(&block); end
 
-  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#94
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#105
   def pre_ruby19_syntax(key, value, width); end
 
   # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#45
   def printable_hash; end
 
-  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#72
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#82
   def printable_keys; end
 
-  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#88
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#98
   def ruby19_syntax(key, value, width); end
 
   # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#41
   def simple_hash; end
 
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#118
+  def single_line; end
+
   # @return [Boolean]
   #
-  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#84
+  # source://amazing_print//lib/amazing_print/formatters/hash_formatter.rb#94
   def symbol?(key); end
 end
 
