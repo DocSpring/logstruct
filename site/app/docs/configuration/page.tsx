@@ -1,6 +1,8 @@
 import { CodeExample } from '@/components/code-example';
 import { getCodeExample } from '@/lib/codeExamples';
 import { EditPageLink } from '@/components/edit-page-link';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 export default function ConfigurationPage() {
   return (
@@ -90,33 +92,13 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={
+            getCodeExample('filter_configuration')?.code ||
+            '# Code example not found'
+          }
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Configure sensitive data filtering
-config.filters.email_addresses = true      # Filter email addresses
-config.filters.url_passwords = true        # Filter passwords in URLs
-config.filters.credit_card_numbers = true  # Filter credit card numbers
-config.filters.phone_numbers = true        # Filter phone numbers
-config.filters.ssns = true                 # Filter social security numbers
-config.filters.ip_addresses = false        # Filter IP addresses (off by default)
-config.filters.mac_addresses = false       # Filter MAC addresses (off by default)
-
-# Configure the salt used for hashing filtered email addresses
-config.filters.hash_salt = ENV['EMAIL_HASH_SALT']
-
-# Configure the length of hash output for filtered emails (default: 12)
-config.filters.hash_length = 12`}
-        </SyntaxHighlighter>
+        />
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
@@ -128,30 +110,13 @@ config.filters.hash_length = 12`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={
+            getCodeExample('error_handling_modes')?.code ||
+            '# Code example not found'
+          }
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Configure error handling modes
-config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
-
-# Available error handling modes:
-# - LogStruct::ErrorHandlingMode::Ignore       # Completely ignore errors
-# - LogStruct::ErrorHandlingMode::Log          # Log errors but don't report them
-# - LogStruct::ErrorHandlingMode::LogProduction # Log in production, raise in development
-# - LogStruct::ErrorHandlingMode::Report       # Log and report errors to error service
-# - LogStruct::ErrorHandlingMode::Raise        # Always raise errors`}
-        </SyntaxHighlighter>
+        />
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Custom Lograge Options</h2>
@@ -160,26 +125,43 @@ config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogP
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={
+            getCodeExample('lograge_custom_options')?.code ||
+            '# Code example not found'
+          }
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Provide a custom proc to extend Lograge options
-config.lograge_custom_options = ->(event, options) do
-  # Add custom fields to the options hash
-  options[:user_id] = event.payload[:user_id] if event.payload[:user_id]
-  options[:account_id] = event.payload[:account_id] if event.payload[:account_id]
-  options
-end`}
-        </SyntaxHighlighter>
+        />
+      </div>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">Custom String Scrubbing</h2>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        You can implement custom string scrubbers to filter out sensitive data that isn't caught by the built-in filters:
+      </p>
+
+      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+        <CodeExample
+          code={
+            getCodeExample('custom_string_scrubber')?.code ||
+            '# Code example not found'
+          }
+          language="ruby"
+        />
+      </div>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">Custom Error Reporting</h2>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        You can customize how errors are reported by implementing your own error reporting handler:
+      </p>
+
+      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+        <CodeExample
+          code={
+            getCodeExample('custom_error_reporter')?.code ||
+            '# Code example not found'
+          }
+          language="ruby"
+        />
       </div>
 
       <EditPageLink />

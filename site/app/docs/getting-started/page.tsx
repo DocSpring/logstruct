@@ -1,6 +1,8 @@
+import { EditPageLink } from '@/components/edit-page-link';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { EditPageLink } from '@/components/edit-page-link';
+import { CodeExample } from '@/components/code-example';
+import { getCodeExample } from '@/lib/codeExamples';
 
 export default function GettingStartedPage() {
   return (
@@ -68,41 +70,11 @@ export default function GettingStartedPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample 
+          code={getCodeExample('basic_configuration')?.code || ''}
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Configure the gem
-LogStruct.configure do |config|
-  # Enable or disable all structured logging
-  config.enabled = true
-  
-  # Enable or disable specific integrations
-  config.integrations.enable_lograge = true
-  config.integrations.enable_actionmailer = true
-  config.integrations.enable_activejob = true
-  config.integrations.enable_sidekiq = true
-  config.integrations.enable_shrine = true
-  config.integrations.enable_activestorage = true
-  config.integrations.enable_carrierwave = true
-  config.integrations.enable_rack_error_handler = true
-  config.integrations.enable_host_authorization = true
-
-  # Salt for SHA256 hashes in filtered email addresses
-  config.filters.hash_salt = ENV['email_hashing_salt']
-end
-
-# Set up all integrations
-LogStruct.initialize`}
-        </SyntaxHighlighter>
+          title="config/initializers/logstruct.rb"
+        />
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Usage</h2>

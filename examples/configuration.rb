@@ -9,7 +9,7 @@ module Examples
   extend T::Sig
 
   sig { void }
-  def self.basic_configuration_example
+  def self.configuration_examples
     # ----------------------------------------------------------
     # BEGIN CODE EXAMPLE: basic_configuration
     # ----------------------------------------------------------
@@ -22,38 +22,11 @@ module Examples
       # This affects error handling modes that behave differently in different environments
       config.local_environments = [:development, :test]
       config.environments = [:test, :production, :staging]
-
-      # Configure error handling modes
-      config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-      config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-      config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Raise
-      config.error_handling_modes.type_checking_errors = LogStruct::ErrorHandlingMode::LogProduction
-
-      # Configure which params should be filtered
-      config.filters.filter_keys = [
-        :password, :password_confirmation, :token, :secret,
-        :credit_card, :ssn, :social_security
-      ]
-
-      # Configure filtering of PII in string values
-      config.filters.email_addresses = true
-      config.filters.phone_numbers = true
-      config.filters.ssns = true
-      config.filters.credit_card_numbers = true
-      config.filters.url_passwords = true
-
-      # Configure hash settings for email address filtering
-      config.filters.hash_salt = "my-secret-salt"
-      config.filters.hash_length = 12
     end
     # ----------------------------------------------------------
     # END CODE EXAMPLE: basic_configuration
     # ----------------------------------------------------------
-  end
 
-  # Example of configuring specific integrations
-  sig { void }
-  def self.integrations_configuration_example
     LogStruct.configure do |config|
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: integrations_configuration
@@ -68,7 +41,7 @@ module Examples
       config.integrations.enable_rack_error_handler = true
       config.integrations.enable_shrine = true
       config.integrations.enable_sidekiq = true
-      config.integrations.enable_sorbet_error_handler = true
+      config.integrations.enable_sorbet_error_handlers = true
 
       # Configure custom options for Lograge
       config.integrations.lograge_custom_options = ->(event, _) {
@@ -81,13 +54,7 @@ module Examples
       # ----------------------------------------------------------
       # END CODE EXAMPLE: integrations_configuration
       # ----------------------------------------------------------
-    end
-  end
 
-  # Example of configuring sensitive data filtering
-  sig { void }
-  def self.filter_configuration_example
-    LogStruct.configure do |config|
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: filter_configuration
       # ----------------------------------------------------------
@@ -119,6 +86,25 @@ module Examples
       config.filters.hash_length = 12
       # ----------------------------------------------------------
       # END CODE EXAMPLE: filter_configuration
+      # ----------------------------------------------------------
+
+      # ----------------------------------------------------------
+      # BEGIN CODE EXAMPLE: error_handling_modes
+      # ----------------------------------------------------------
+      # Configure error handling modes
+      config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
+      config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
+      config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
+      config.error_handling_modes.type_checking_errors = LogStruct::ErrorHandlingMode::Raise
+
+      # Available error handling modes:
+      # - LogStruct::ErrorHandlingMode::Ignore       # Completely ignore errors
+      # - LogStruct::ErrorHandlingMode::Log          # Log errors but don't report them
+      # - LogStruct::ErrorHandlingMode::LogProduction # Log in production, raise in development
+      # - LogStruct::ErrorHandlingMode::Report       # Log and report errors to error service
+      # - LogStruct::ErrorHandlingMode::Raise        # Always raise errors
+      # ----------------------------------------------------------
+      # END CODE EXAMPLE: error_handling_modes
       # ----------------------------------------------------------
     end
   end

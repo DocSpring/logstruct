@@ -31,7 +31,7 @@ module LogStruct
       Integrations::Shrine.setup(config) if config.integrations.enable_shrine
       Integrations::ActiveStorage.setup(config) if config.integrations.enable_activestorage
       Integrations::CarrierWave.setup(config) if config.integrations.enable_carrierwave
-      Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handler
+      Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handlers
     end
   end
 end

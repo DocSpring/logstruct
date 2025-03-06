@@ -2,6 +2,8 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { EditPageLink } from '@/components/edit-page-link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CodeExample } from '@/components/code-example';
+import { getCodeExample } from '@/lib/codeExamples';
 
 export default function IntegrationsPage() {
   return (
@@ -219,32 +221,11 @@ export default function IntegrationsPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={getCodeExample('lograge_custom_options')?.code || ''}
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Example of customizing Lograge options to add user ID to requests
-LogStruct.configure do |config|
-  config.lograge_custom_options = ->(event, options) do
-    # Current user from Devise, for example
-    user = event.payload[:request]&.env["warden"]&.user
-    
-    # Add user ID if available
-    options[:user_id] = user.id if user
-    
-    # You can add any other fields from the request context
-    options
-  end
-end`}
-        </SyntaxHighlighter>
+          title="Customizing Lograge Options"
+        />
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Shrine Integration</h2>
@@ -336,7 +317,7 @@ end`}
           }}
         >
           {`# Enable Sorbet error handling
-config.integrations.enable_sorbet_error_handler = true
+config.integrations.enable_sorbet_error_handlers = true
 
 # This configures the following error handlers:
 # - T::Configuration.inline_type_error_handler
@@ -355,31 +336,11 @@ config.integrations.enable_sorbet_error_handler = true
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={getCodeExample('integrations_configuration')?.code || ''}
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`LogStruct.configure do |config|
-  # Enable only specific integrations
-  config.integrations.enable_lograge = true
-  config.integrations.enable_actionmailer = true
-  config.integrations.enable_activejob = false # Disable ActiveJob integration
-  config.integrations.enable_sidekiq = defined?(::Sidekiq) # Only enable if Sidekiq is available
-  
-  # Check for optional gems before enabling integrations
-  if defined?(::Shrine)
-    config.integrations.enable_shrine = true
-  end
-end`}
-        </SyntaxHighlighter>
+          title="Configuring LogStruct Integrations"
+        />
       </div>
 
       <EditPageLink />

@@ -10,7 +10,7 @@ module LogStruct
 
       # Enable or disable Sorbet error handler integration
       # Default: true
-      prop :enable_sorbet_error_handler, T::Boolean, default: true
+      prop :enable_sorbet_error_handlers, T::Boolean, default: true
 
       # Enable or disable Lograge integration
       # Default: true
@@ -18,7 +18,7 @@ module LogStruct
 
       # Custom options for Lograge
       # Default: nil
-      prop :lograge_custom_options, T.nilable(T.proc.params(event: ActiveSupport::Notifications::Event, options: T.untyped).returns(T.untyped))
+      prop :lograge_custom_options, T.nilable(Handlers::LogrageCustomOptions), default: nil
 
       # Enable or disable ActionMailer integration
       # Default: true

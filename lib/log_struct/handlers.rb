@@ -4,6 +4,14 @@
 module LogStruct
   # Module for custom handlers used throughout the library
   module Handlers
+    # Type for Lograge custom options
+    LogrageCustomOptions = T.type_alias {
+      T.proc.params(
+        event: ActiveSupport::Notifications::Event,
+        options: T::Hash[Symbol, T.untyped]
+      ).returns(T.untyped)
+    }
+
     # Type for error reporting handlers
     ErrorReporter = T.type_alias {
       T.proc.params(
