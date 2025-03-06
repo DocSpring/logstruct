@@ -17,7 +17,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.6"
+          ruby-version: ".ruby-version"
           bundler-cache: true
 
       - name: Install dependencies
@@ -65,20 +65,20 @@ jobs:
         run: bin/typecheck
 
   pilot:
-    name: "Pilot Test: Ruby 3.0 / Rails 7.0"
+    name: "Pilot Test: Ruby 3.2 / Rails 7.0"
     runs-on: ubuntu-22.04
     env:
       RAILS_VERSION: "7.0"
-      RUBY_VERSION: "3.0"
+      RUBY_VERSION: "3.2"
       CI: "true"
       BUNDLE_WITHOUT: "development"
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Ruby 3.0
+      - name: Setup Ruby 3.2
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.0"
+          ruby-version: "3.2"
           bundler-cache: true
 
       - name: Run tests
@@ -101,12 +101,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Ruby 2.7 / Rails 7.0"
-            ruby: "2.7"
-            rails: "7.0"
-
           - name: "Ruby 3.2 / Rails 7.1"
             ruby: "3.2"
+            rails: "7.1"
+
+          - name: "Ruby 3.3 / Rails 7.1"
+            ruby: "3.3"
             rails: "7.1"
 
           - name: "Ruby 3.4 / Rails 8.0"
@@ -150,7 +150,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3.6"
+          ruby-version: ".ruby-version"
           bundler-cache: true
           
       - name: Setup Node.js

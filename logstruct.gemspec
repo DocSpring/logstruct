@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
     "Log messages, params, and job args are automatically filtered and scrubbed to remove any sensitive info."
   spec.homepage = "https://logstruct.com"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.6.0"
+  spec.required_ruby_version = ">= 3.2.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/DocSpring/logstruct"
