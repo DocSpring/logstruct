@@ -19,9 +19,8 @@ export default function DocsPage() {
             <TabsTrigger value="typed">Sorbet Types</TabsTrigger>
           </TabsList>
           <TabsContent value="ruby" className="mt-4">
-            <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-              <CodeBlock language="ruby">
-                {`# Log a simple string
+            <CodeBlock language="ruby">
+              {`# Log a simple string
 Rails.logger.info "User signed in"
 
 # Log a hash with custom fields
@@ -31,16 +30,14 @@ Rails.logger.info({
   ip_address: "192.168.1.1",
   custom_field: "any value you want"
 })`}
-              </CodeBlock>
-            </div>
+            </CodeBlock>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
               {`This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.`}
             </p>
           </TabsContent>
           <TabsContent value="typed" className="mt-4">
-            <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-              <CodeBlock language="ruby">
-                {`# Create a typed request log entry
+            <CodeBlock language="ruby">
+              {`# Create a typed request log entry
 request_log = LogStruct::Log::Request.new(
   source: LogStruct::Source::Rails,
   method: "GET",
@@ -51,8 +48,7 @@ request_log = LogStruct::Log::Request.new(
 
 # Log the typed struct
 Rails.logger.info(request_log)`}
-              </CodeBlock>
-            </div>
+            </CodeBlock>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
               This approach provides several benefits: type checking at
               development time, consistent log structure, IDE autocompletion,

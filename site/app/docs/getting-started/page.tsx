@@ -15,20 +15,12 @@ export default function GettingStartedPage() {
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         {`Add this line to your application's Gemfile:`}
       </p>
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeBlock language="ruby">
-          {`gem 'logstruct'`}
-        </CodeBlock>
-      </div>
+      <CodeBlock language="ruby">{`gem 'logstruct'`}</CodeBlock>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6 mb-4">
         And then execute:
       </p>
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeBlock language="bash">
-          bundle install
-        </CodeBlock>
-      </div>
+      <CodeBlock language="bash">bundle install</CodeBlock>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">
         {`LogStruct is now installed and will automatically enable JSON structured logging in the test and production environments.`}
@@ -55,9 +47,8 @@ export default function GettingStartedPage() {
         You can use LogStruct with the standard Rails logger:
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeBlock language="ruby">
-          {`# Log a simple message
+      <CodeBlock language="ruby">
+        {`# Log a simple message
 Rails.logger.info "User signed in"
 
 # Log structured data
@@ -73,8 +64,7 @@ Rails.logger.tagged("Authentication") do
   Rails.logger.info "User signed in"
   Rails.logger.info({ user_id: user.id, ip_address: request.remote_ip })
 end`}
-        </CodeBlock>
-      </div>
+      </CodeBlock>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">
         LogStruct will automatically convert all logs to JSON format with a

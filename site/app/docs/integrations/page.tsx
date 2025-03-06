@@ -76,9 +76,8 @@ export default function IntegrationsPage() {
         events with detailed information about the job.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <CodeBlock language="ruby">
-          {`# Example of logged information for ActiveJob
+      <CodeBlock language="ruby">
+        {`# Example of logged information for ActiveJob
 {
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "job",
@@ -90,8 +89,7 @@ export default function IntegrationsPage() {
   "arguments": ["user_123", {"action": "update"}],
   "duration_ms": 125.45
 }`}
-        </CodeBlock>
-      </div>
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sidekiq Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -108,9 +106,8 @@ export default function IntegrationsPage() {
         </TabsList>
 
         <TabsContent value="process" className="mt-4">
-          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-            <CodeBlock language="json">
-              {`{
+          <CodeBlock language="json">
+            {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "sidekiq",
   "evt": "process",
@@ -125,14 +122,12 @@ export default function IntegrationsPage() {
   "duration_ms": 234.56,
   "retry_count": 0
 }`}
-            </CodeBlock>
-          </div>
+          </CodeBlock>
         </TabsContent>
 
         <TabsContent value="error" className="mt-4">
-          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-            <CodeBlock language="json">
-              {`{
+          <CodeBlock language="json">
+            {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "sidekiq",
   "evt": "error",
@@ -149,8 +144,7 @@ export default function IntegrationsPage() {
   "retry_count": 2,
   "retry": true
 }`}
-            </CodeBlock>
-          </div>
+          </CodeBlock>
         </TabsContent>
       </Tabs>
 
@@ -191,20 +185,8 @@ export default function IntegrationsPage() {
         and other exceptions with detailed context.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# The rack error handler logs security violations like:
+      <CodeBlock language="ruby">
+        {`# The rack error handler logs security violations like:
 # - IP spoofing attacks
 # - CSRF token errors
 # - Blocked host attempts
@@ -221,8 +203,7 @@ export default function IntegrationsPage() {
   "path": "/api/users",
   "method": "GET"
 }`}
-        </SyntaxHighlighter>
-      </div>
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Host Authorization</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -239,20 +220,8 @@ export default function IntegrationsPage() {
         crashing your application.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
-          language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Enable Sorbet error handling
+      <CodeBlock language="ruby">
+        {`# Enable Sorbet error handling
 config.integrations.enable_sorbet_error_handlers = true
 
 # This configures the following error handlers:
@@ -260,8 +229,7 @@ config.integrations.enable_sorbet_error_handlers = true
 # - T::Configuration.call_validation_error_handler
 # - T::Configuration.sig_builder_error_handler
 # - T::Configuration.sig_validation_error_handler`}
-        </SyntaxHighlighter>
-      </div>
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Enabling or Disabling Integrations

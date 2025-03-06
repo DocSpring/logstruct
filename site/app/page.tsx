@@ -58,19 +58,11 @@ export default function Home() {
             <h3 className="mb-4 text-xl font-semibold">
               1. Add to your Gemfile
             </h3>
-            <div className="overflow-x-auto rounded-md bg-neutral-100 p-4 dark:bg-neutral-900">
-              <CodeBlock language="ruby">
-                {`gem "logstruct"`}
-              </CodeBlock>
-            </div>
+            <CodeBlock language="ruby">{`gem "logstruct"`}</CodeBlock>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
             <h3 className="mb-4 text-xl font-semibold">2. Bundle install</h3>
-            <div className="overflow-x-auto rounded-md bg-neutral-100 p-4 dark:bg-neutral-900">
-              <CodeBlock language="bash">
-                bundle install
-              </CodeBlock>
-            </div>
+            <CodeBlock language="bash">bundle install</CodeBlock>
           </div>
         </div>
       </section>
