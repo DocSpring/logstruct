@@ -2,22 +2,25 @@
 
 set -e
 
-echo "===> Running Sorbet Typecheck"
+echo "===> Running Sorbet"
 bin/typecheck
 
-echo "===> Running TypeScript export"
+echo "===> Running LogStruct TypeScript Export"
 scripts/export_typescript_types.rb
 
-echo "===> Running TypeScript Typecheck"
+echo "===> Running TypeScript"
 (cd site && npx tsc --noEmit)
 
-echo "===> Running RuboCop (lint)"
+echo "===> Running RuboCop"
 bin/rubocop
 
-echo "===> Running Prettier (lint)"
+echo "===> Running Prettier"
 bin/prettier --check
 
-echo "===> Running spellcheck"
+echo "===> Running ESLint"
+(cd site && npm run lint)
+
+echo "===> Running CSpell Spellcheck"
 bin/spellcheck
 
 echo "===> Running Ruby tests"

@@ -6,6 +6,7 @@ import { LogGenerator } from '@/lib/log-generation';
 import { LogType } from '@/lib/log-generation';
 
 // Helper to format logs as JSON strings for display
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function formatLog(log: Record<string, any>): string {
   return JSON.stringify(log, null, 2);
 }

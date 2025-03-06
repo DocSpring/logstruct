@@ -1,6 +1,5 @@
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { EditPageLink } from '@/components/edit-page-link';
-import { CodeBlock } from '@/components/code-block';
 
 export default function ConfigurationPage() {
   return (
