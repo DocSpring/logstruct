@@ -12,20 +12,45 @@ module LogStruct
     class LogTypesExporter
       extend T::Sig
 
-      DEFAULT_OUTPUT_FILE = "site/lib/log-generation/log-types.json"
+      DEFAULT_OUTPUT_JSON_FILE = "site/lib/log-generation/log-types.json"
+      DEFAULT_OUTPUT_TS_FILE = "site/lib/log-generation/log-types.ts"
 
-      sig { params(output_file: String).void }
-      def initialize(output_file = DEFAULT_OUTPUT_FILE)
-        @output_file = output_file
+      sig { params(output_json_file: String, output_ts_file: String).void }
+      def initialize(output_json_file = DEFAULT_OUTPUT_JSON_FILE, output_ts_file = DEFAULT_OUTPUT_TS_FILE)
+        @output_json_file = output_json_file
+        @output_ts_file = output_ts_file
       end
 
       sig { void }
       def export
-        # Create output directory if needed
-        FileUtils.mkdir_p(File.dirname(@output_file))
+        # Create the exporter and run it
+        puts "Exporting LogStruct types to TypeScript..."
+        puts "Output file: #{@output_ts_file}"
 
-        # Export everything as JSON
-        result = {
+        puts "Done! TypeScript type definitions generated at #{@output_ts_file}"
+
+        # Create output directory if needed
+        FileUtils.mkdir_p(File.dirname(@output_json_file))
+        FileUtils.mkdir_p(File.dirname(@output_ts_file))
+
+        # Get the data
+        log_types_data = generate_data
+
+        # Export JSON
+        export_json(log_types_data)
+
+        # Export TypeScript types
+        export_typescript(log_types_data)
+
+        puts "Exported log types to #{@output_json_file} and #{@output_ts_file}"
+      end
+
+      private
+
+      sig { returns(T::Hash[String, T.untyped]) }
+      def generate_data
+        # Export everything as a hash
+        {
           # Export enum values
           enums: {
             LogLevel: LogStruct::LogLevel.values.map(&:serialize),
@@ -36,13 +61,66 @@ module LogStruct
           # Export log structs
           logs: export_log_structs
         }
-
-        # Write to file
-        File.write(@output_file, JSON.pretty_generate(result))
-        puts "Exported log types to #{@output_file}"
       end
 
-      private
+      sig { params(data: T::Hash[String, T.untyped]).void }
+      def export_json(data)
+        # Write to JSON file
+        File.write(@output_json_file, JSON.pretty_generate(data))
+      end
+
+      sig { params(data: T::Hash[String, T.untyped]).void }
+      def export_typescript(data)
+        ts_content = []
+
+        # Add file header
+        ts_content << "// Auto-generated TypeScript definitions for LogStruct"
+        ts_content << "// Generated on #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
+        ts_content << ""
+
+        # Add enum definitions
+        ts_content << "// Enum types"
+        data[:enums].each do |enum_name, enum_values|
+          ts_content << "export enum #{enum_name} {"
+          enum_values.each do |value|
+            ts_content << "  #{value.upcase} = \"#{value}\","
+          end
+          ts_content << "}"
+          ts_content << ""
+        end
+
+        # Add LogType enum
+        ts_content << "// Log Types"
+        ts_content << "export enum LogType {"
+        data[:logs].keys.each do |log_type|
+          ts_content << "  #{log_type.upcase} = \"#{log_type}\","
+        end
+        ts_content << "}"
+        ts_content << ""
+
+        # Add interface for each log type
+        ts_content << "// Log Interfaces"
+        data[:logs].each do |log_type, log_info|
+          ts_content << "export interface #{log_type}Log {"
+          log_info[:fields].each do |field_name, field_info|
+            type_str = typescript_type_for(field_info)
+            optional = field_info[:optional] ? "?" : ""
+            ts_content << "  #{field_name}#{optional}: #{type_str};"
+          end
+          ts_content << "}"
+          ts_content << ""
+        end
+
+        # Add union type for all logs
+        ts_content << "// Union type for all logs"
+        ts_content << "export type Log ="
+        log_types = data[:logs].keys.map { |type| "  | #{type}Log" }
+        ts_content << log_types.join("\n")
+        ts_content << ";"
+
+        # Write to TypeScript file
+        File.write(@output_ts_file, ts_content.join("\n"))
+      end
 
       sig { returns(T::Hash[String, T::Hash[Symbol, T.untyped]]) }
       def export_log_structs
@@ -120,6 +198,30 @@ module LogStruct
         end
 
         result
+      end
+
+      sig { params(field_info: T::Hash[Symbol, T.untyped]).returns(String) }
+      def typescript_type_for(field_info)
+        case field_info[:type]
+        when "enum"
+          field_info[:values]
+        when "string"
+          if field_info[:format] == "date-time"
+            "string" # Could use Date, but string is more compatible
+          else
+            "string"
+          end
+        when "integer", "number"
+          "number"
+        when "boolean"
+          "boolean"
+        when "array"
+          "any[]" # Could be more specific if we had item type
+        when "object"
+          "Record<string, any>"
+        else
+          "any"
+        end
       end
     end
   end
