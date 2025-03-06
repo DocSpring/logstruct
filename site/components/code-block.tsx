@@ -71,9 +71,7 @@ export function CodeBlock({
       {title && (
         <div className="font-medium text-sm mb-2 text-gray-700">{title}</div>
       )}
-      <div className="overflow-hidden rounded-lg">
-        {highlighter}
-      </div>
+      <div className="overflow-hidden rounded-lg">{highlighter}</div>
     </div>
   );
 }

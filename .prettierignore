@@ -1,10 +1,12 @@
+# Don't need to check Ruby / RBI files
+sorbet/
+tasks/
+
 site/.next
 site/out
 
-# Keep this formatting since it's more concise
 site/lib/log-generation/sample-data.ts
-
-# Don't format generated files
+site/lib/log-generation/log-keys.json
 site/lib/log-generation/log-types.ts
 site/public/coverage
 site/public/yard

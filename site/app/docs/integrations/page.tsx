@@ -64,7 +64,9 @@ export default function IntegrationsPage() {
         events with detailed information about the job.
       </p>
 
-      <CodeBlock language="json">{formatLog(logGenerator.generateLog(LogType.ACTIVEJOB))}</CodeBlock>
+      <CodeBlock language="json">
+        {formatLog(logGenerator.generateLog(LogType.ACTIVEJOB))}
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sidekiq Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -107,7 +109,9 @@ export default function IntegrationsPage() {
       <RubyCodeExample name="lograge_custom_options" />
 
       <div className="mt-4">
-        <CodeBlock language="json">{formatLog(logGenerator.generateLog(LogType.REQUEST))}</CodeBlock>
+        <CodeBlock language="json">
+          {formatLog(logGenerator.generateLog(LogType.REQUEST))}
+        </CodeBlock>
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Shrine Integration</h2>
@@ -116,7 +120,9 @@ export default function IntegrationsPage() {
         other Shrine operations, including file metadata and operation duration.
       </p>
 
-      <CodeBlock language="json">{formatLog(logGenerator.generateLog(LogType.SHRINE))}</CodeBlock>
+      <CodeBlock language="json">
+        {formatLog(logGenerator.generateLog(LogType.SHRINE))}
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">CarrierWave Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -124,7 +130,9 @@ export default function IntegrationsPage() {
         structured logging for file upload operations.
       </p>
 
-      <CodeBlock language="json">{formatLog(logGenerator.generateLog(LogType.CARRIERWAVE))}</CodeBlock>
+      <CodeBlock language="json">
+        {formatLog(logGenerator.generateLog(LogType.CARRIERWAVE))}
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         ActiveStorage Integration
@@ -135,7 +143,9 @@ export default function IntegrationsPage() {
         storage service.
       </p>
 
-      <CodeBlock language="json">{formatLog(logGenerator.generateLog(LogType.ACTIVESTORAGE))}</CodeBlock>
+      <CodeBlock language="json">
+        {formatLog(logGenerator.generateLog(LogType.ACTIVESTORAGE))}
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Rack Error Handler</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -157,7 +167,9 @@ export default function IntegrationsPage() {
         potential security issues.
       </p>
 
-      <CodeBlock language="json">{formatLog(logGenerator.generateLog(LogType.SECURITY))}</CodeBlock>
+      <CodeBlock language="json">
+        {formatLog(logGenerator.generateLog(LogType.SECURITY))}
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sorbet Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -172,7 +184,7 @@ export default function IntegrationsPage() {
           <TabsTrigger value="config">Configuration</TabsTrigger>
           <TabsTrigger value="error">Type Error Example</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="config">
           <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
             <CodeBlock language="ruby" unwrapped={true}>
@@ -187,7 +199,7 @@ config.integrations.enable_sorbet_error_handlers = true
             </CodeBlock>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="error">
           <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
             <CodeBlock language="json" unwrapped={true}>

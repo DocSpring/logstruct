@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+# cspell:ignore _tnilable
+
 # Load LogStruct type definitions
 require_relative "../lib/log_struct"
 
@@ -39,31 +41,31 @@ module LogStruct
         File.write(@output_ts_file, content)
 
         puts "Exported log types to #{@output_ts_file}"
-        
+
         # Export LOG_KEYS mapping to JSON
         export_keys_to_json
       end
-      
+
       # Export LOG_KEYS mapping to a JSON file
       sig { params(output_json_file: T.nilable(String)).void }
       def export_keys_to_json(output_json_file = nil)
         # Default to the same directory as the TypeScript file
         output_json_file ||= File.join(File.dirname(@output_ts_file), "log-keys.json")
-        
+
         puts "Exporting LogStruct key mappings to JSON..."
         puts "Output file: #{output_json_file}"
-        
+
         # Create output directory if needed
         FileUtils.mkdir_p(File.dirname(output_json_file))
-        
+
         # Convert LOG_KEYS to a format suitable for JSON
         # - Convert keys from symbols to strings
         # - Convert values from symbols to strings
         json_keys = LogStruct::LOG_KEYS.transform_keys(&:to_s).transform_values(&:to_s)
-        
+
         # Write to file with pretty formatting
         File.write(output_json_file, JSON.pretty_generate(json_keys))
-        
+
         puts "Exported key mappings to #{output_json_file}"
       end
 
@@ -208,9 +210,9 @@ module LogStruct
         # puts "Extracting type info for: #{type_str}"
         # puts "Array key present? #{prop_info.key?(:array)}" if prop_info.key?(:array)
         # puts "Array value: #{prop_info[:array]}" if prop_info.key?(:array)
-        
+
         # Check for TypedHash specifically (handles metadata field correctly)
-        if type_obj.is_a?(T::Types::TypedHash) || type_obj.class.name == "T::Types::TypedHash"
+        if type_obj.is_a?(T::Types::TypedHash) || type_obj.instance_of?(::T::Types::TypedHash)
           return {optional: prop_info[:_tnilable] || false, type: "object"}
         end
 

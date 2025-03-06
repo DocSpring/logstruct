@@ -22,26 +22,26 @@ const RELOAD_INTERVAL_MS = 1000; // 1 second
 function unindentCode(code: string): string {
   // Split into lines for processing
   const lines = code.split('\n');
-  
+
   // Find non-empty lines to determine minimum indentation
-  const nonEmptyLines = lines.filter(line => line.trim().length > 0);
+  const nonEmptyLines = lines.filter((line) => line.trim().length > 0);
   if (!nonEmptyLines.length) return code;
-  
+
   // Calculate the minimum indentation across all non-empty lines
-  const indentSizes = nonEmptyLines.map(line => {
+  const indentSizes = nonEmptyLines.map((line) => {
     const match = line.match(/^(\s*)/);
     return match ? match[1].length : 0;
   });
-  
+
   const minIndent = Math.min(...indentSizes);
-  
+
   // If no common indentation found, return the original code
   if (minIndent === 0) return code;
-  
+
   // Remove the common indentation from each line, but only if the line
   // has enough characters to avoid cutting into content
   return lines
-    .map(line => {
+    .map((line) => {
       // Only remove indentation from non-empty lines
       if (line.trim().length === 0) return line;
       // Only remove up to the amount of leading whitespace
@@ -75,10 +75,10 @@ export function extractCodeExample(content: string, id: string): string | null {
 
   // Extract the code between markers without trimming (leading spaces are important)
   const extractedCode = contentAfterStart.slice(0, endMatch.index);
-  
+
   // Remove empty lines at the beginning and end
   const trimmedCode = extractedCode.replace(/^\s*\n/, '').replace(/\s*$/, '');
-  
+
   // Unindent the code by removing consistent whitespace from the left
   return unindentCode(trimmedCode);
 }
@@ -144,11 +144,11 @@ export function loadCodeExamples(): Record<string, CodeExample> {
  */
 function ensureExamplesLoaded(): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
+
   // In development, reload periodically
   if (isDevelopment && Date.now() - lastLoadTime > RELOAD_INTERVAL_MS) {
     loadCodeExamples();
-  } 
+  }
   // In production or if not loaded yet, load once
   else if (Object.keys(CODE_EXAMPLES).length === 0) {
     loadCodeExamples();
@@ -164,7 +164,9 @@ export function getCodeExample(id: string): CodeExample {
   ensureExamplesLoaded();
   const example = CODE_EXAMPLES[id];
   if (!example) {
-    throw new Error(`Code example not found: "${id}". Make sure this example exists in the examples directory.`);
+    throw new Error(
+      `Code example not found: "${id}". Make sure this example exists in the examples directory.`,
+    );
   }
   return example;
 }

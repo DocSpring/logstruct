@@ -34,7 +34,7 @@ export class LogGenerator extends RandomDataGenerator {
    */
   transformLog(log: Partial<Log>): Record<string, any> {
     const transformedLog: Record<string, any> = {};
-    
+
     // Process each field in the log
     Object.entries(log).forEach(([propertyName, value]) => {
       const jsonKey = (logKeysMap as Record<string, string>)[propertyName];
@@ -46,7 +46,7 @@ export class LogGenerator extends RandomDataGenerator {
         transformedLog[propertyName] = value;
       }
     });
-    
+
     return transformedLog;
   }
 
@@ -62,7 +62,7 @@ export class LogGenerator extends RandomDataGenerator {
       // Security logs are often warnings or errors
       level = Math.random() > 0.3 ? LogLevel.WARN : LogLevel.ERROR;
     }
-    
+
     // Create a log with common fields
     const log: Partial<Log> = {
       timestamp: new Date().toISOString(),
@@ -105,7 +105,7 @@ export class LogGenerator extends RandomDataGenerator {
   generateLog(logType: LogType): Record<string, any> {
     // Generate a typed log then transform it
     const typedLog = this.generateTypedLog(logType);
-    
+
     // Transform property names to JSON keys
     return this.transformLog(typedLog);
   }

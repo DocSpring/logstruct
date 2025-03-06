@@ -28,7 +28,7 @@ export function LogScroller() {
       .replace(/(\w"):/g, '$1: ')
       .replace(/({)(?!})/g, '$1 ') // Add space after opening brace only if not followed by closing brace
       .replace(/(?<!{)(})/g, ' $1') // Add space before closing brace only if not preceded by opening brace
-      .replace(/\{\s+\}/g, '{}');   // Remove spaces between empty braces
+      .replace(/\{\s+\}/g, '{}'); // Remove spaces between empty braces
 
     return jsonStr;
   }, []);

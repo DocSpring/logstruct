@@ -62,24 +62,25 @@ describe('Code Examples Integration', () => {
   it('should provide list of all example IDs', () => {
     const ids = getAllExampleIds();
     expect(ids.length).toBeGreaterThan(0);
-    
+
     // A few key examples that should be found
     expect(ids).toContain('rails_initializer');
     expect(ids).toContain('basic_configuration');
     expect(ids).toContain('custom_string_scrubber');
   });
-  
+
   it('should preserve indentation in code examples relative to first line', () => {
     // Check a real example to see if it's properly unindented
     const example = getCodeExample('basic_configuration');
     expect(example).not.toBeNull();
-    
+
     // Split the code into lines
     const lines = example.code.split('\n');
-    
+
     // This should be true: comment line at first level, code line at first level
     // The actual indentation after unindenting should preserve the relative structure
-    expect(lines[0]).toBe('# Configure LogStruct with a block');
-    expect(lines[1]).toBe('LogStruct.configure do |config|');
+    expect(lines[0]).toBe('LogStruct.configure do |config|');
+    expect(lines[1]).toBe('');
+    expect(lines[2]).toBe('  # your configuration here');
   });
 });
