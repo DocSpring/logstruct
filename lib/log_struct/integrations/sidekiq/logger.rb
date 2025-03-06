@@ -21,7 +21,7 @@ module LogStruct
           LogStruct::Log::Sidekiq.new(
             level: LogStruct::LogLevel.from_severity(severity),
             event: LogEvent::Log,
-            message: (message || progname).to_s,
+            message: message,
             process_id: ::Process.pid,
             thread_id: tid,
             context: ::Sidekiq::Context.current || {}

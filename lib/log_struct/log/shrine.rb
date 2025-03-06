@@ -33,7 +33,6 @@ module LogStruct
       const :event, ShrineLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
-      const :msg, T.nilable(String), default: nil
 
       # Shrine-specific fields
       const :storage, T.nilable(String), default: nil
@@ -49,7 +48,6 @@ module LogStruct
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize(strict = true)
         hash = serialize_common(strict)
-        hash[LogKeys::MSG] = msg if msg
 
         # Add Shrine-specific fields if they're present
         hash[LogKeys::STORAGE] = storage if storage
