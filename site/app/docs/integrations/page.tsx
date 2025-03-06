@@ -2,6 +2,19 @@ import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RubyCodeExample } from '@/components/ruby-code-example';
+import {
+  getActionMailerDeliverLog,
+  getActionMailerErrorLog,
+  getActiveJobLog,
+  getSidekiqProcessLog,
+  getSidekiqErrorLog,
+  getRackErrorLog,
+  getHostAuthorizationLog,
+  getLogRageLog,
+  getShrineLog,
+  getCarrierWaveLog,
+  getActiveStorageLog,
+} from '@/lib/log-generation';
 
 export default function IntegrationsPage() {
   return (
@@ -34,38 +47,16 @@ export default function IntegrationsPage() {
           value="deliver"
           className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900"
         >
-          <CodeBlock language="json">
-            {`{
-  "ts": "2023-09-15T12:34:56.789Z",
-  "src": "mailer",
-  "evt": "deliver",
-  "lvl": "info",
-  "mailer": "UserMailer",
-  "action": "welcome",
-  "to": "[EMAIL:a1b2c3]",
-  "subject": "Welcome to our app!",
-  "message_id": "<abc123@example.com>",
-  "duration_ms": 125.45
-}`}
+          <CodeBlock language="json" unwrapped={true}>
+            {getActionMailerDeliverLog()}
           </CodeBlock>
         </TabsContent>
         <TabsContent
           value="error"
           className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900"
         >
-          <CodeBlock language="json">
-            {`{
-  "ts": "2023-09-15T12:34:56.789Z",
-  "src": "mailer",
-  "evt": "error",
-  "lvl": "error",
-  "mailer": "NotificationMailer",
-  "action": "weekly_digest",
-  "to": "[EMAIL:d4e5f6]",
-  "error": "SMTP connection failed",
-  "message": "Failed to connect to SMTP server",
-  "backtrace": ["app/mailers/notification_mailer.rb:25:in 'weekly_digest'", "..."]
-}`}
+          <CodeBlock language="json" unwrapped={true}>
+            {getActionMailerErrorLog()}
           </CodeBlock>
         </TabsContent>
       </Tabs>
@@ -76,20 +67,7 @@ export default function IntegrationsPage() {
         events with detailed information about the job.
       </p>
 
-      <CodeBlock language="ruby">
-        {`# Example of logged information for ActiveJob
-{
-  "ts": "2023-09-15T12:34:56.789Z",
-  "src": "job",
-  "evt": "perform",
-  "lvl": "info",
-  "job_id": "abc123def456",
-  "job_class": "ProcessUserDataJob",
-  "queue": "default",
-  "arguments": ["user_123", {"action": "update"}],
-  "duration_ms": 125.45
-}`}
-      </CodeBlock>
+      <CodeBlock language="json">{getActiveJobLog()}</CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sidekiq Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -106,45 +84,19 @@ export default function IntegrationsPage() {
         </TabsList>
 
         <TabsContent value="process" className="mt-4">
-          <CodeBlock language="json">
-            {`{
-  "ts": "2023-09-15T12:34:56.789Z",
-  "src": "sidekiq",
-  "evt": "process",
-  "lvl": "info",
-  "pid": 12345,
-  "tid": "abcd1234",
-  "job_id": "ef678gh90ij",
-  "class": "ImportJob",
-  "queue": "default",
-  "args": ["user_id_123", {"action": "import"}],
-  "status": "success",
-  "duration_ms": 234.56,
-  "retry_count": 0
-}`}
-          </CodeBlock>
+          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+            <CodeBlock language="json" unwrapped={true}>
+              {getSidekiqProcessLog()}
+            </CodeBlock>
+          </div>
         </TabsContent>
 
         <TabsContent value="error" className="mt-4">
-          <CodeBlock language="json">
-            {`{
-  "ts": "2023-09-15T12:34:56.789Z",
-  "src": "sidekiq",
-  "evt": "error",
-  "lvl": "error",
-  "pid": 12345,
-  "tid": "abcd1234",
-  "job_id": "ef678gh90ij",
-  "class": "ImportJob",
-  "queue": "default",
-  "args": ["user_id_123", {"action": "import"}],
-  "error": "NoMethodError",
-  "message": "undefined method 'import_data' for nil:NilClass",
-  "backtrace": ["app/jobs/import_job.rb:25:in 'perform'", "..."],
-  "retry_count": 2,
-  "retry": true
-}`}
-          </CodeBlock>
+          <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
+            <CodeBlock language="json" unwrapped={true}>
+              {getSidekiqErrorLog()}
+            </CodeBlock>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -157,17 +109,25 @@ export default function IntegrationsPage() {
 
       <RubyCodeExample name="lograge_custom_options" />
 
+      <div className="mt-4">
+        <CodeBlock language="json">{getLogRageLog()}</CodeBlock>
+      </div>
+
       <h2 className="text-2xl font-bold mt-10 mb-4">Shrine Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         The Shrine integration adds structured logging for file uploads and
         other Shrine operations, including file metadata and operation duration.
       </p>
 
+      <CodeBlock language="json">{getShrineLog()}</CodeBlock>
+
       <h2 className="text-2xl font-bold mt-10 mb-4">CarrierWave Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Similar to the Shrine integration, the CarrierWave integration adds
         structured logging for file upload operations.
       </p>
+
+      <CodeBlock language="json">{getCarrierWaveLog()}</CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         ActiveStorage Integration
@@ -178,32 +138,23 @@ export default function IntegrationsPage() {
         storage service.
       </p>
 
+      <CodeBlock language="json">{getActiveStorageLog()}</CodeBlock>
+
       <h2 className="text-2xl font-bold mt-10 mb-4">Rack Error Handler</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct includes a Rack middleware that enhances error logging for
         Rails applications. This middleware catches and logs security violations
-        and other exceptions with detailed context.
+        and other exceptions with detailed context. The rack error handler logs
+        security violations like:
+        <ul className="list-disc list-inside">
+          <li>IP spoofing attacks</li>
+          <li>CSRF token errors</li>
+          <li>Blocked host attempts</li>
+          <li>General exceptions during request processing</li>
+        </ul>
       </p>
 
-      <CodeBlock language="ruby">
-        {`# The rack error handler logs security violations like:
-# - IP spoofing attacks
-# - CSRF token errors
-# - Blocked host attempts
-# - General exceptions during request processing
-
-# Example log of an IP spoofing attempt
-{
-  "ts": "2023-09-15T12:34:56.789Z",
-  "src": "security",
-  "evt": "ip_spoof",
-  "lvl": "error",
-  "client_ip": "[IP]", 
-  "x_forwarded_for": "[IP]",
-  "path": "/api/users",
-  "method": "GET"
-}`}
-      </CodeBlock>
+      <CodeBlock language="json">{getRackErrorLog()}</CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Host Authorization</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -211,6 +162,8 @@ export default function IntegrationsPage() {
         using Rails&apos; host authorization feature, helping you detect
         potential security issues.
       </p>
+
+      <CodeBlock language="json">{getHostAuthorizationLog()}</CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sorbet Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -230,19 +183,6 @@ config.integrations.enable_sorbet_error_handlers = true
 # - T::Configuration.sig_builder_error_handler
 # - T::Configuration.sig_validation_error_handler`}
       </CodeBlock>
-
-      <h2 className="text-2xl font-bold mt-10 mb-4">
-        Enabling or Disabling Integrations
-      </h2>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can enable or disable specific integrations in your LogStruct
-        configuration:
-      </p>
-
-      <RubyCodeExample
-        name="integrations_configuration"
-        title="Configuring LogStruct Integrations"
-      />
 
       <EditPageLink />
     </div>

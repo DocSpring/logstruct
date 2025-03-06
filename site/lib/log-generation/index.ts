@@ -5,3 +5,6 @@ export type { FilteredValue } from './random-data-generator';
 // Re-export log types for convenience
 export * from './log-types';
 export { SampleData } from './sample-data';
+
+// Export log examples for documentation
+export * from './log-examples';
