@@ -15,8 +15,8 @@ export default function Home() {
           </h1>
           <p className="text-lg text-neutral-600 dark:text-neutral-400 my-10">
             LogStruct adds structured JSON logging to any Rails app. Just add
-            the gem to your Gemfile, and your Rails app prints beautiful JSON
-            logs that are easy to search, filter, and visualize.
+            the gem to your Gemfile, and your Rails app will print beautiful
+            JSON logs that are easy to search, filter, and visualize.
           </p>
           <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
             <Button asChild size="lg">
@@ -50,6 +50,10 @@ export default function Home() {
       {/* Installation Section */}
       <section className="py-16">
         <h2 className="mb-8 text-3xl font-bold">Installation</h2>
+
+        <p className="my-6 text-lg text-neutral-600 dark:text-neutral-400">
+          Enable JSON structured logging for test and production environments:
+        </p>
         <div className="grid gap-8 md:grid-cols-2">
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
             <h3 className="mb-4 text-xl font-semibold">
@@ -94,10 +98,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <p className="mt-6 text-lg text-neutral-600 dark:text-neutral-400">
-          Now JSON structured logging is enabled by default for the test and
-          production environments.
-        </p>
       </section>
 
       {/* Features Grid */}
@@ -109,12 +109,15 @@ export default function Home() {
               Type-safe with Sorbet
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              Full type checking with Sorbet ensures your logs are correctly
-              structured.
+              LogStruct is fully type-checked with Sorbet so your logs are
+              guaranteed to have the correct structure. And no risk of{' '}
+              <code>undefined method `[]&apos; for nil:NilClass</code>.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">Advanced Filtering</h3>
+            <h3 className="mb-4 text-xl font-semibold">
+              Advanced Filtering and Scrubbing
+            </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
               Parameter and string filtering for security and privacy, hiding
               sensitive data.
