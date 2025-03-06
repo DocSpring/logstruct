@@ -15,7 +15,8 @@ export default function ConfigurationPage() {
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Configuration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         While LogStruct works out of the box with minimal configuration, you may
-        want to customize it to suit your application's needs. Create a file at{' '}
+        want to customize it to suit your application&apos;s needs. Create a
+        file at
         <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
           config/initializers/logstruct.rb
         </code>{' '}
