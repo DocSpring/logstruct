@@ -51,11 +51,11 @@ module LogStruct
         merge_data_fields(hash)
 
         # Add job-specific fields if they're present
-        hash[LogKeys::JOB_ID] = job_id if job_id
-        hash[LogKeys::JOB_CLASS] = job_class if job_class
-        hash[LogKeys::QUEUE_NAME] = queue_name if queue_name
-        hash[LogKeys::ARGUMENTS] = arguments if arguments
-        hash[LogKeys::DURATION] = duration if duration
+        hash[LOG_KEYS[:job_id]] = job_id if job_id
+        hash[LOG_KEYS[:job_class]] = job_class if job_class
+        hash[LOG_KEYS[:queue_name]] = queue_name if queue_name
+        hash[LOG_KEYS[:arguments]] = arguments if arguments
+        hash[LOG_KEYS[:duration]] = duration if duration
 
         hash
       end

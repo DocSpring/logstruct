@@ -43,19 +43,19 @@ module LogStruct
         hash = serialize_common(strict)
 
         # Add ActiveStorage-specific fields - only include non-nil values
-        hash[LogKeys::OP] = operation if operation
-        hash[LogKeys::STORAGE] = storage if storage
-        hash[LogKeys::FILE_ID] = file_id if file_id
-        hash[LogKeys::FILENAME] = filename if filename
-        hash[LogKeys::MIME_TYPE] = mime_type if mime_type
-        hash[LogKeys::SIZE] = size if size
-        hash[LogKeys::METADATA] = metadata if metadata
-        hash[LogKeys::DURATION] = duration if duration
-        hash[LogKeys::CHECKSUM] = checksum if checksum
-        hash[LogKeys::EXIST] = exist if !exist.nil?
-        hash[LogKeys::URL] = url if url
-        hash[LogKeys::PREFIX] = prefix if prefix
-        hash[LogKeys::RANGE] = range if range
+        hash[LOG_KEYS[:operation]] = operation if operation
+        hash[LOG_KEYS[:storage]] = storage if storage
+        hash[LOG_KEYS[:file_id]] = file_id if file_id
+        hash[LOG_KEYS[:filename]] = filename if filename
+        hash[LOG_KEYS[:mime_type]] = mime_type if mime_type
+        hash[LOG_KEYS[:size]] = size if size
+        hash[LOG_KEYS[:metadata]] = metadata if metadata
+        hash[LOG_KEYS[:duration]] = duration if duration
+        hash[LOG_KEYS[:checksum]] = checksum if checksum
+        hash[LOG_KEYS[:exist]] = exist if !exist.nil?
+        hash[LOG_KEYS[:url]] = url if url
+        hash[LOG_KEYS[:prefix]] = prefix if prefix
+        hash[LOG_KEYS[:range]] = range if range
 
         hash
       end

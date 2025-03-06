@@ -54,20 +54,20 @@ module LogStruct
       def serialize(strict = true)
         hash = serialize_common(strict)
         add_request_fields(hash)
-        hash[LogKeys::METHOD] = http_method if http_method
-        hash[LogKeys::PATH] = path if path
-        hash[LogKeys::FORMAT] = format if format
-        hash[LogKeys::CONTROLLER] = controller if controller
-        hash[LogKeys::ACTION] = action if action
-        hash[LogKeys::STATUS] = status if status
-        hash[LogKeys::DURATION] = duration if duration
-        hash[LogKeys::VIEW] = view if view
-        hash[LogKeys::DB] = db if db
-        hash[LogKeys::PARAMS] = params if params
-        hash[LogKeys::SOURCE_IP] = source_ip if source_ip
-        hash[LogKeys::USER_AGENT] = user_agent if user_agent
-        hash[LogKeys::REFERER] = referer if referer
-        hash[LogKeys::REQUEST_ID] = request_id if request_id
+        hash[LOG_KEYS[:http_method]] = http_method if http_method
+        hash[LOG_KEYS[:path]] = path if path
+        hash[LOG_KEYS[:format]] = format if format
+        hash[LOG_KEYS[:controller]] = controller if controller
+        hash[LOG_KEYS[:action]] = action if action
+        hash[LOG_KEYS[:status]] = status if status
+        hash[LOG_KEYS[:duration]] = duration if duration
+        hash[LOG_KEYS[:view]] = view if view
+        hash[LOG_KEYS[:db]] = db if db
+        hash[LOG_KEYS[:params]] = params if params
+        hash[LOG_KEYS[:source_ip]] = source_ip if source_ip
+        hash[LOG_KEYS[:user_agent]] = user_agent if user_agent
+        hash[LOG_KEYS[:referer]] = referer if referer
+        hash[LOG_KEYS[:request_id]] = request_id if request_id
 
         hash
       end

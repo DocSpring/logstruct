@@ -61,19 +61,19 @@ module LogStruct
         merge_data_fields(hash)
 
         # Add file-specific fields if they're present
-        hash[LogKeys::STORAGE] = storage if storage
-        hash[LogKeys::OP] = operation if operation
-        hash[LogKeys::FILE_ID] = file_id if file_id
-        hash[LogKeys::FILENAME] = filename if filename
-        hash[LogKeys::MIME_TYPE] = mime_type if mime_type
-        hash[LogKeys::SIZE] = size if size
-        hash[LogKeys::METADATA] = metadata if metadata
-        hash[LogKeys::DURATION] = duration if duration
+        hash[LOG_KEYS[:storage]] = storage if storage
+        hash[LOG_KEYS[:operation]] = operation if operation
+        hash[LOG_KEYS[:file_id]] = file_id if file_id
+        hash[LOG_KEYS[:filename]] = filename if filename
+        hash[LOG_KEYS[:mime_type]] = mime_type if mime_type
+        hash[LOG_KEYS[:size]] = size if size
+        hash[LOG_KEYS[:metadata]] = metadata if metadata
+        hash[LOG_KEYS[:duration]] = duration if duration
 
         # Add CarrierWave-specific fields if they're present
-        hash[LogKeys::UPLOADER] = uploader if uploader
-        hash[LogKeys::MODEL] = model if model
-        hash[LogKeys::MOUNT_POINT] = mount_point if mount_point
+        hash[LOG_KEYS[:uploader]] = uploader if uploader
+        hash[LOG_KEYS[:model]] = model if model
+        hash[LOG_KEYS[:mount_point]] = mount_point if mount_point
 
         hash
       end

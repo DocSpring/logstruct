@@ -2,85 +2,89 @@
 # frozen_string_literal: true
 
 module LogStruct
-  module LogKeys
+  # Define a mapping of property names to JSON keys
+  LOG_KEYS = T.let({
+    # Ruby struct property name => JSON key name
+
     # Shared fields
-    SRC = :src
-    EVT = :evt
-    TS = :ts
-    LVL = :lvl
+    source: :src,
+    event: :evt,
+    timestamp: :ts,
+    level: :lvl,
 
     # Common fields
-    MSG = :msg
-    DATA = :data
+    message: :msg,
+    data: :data,
 
     # Request-related fields
-    PATH = :path
-    METHOD = :method  # Note: we use `http_method` in code but `method` in JSON
-    SOURCE_IP = :source_ip
-    USER_AGENT = :user_agent
-    REFERER = :referer
-    REQUEST_ID = :request_id
+    path: :path,
+    http_method: :method, # Use `http_method` because `method` is a reserved word
+    source_ip: :source_ip,
+    user_agent: :user_agent,
+    referer: :referer,
+    request_id: :request_id,
 
     # HTTP-specific fields
-    FORMAT = :format
-    CONTROLLER = :controller
-    ACTION = :action
-    STATUS = :status
-    DURATION = :duration
-    VIEW = :view
-    DB = :db
-    PARAMS = :params
+    format: :format,
+    controller: :controller,
+    action: :action,
+    status: :status,
+    duration: :duration,
+    view: :view,
+    db: :db,
+    params: :params,
 
     # Security-specific fields
-    BLOCKED_HOST = :blocked_host
-    BLOCKED_HOSTS = :blocked_hosts
-    CLIENT_IP = :client_ip
-    X_FORWARDED_FOR = :x_forwarded_for
+    blocked_host: :blocked_host,
+    blocked_hosts: :blocked_hosts,
+    client_ip: :client_ip,
+    x_forwarded_for: :x_forwarded_for,
 
     # Email-specific fields
-    TO = :to
-    FROM = :from
-    SUBJECT = :subject
+    to: :to,
+    from: :from,
+    subject: :subject,
 
     # Error fields
-    ERR_CLASS = :err_class
-    BACKTRACE = :backtrace
+    err_class: :err_class,
+    backtrace: :backtrace,
 
     # Job-specific fields
-    JOB_ID = :job_id
-    JOB_CLASS = :job_class
-    QUEUE_NAME = :queue_name
-    ARGUMENTS = :arguments
-    RETRY_COUNT = :retry_count
+    job_id: :job_id,
+    job_class: :job_class,
+    queue_name: :queue_name,
+    arguments: :arguments,
+    retry_count: :retry_count,
 
     # Sidekiq-specific fields
-    PID = :pid # Process ID
-    TID = :tid # Thread ID
-    CTX = :ctx # Context
+    process_id: :pid,
+    thread_id: :tid,
+    context: :ctx,
 
     # Storage-specific fields (ActiveStorage)
-    CHECKSUM = :checksum
-    EXIST = :exist
-    URL = :url
-    PREFIX = :prefix
-    RANGE = :range
+    checksum: :checksum,
+    exist: :exist,
+    url: :url,
+    prefix: :prefix,
+    range: :range,
 
     # Storage-specific fields (Shrine)
-    STORAGE = :storage
-    OP = :op # Operation
-    FILE_ID = :file_id
-    FILENAME = :filename
-    MIME_TYPE = :mime_type
-    SIZE = :size
-    METADATA = :metadata
-    LOCATION = :location
-    UPLOAD_OPTS = :upload_opts
-    DOWNLOAD_OPTS = :download_opts
-    OPTS = :opts
-    UPLOADER = :uploader
+    storage: :storage,
+    operation: :op,
+    file_id: :file_id,
+    filename: :filename,
+    mime_type: :mime_type,
+    size: :size,
+    metadata: :metadata,
+    location: :location,
+    upload_options: :upload_opts,
+    download_options: :download_opts,
+    options: :opts,
+    uploader: :uploader,
 
     # CarrierWave-specific fields
-    MODEL = :model
-    MOUNT_POINT = :mount_point
-  end
+    model: :model,
+    mount_point: :mount_point
+  }.freeze,
+    T::Hash[Symbol, Symbol])
 end

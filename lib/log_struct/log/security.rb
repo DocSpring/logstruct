@@ -67,11 +67,11 @@ module LogStruct
         merge_data_fields(hash)
 
         # Add security-specific fields
-        hash[LogKeys::MSG] = message if message
-        hash[LogKeys::BLOCKED_HOST] = blocked_host if blocked_host
-        hash[LogKeys::BLOCKED_HOSTS] = blocked_hosts if blocked_hosts
-        hash[LogKeys::CLIENT_IP] = client_ip if client_ip
-        hash[LogKeys::X_FORWARDED_FOR] = x_forwarded_for if x_forwarded_for
+        hash[LOG_KEYS[:message]] = message if message
+        hash[LOG_KEYS[:blocked_host]] = blocked_host if blocked_host
+        hash[LOG_KEYS[:blocked_hosts]] = blocked_hosts if blocked_hosts
+        hash[LOG_KEYS[:client_ip]] = client_ip if client_ip
+        hash[LOG_KEYS[:x_forwarded_for]] = x_forwarded_for if x_forwarded_for
 
         hash
       end

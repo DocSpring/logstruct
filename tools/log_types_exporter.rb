@@ -22,9 +22,10 @@ module LogStruct
         @log_struct_classes = log_struct_classes
       end
 
-      # Public method to export TypeScript definitions to file
+      # Public method to export TypeScript definitions and JSON key mappings to files
       sig { void }
       def export
+        # Export TypeScript definitions
         puts "Exporting LogStruct types to TypeScript..."
         puts "Output file: #{@output_ts_file}"
 
@@ -38,6 +39,32 @@ module LogStruct
         File.write(@output_ts_file, content)
 
         puts "Exported log types to #{@output_ts_file}"
+        
+        # Export LOG_KEYS mapping to JSON
+        export_keys_to_json
+      end
+      
+      # Export LOG_KEYS mapping to a JSON file
+      sig { params(output_json_file: T.nilable(String)).void }
+      def export_keys_to_json(output_json_file = nil)
+        # Default to the same directory as the TypeScript file
+        output_json_file ||= File.join(File.dirname(@output_ts_file), "log-keys.json")
+        
+        puts "Exporting LogStruct key mappings to JSON..."
+        puts "Output file: #{output_json_file}"
+        
+        # Create output directory if needed
+        FileUtils.mkdir_p(File.dirname(output_json_file))
+        
+        # Convert LOG_KEYS to a format suitable for JSON
+        # - Convert keys from symbols to strings
+        # - Convert values from symbols to strings
+        json_keys = LogStruct::LOG_KEYS.transform_keys(&:to_s).transform_values(&:to_s)
+        
+        # Write to file with pretty formatting
+        File.write(output_json_file, JSON.pretty_generate(json_keys))
+        
+        puts "Exported key mappings to #{output_json_file}"
       end
 
       # Public method to generate TypeScript definitions as a string

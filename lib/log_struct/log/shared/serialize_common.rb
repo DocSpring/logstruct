@@ -18,10 +18,10 @@ module LogStruct
       sig { params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize_common(strict = true)
         {
-          LogKeys::SRC => source.serialize,
-          LogKeys::EVT => event.serialize,
-          LogKeys::TS => timestamp.iso8601(3),
-          LogKeys::LVL => level.serialize
+          LOG_KEYS[:source] => source.serialize,
+          LOG_KEYS[:event] => event.serialize,
+          LOG_KEYS[:timestamp] => timestamp.iso8601(3),
+          LOG_KEYS[:level] => level.serialize
         }
       end
     end

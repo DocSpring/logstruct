@@ -44,9 +44,9 @@ module LogStruct
         merge_data_fields(hash)
 
         # Add email-specific fields if they're present
-        hash[LogKeys::TO] = to if to
-        hash[LogKeys::FROM] = from if from
-        hash[LogKeys::SUBJECT] = subject if subject
+        hash[LOG_KEYS[:to]] = to if to
+        hash[LOG_KEYS[:from]] = from if from
+        hash[LOG_KEYS[:subject]] = subject if subject
 
         hash
       end
