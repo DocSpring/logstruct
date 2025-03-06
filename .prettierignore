@@ -1,1 +1,5 @@
 site/lib/log-generation/sample-data.ts
+site/.next
+site/out
+site/public/coverage
+site/public/yard

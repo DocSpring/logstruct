@@ -24,26 +24,30 @@ export default function IntegrationsPage() {
       </p>
 
       <h3 className="text-xl font-semibold mt-6 mb-3">Example Logs</h3>
-      
+
       <Tabs defaultValue="deliver">
         <TabsList className="mb-0">
           <TabsTrigger value="deliver">Deliver Log</TabsTrigger>
           <TabsTrigger value="error">Error Log</TabsTrigger>
         </TabsList>
-        <TabsContent value="deliver" className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900">
+        <TabsContent
+          value="deliver"
+          className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900"
+        >
           <SyntaxHighlighter
             language="json"
             style={atomDark}
             customStyle={{
               fontSize: "0.875rem",
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              fontFamily:
+                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
               backgroundColor: "transparent",
               padding: "0",
               margin: "0",
               borderRadius: "0px",
             }}
           >
-{`{
+            {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "mailer",
   "evt": "deliver",
@@ -57,20 +61,24 @@ export default function IntegrationsPage() {
 }`}
           </SyntaxHighlighter>
         </TabsContent>
-        <TabsContent value="error" className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900">
+        <TabsContent
+          value="error"
+          className="mt-0 rounded-tl-none bg-neutral-100 p-4 dark:bg-neutral-900"
+        >
           <SyntaxHighlighter
             language="json"
             style={atomDark}
             customStyle={{
               fontSize: "0.875rem",
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              fontFamily:
+                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
               backgroundColor: "transparent",
               padding: "0",
               margin: "0",
               borderRadius: "0px",
             }}
           >
-{`{
+            {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "mailer",
   "evt": "error",
@@ -127,13 +135,13 @@ export default function IntegrationsPage() {
       </p>
 
       <h3 className="text-xl font-semibold mt-6 mb-3">Example Logs</h3>
-      
+
       <Tabs defaultValue="process" className="mt-4">
         <TabsList>
           <TabsTrigger value="process">Process Log</TabsTrigger>
           <TabsTrigger value="error">Error Log</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="process" className="mt-4">
           <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
             <SyntaxHighlighter
@@ -141,13 +149,14 @@ export default function IntegrationsPage() {
               style={atomDark}
               customStyle={{
                 fontSize: "0.875rem",
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                fontFamily:
+                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                 backgroundColor: "transparent",
                 padding: "0",
                 borderRadius: "0px",
               }}
             >
-{`{
+              {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "sidekiq",
   "evt": "process",
@@ -165,7 +174,7 @@ export default function IntegrationsPage() {
             </SyntaxHighlighter>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="error" className="mt-4">
           <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
             <SyntaxHighlighter
@@ -173,13 +182,14 @@ export default function IntegrationsPage() {
               style={atomDark}
               customStyle={{
                 fontSize: "0.875rem",
-                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                fontFamily:
+                  "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                 backgroundColor: "transparent",
                 padding: "0",
                 borderRadius: "0px",
               }}
             >
-{`{
+              {`{
   "ts": "2023-09-15T12:34:56.789Z",
   "src": "sidekiq",
   "evt": "error",

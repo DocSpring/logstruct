@@ -11,7 +11,7 @@ export interface FilteredValue {
     _length?: number;
     _keys?: string[];
     _keys_count?: number;
-  }
+  };
 }
 
 /**
@@ -90,7 +90,7 @@ export class RandomDataGenerator {
     const domain = this.sample(SampleData.DOMAINS);
     return `${firstName}.${lastName}@${domain}`;
   }
-  
+
   /**
    * Generate a filtered email address string (for sensitive data)
    */
@@ -99,7 +99,7 @@ export class RandomDataGenerator {
     // Return the simple [EMAIL:hash] format
     return `[EMAIL:${emailHash}]`;
   }
-  
+
   /**
    * Generate a filtered email address as an object (for sensitive data)
    */
@@ -110,11 +110,11 @@ export class RandomDataGenerator {
       _filtered: {
         _class: "String",
         _bytes: 24 + this.randomInt(0, 10), // Randomize byte size a bit
-        _hash: emailHash
-      }
+        _hash: emailHash,
+      },
     };
   }
-  
+
   /**
    * Generate a filtered password
    */
@@ -124,7 +124,7 @@ export class RandomDataGenerator {
     }
     return `password${this.randomInt(100, 999)}!`;
   }
-  
+
   /**
    * Generate a filtered credit card number
    */
@@ -134,7 +134,7 @@ export class RandomDataGenerator {
     }
     return `${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}`;
   }
-  
+
   /**
    * Generate a filtered phone number
    */
@@ -144,7 +144,7 @@ export class RandomDataGenerator {
     }
     return `+1-${this.randomInt(100, 999)}-${this.randomInt(100, 999)}-${this.randomInt(1000, 9999)}`;
   }
-  
+
   /**
    * Generate a filtered IP address
    */
@@ -154,34 +154,41 @@ export class RandomDataGenerator {
     }
     return this.sample(SampleData.IP_ADDRESSES);
   }
-  
+
   /**
    * Generate a filtered hash (for nested objects that contain sensitive data)
    */
-  filteredHash(sensitivity: 'password' | 'pii' | 'json' = 'json'): FilteredValue {
+  filteredHash(
+    sensitivity: "password" | "pii" | "json" = "json",
+  ): FilteredValue {
     let keys: string[];
-    
+
     switch (sensitivity) {
-      case 'password':
-        keys = ["password", "password_confirmation", "current_password", "token"];
+      case "password":
+        keys = [
+          "password",
+          "password_confirmation",
+          "current_password",
+          "token",
+        ];
         break;
-      case 'pii':
+      case "pii":
         keys = ["ssn", "tax_id", "credit_card", "phone", "address"];
         break;
       default: // json
         keys = ["data", "payload", "attributes", "request_body"];
     }
-    
+
     return {
       _filtered: {
         _class: "Hash",
         _keys_count: keys.length,
         _keys: keys,
-        _bytes: this.randomInt(20, 500)
-      }
+        _bytes: this.randomInt(20, 500),
+      },
     };
   }
-  
+
   /**
    * Generate a filtered array
    */
@@ -189,13 +196,13 @@ export class RandomDataGenerator {
     if (itemCount === 0) {
       itemCount = this.randomInt(3, 20);
     }
-    
+
     return {
       _filtered: {
         _class: "Array",
         _length: itemCount,
-        _bytes: itemCount * this.randomInt(10, 50)
-      }
+        _bytes: itemCount * this.randomInt(10, 50),
+      },
     };
   }
 
@@ -205,7 +212,7 @@ export class RandomDataGenerator {
   randomTimestamp(daysBack = 7): string {
     const now = new Date();
     const past = new Date(
-      now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000)
+      now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000),
     );
     return past.toISOString();
   }
@@ -223,12 +230,12 @@ export class RandomDataGenerator {
   randomDuration(): number {
     return this.randomFloat(10, 3000, 2);
   }
-  
+
   /**
    * Generate a random enum value
    */
   randomEnum<T>(enumObj: Record<string, T>): T {
-    const keys = Object.keys(enumObj).filter(k => isNaN(Number(k)));
+    const keys = Object.keys(enumObj).filter((k) => isNaN(Number(k)));
     const randomKey = this.sample(keys);
     return enumObj[randomKey] as T;
   }

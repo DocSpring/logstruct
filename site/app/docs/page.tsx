@@ -120,7 +120,7 @@ Rails.logger.info(request_log)`}
           View on GitHub
         </a>
       </div>
-      
+
       <EditPageLink />
     </div>
   );

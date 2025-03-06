@@ -74,7 +74,7 @@ jobs:
       BUNDLE_WITHOUT: "development"
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Ruby 3.2
         uses: ruby/setup-ruby@v1
         with:
@@ -121,7 +121,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        
+
       - name: Setup Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1
         with:
@@ -139,39 +139,39 @@ jobs:
           name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
           path: coverage/
           retention-days: 30
-          
+
   typescript:
     name: "TypeScript Tests"
     needs: [matrix]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ".ruby-version"
           bundler-cache: true
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
-          cache-dependency-path: 'site/yarn.lock'
-          
+          cache: "yarn"
+          cache-dependency-path: "site/yarn.lock"
+
       - name: Install dependencies
         run: |
           cd site && yarn install
-          
+
       - name: Export TypeScript types
         run: |
           ruby scripts/export_typescript_types.rb
-          
+
       - name: TypeScript type checking
         run: |
           cd site && npx tsc --noEmit
-          
+
       - name: Run TypeScript tests
         run: |
           cd site && yarn test

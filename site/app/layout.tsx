@@ -18,8 +18,18 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "LogStruct - Zero-configuration JSON Logging for Ruby on Rails",
-  description: "Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.",
-  keywords: ["Rails", "Ruby", "logging", "JSON", "structured logging", "Sidekiq", "Sorbet", "TypeScript"],
+  description:
+    "Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.",
+  keywords: [
+    "Rails",
+    "Ruby",
+    "logging",
+    "JSON",
+    "structured logging",
+    "Sidekiq",
+    "Sorbet",
+    "TypeScript",
+  ],
 };
 
 export default function RootLayout({

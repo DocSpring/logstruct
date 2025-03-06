@@ -5,22 +5,21 @@ import { usePathname } from "next/navigation";
 
 export function EditPageLink() {
   const pathname = usePathname();
-  
+
   // Convert the path to a GitHub file path
   // For /docs/getting-started, the file is at site/app/docs/getting-started/page.tsx
   // Handle special case for root paths to avoid double slashes
-  const filePath = pathname === "/" 
-    ? "/site/app/page.tsx" 
-    : `/site/app${pathname}/page.tsx`;
-  
+  const filePath =
+    pathname === "/" ? "/site/app/page.tsx" : `/site/app${pathname}/page.tsx`;
+
   // Ensure there are no double slashes in the path
-  const normalizedPath = filePath.replace(/\/\//g, '/');
-  
+  const normalizedPath = filePath.replace(/\/\//g, "/");
+
   const githubEditUrl = `https://github.com/DocSpring/logstruct/edit/main${normalizedPath}`;
-  
+
   return (
     <div className="mt-16 pt-4 border-t border-neutral-200 dark:border-neutral-800">
-      <Link 
+      <Link
         href={githubEditUrl}
         target="_blank"
         rel="noopener noreferrer"

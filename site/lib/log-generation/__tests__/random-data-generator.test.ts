@@ -18,14 +18,14 @@ describe("RandomDataGenerator", () => {
     expect(generator1.randomFloat(1, 100)).toBe(generator2.randomFloat(1, 100));
     expect(generator1.randomHex(8)).toBe(generator2.randomHex(8));
   });
-  
+
   test("should generate random enum values", () => {
     const logLevel = generator.randomEnum(LogLevel);
     expect(Object.values(LogLevel)).toContain(logLevel);
-    
+
     const source = generator.randomEnum(Source);
     expect(Object.values(Source)).toContain(source);
-    
+
     const event = generator.randomEnum(LogEvent);
     expect(Object.values(LogEvent)).toContain(event);
   });
@@ -101,7 +101,7 @@ describe("RandomDataGenerator", () => {
   test("should generate unfiltered sensitive values when requested", () => {
     expect(generator.randomPassword(false)).toContain("password");
     expect(generator.randomCreditCard(false)).toMatch(
-      /^\d{4}-\d{4}-\d{4}-\d{4}$/
+      /^\d{4}-\d{4}-\d{4}-\d{4}$/,
     );
     expect(generator.randomPhone(false)).toMatch(/^\+1-\d{3}-\d{3}-\d{4}$/);
     expect(SampleData.IP_ADDRESSES).toContain(generator.randomIP(false));

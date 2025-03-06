@@ -1,5 +1,11 @@
 import { LogGenerator } from "../log-generator";
-import { LogType, LogLevel, Source, LogEvent, ActiveJobLog } from "../log-types";
+import {
+  LogType,
+  LogLevel,
+  Source,
+  LogEvent,
+  ActiveJobLog,
+} from "../log-types";
 
 describe("LogGenerator", () => {
   let generator: LogGenerator;
@@ -8,18 +14,18 @@ describe("LogGenerator", () => {
     // Use a fixed seed for deterministic tests
     generator = new LogGenerator(12345);
   });
-  
+
   test("should generate logs of specific types", () => {
     const requestLog = generator.generateLog(LogType.REQUEST);
     expect(requestLog).toHaveProperty("method");
     expect(requestLog).toHaveProperty("path");
     expect(requestLog).toHaveProperty("status");
-    
+
     const errorLog = generator.generateLog(LogType.ERROR);
     expect(errorLog).toHaveProperty("err_class");
     expect(errorLog).toHaveProperty("message");
     expect(errorLog).toHaveProperty("backtrace");
-    
+
     const plainLog = generator.generateLog(LogType.PLAIN);
     expect(plainLog).toHaveProperty("message");
   });

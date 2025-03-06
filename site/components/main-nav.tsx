@@ -169,7 +169,7 @@ export function MainNav() {
                   className={cn(
                     "text-lg font-medium",
                     pathname.startsWith("/docs") &&
-                      "text-neutral-900 dark:text-neutral-50"
+                      "text-neutral-900 dark:text-neutral-50",
                   )}
                 >
                   Documentation

@@ -16,7 +16,7 @@ function DocNavItem({ href, title, active }: DocNavItemProps) {
       href={href}
       className={cn(
         "block py-2 px-4 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors",
-        active && "bg-neutral-100 dark:bg-neutral-800 font-medium"
+        active && "bg-neutral-100 dark:bg-neutral-800 font-medium",
       )}
     >
       {title}

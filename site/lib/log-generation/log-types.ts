@@ -241,5 +241,4 @@ export type Log =
   | ActiveJobLog
   | ActiveStorageLog
   | ActionMailerLog
-  | CarrierWaveLog
-;
+  | CarrierWaveLog;

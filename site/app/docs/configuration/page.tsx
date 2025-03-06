@@ -7,27 +7,35 @@ export default function ConfigurationPage() {
     <div className="space-y-6">
       <h1 className="text-4xl font-bold">Configuration</h1>
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
-        LogStruct is designed to be highly configurable while working with sensible defaults. You can customize how and where logs are generated, which integrations are enabled, and how errors are handled.
+        LogStruct is designed to be highly configurable while working with
+        sensible defaults. You can customize how and where logs are generated,
+        which integrations are enabled, and how errors are handled.
       </p>
-      
+
       <h2 className="text-2xl font-bold mt-10 mb-4">Basic Configuration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        While LogStruct works out of the box with minimal configuration, you may want to customize it to suit your application's needs. Create a file at <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">config/initializers/logstruct.rb</code> with your desired configuration.
+        While LogStruct works out of the box with minimal configuration, you may
+        want to customize it to suit your application's needs. Create a file at{" "}
+        <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
+          config/initializers/logstruct.rb
+        </code>{" "}
+        with your desired configuration.
       </p>
-      
+
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <SyntaxHighlighter
           language="ruby"
           style={atomDark}
           customStyle={{
             fontSize: "0.875rem",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             backgroundColor: "transparent",
             padding: "0",
             borderRadius: "0px",
           }}
         >
-{`# Configure LogStruct
+          {`# Configure LogStruct
 LogStruct.configure do |config|
   # Enable or disable all structured logging
   config.enabled = true
@@ -62,25 +70,29 @@ end
 LogStruct.initialize`}
         </SyntaxHighlighter>
       </div>
-      
-      <h2 className="text-2xl font-bold mt-10 mb-4">Environment Configuration</h2>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">
+        Environment Configuration
+      </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct supports different environments and handles them appropriately:
+        LogStruct supports different environments and handles them
+        appropriately:
       </p>
-      
+
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <SyntaxHighlighter
           language="ruby"
           style={atomDark}
           customStyle={{
             fontSize: "0.875rem",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             backgroundColor: "transparent",
             padding: "0",
             borderRadius: "0px",
           }}
         >
-{`# Enable LogStruct in specific environments
+          {`# Enable LogStruct in specific environments
 config.environments = [:development, :test, :production]
 
 # Specify which environments are considered local/development
@@ -88,25 +100,29 @@ config.environments = [:development, :test, :production]
 config.local_environments = [:development, :test]`}
         </SyntaxHighlighter>
       </div>
-      
-      <h2 className="text-2xl font-bold mt-10 mb-4">Integration Configuration</h2>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">
+        Integration Configuration
+      </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct integrates with many popular gems. You can enable or disable specific integrations:
+        LogStruct integrates with many popular gems. You can enable or disable
+        specific integrations:
       </p>
-      
+
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <SyntaxHighlighter
           language="ruby"
           style={atomDark}
           customStyle={{
             fontSize: "0.875rem",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             backgroundColor: "transparent",
             padding: "0",
             borderRadius: "0px",
           }}
         >
-{`# Configure which integrations to enable
+          {`# Configure which integrations to enable
 config.integrations.enable_lograge = true             # Structured request logging
 config.integrations.enable_actionmailer = true        # Email delivery logging
 config.integrations.enable_activejob = true           # Background job logging
@@ -119,25 +135,29 @@ config.integrations.enable_host_authorization = true  # Host authorization viola
 config.integrations.enable_sorbet_error_handler = true # Sorbet type checking error handling`}
         </SyntaxHighlighter>
       </div>
-      
-      <h2 className="text-2xl font-bold mt-10 mb-4">Filtering Sensitive Data</h2>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">
+        Filtering Sensitive Data
+      </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct includes robust filtering for sensitive data to ensure privacy and security:
+        LogStruct includes robust filtering for sensitive data to ensure privacy
+        and security:
       </p>
-      
+
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <SyntaxHighlighter
           language="ruby"
           style={atomDark}
           customStyle={{
             fontSize: "0.875rem",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             backgroundColor: "transparent",
             padding: "0",
             borderRadius: "0px",
           }}
         >
-{`# Configure sensitive data filtering
+          {`# Configure sensitive data filtering
 config.filters.email_addresses = true      # Filter email addresses
 config.filters.url_passwords = true        # Filter passwords in URLs
 config.filters.credit_card_numbers = true  # Filter credit card numbers
@@ -153,25 +173,29 @@ config.filters.hash_salt = ENV['EMAIL_HASH_SALT']
 config.filters.hash_length = 12`}
         </SyntaxHighlighter>
       </div>
-      
-      <h2 className="text-2xl font-bold mt-10 mb-4">Error Handling Configuration</h2>
+
+      <h2 className="text-2xl font-bold mt-10 mb-4">
+        Error Handling Configuration
+      </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides different error handling modes to control how errors are processed:
+        LogStruct provides different error handling modes to control how errors
+        are processed:
       </p>
-      
+
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <SyntaxHighlighter
           language="ruby"
           style={atomDark}
           customStyle={{
             fontSize: "0.875rem",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             backgroundColor: "transparent",
             padding: "0",
             borderRadius: "0px",
           }}
         >
-{`# Configure error handling modes
+          {`# Configure error handling modes
 config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
 config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
 config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
@@ -184,25 +208,26 @@ config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogP
 # - LogStruct::ErrorHandlingMode::Raise        # Always raise errors`}
         </SyntaxHighlighter>
       </div>
-      
+
       <h2 className="text-2xl font-bold mt-10 mb-4">Custom Lograge Options</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         You can extend Lograge request logging with custom fields:
       </p>
-      
+
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <SyntaxHighlighter
           language="ruby"
           style={atomDark}
           customStyle={{
             fontSize: "0.875rem",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             backgroundColor: "transparent",
             padding: "0",
             borderRadius: "0px",
           }}
         >
-{`# Provide a custom proc to extend Lograge options
+          {`# Provide a custom proc to extend Lograge options
 config.lograge_custom_options = ->(event, options) do
   # Add custom fields to the options hash
   options[:user_id] = event.payload[:user_id] if event.payload[:user_id]
@@ -211,7 +236,7 @@ config.lograge_custom_options = ->(event, options) do
 end`}
         </SyntaxHighlighter>
       </div>
-      
+
       <EditPageLink />
     </div>
   );

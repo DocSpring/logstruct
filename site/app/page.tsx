@@ -61,7 +61,8 @@ export default function Home() {
                 style={atomDark}
                 customStyle={{
                   fontSize: "0.875rem",
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                  fontFamily:
+                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                   backgroundColor: "transparent",
                   padding: "0",
                   borderRadius: "0px",
@@ -80,7 +81,8 @@ export default function Home() {
                 style={atomDark}
                 customStyle={{
                   fontSize: "0.875rem",
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                  fontFamily:
+                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                   backgroundColor: "transparent",
                   padding: "0",
                   borderRadius: "0px",

@@ -9,6 +9,8 @@ dalli
 gettime
 Healthcheck
 Honeybadger
+hotwire
+lockfiles
 logdev
 Logstop
 LogStruct
@@ -26,6 +28,7 @@ reraising
 Rescuable
 Rollbar
 rsig
+shadcn
 Sidekiq
 solargraph
 ssns

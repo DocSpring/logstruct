@@ -49,6 +49,7 @@ This site is configured to deploy to GitHub Pages automatically through GitHub A
 To manually deploy:
 
 1. Build the site:
+
 ```bash
 npm run build
 ```
@@ -58,7 +59,7 @@ npm run build
 ## Project Structure
 
 - `app/` - The Next.js application
-  - `app/page.tsx` - The homepage 
+  - `app/page.tsx` - The homepage
   - `app/docs/` - Documentation pages
 - `components/` - Reusable React components
 - `public/` - Static assets (images, etc.)
