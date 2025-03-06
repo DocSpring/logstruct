@@ -42,6 +42,9 @@ jobs:
           cache: yarn
           cache-dependency-path: site/yarn.lock
 
+      - name: Install site dependencies
+        run: cd site && yarn install
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:

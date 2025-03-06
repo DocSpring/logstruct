@@ -20,22 +20,21 @@ jobs:
           ruby-version: ".ruby-version"
           bundler-cache: true
 
-      - name: Setup Node.js (root)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "yarn"
-          cache-dependency-path: "yarn.lock"
-
-      - name: Setup Node.js (site)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "yarn"
-          cache-dependency-path: "site/yarn.lock"
+          cache-dependency-path: |
+            yarn.lock
+            site/yarn.lock
 
       - name: Install dependencies
         run: |
+          # Install root and site yarn dependencies
+          yarn install
+          cd site && yarn install && cd ..
+
           # Make sure bundler is using the correct Ruby version
           ruby -v
 
@@ -182,6 +181,9 @@ jobs:
           node-version: 20
           cache: "yarn"
           cache-dependency-path: "site/yarn.lock"
+
+      - name: Install site dependencies
+        run: cd site && yarn install
 
       - name: Export TypeScript types
         run: |
