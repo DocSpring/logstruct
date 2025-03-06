@@ -1,0 +1,605 @@
+{
+  "enums": {
+    "LogLevel": [
+      "debug",
+      "info",
+      "warn",
+      "error",
+      "fatal",
+      "unknown"
+    ],
+    "Source": [
+      "type_checking",
+      "logstruct",
+      "security",
+      "request",
+      "job",
+      "storage",
+      "mailer",
+      "app",
+      "shrine",
+      "carrierwave",
+      "sidekiq"
+    ],
+    "LogEvent": [
+      "log",
+      "request",
+      "enqueue",
+      "schedule",
+      "start",
+      "finish",
+      "upload",
+      "download",
+      "delete",
+      "metadata",
+      "exist",
+      "stream",
+      "url",
+      "delivery",
+      "delivered",
+      "ip_spoof",
+      "csrf_violation",
+      "blocked_host",
+      "error",
+      "unknown"
+    ]
+  },
+  "logs": {
+    "Sidekiq": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "process_id": {
+          "optional": false,
+          "type": "integer"
+        },
+        "thread_id": {
+          "optional": false,
+          "type": "string"
+        },
+        "message": {
+          "optional": false,
+          "type": "string"
+        },
+        "context": {
+          "optional": false,
+          "type": "object"
+        }
+      }
+    },
+    "Shrine": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "msg": {
+          "optional": false,
+          "type": "string"
+        },
+        "storage": {
+          "optional": false,
+          "type": "string"
+        },
+        "location": {
+          "optional": false,
+          "type": "string"
+        },
+        "upload_options": {
+          "optional": false,
+          "type": "object"
+        },
+        "download_options": {
+          "optional": false,
+          "type": "object"
+        },
+        "options": {
+          "optional": false,
+          "type": "object"
+        },
+        "uploader": {
+          "optional": false,
+          "type": "string"
+        },
+        "duration": {
+          "optional": false,
+          "type": "number"
+        },
+        "data": {
+          "optional": false,
+          "type": "object"
+        }
+      }
+    },
+    "Security": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "message": {
+          "optional": false,
+          "type": "string"
+        },
+        "blocked_host": {
+          "optional": false,
+          "type": "string"
+        },
+        "blocked_hosts": {
+          "optional": false,
+          "type": "string"
+        },
+        "client_ip": {
+          "optional": false,
+          "type": "string"
+        },
+        "x_forwarded_for": {
+          "optional": false,
+          "type": "string"
+        },
+        "data": {
+          "optional": false,
+          "type": "object"
+        },
+        "path": {
+          "optional": false,
+          "type": "string"
+        },
+        "http_method": {
+          "optional": false,
+          "type": "string"
+        },
+        "source_ip": {
+          "optional": false,
+          "type": "string"
+        },
+        "user_agent": {
+          "optional": false,
+          "type": "string"
+        },
+        "referer": {
+          "optional": false,
+          "type": "string"
+        },
+        "request_id": {
+          "optional": false,
+          "type": "string"
+        }
+      }
+    },
+    "Request": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "method": {
+          "optional": false,
+          "type": "string"
+        },
+        "path": {
+          "optional": false,
+          "type": "string"
+        },
+        "format": {
+          "optional": false,
+          "type": "string"
+        },
+        "controller": {
+          "optional": false,
+          "type": "string"
+        },
+        "action": {
+          "optional": false,
+          "type": "string"
+        },
+        "status": {
+          "optional": false,
+          "type": "integer"
+        },
+        "duration": {
+          "optional": false,
+          "type": "number"
+        },
+        "view": {
+          "optional": false,
+          "type": "number"
+        },
+        "db": {
+          "optional": false,
+          "type": "number"
+        },
+        "params": {
+          "optional": false,
+          "type": "object"
+        },
+        "source_ip": {
+          "optional": false,
+          "type": "string"
+        },
+        "user_agent": {
+          "optional": false,
+          "type": "string"
+        },
+        "referer": {
+          "optional": false,
+          "type": "string"
+        },
+        "request_id": {
+          "optional": false,
+          "type": "string"
+        }
+      }
+    },
+    "Plain": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "message": {
+          "optional": false,
+          "type": "string"
+        }
+      }
+    },
+    "Error": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "err_class": {
+          "optional": false,
+          "type": "any"
+        },
+        "message": {
+          "optional": false,
+          "type": "string"
+        },
+        "backtrace": {
+          "optional": false,
+          "type": "string"
+        },
+        "data": {
+          "optional": false,
+          "type": "object"
+        }
+      }
+    },
+    "ActiveJob": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "job_id": {
+          "optional": false,
+          "type": "string"
+        },
+        "job_class": {
+          "optional": false,
+          "type": "string"
+        },
+        "queue_name": {
+          "optional": false,
+          "type": "string"
+        },
+        "arguments": {
+          "optional": false,
+          "type": "array"
+        },
+        "duration": {
+          "optional": false,
+          "type": "number"
+        },
+        "data": {
+          "optional": false,
+          "type": "object"
+        }
+      }
+    },
+    "ActiveStorage": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "operation": {
+          "optional": false,
+          "type": "any"
+        },
+        "storage": {
+          "optional": false,
+          "type": "string"
+        },
+        "file_id": {
+          "optional": false,
+          "type": "string"
+        },
+        "filename": {
+          "optional": false,
+          "type": "string"
+        },
+        "mime_type": {
+          "optional": false,
+          "type": "string"
+        },
+        "size": {
+          "optional": false,
+          "type": "integer"
+        },
+        "metadata": {
+          "optional": false,
+          "type": "string"
+        },
+        "duration": {
+          "optional": false,
+          "type": "number"
+        },
+        "checksum": {
+          "optional": false,
+          "type": "string"
+        },
+        "exist": {
+          "optional": false,
+          "type": "boolean"
+        },
+        "url": {
+          "optional": false,
+          "type": "string"
+        },
+        "prefix": {
+          "optional": false,
+          "type": "string"
+        },
+        "range": {
+          "optional": false,
+          "type": "string"
+        }
+      }
+    },
+    "ActionMailer": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "to": {
+          "optional": false,
+          "type": "string"
+        },
+        "from": {
+          "optional": false,
+          "type": "string"
+        },
+        "subject": {
+          "optional": false,
+          "type": "string"
+        },
+        "data": {
+          "optional": false,
+          "type": "object"
+        }
+      }
+    },
+    "CarrierWave": {
+      "fields": {
+        "source": {
+          "optional": false,
+          "type": "enum",
+          "values": "Source"
+        },
+        "event": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogEvent"
+        },
+        "timestamp": {
+          "optional": false,
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "optional": false,
+          "type": "enum",
+          "values": "LogLevel"
+        },
+        "operation": {
+          "optional": false,
+          "type": "any"
+        },
+        "storage": {
+          "optional": false,
+          "type": "string"
+        },
+        "file_id": {
+          "optional": false,
+          "type": "string"
+        },
+        "filename": {
+          "optional": false,
+          "type": "string"
+        },
+        "mime_type": {
+          "optional": false,
+          "type": "string"
+        },
+        "size": {
+          "optional": false,
+          "type": "integer"
+        },
+        "metadata": {
+          "optional": false,
+          "type": "string"
+        },
+        "duration": {
+          "optional": false,
+          "type": "number"
+        },
+        "uploader": {
+          "optional": false,
+          "type": "string"
+        },
+        "model": {
+          "optional": false,
+          "type": "string"
+        },
+        "mount_point": {
+          "optional": false,
+          "type": "string"
+        },
+        "data": {
+          "optional": false,
+          "type": "object"
+        }
+      }
+    }
+  }
+}

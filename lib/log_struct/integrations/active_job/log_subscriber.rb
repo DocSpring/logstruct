@@ -4,7 +4,7 @@
 require_relative "../../enums/source"
 require_relative "../../enums/log_event"
 require_relative "../../log/active_job"
-require_relative "../../log/exception"
+require_relative "../../log/error"
 
 module LogStruct
   module Integrations

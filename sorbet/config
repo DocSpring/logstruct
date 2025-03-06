@@ -2,7 +2,5 @@
 .
 --ignore=tmp/
 --ignore=vendor/
---ignore=spec/
 --ignore=rails_test_app/templates/
---ignore=tools/log_generator/
 --enable-experimental-requires-ancestor

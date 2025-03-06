@@ -1,0 +1,38 @@
+// Sample data for log generation
+export const SampleData = {
+  // cspell:disable
+  FIRST_NAMES: [
+    'Wei', 'Amina', 'Carlos', 'Priya', 'James', 'Mary', 'Mohamed', 'Fatima', 'Hiroshi', 'Yuki',
+    'John', 'Olga', 'Santiago', 'Mei', 'Michael', 'Aisha', 'Rajesh', 'Linda', 'Ahmed', 'Elizabeth',
+    'Sofia', 'Liam', 'Chen', 'Alejandro', 'Zara', 'Lucas', 'Kwame', 'Amara', 'Nikhil', 'Ana'
+  ],
+  LAST_NAMES: [
+    'Wang', 'Garcia', 'Kumar', 'Kim', 'Smith', 'Chen', 'Suzuki', 'Ahmed', 'Silva', 'Rodriguez',
+    'Nguyen', 'Khan', 'Ivanova', 'Rossi', 'Müller', 'Singh', 'Patel', 'Gonzalez', 'Ali', 'Santos',
+    'Johnson', 'Martínez', 'Hernandez', 'Tanaka', 'Liu', 'Williams', 'Diallo', 'López', 'Fernandes', 'Ibrahim'
+  ],
+  // cspell:enable
+  DOMAINS: ['example.com', 'gmail.com', 'outlook.com', 'icloud.com', 'company.org'],
+  HTTP_METHODS: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  CONTROLLERS: ['UsersController', 'PostsController', 'CommentsController', 'SessionsController', 'AdminController'],
+  ACTIONS: ['index', 'show', 'create', 'update', 'destroy'],
+  PATHS: ['/users', '/posts', '/comments', '/login', '/dashboard', '/admin', '/settings', '/profile'],
+  JOB_CLASSES: ['EmailDigestJob', 'ImageProcessingJob', 'ReportGenerationJob', 'NotificationJob', 'DataExportJob', 'ImportJob'],
+  MAILER_CLASSES: ['UserMailer', 'NotificationMailer', 'AdminMailer', 'MarketingMailer', 'SystemMailer'],
+  MAILER_ACTIONS: ['welcome', 'confirmation', 'password_reset', 'weekly_digest', 'invoice', 'notification'],
+  ERROR_TYPES: ['NoMethodError', 'ArgumentError', 'RuntimeError', 'TypeError', 'NameError'],
+  ERROR_MESSAGES: [
+    'undefined method for nil:NilClass',
+    'wrong number of arguments (given 2, expected 1)',
+    'unexpected token',
+    'invalid value for Integer()',
+    'uninitialized constant',
+    'timeout error connecting to service',
+    'database connection failed'
+  ],
+  STATUS_CODES: [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500],
+  FILE_TYPES: ['image/jpeg', 'image/png', 'application/pdf', 'text/csv', 'text/plain'],
+  FILE_NAMES: ['profile.jpg', 'document.pdf', 'report.csv', 'data.xlsx', 'avatar.png'],
+  STORAGE_SERVICES: ['s3', 'google', 'cloud_storage', 'disk', 'local'],
+  IP_ADDRESSES: ['192.168.1.1', '10.0.0.123', '172.16.254.1', '8.8.8.8', '1.1.1.1']
+};
