@@ -34,5 +34,22 @@ export const SampleData = {
   FILE_TYPES: ['image/jpeg', 'image/png', 'application/pdf', 'text/csv', 'text/plain'],
   FILE_NAMES: ['profile.jpg', 'document.pdf', 'report.csv', 'data.xlsx', 'avatar.png'],
   STORAGE_SERVICES: ['s3', 'google', 'cloud_storage', 'disk', 'local'],
-  IP_ADDRESSES: ['192.168.1.1', '10.0.0.123', '172.16.254.1', '8.8.8.8', '1.1.1.1']
+  IP_ADDRESSES: ['192.168.1.1', '10.0.0.123', '172.16.254.1', '8.8.8.8', '1.1.1.1'],
+  BACKTRACE_LINES: [
+    "app/models/user.rb:45:in `process_data'",
+    "app/controllers/accounts_controller.rb:78:in `update'",
+    "app/services/authentication_service.rb:32:in `authenticate'",
+    "app/jobs/report_generation_job.rb:56:in `perform'",
+    "lib/data_processor.rb:123:in `process'",
+    "app/models/order.rb:67:in `calculate_total'",
+    "app/helpers/formatting_helper.rb:19:in `format_currency'",
+    "app/services/notification_service.rb:88:in `send_email'",
+    "lib/validators/email_validator.rb:27:in `validate'",
+    "app/models/product.rb:92:in `update_inventory'",
+    "app/controllers/api/v1/sessions_controller.rb:41:in `create'",
+    "lib/payment_gateway.rb:134:in `process_payment'",
+    "app/models/subscription.rb:76:in `renew'",
+    "app/workers/import_worker.rb:58:in `perform'",
+    "app/services/search_service.rb:112:in `execute_query'"
+  ]
 };
