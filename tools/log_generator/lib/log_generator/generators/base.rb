@@ -20,9 +20,9 @@ module LogStruct
           end
 
           # Helper method that handles all LogStruct::Log types
-          # Since CommonFields is sealed, T.absurd will ensure we handle all implementations
-          # at compile time, so we can't forget to add example generation for a new log type
-          sig { params(log_class: T.class_of(LogStruct::Log::Interfaces::CommonFields)).returns(T.class_of(Base)) }
+          # We use the LogType T.any type alias to ensure we have complete coverage
+          # The LogType alias should be updated whenever a new log type is added
+          sig { params(log_class: LogStruct::LogType).returns(T.class_of(Base)) }
           def self.get_generator_class_for_log_type(log_class)
             case log_class
             when LogStruct::Log::Plain
@@ -43,11 +43,11 @@ module LogStruct
               LogGenerator::Generators::Security
             when LogStruct::Log::ActiveStorage
               LogGenerator::Generators::ActiveStorage
-            when LogStruct::Log::CarrierWave
-              LogGenerator::Generators::CarrierWave
+            # when LogStruct::Log::CarrierWave
+            #   LogGenerator::Generators::CarrierWave
             else
-              # This will fail at compile time if a new LogStruct::Log type is added
-              # This ensures we add example generation for all LogStruct::Log types
+              # This will fail at compile time if a new log type is added to the type alias
+              # but not handled in this case statement
               T.absurd(log_class)
             end
           end

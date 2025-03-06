@@ -17,3 +17,23 @@ require_relative "log/request"
 require_relative "log/security"
 require_relative "log/shrine"
 require_relative "log/sidekiq"
+
+module LogStruct
+  # Type aliases for all possible log types
+  # This should be updated whenever a new log type is added
+  # (Can't use sealed! unless we want to put everything in one giant file.)
+  LogClassType = T.type_alias do
+    T.any(
+      T.class_of(LogStruct::Log::CarrierWave),
+      T.class_of(LogStruct::Log::ActionMailer),
+      T.class_of(LogStruct::Log::ActiveStorage),
+      T.class_of(LogStruct::Log::ActiveJob),
+      T.class_of(LogStruct::Log::Error),
+      T.class_of(LogStruct::Log::Plain),
+      T.class_of(LogStruct::Log::Request),
+      T.class_of(LogStruct::Log::Security),
+      T.class_of(LogStruct::Log::Shrine),
+      T.class_of(LogStruct::Log::Sidekiq)
+    )
+  end
+end
