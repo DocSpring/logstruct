@@ -174,8 +174,8 @@ LogStruct::ErrorHandlingMode::Raise        # Always raise errors`}
         Adding Sorbet to Your Application
       </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        To fully utilize LogStruct's type safety features, you should add Sorbet
-        to your application:
+        To fully utilize LogStruct&apos;s type safety features, you should add
+        Sorbet to your application:
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
@@ -203,7 +203,7 @@ bundle exec srb init`}
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Benefits of Type Safety</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        Using LogStruct's typed structures provides several benefits:
+        Using LogStruct&apos;s typed structures provides several benefits:
       </p>
 
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
@@ -223,8 +223,7 @@ bundle exec srb init`}
       </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct installs appropriate error handlers for Sorbet type checking
-        errors, following the "fail hard in development, fail soft in
-        production" philosophy:
+        errors.
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
@@ -254,8 +253,8 @@ end`}
         Creating Custom Log Structures
       </h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can create your own typed log structures by extending LogStruct's
-        base classes:
+        You can create your own typed log structures by extending
+        LogStruct&apos;s base classes:
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">

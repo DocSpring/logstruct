@@ -1,11 +1,5 @@
 import { LogGenerator } from '../log-generator';
-import {
-  LogType,
-  LogLevel,
-  Source,
-  LogEvent,
-  ActiveJobLog,
-} from '../log-types';
+import { LogType, LogLevel, Source, LogEvent } from '../log-types';
 
 describe('LogGenerator', () => {
   let generator: LogGenerator;

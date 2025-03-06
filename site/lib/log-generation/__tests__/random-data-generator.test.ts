@@ -70,7 +70,7 @@ describe('RandomDataGenerator', () => {
   });
 
   test('should generate filtered hash objects', () => {
-    const filteredHash = generator.filteredHash('password') as any;
+    const filteredHash = generator.filteredHash('password');
 
     expect(filteredHash).toHaveProperty('_filtered');
     expect(filteredHash._filtered).toHaveProperty('_class', 'Hash');
@@ -83,7 +83,7 @@ describe('RandomDataGenerator', () => {
   });
 
   test('should generate filtered array objects', () => {
-    const filteredArray = generator.filteredArray(5) as any;
+    const filteredArray = generator.filteredArray(5);
 
     expect(filteredArray).toHaveProperty('_filtered');
     expect(filteredArray._filtered).toHaveProperty('_class', 'Array');

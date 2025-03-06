@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: coverage-pilot-ruby3.4-rails8.0
+          name: coverage-ruby3.4-rails8.0
           path: site/public/coverage/
           retention-days: 5
 

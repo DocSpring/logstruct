@@ -311,15 +311,15 @@ end`}
       <h2 className="text-2xl font-bold mt-10 mb-4">Host Authorization</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         This integration adds structured logging for blocked host attempts when
-        using Rails' host authorization feature, helping you detect potential
-        security issues.
+        using Rails&apos; host authorization feature, helping you detect
+        potential security issues.
       </p>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Sorbet Integration</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct integrates with Sorbet to handle type checking errors
-        appropriately based on the environment, using the "fail hard in
-        development, fail soft in production" philosophy.
+        appropriately based on the environment, using the &quot;fail hard in
+        development, fail soft in production&quot; philosophy.
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
