@@ -52,6 +52,23 @@ class LogStructLogTypesExporterTest < Minitest::Test
     assert_includes content, "export enum LogType"
   end
   
+  def test_export_enums_includes_all_enum_classes
+    # Test that all expected enums are exported
+    enums = @exporter.send(:export_enums)
+    
+    # Check LogLevel is included
+    assert enums.key?(:LogLevel), "LogLevel enum should be included"
+    assert_includes enums[:LogLevel], :info, "LogLevel should include :info"
+    
+    # Check Source is included
+    assert enums.key?(:Source), "Source enum should be included"
+    assert_includes enums[:Source], :request, "Source should include :request"
+    
+    # Check LogEvent is included
+    assert enums.key?(:LogEvent), "LogEvent enum should be included"
+    assert_includes enums[:LogEvent], :log, "LogEvent should include :log"
+  end
+  
   def test_error_log_backtrace_is_string_array
     # Get the actual Error log struct class
     error_struct = LogStruct::Log::Error

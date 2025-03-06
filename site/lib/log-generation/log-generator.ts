@@ -103,7 +103,11 @@ export class LogGenerator extends RandomDataGenerator {
   private generateErrorLog(log: Partial<ErrorLog>): Partial<ErrorLog> {
     log.err_class = this.sample(SampleData.ERROR_TYPES);
     log.message = this.sample(SampleData.ERROR_MESSAGES);
-    log.backtrace = "app/models/user.rb:45:in `process_data'";
+    
+    // Generate 2-4 random backtrace lines
+    const numLines = this.randomInt(2, 4);
+    log.backtrace = Array.from({length: numLines}, () => this.sample(SampleData.BACKTRACE_LINES));
+    
     log.data = {
       context: `Error context ${this.randomHex(4)}`
     };

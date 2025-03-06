@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Auto-generated TypeScript definitions for LogStruct
-// Generated on 2025-03-06 14:49:51
+// Generated on 2025-03-06 15:05:27
 
 // Enum types
 export enum LogLevel {
@@ -98,7 +98,7 @@ export interface SecurityLog {
   level: LogLevel;
   message: string;
   blocked_host: string;
-  blocked_hosts: string;
+  blocked_hosts: string[];
   client_ip: string;
   x_forwarded_for: string;
   data: Record<string, any>;
@@ -136,7 +136,7 @@ export interface PlainLog {
   event: LogEvent;
   timestamp: string;
   level: LogLevel;
-  message: string;
+  message: any[];
 }
 
 export interface ErrorLog {
@@ -146,7 +146,7 @@ export interface ErrorLog {
   level: LogLevel;
   err_class: any;
   message: string;
-  backtrace: string;
+  backtrace: string[];
   data: Record<string, any>;
 }
 
@@ -188,7 +188,7 @@ export interface ActionMailerLog {
   event: LogEvent;
   timestamp: string;
   level: LogLevel;
-  to: string;
+  to: any[];
   from: string;
   subject: string;
   data: Record<string, any>;

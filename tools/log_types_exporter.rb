@@ -51,21 +51,36 @@ module LogStruct
         generate_typescript(log_types_data)
       end
 
-      # Make these methods private but expose for testing via `public_send`
-      sig { returns(T::Hash[String, T.untyped]) }
+      sig { returns(T::Hash[Symbol, T.untyped]) }
       def generate_data
         # Export everything as a hash
         {
-          # Export enum values
-          enums: {
-            LogLevel: LogStruct::LogLevel.values.map(&:serialize),
-            Source: LogStruct::Source.values.map(&:serialize),
-            LogEvent: LogStruct::LogEvent.values.map(&:serialize)
-          },
+          # Export all enum values from LogStruct module
+          enums: export_enums,
 
           # Export log structs
           logs: export_log_structs
         }
+      end
+      
+      # Find and export all T::Enum subclasses in the LogStruct module
+      sig { returns(T::Hash[Symbol, T::Array[String]]) }
+      def export_enums
+        enum_hash = {}
+        
+        # Find all T::Enum subclasses in the LogStruct module
+        T::Enum.subclasses
+          .select { |klass| klass.name.to_s.start_with?("LogStruct::") }
+          .each do |enum_class|
+            # Extract enum name (last part of the class name)
+            enum_name = enum_class.name.to_s.split("::").last&.to_sym
+            next if enum_name.nil? # Skip if we couldn't get a valid name
+            
+            # Add enum values to the hash
+            enum_hash[enum_name] = enum_class.values.map(&:serialize)
+          end
+        
+        enum_hash
       end
       private :generate_data
 
