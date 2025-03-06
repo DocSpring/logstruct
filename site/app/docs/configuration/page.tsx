@@ -24,12 +24,10 @@ export default function ConfigurationPage() {
         with your desired configuration.
       </p>
 
-      <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <RubyCodeExample
-          name="basic_configuration"
-          title="Basic Configuration Example"
-        />
-      </div>
+      <RubyCodeExample
+        name="basic_configuration"
+        title="Basic Configuration Example"
+      />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Environment Configuration
@@ -120,7 +118,8 @@ config.local_environments = [:development, :test]`}
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Custom String Scrubbing</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can implement custom string scrubbers to filter out sensitive data that isn&apos;t caught by the built-in filters:
+        You can implement custom string scrubbers to filter out sensitive data
+        that isn&apos;t caught by the built-in filters:
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
@@ -132,12 +131,13 @@ config.local_environments = [:development, :test]`}
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Custom Error Reporting</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can customize how errors are reported by implementing your own error reporting handler:
+        You can customize how errors are reported by implementing your own error
+        reporting handler:
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
         <RubyCodeExample
-          name="custom_error_reporter"
+          name="error_reporting_handler"
           title="Custom Error Reporter Example"
         />
       </div>

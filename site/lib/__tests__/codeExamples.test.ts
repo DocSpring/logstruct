@@ -6,6 +6,7 @@ import {
   getCodeExample,
   getAllCodeExamples,
   getAllExampleIds,
+  extractCodeExample,
 } from '../codeExamples';
 
 // This is an integration test that uses the real file system to load actual code examples
@@ -29,7 +30,6 @@ describe('Code Examples Integration', () => {
     // There should be examples from our Ruby files
     const numExamples = Object.keys(examples).length;
     expect(numExamples).toBeGreaterThan(0);
-    console.log(`Found ${numExamples} examples from real files`);
   });
 
   it('should load code examples from Ruby files', () => {
@@ -41,11 +41,9 @@ describe('Code Examples Integration', () => {
     const railsInitializer = getCodeExample('rails_initializer');
     expect(railsInitializer).not.toBeNull();
 
-    // List all examples with their file paths for diagnostic purposes
-    console.log("All found examples:")
+    // Verify each example has content
     allExamples.forEach((example) => {
       expect(example.code.length).toBeGreaterThan(0);
-      console.log(`- ${example.id} (from ${example.filePath})`);
     });
   });
 
@@ -70,5 +68,19 @@ describe('Code Examples Integration', () => {
     expect(ids).toContain('rails_initializer');
     expect(ids).toContain('basic_configuration');
     expect(ids).toContain('custom_string_scrubber');
+  });
+  
+  it('should preserve indentation in code examples relative to first line', () => {
+    // Check a real example to see if it's properly unindented
+    const example = getCodeExample('basic_configuration');
+    expect(example).not.toBeNull();
+    
+    // Split the code into lines
+    const lines = example.code.split('\n');
+    
+    // This should be true: comment line at first level, code line at first level
+    // The actual indentation after unindenting should preserve the relative structure
+    expect(lines[0]).toBe('# Configure LogStruct with a block');
+    expect(lines[1]).toBe('LogStruct.configure do |config|');
   });
 });
