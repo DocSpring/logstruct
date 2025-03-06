@@ -90,7 +90,7 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateActiveJobLog(
-    log: Partial<ActiveJobLog>,
+    log: Partial<ActiveJobLog>
   ): Partial<ActiveJobLog> {
     log.job_id = this.randomHex(8);
     log.job_class = this.sample(SampleData.JOB_CLASSES);
@@ -122,7 +122,7 @@ export class LogGenerator extends RandomDataGenerator {
     // Generate 2-4 random backtrace lines
     const numLines = this.randomInt(2, 4);
     log.backtrace = Array.from({ length: numLines }, () =>
-      this.sample(SampleData.BACKTRACE_LINES),
+      this.sample(SampleData.BACKTRACE_LINES)
     );
 
     log.data = {
@@ -152,7 +152,6 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateShrineLog(log: Partial<ShrineLog>): Partial<ShrineLog> {
-    log.msg = "File uploaded";
     log.storage = this.sample(SampleData.STORAGE_SERVICES);
     log.location = `uploads/${this.randomHex(12)}`;
     log.upload_options = { public: true };
@@ -181,7 +180,7 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateActiveStorageLog(
-    log: Partial<ActiveStorageLog>,
+    log: Partial<ActiveStorageLog>
   ): Partial<ActiveStorageLog> {
     log.operation = "upload";
     log.storage = this.sample(SampleData.STORAGE_SERVICES);
@@ -201,7 +200,7 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateActionMailerLog(
-    log: Partial<ActionMailerLog>,
+    log: Partial<ActionMailerLog>
   ): Partial<ActionMailerLog> {
     log.to = [this.randomEmail()];
     log.from = "notifications@example.com";
@@ -215,7 +214,7 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateCarrierWaveLog(
-    log: Partial<CarrierWaveLog>,
+    log: Partial<CarrierWaveLog>
   ): Partial<CarrierWaveLog> {
     log.operation = "upload";
     log.storage = this.sample(SampleData.STORAGE_SERVICES);
@@ -265,7 +264,7 @@ export class LogGenerator extends RandomDataGenerator {
     // Start event (happens a little later)
     const startTime = new Date(
       new Date(enqueueLog.timestamp as string).getTime() +
-        this.randomInt(100, 5000),
+        this.randomInt(100, 5000)
     );
     const startLog: Partial<ActiveJobLog> = {
       timestamp: startTime.toISOString(),
