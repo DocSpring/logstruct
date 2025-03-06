@@ -41,10 +41,11 @@ describe('Code Examples Integration', () => {
     const railsInitializer = getCodeExample('rails_initializer');
     expect(railsInitializer).not.toBeNull();
 
-    // Check the content of each example
+    // List all examples with their file paths for diagnostic purposes
+    console.log("All found examples:")
     allExamples.forEach((example) => {
       expect(example.code.length).toBeGreaterThan(0);
-      console.log(`Found example: ${example.id}`);
+      console.log(`- ${example.id} (from ${example.filePath})`);
     });
   });
 
@@ -64,6 +65,10 @@ describe('Code Examples Integration', () => {
   it('should provide list of all example IDs', () => {
     const ids = getAllExampleIds();
     expect(ids.length).toBeGreaterThan(0);
+    
+    // A few key examples that should be found
     expect(ids).toContain('rails_initializer');
+    expect(ids).toContain('basic_configuration');
+    expect(ids).toContain('custom_string_scrubber');
   });
 });

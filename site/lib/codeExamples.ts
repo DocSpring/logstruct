@@ -20,10 +20,10 @@ const RELOAD_INTERVAL_MS = 1000; // 1 second
  */
 export function extractCodeExample(content: string, id: string): string | null {
   const startPattern = new RegExp(
-    `# -+\\s*\n# BEGIN CODE EXAMPLE: ${id}\\s*\n# -+`,
+    `\\s*#\\s*-+\\s*(?:\n|\\r\\n)\\s*#\\s*BEGIN CODE EXAMPLE:\\s*${id}\\s*(?:\n|\\r\\n)\\s*#\\s*-+`,
   );
   const endPattern = new RegExp(
-    `# -+\\s*\n# END CODE EXAMPLE: ${id}\\s*\n# -+`,
+    `\\s*#\\s*-+\\s*(?:\n|\\r\\n)\\s*#\\s*END CODE EXAMPLE:\\s*${id}\\s*(?:\n|\\r\\n)\\s*#\\s*-+`,
   );
 
   const startMatch = content.match(startPattern);
@@ -66,8 +66,7 @@ export function loadCodeExamples(): Record<string, CodeExample> {
       const filePath = path.join(examplesDir, file);
       const content = fs.readFileSync(filePath, 'utf8');
 
-      // Extract all example IDs from this file
-      const regex = /# BEGIN CODE EXAMPLE: (\w+)/g;
+      const regex = /\s*#\s*BEGIN CODE EXAMPLE:\s*(\w+)/g;
       let match;
 
       while ((match = regex.exec(content)) !== null) {
