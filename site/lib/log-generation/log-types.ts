@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Auto-generated TypeScript definitions for LogStruct
-// Generated on 2025-03-06 15:32:01
+// Generated on 2025-03-06 18:41:34
 
 // Enum types
 export enum Source {
@@ -241,4 +241,5 @@ export type Log =
   | ActiveJobLog
   | ActiveStorageLog
   | ActionMailerLog
-  | CarrierWaveLog;
+  | CarrierWaveLog
+;

@@ -2,6 +2,7 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "bundler/setup"
 require "sorbet-runtime"
 
 # Set up load path
