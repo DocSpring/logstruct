@@ -20,13 +20,24 @@ jobs:
           ruby-version: ".ruby-version"
           bundler-cache: true
 
+      - name: Setup Node.js (root)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+          cache-dependency-path: "yarn.lock"
+
+      - name: Setup Node.js (site)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+          cache-dependency-path: "site/yarn.lock"
+
       - name: Install dependencies
         run: |
           # Make sure bundler is using the correct Ruby version
           ruby -v
-          # yarn dependencies for site
-          yarn install
-          cd site && yarn install && cd ..
 
       - name: Generate CSpell dictionaries from package lockfiles
         run: |
@@ -165,16 +176,12 @@ jobs:
           ruby-version: ".ruby-version"
           bundler-cache: true
 
-      - name: Setup Node.js
+      - name: Setup Node.js (site)
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "yarn"
           cache-dependency-path: "site/yarn.lock"
-
-      - name: Install dependencies
-        run: |
-          cd site && yarn install
 
       - name: Export TypeScript types
         run: |

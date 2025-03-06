@@ -47,10 +47,6 @@ jobs:
         with:
           static_site_generator: next
 
-      - name: Install dependencies
-        run: |
-          cd site && yarn install
-
       - name: Download coverage artifacts
         uses: dawidd6/action-download-artifact@v3 # cspell:ignore dawidd6
         with:
