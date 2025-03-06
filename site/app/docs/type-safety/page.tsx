@@ -1,3 +1,4 @@
+import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -112,27 +113,15 @@ export default function TypeSafetyPage() {
         Sorbet to your application:
       </p>
 
-      <div className="rounded-lg ">
-        <SyntaxHighlighter
-          language="bash"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.9rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-          }}
-        >
-          {`# In your Gemfile
+      <CodeBlock language="bash">
+        {`# In your Gemfile
 gem "sorbet", group: :development
 gem "sorbet-runtime"
 
 # Then run
 # bundle install
 # bundle exec srb init`}
-        </SyntaxHighlighter>
-      </div>
+      </CodeBlock>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Benefits of Type Safety</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">

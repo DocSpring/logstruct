@@ -78,7 +78,10 @@ module Examples
         const :source, Symbol, name: :src
         const :event, Symbol, name: :evt
         const :timestamp, Time, name: :ts
-        const :level, LogStruct::LogLevel, name: :lvl, default: T.let(LogStruct::LogLevel::Info, LogStruct::LogLevel)
+        const :level,
+          LogStruct::LogLevel,
+          name: :lvl,
+          default: T.let(LogStruct::LogLevel::Info, LogStruct::LogLevel)
 
         prop :payment_id, String
         prop :amount, Float
