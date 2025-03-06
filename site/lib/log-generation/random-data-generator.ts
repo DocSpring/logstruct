@@ -206,4 +206,13 @@ export class RandomDataGenerator {
   randomDuration(): number {
     return this.randomFloat(10, 3000, 2);
   }
+  
+  /**
+   * Generate a random enum value
+   */
+  randomEnum<T>(enumObj: Record<string, T>): T {
+    const keys = Object.keys(enumObj).filter(k => isNaN(Number(k)));
+    const randomKey = this.sample(keys);
+    return enumObj[randomKey] as T;
+  }
 }

@@ -12,12 +12,10 @@ module LogStruct
     class LogTypesExporter
       extend T::Sig
 
-      DEFAULT_OUTPUT_JSON_FILE = "site/lib/log-generation/log-types.json"
       DEFAULT_OUTPUT_TS_FILE = "site/lib/log-generation/log-types.ts"
 
-      sig { params(output_json_file: String, output_ts_file: String).void }
-      def initialize(output_json_file = DEFAULT_OUTPUT_JSON_FILE, output_ts_file = DEFAULT_OUTPUT_TS_FILE)
-        @output_json_file = output_json_file
+      sig { params(output_ts_file: String).void }
+      def initialize(output_ts_file = DEFAULT_OUTPUT_TS_FILE)
         @output_ts_file = output_ts_file
       end
 
@@ -27,22 +25,16 @@ module LogStruct
         puts "Exporting LogStruct types to TypeScript..."
         puts "Output file: #{@output_ts_file}"
 
-        puts "Done! TypeScript type definitions generated at #{@output_ts_file}"
-
         # Create output directory if needed
-        FileUtils.mkdir_p(File.dirname(@output_json_file))
         FileUtils.mkdir_p(File.dirname(@output_ts_file))
 
         # Get the data
         log_types_data = generate_data
 
-        # Export JSON
-        export_json(log_types_data)
-
         # Export TypeScript types
         export_typescript(log_types_data)
 
-        puts "Exported log types to #{@output_json_file} and #{@output_ts_file}"
+        puts "Exported log types to #{@output_ts_file}"
       end
 
       private
@@ -64,16 +56,11 @@ module LogStruct
       end
 
       sig { params(data: T::Hash[String, T.untyped]).void }
-      def export_json(data)
-        # Write to JSON file
-        File.write(@output_json_file, JSON.pretty_generate(data))
-      end
-
-      sig { params(data: T::Hash[String, T.untyped]).void }
       def export_typescript(data)
         ts_content = []
 
-        # Add file header
+        # Add file header (We need 'any' for a lot of unstructured Hashes and Arrays)
+        ts_content << "/* eslint-disable @typescript-eslint/no-explicit-any */"
         ts_content << "// Auto-generated TypeScript definitions for LogStruct"
         ts_content << "// Generated on #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
         ts_content << ""

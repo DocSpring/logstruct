@@ -1,5 +1,6 @@
 import { RandomDataGenerator } from "../random-data-generator";
 import { SampleData } from "../sample-data";
+import { LogLevel, Source, LogEvent } from "../log-types";
 
 describe("RandomDataGenerator", () => {
   let generator: RandomDataGenerator;
@@ -16,6 +17,17 @@ describe("RandomDataGenerator", () => {
     expect(generator1.randomInt(1, 100)).toBe(generator2.randomInt(1, 100));
     expect(generator1.randomFloat(1, 100)).toBe(generator2.randomFloat(1, 100));
     expect(generator1.randomHex(8)).toBe(generator2.randomHex(8));
+  });
+  
+  test("should generate random enum values", () => {
+    const logLevel = generator.randomEnum(LogLevel);
+    expect(Object.values(LogLevel)).toContain(logLevel);
+    
+    const source = generator.randomEnum(Source);
+    expect(Object.values(Source)).toContain(source);
+    
+    const event = generator.randomEnum(LogEvent);
+    expect(Object.values(LogEvent)).toContain(event);
   });
 
   test("should generate random email addresses", () => {
