@@ -45,7 +45,8 @@ function unindentCode(code: string): string {
       // Only remove indentation from non-empty lines
       if (line.trim().length === 0) return line;
       // Only remove up to the amount of leading whitespace
-      const leadingSpace = line.match(/^(\s*)/)[0].length;
+      const leadingSpaceMatch = line.match(/^(\s*)/);
+      const leadingSpace = leadingSpaceMatch ? leadingSpaceMatch[0].length : 0;
       const toRemove = Math.min(minIndent, leadingSpace);
       return line.substring(toRemove);
     })

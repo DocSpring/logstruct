@@ -6,7 +6,6 @@ import {
   getCodeExample,
   getAllCodeExamples,
   getAllExampleIds,
-  extractCodeExample,
 } from '../codeExamples';
 
 // This is an integration test that uses the real file system to load actual code examples

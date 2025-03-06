@@ -17,19 +17,17 @@ export interface RubyCodeExampleProps {
  */
 export function RubyCodeExample({
   name,
-  showLineNumbers = true,
+  showLineNumbers = false,
   highlightLines = [],
-  title
+  title,
 }: RubyCodeExampleProps) {
   // This will throw if the example doesn't exist
   const example = getCodeExample(name);
-  
+
   return (
     <div className="my-6">
       {title && (
-        <div className="font-medium text-sm mb-2 text-gray-700">
-          {title}
-        </div>
+        <div className="font-medium text-sm mb-2 text-gray-700">{title}</div>
       )}
       <div className="overflow-hidden rounded-lg">
         <SyntaxHighlighter
@@ -40,7 +38,12 @@ export function RubyCodeExample({
           lineProps={(lineNumber) => {
             const style = { display: 'block', width: '100%' };
             if (highlightLines.includes(lineNumber)) {
-              return { style: { ...style, backgroundColor: 'rgba(255, 255, 255, 0.1)' } };
+              return {
+                style: {
+                  ...style,
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
+              };
             }
             return { style };
           }}

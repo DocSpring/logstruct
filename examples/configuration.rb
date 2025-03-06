@@ -18,10 +18,12 @@ module Examples
       # Enable or disable LogStruct
       config.enabled = true
 
-      # Define which environments are considered "local" vs "production"
-      # This affects error handling modes that behave differently in different environments
+      config.environments = [:test, :production]
+
+      # LogStruct will raise errors in local environments,
+      # and log or report errors in production.
+      # (Can be configured with config.error_handling_modes)
       config.local_environments = [:development, :test]
-      config.environments = [:test, :production, :staging]
     end
     # ----------------------------------------------------------
     # END CODE EXAMPLE: basic_configuration
