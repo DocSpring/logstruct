@@ -5,7 +5,6 @@
 /doc/
 /pkg/
 /tmp/
-/Gemfile.lock
 *.gem
 /node_modules
 /vendor/bundle
