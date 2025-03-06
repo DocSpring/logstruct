@@ -1,5 +1,5 @@
-export { SampleData } from './sample-data';
-export { LogGenerator } from './generator';
+export { LogGenerator } from "./generator";
 
 // Re-export log types data for convenience
-export { default as logTypeData } from '../log_types.json';
+export { default as LogTypeData } from "./log-types.json";
+export { SampleData } from "./sample-data";
