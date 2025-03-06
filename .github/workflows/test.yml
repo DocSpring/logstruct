@@ -79,6 +79,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Remove Gemfile.lock since we're changing Ruby and Rails versions
+      - name: Remove Gemfile.lock for variable Ruby/Rails versions
+        run: rm -f Gemfile.lock
+
       - name: Setup Ruby 3.2
         uses: ruby/setup-ruby@v1
         with:
@@ -125,6 +129,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      # Remove Gemfile.lock since we're changing Ruby and Rails versions
+      - name: Remove Gemfile.lock for variable Ruby/Rails versions
+        run: rm -f Gemfile.lock
 
       - name: Setup Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1

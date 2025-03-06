@@ -27,7 +27,7 @@ yarn install
 2. Start the development server:
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 3. Open [http://localhost:3001](http://localhost:3001) to view the site in your browser.
@@ -37,7 +37,7 @@ npm run dev
 To build the static site for production:
 
 ```bash
-npm run build
+yarn build
 ```
 
 This will generate static HTML files in the `out` directory that can be deployed to any static web hosting service.
@@ -51,7 +51,7 @@ To manually deploy:
 1. Build the site:
 
 ```bash
-npm run build
+yarn build
 ```
 
 2. The static files will be in the `out` directory, which can be deployed to any static hosting service.
