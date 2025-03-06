@@ -24,7 +24,7 @@ jobs:
         run: |
           # Make sure bundler is using the correct Ruby version
           ruby -v
-          bundle install
+          # yarn dependencies for site
           yarn install
           cd site && yarn install && cd ..
 
@@ -70,24 +70,16 @@ jobs:
     env:
       RAILS_VERSION: "7.0"
       RUBY_VERSION: "3.0"
+      CI: "true"
+      BUNDLE_WITHOUT: "development"
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup Ruby 3.0
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
           bundler-cache: true
-
-      # For bundler to work with different Ruby versions
-      - name: Set CI environment variable
-        run: echo "CI=true" >> $GITHUB_ENV
-
-      - name: Install dependencies
-        run: |
-          ruby -v
-          bundle config set --local without 'development'
-          bundle install
 
       - name: Run tests
         run: bin/test
@@ -124,29 +116,17 @@ jobs:
     env:
       RAILS_VERSION: ${{ matrix.rails }}
       RUBY_VERSION: ${{ matrix.ruby }}
+      CI: "true"
+      BUNDLE_WITHOUT: "development"
 
     steps:
       - uses: actions/checkout@v4
-
+        
       - name: Setup Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-
-      # For bundler to work with different Ruby versions, we just need to set CI=true
-      # This will make our conditional Gemfile logic skip the Ruby version requirement
-      - name: Set CI environment variable
-        run: echo "CI=true" >> $GITHUB_ENV
-
-      - name: Install dependencies
-        run: |
-          # Make sure bundler is using the correct Ruby version
-          ruby -v
-          # Configure bundler
-          bundle config set --local without 'development'
-          # Install dependencies with the specific Rails version
-          bundle install
 
       - name: Run Ruby tests
         run: bin/test
@@ -182,7 +162,6 @@ jobs:
           
       - name: Install dependencies
         run: |
-          bundle install
           cd site && yarn install
           
       - name: Export TypeScript types

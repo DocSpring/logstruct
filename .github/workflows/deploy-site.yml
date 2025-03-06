@@ -49,7 +49,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          bundle install
           cd site && yarn install
 
       - name: Download coverage artifacts
@@ -63,6 +62,9 @@ jobs:
       - name: Generate YARD documentation
         run: |
           mkdir -p site/public/yard
+          # Install development dependencies for YARD
+          bundle config set --local with 'development'
+          bundle install
           bundle exec yard doc --output-dir=site/public/yard
 
       - name: Copy coverage to site

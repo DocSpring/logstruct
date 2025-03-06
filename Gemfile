@@ -42,23 +42,28 @@ gem "rollbar", "~> 3.4"
 gem "sentry-ruby", "~> 5.15"
 gem "shrine", "~> 3.5"
 gem "sidekiq", "~> 7.2"
+gem "sorbet"
 
-group :development, :test do
+# Essential testing gems that don't have Ruby version restrictions
+group :test do
   gem "dalli"
-  gem "debug"
-  gem "amazing_print"
-  gem "listen", require: false
   gem "minitest", "~> 5.20"
   gem "minitest-reporters", "~> 1.6"
   gem "simplecov", "~> 0.22", require: false
+  gem "thor"
+end
+
+# Development and linting tools that may have higher Ruby version requirements
+group :development do
+  gem "debug"
+  gem "amazing_print"
+  gem "listen", require: false
   gem "rubocop-performance", require: false
   gem "rubocop-rails", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-sorbet", require: false
   gem "rubocop", require: false
   gem "solargraph", require: false
-  gem "sorbet"
-  gem "thor"
   gem "standard", ">= 1.35.1", require: false
   gem "tapioca", require: false
   gem "yard", "~> 0.9.36"
