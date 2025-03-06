@@ -1,5 +1,5 @@
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeExample } from '@/components/code-example';
+import { getCodeExample } from '@/lib/codeExamples';
 import { EditPageLink } from '@/components/edit-page-link';
 
 export default function ConfigurationPage() {
@@ -24,52 +24,13 @@ export default function ConfigurationPage() {
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={
+            getCodeExample('basic_configuration')?.code ||
+            '# Code example not found'
+          }
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Configure LogStruct
-LogStruct.configure do |config|
-  # Enable or disable all structured logging
-  config.enabled = true
-  
-  # Specify which environments to enable in
-  config.environments = [:development, :test, :production]
-  
-  # Specify which environments are considered local/development
-  config.local_environments = [:development, :test]
-  
-  # Configure integrations
-  config.integrations.enable_lograge = true
-  config.integrations.enable_actionmailer = true
-  config.integrations.enable_activejob = true
-  config.integrations.enable_sidekiq = true
-  config.integrations.enable_shrine = true
-  config.integrations.enable_activestorage = true
-  config.integrations.enable_carrierwave = true
-  config.integrations.enable_rack_error_handler = true
-  config.integrations.enable_host_authorization = true
-  
-  # Configure error handling modes
-  config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-  config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-  config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
-  
-  # Salt for SHA256 hashes in filtered email addresses
-  config.filters.hash_salt = ENV['EMAIL_HASH_SALT']
-end
-
-# Set up all integrations
-LogStruct.initialize`}
-        </SyntaxHighlighter>
+        />
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
@@ -111,30 +72,13 @@ config.local_environments = [:development, :test]`}
       </p>
 
       <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
-        <SyntaxHighlighter
+        <CodeExample
+          code={
+            getCodeExample('integrations_configuration')?.code ||
+            '# Code example not found'
+          }
           language="ruby"
-          style={atomDark}
-          customStyle={{
-            fontSize: '0.875rem',
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            backgroundColor: 'transparent',
-            padding: '0',
-            borderRadius: '0px',
-          }}
-        >
-          {`# Configure which integrations to enable
-config.integrations.enable_lograge = true             # Structured request logging
-config.integrations.enable_actionmailer = true        # Email delivery logging
-config.integrations.enable_activejob = true           # Background job logging
-config.integrations.enable_sidekiq = true             # Sidekiq job logging
-config.integrations.enable_shrine = true              # File upload logging (Shrine)
-config.integrations.enable_carrierwave = true         # File upload logging (CarrierWave)
-config.integrations.enable_activestorage = true       # ActiveStorage operations logging
-config.integrations.enable_rack_error_handler = true  # Enhanced error logging middleware
-config.integrations.enable_host_authorization = true  # Host authorization violation logging
-config.integrations.enable_sorbet_error_handler = true # Sorbet type checking error handling`}
-        </SyntaxHighlighter>
+        />
       </div>
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
