@@ -18,13 +18,11 @@ SimpleCov.start do
   gem_path = File.expand_path("../../../../", __FILE__)
   SimpleCov.root(gem_path)
 
-  add_group "LogStruct", "lib"
-  # add_group "Test App", "rails_test_app/logstruct_test_app"
   add_filter "rails_test_app"
 
   # Coverage is stored in a directory relative to the Rails app
   coverage_dir "coverage_rails"
-  command_name "test:integration"
+  # command_name "test:integration"
 
   # Enable branch coverage
   enable_coverage :branch
