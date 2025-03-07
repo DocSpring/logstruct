@@ -12,13 +12,11 @@ export default function Home() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl leading-tight xl:mt-2">
             Zero-configuration JSON logging for Ruby on Rails
           </h1>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl leading-tight text-neutral-600 dark:text-neutral-400">
-            (Coming soon!)
-          </h2>
           <p className="text-lg text-neutral-600 dark:text-neutral-400 my-10">
-            LogStruct adds structured JSON logging to any Rails app. Just add
-            the gem to your Gemfile, and your Rails app will print beautiful
-            JSON logs that are easy to search, filter, and visualize.
+            LogStruct is a new way to add type-safe, structured JSON logging to
+            any Rails app. Just add the gem to your Gemfile, and your Rails app
+            will print beautiful JSON logs that are easy to search, filter, and
+            visualize.
           </p>
           <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
             <Button asChild size="lg">
