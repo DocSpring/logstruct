@@ -16,9 +16,23 @@ module LogStruct
       include Interfaces::CommonFields
       include SerializeCommon
 
+      # Define valid event types for ActiveStorage
+      ActiveStorageLogEvent = T.type_alias {
+        T.any(
+          LogEvent::Upload,
+          LogEvent::Download,
+          LogEvent::Delete,
+          LogEvent::Metadata,
+          LogEvent::Exist,
+          LogEvent::Stream,
+          LogEvent::Url,
+          LogEvent::Unknown
+        )
+      }
+
       # Common fields
       const :source, Source::Storage, default: T.let(Source::Storage, Source::Storage)
-      const :event, LogEvent
+      const :event, ActiveStorageLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 

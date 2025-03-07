@@ -17,9 +17,12 @@ module LogStruct
       include Interfaces::CommonFields
       include SerializeCommon
 
+      # Define valid event types for Sidekiq (currently only Log is used)
+      SidekiqLogEvent = T.type_alias { LogEvent::Log }
+
       # Common fields
       const :source, Source::Sidekiq, default: T.let(Source::Sidekiq, Source::Sidekiq)
-      const :event, LogEvent, default: T.let(LogEvent::Log, LogEvent)
+      const :event, SidekiqLogEvent, default: T.let(LogEvent::Log, SidekiqLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
 

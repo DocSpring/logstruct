@@ -37,7 +37,7 @@ module LogStruct
 
         # Log a mailer event with the given event type
         sig do
-          params(event_type: Log::ActionMailer::EmailLogEvent,
+          params(event_type: Log::ActionMailer::ActionMailerLogEvent,
             level: Symbol,
             additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped)
         end
