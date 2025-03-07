@@ -128,7 +128,7 @@ module LogStruct
         ts_content << "// Enum types"
         data[:enums].each do |enum_name, enum_values|
           ts_content << "export enum #{enum_name} {"
-          enum_values.each do |value|
+          enum_values.sort.each do |value|
             ts_content << "  #{value.upcase} = \"#{value}\","
           end
           ts_content << "}"
@@ -138,16 +138,16 @@ module LogStruct
         # Add LogType enum
         ts_content << "// Log Types"
         ts_content << "export enum LogType {"
-        data[:logs].keys.each do |log_type|
+        data[:logs].keys.sort.each do |log_type|
           ts_content << "  #{log_type.upcase} = \"#{log_type}\","
         end
         ts_content << "}"
         ts_content << ""
-        
+
         # Add array of all log types for iteration
         ts_content << "// Array of all log types for iteration"
         ts_content << "export const AllLogTypes: Array<LogType> = ["
-        data[:logs].keys.each do |log_type|
+        data[:logs].keys.sort.each do |log_type|
           ts_content << "  LogType.#{log_type.upcase},"
         end
         ts_content << "];"
@@ -194,7 +194,7 @@ module LogStruct
         # Add union type for all logs
         ts_content << "// Union type for all logs"
         ts_content << "export type Log ="
-        log_types = data[:logs].keys.map { |type| "  | #{type}Log" }
+        log_types = data[:logs].keys.sort.map { |type| "  | #{type}Log" }
         ts_content << log_types.join("\n")
         ts_content << ";"
         ts_content << ""
