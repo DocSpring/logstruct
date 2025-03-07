@@ -289,8 +289,8 @@ export default function Home() {
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
               No! LogStruct works great as a standard Ruby gem. You don&apos;t
-              need to use Sorbet in your app, but <code>sorbet-runtime</code> is
-              a dependency since we use{' '}
+              need to use Sorbet in your app. However,{' '}
+              <code>sorbet-runtime</code> is a dependency since we use{' '}
               <a
                 href="https://sorbet.org/docs/tstruct"
                 target="_blank"
@@ -299,8 +299,16 @@ export default function Home() {
               >
                 <code>T::Struct</code>
               </a>{' '}
-              and other Sorbet features. You can use the regular Rails logger or
-              our typed API - it&apos;s up to you.
+              and other Sorbet features. You can still use the regular Rails
+              logger like normal, or our typed API - it&apos;s up to you. You
+              can even choose to{' '}
+              <Link
+                className="text-gray-200 hover:underline"
+                href="/docs/configuration#error-handling-configuration"
+              >
+                ignore all type errors
+              </Link>{' '}
+              if you don&apos;t care about them.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -357,9 +365,8 @@ export default function Home() {
                 DocSpring
               </a>
               . We&apos;re a document automation platform built with Ruby on
-              Rails, and we help businesses automate document workflows. Our API
-              makes it easy to fill out PDF forms or generate PDFs from
-              HTML/CSS/Liquid templates. Open{' '}
+              Rails. Our API makes it easy to fill out PDF forms or generate
+              PDFs from HTML/CSS/Liquid templates. Open{' '}
               <a
                 href="https://github.com/DocSpring/logstruct/issues"
                 target="_blank"
@@ -368,7 +375,7 @@ export default function Home() {
               >
                 an issue on GitHub
               </a>{' '}
-              if you use LogStruct and we&apos;ll add you to the list!
+              if you use LogStruct and we&apos;ll start a list!
             </p>
           </div>
         </div>
