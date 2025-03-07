@@ -16,3 +16,6 @@
 
 # CSpell generated wordlists (from package lockfiles)
 .cspell/generated-*.txt
+
+# Generated Rails test app
+rails_test_app/logstruct_test_app/

@@ -1,3 +1,16 @@
+require 'logger'
+require 'simplecov'
+require 'simplecov-json'
+
+SimpleCov.formatters = [
+  SimpleCov::Formatter::HTMLFormatter,
+  SimpleCov::Formatter::JSONFormatter
+]
+
+SimpleCov.start 'rails' do
+  coverage_dir 'public/coverage'
+end
+
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"

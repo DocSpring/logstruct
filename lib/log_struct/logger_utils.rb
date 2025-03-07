@@ -44,7 +44,7 @@ module LogStruct
     sig do
       params(
         logger_class: T.class_of(LogStruct::Logger),
-        original_logger: T.nilable(Logger),
+        original_logger: T.nilable(::Logger),
         options: T::Hash[Symbol, T.untyped]
       ).returns(LogStruct::Logger)
     end

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Always rebuild the test app
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+TEST_APP_DIR="$PROJECT_ROOT/rails_test_app/logstruct_test_app"
+CREATE_APP_SCRIPT="$PROJECT_ROOT/rails_test_app/create_app.rb"
+RAILS_VERSION="${RAILS_VERSION:-"7.0.8"}"
+
+# Show what we're testing
+echo "Testing LogStruct with Rails ${RAILS_VERSION}"
+
+# Check if bundler is installed
+if ! gem list -i "^bundler$" > /dev/null 2>&1; then
+  echo "Installing bundler..."
+  gem install bundler
+fi
+
+# Clean up any existing test app
+if [ -d "$TEST_APP_DIR" ]; then
+  echo "Removing existing test app..."
+  rm -rf "$TEST_APP_DIR"
+fi
+
+# Always create a fresh test app
+echo "Creating Rails test app..."
+
+# Make sure the create_app.rb script exists
+if [ ! -f "$CREATE_APP_SCRIPT" ]; then
+  echo "Error: Create app script not found at $CREATE_APP_SCRIPT"
+  echo "Make sure all template files are in place before running this script."
+  exit 1
+fi
+
+# Create the test app with the specified Rails version
+RAILS_VERSION="$RAILS_VERSION" ruby "$CREATE_APP_SCRIPT"
+
+# Run the tests in the test app
+echo "Running integration tests in Rails test app..."
+cd "$TEST_APP_DIR"
+
+# Make sure the database is set up
+bin/rails db:migrate
+
+# Run the tests
+bin/rails test
+
+echo "All Rails integration tests completed!"

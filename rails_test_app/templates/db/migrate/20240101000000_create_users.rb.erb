@@ -1,4 +1,4 @@
-class CreateUsers < ActiveRecord::Migration[<%= rails_major_minor %>]
+class CreateUsers < ActiveRecord::Migration[<%= @rails_major_minor %>]
   def change
     create_table :users do |t|
       t.string :name, null: false
