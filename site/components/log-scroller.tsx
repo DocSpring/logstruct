@@ -16,6 +16,7 @@ const pumaLogTemplate = { src: 'puma', evt: 'boot', pid: 0, lvl: 'info' };
 export function LogScroller() {
   const [logs, setLogs] = useState<string[]>([]);
   const [isPaused, setIsPaused] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   // Format log for display
@@ -83,6 +84,11 @@ export function LogScroller() {
     }
   }, [logs, isPaused]);
 
+  // If not visible, return an empty div of the same height
+  if (!isVisible) {
+    return <div className="w-full h-[375px]"></div>;
+  }
+
   return (
     <div
       className="w-full h-[375px] bg-black rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out"
@@ -120,7 +126,12 @@ export function LogScroller() {
         }}
       >
         <div className="absolute left-3 flex space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
+          <div 
+            className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400 transition-colors" 
+            style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}
+            onClick={() => setIsVisible(false)}
+            title="Click to close"
+          ></div>
           <div className="w-3 h-3 rounded-full bg-yellow-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
           <div className="w-3 h-3 rounded-full bg-green-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
         </div>
