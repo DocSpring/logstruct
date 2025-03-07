@@ -7,14 +7,13 @@
 module FilterByLine
   module ClassMethods
     extend T::Helpers
-    requires_ancestor { Minitest::Runnable }
 
     def runnable_methods
       methods = super
 
       # Get the target line from the environment
       line = ENV["LINE"]&.to_i
-      return methods unless line && name&.include?("Test")
+      return methods unless line && T.unsafe(self).name.include?("Test")
 
       methods.select do |method_name|
         # Couldn't figure out how to get typechecking to pass for #instance_method

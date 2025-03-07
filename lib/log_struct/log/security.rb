@@ -36,7 +36,7 @@ module LogStruct
       }
 
       # Common fields
-      const :source, Source, default: T.let(Source::Security, Source)
+      const :source, Source::Security, default: T.let(Source::Security, Source::Security)
       const :event, SecurityLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Error, LogLevel)

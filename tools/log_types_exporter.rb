@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 # cspell:ignore _tnilable
+# rubocop:disable Sorbet/ConstantsFromStrings
 
 # Load LogStruct type definitions
 require_relative "../lib/log_struct"
@@ -224,8 +225,49 @@ module LogStruct
         # Basic type information
         result = {optional: is_optional}
 
+        # Check for direct enum values (single value restriction case)
+        # For example: const :source, Source::Job, default: T.let(Source::Job, Source::Job)
+        if type_obj.is_a?(T::Enum) || type_obj.class&.ancestors&.include?(T::Enum)
+          # This is a direct reference to a specific enum value (not a type)
+          # Extract the enum class and the specific value
+          enum_class = type_obj.class
+          enum_name = enum_class.name.to_s.split("::").last
+
+          # Get the enum value name by finding which constant in the enum class has this value
+          enum_value_name = T.let(nil, T.nilable(String))
+          enum_class.constants.each do |const_name|
+            if enum_class.const_get(const_name) == type_obj
+              enum_value_name = const_name.to_s
+              break
+            end
+          end
+
+          # For example: LogStruct::Source::Job => { type: "enum_single", base_enum: "Source", enum_value: "Job" }
+          result[:type] = "enum_single"
+          result[:base_enum] = enum_name
+          result[:enum_value] = enum_value_name
+
+          return result
+        # Check for T::Types::TEnum with a specific enum value
+        elsif type_obj.is_a?(T::Types::TEnum) && type_str.include?("::") && !type_str.include?("T.nilable")
+          # Handle specific enum types like LogStruct::Source::Job
+          # The type string will look like "LogStruct::Source::Job"
+          parts = type_str.split("::")
+
+          if parts.size >= 3
+            # Extract the enum name and specific value
+            enum_name = parts[-2]
+            enum_value_name = parts[-1]
+
+            # For example: LogStruct::Source::Job => { type: "enum_single", base_enum: "Source", enum_value: "Job" }
+            result[:type] = "enum_single"
+            result[:base_enum] = enum_name
+            result[:enum_value] = enum_value_name
+
+            return result
+          end
         # Detect union types (T.any) or type aliases
-        if type_str.include?("T.any(") || type_str.include?("LogStruct::Log::")
+        elsif type_str.include?("T.any(") || type_str.include?("LogStruct::Log::")
           # First, try to extract the base enum type (LogEvent, LogLevel, Source)
           base_enum = nil
           enum_values = []
@@ -262,7 +304,7 @@ module LogStruct
 
               # Try to get the type alias from the log class
               log_class = begin
-                Object.const_get("LogStruct::Log::#{log_class_name}") # rubocop:disable Sorbet/ConstantsFromStrings
+                Object.const_get("LogStruct::Log::#{log_class_name}")
               rescue
                 nil
               end
@@ -274,7 +316,7 @@ module LogStruct
                   # For this to work, we need to open up the class and extract the type alias content
 
                   # Check if there are any constants in the LogEvent module that have this value in their name
-                  enum_module.constants.each do |const_name| # rubocop:disable Sorbet/ConstantsFromStrings
+                  enum_module.constants.each do |const_name|
                     # Check if this constant is used in the type definition at all
                     potential_match = "#{base_enum}::#{const_name}"
                     if type_str.include?(potential_match)
@@ -351,6 +393,16 @@ module LogStruct
         case field_info[:type]
         when "enum"
           field_info[:values]
+        when "enum_single"
+          # Handle single enum value restriction
+          # (e.g., const :source, Source::Job, default: T.let(Source::Job, Source::Job))
+          if field_info[:base_enum] && field_info[:enum_value]
+            # Create a specific enum value reference like: Source.JOB
+            "#{field_info[:base_enum]}.#{field_info[:enum_value].upcase}"
+          else
+            # Fallback to the base enum if we couldn't extract the specific value
+            field_info[:base_enum] || "any"
+          end
         when "enum_union"
           # Handle union of enum values
           if field_info[:base_enum] && field_info[:enum_values]
@@ -407,3 +459,4 @@ module LogStruct
     end
   end
 end
+# rubocop:enable Sorbet/ConstantsFromStrings

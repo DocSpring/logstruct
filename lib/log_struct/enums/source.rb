@@ -11,7 +11,7 @@ module LogStruct
       Security = new(:security) # Security-related events
 
       # Application sources
-      Request = new(:request) # For request-related logs/errors
+      Rails = new(:rails) # For request-related logs/errors
       Job = new(:job) # ActiveJob logs/errors
       Storage = new(:storage) # ActiveStorage logs/errors
       Mailer = new(:mailer) # ActionMailer logs/errors

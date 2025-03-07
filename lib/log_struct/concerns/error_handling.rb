@@ -25,7 +25,7 @@ module LogStruct
             config.error_handling_modes.logstruct_errors
           when Source::Security
             config.error_handling_modes.security_errors
-          when Source::Request, Source::App, Source::Job, Source::Storage, Source::Mailer,
+          when Source::Rails, Source::App, Source::Job, Source::Storage, Source::Mailer,
                Source::Shrine, Source::CarrierWave, Source::Sidekiq
             config.error_handling_modes.standard_errors
           else

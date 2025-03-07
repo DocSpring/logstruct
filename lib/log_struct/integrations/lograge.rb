@@ -38,7 +38,7 @@ module LogStruct
               lambda do |data|
                 # Convert the data hash to a Log::Request struct
                 Log::Request.new(
-                  source: Source::Request,
+                  source: Source::Rails,
                   event: LogEvent::Request,
                   timestamp: Time.now,
                   http_method: data[:method],

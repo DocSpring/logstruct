@@ -33,7 +33,7 @@ module LogStruct
       }
 
       # Common fields
-      const :source, Source, default: T.let(Source::CarrierWave, Source)
+      const :source, Source::CarrierWave, default: T.let(Source::CarrierWave, Source::CarrierWave)
       const :event, CarrierWaveLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)

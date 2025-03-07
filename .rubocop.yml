@@ -38,6 +38,8 @@ Rails/RakeEnvironment:
   Enabled: false
 Rails/Output:
   Enabled: false
+Rails/NegateInclude:
+  Enabled: false
 
 Performance/OpenStruct:
   Exclude:

@@ -539,7 +539,7 @@ end
 
 # :include: ../README.rdoc
 #
-# source://actionview//lib/action_view/gem_version.rb#3
+# source://actionview//lib/action_view/log_subscriber.rb#5
 module ActionView
   extend ::ActiveSupport::Autoload
 

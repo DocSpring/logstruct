@@ -47,7 +47,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     @log_output.rewind
 
     # Create a document with an attached file, which should trigger upload
-    document = Document.create_with_file(
+    Document.create_with_file(
       filename: "test_file.txt",
       content: "This is test content for Active Storage"
     )

@@ -1121,7 +1121,7 @@ end
 # implement filters and actions to handle requests. The result of an action is
 # typically content generated from views.
 #
-# source://actionpack//lib/action_controller/metal/exceptions.rb#5
+# source://actionpack//lib/action_controller/log_subscriber.rb#5
 module ActionController
   extend ::ActiveSupport::Autoload
 

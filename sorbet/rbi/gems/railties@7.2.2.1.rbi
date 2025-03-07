@@ -7,7 +7,7 @@
 
 # :include: ../README.rdoc
 #
-# source://railties//lib/rails/gem_version.rb#3
+# source://railties//lib/rails/initializable.rb#5
 module Rails
   extend ::ActiveSupport::Autoload
   extend ::ActiveSupport::Benchmarkable

@@ -7,6 +7,7 @@ require_relative "../../test/test_helper"
 require "rails/all"
 require "rails/generators"
 require "rails/generators/app_base"
+
 require "sidekiq"
 require "sidekiq/api"
 require "sidekiq/logger"

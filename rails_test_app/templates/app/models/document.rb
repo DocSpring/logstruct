@@ -8,7 +8,7 @@ class Document < ApplicationRecord
 
   sig { params(filename: String, content: String).returns(Document) }
   def self.create_with_file(filename:, content:)
-    document = create!
+    document = T.let(create!, Document)
     document.file.attach(
       io: StringIO.new(content),
       filename: filename,

@@ -18,7 +18,7 @@ module Examples
       path: "/users",
       status: 200,
       duration: 45.2,
-      source: LogStruct::Source::Request
+      source: LogStruct::Source::Rails
     )
 
     # Log the typed struct
@@ -49,7 +49,7 @@ module Examples
     LogStruct::LogLevel::Fatal
 
     # Log sources
-    LogStruct::Source::Request
+    LogStruct::Source::Rails
     LogStruct::Source::App
     LogStruct::Source::Job
     LogStruct::Source::Mailer

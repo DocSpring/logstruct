@@ -112,7 +112,7 @@ module LogStruct
 
             # Create and log a structured exception with request context
             exception_log = Log::Error.from_exception(
-              Source::Request,
+              Source::Rails,
               error,
               context
             )

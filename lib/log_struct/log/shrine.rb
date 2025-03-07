@@ -29,7 +29,7 @@ module LogStruct
       }
 
       # Common fields
-      const :source, Source, default: T.let(Source::Shrine, Source)
+      const :source, Source::Shrine, default: T.let(Source::Shrine, Source::Shrine)
       const :event, ShrineLogEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)

@@ -7,7 +7,7 @@
 
 # :include: ../README.rdoc
 #
-# source://activesupport//lib/active_support/deep_mergeable.rb#3
+# source://activesupport//lib/active_support/delegation.rb#5
 module ActiveSupport
   extend ::ActiveSupport::LazyLoadHooks
   extend ::ActiveSupport::Autoload
@@ -15031,7 +15031,7 @@ end
 # source://activesupport//lib/active_support/xml_mini/rexml.rb#11
 ActiveSupport::XmlMini_REXML::CONTENT_KEY = T.let(T.unsafe(nil), String)
 
-# source://activesupport//lib/active_support/core_ext/array/extract_options.rb#14
+# source://activesupport//lib/active_support/core_ext/object/blank.rb#95
 class Array
   include ::Enumerable
 
@@ -17364,7 +17364,7 @@ class Float < ::Numeric
   def as_json(options = T.unsafe(nil)); end
 end
 
-# source://activesupport//lib/active_support/core_ext/hash/deep_merge.rb#5
+# source://activesupport//lib/active_support/core_ext/object/blank.rb#109
 class Hash
   include ::Enumerable
   include ::ActiveSupport::DeepMergeable
@@ -18221,7 +18221,7 @@ end
 # Note that it can also be scoped per-fiber if +Rails.application.config.active_support.isolation_level+
 # is set to +:fiber+.
 #
-# source://activesupport//lib/active_support/core_ext/module/attribute_accessors.rb#8
+# source://activesupport//lib/active_support/core_ext/module/delegation.rb#3
 class Module
   include ::Module::Concerning
 
@@ -19345,7 +19345,7 @@ end
 # source://activesupport//lib/active_support/core_ext/name_error.rb#53
 NameError::UNBOUND_METHOD_MODULE_NAME = T.let(T.unsafe(nil), UnboundMethod)
 
-# source://activesupport//lib/active_support/core_ext/object/blank.rb#50
+# source://activesupport//lib/active_support/core_ext/object/try.rb#137
 class NilClass
   # source://activesupport//lib/active_support/core_ext/object/json.rb#95
   def as_json(options = T.unsafe(nil)); end
@@ -19664,7 +19664,7 @@ Numeric::ZETTABYTE = T.let(T.unsafe(nil), Integer)
 # using that rescue idiom.
 # ++
 #
-# source://activesupport//lib/active_support/core_ext/object/blank.rb#5
+# source://activesupport//lib/active_support/core_ext/object/try.rb#35
 class Object < ::BasicObject
   include ::ActiveSupport::Dependencies::RequireDependency
   include ::Kernel

@@ -89,6 +89,20 @@ class GlobalID
   end
 end
 
+# source://globalid//lib/global_id/fixture_set.rb#4
+module GlobalID::FixtureSet
+  # source://globalid//lib/global_id/fixture_set.rb#5
+  def global_id(fixture_set_name, label, column_type: T.unsafe(nil), **options); end
+
+  # source://globalid//lib/global_id/fixture_set.rb#9
+  def signed_global_id(fixture_set_name, label, column_type: T.unsafe(nil), **options); end
+
+  private
+
+  # source://globalid//lib/global_id/fixture_set.rb#14
+  def create_global_id(fixture_set_name, label, klass:, column_type: T.unsafe(nil), **options); end
+end
+
 # Mix `GlobalID::Identification` into any model with a `#find(id)` class
 # method. Support is automatically included in Active Record.
 #

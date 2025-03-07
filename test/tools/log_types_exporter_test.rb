@@ -62,7 +62,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Check Source is included
     assert enums.key?(:Source), "Source enum should be included"
-    assert_includes enums[:Source], :request, "Source should include :request"
+    assert_includes enums[:Source], :rails, "Source should include :rails"
 
     # Check LogEvent is included
     assert enums.key?(:LogEvent), "LogEvent enum should be included"
@@ -170,7 +170,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
   def test_security_log_event_union_type
     # Get the actual Security log struct class
     security_struct = LogStruct::Log::Security
-    
+
     # Get the event prop info
     event_prop_info = security_struct.props[:event]
 
@@ -180,7 +180,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
     # Test that it's correctly identified as an enum union type
     assert_equal "enum_union", type_info[:type], "Security event should be identified as an enum_union type"
     assert_equal "LogEvent", type_info[:base_enum], "Security event should use LogEvent as base enum"
-    
+
     # Verify we extracted the correct enum values - sort both arrays to avoid order issues
     expected_values = ["IPSpoof", "CSRFViolation", "BlockedHost"].sort
     extracted_values = type_info[:enum_values].sort
@@ -188,7 +188,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Test the resulting TypeScript type
     ts_type = @exporter.typescript_type_for(type_info)
-    
+
     # Order doesn't matter for union types, but we need to ensure all parts are present
     # These should match how the enum values are declared in the TypeScript output
     ["LogEvent.IP_SPOOF", "LogEvent.CSRF_VIOLATION", "LogEvent.BLOCKED_HOST"].each do |part|
@@ -199,18 +199,52 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Verify it appears correctly in the generated TypeScript
     content = @exporter.generate_typescript_definitions
-    
+
     # Check that the SecurityLog interface has the event field with a union type
     # We don't check the exact string since the order may vary
     security_log_section = content.match(/export interface SecurityLog \{.*?\}/m)
     assert security_log_section, "Should find SecurityLog interface in the generated TypeScript"
-    
+
     event_line = security_log_section[0].lines.find { |line| line.strip.start_with?("event:") }
     assert event_line, "SecurityLog interface should have an event field"
-    
+
     # Verify that the event line contains all three enum values and union operators
     ["LogEvent.IP_SPOOF", "LogEvent.CSRF_VIOLATION", "LogEvent.BLOCKED_HOST", "|"].each do |part|
       assert_includes event_line, part, "event field should include #{part} in its type"
     end
+  end
+
+  def test_single_enum_value_restriction
+    # Test with actual field from ActiveJob class which uses a specific Source value
+    active_job_class = LogStruct::Log::ActiveJob
+    source_prop_info = active_job_class.props[:source]
+
+    # Extract the type info using our exporter
+    type_info = @exporter.extract_type_info(source_prop_info)
+
+    # Test that it's correctly identified as an enum_single type
+    assert_equal "enum_single", type_info[:type], "Should be identified as a single enum value restriction"
+    assert_equal "Source", type_info[:base_enum], "Should use Source as base enum"
+    assert_equal "Job", type_info[:enum_value], "Should extract the specific enum value 'Job'"
+
+    # Test the resulting TypeScript type
+    ts_type = @exporter.typescript_type_for(type_info)
+    assert_equal "Source.JOB", ts_type, "TypeScript type should be the specific enum value"
+
+    # Now check that the full TypeScript generation includes this restricted type
+    content = @exporter.generate_typescript_definitions
+
+    # Find the ActiveJobLog interface section
+    job_log_section = content.match(/export interface ActiveJobLog \{.*?\}/m)
+    assert job_log_section, "Should find ActiveJobLog interface in the generated TypeScript"
+
+    # Extract the source line and check if it has the specific enum value
+    source_line = job_log_section[0].lines.find { |line| line.strip.start_with?("source:") }
+    assert source_line, "ActiveJobLog interface should have a source field"
+
+    # The source field should be a specific enum value, not a generic Source enum
+    assert_equal "source: Source.JOB;", source_line.strip,
+      "source field should be Source.JOB specifically, not just Source"
+    refute_includes source_line, "Source;", "source field should not be the general Source enum"
   end
 end

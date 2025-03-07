@@ -8240,6 +8240,7 @@ class ActiveRecord::Base
   include ::ActiveRecord::Suppressor
   include ::ActiveRecord::Normalization
   include ::ActiveRecord::Marshalling::Methods
+  include ::GlobalID::Identification
   include ::ActiveStorage::Attached::Model
   include ::ActiveStorage::Reflection::ActiveRecordExtensions
   include ::ActionText::Attribute
@@ -22499,6 +22500,8 @@ class ActiveRecord::FixtureClassNotFound < ::ActiveRecord::ActiveRecordError; en
 #
 # source://activerecord//lib/active_record/fixtures.rb#529
 class ActiveRecord::FixtureSet
+  extend ::GlobalID::FixtureSet
+
   # @return [FixtureSet] a new instance of FixtureSet
   #
   # source://activerecord//lib/active_record/fixtures.rb#715

@@ -1368,6 +1368,8 @@ end
 #
 # source://minitest//lib/minitest.rb#349
 class Minitest::Runnable
+  extend ::FilterByLine::ClassMethods
+
   # @return [Runnable] a new instance of Runnable
   #
   # source://minitest//lib/minitest.rb#512
@@ -1493,9 +1495,6 @@ class Minitest::Runnable
 
     # source://minitest//lib/minitest.rb#464
     def on_signal(name, action); end
-
-    # source://minitest//lib/minitest.rb#481
-    def original_runnable_methods; end
 
     # source://minitest//lib/minitest.rb#394
     def reset; end
