@@ -3,7 +3,14 @@
 
 # Start SimpleCov before requiring any other files
 require "simplecov"
+require "simplecov-json"
 require "sorbet-runtime"
+
+# Configure formatters before starting
+SimpleCov.formatters = [
+  SimpleCov::Formatter::HTMLFormatter,
+  SimpleCov::Formatter::JSONFormatter
+]
 
 SimpleCov.start do
   T.bind(self, SimpleCov::Configuration)

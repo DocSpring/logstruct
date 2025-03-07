@@ -44,6 +44,7 @@ group :test do
   gem "minitest", "~> 5.20"
   gem "minitest-reporters", "~> 1.6"
   gem "simplecov", "~> 0.22", require: false
+  gem "simplecov-json", "~> 0.2", require: false
   gem "thor"
 end
 
