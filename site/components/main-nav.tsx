@@ -85,7 +85,7 @@ export function MainNav() {
                         <div className="text-sm font-medium leading-none">
                           Configuration
                         </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-purple-600 dark:text-purple-500">
+                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-400">
                           Learn how to customize LogStruct for your application
                         </p>
                       </a>

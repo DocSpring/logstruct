@@ -84,7 +84,7 @@ end`}
           >
             Configuration
           </a>{' '}
-          - Learn how to customize LogStruct for your needs
+          - Learn how to customize LogStruct for your application
         </li>
         <li>
           <a

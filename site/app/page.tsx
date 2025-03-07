@@ -24,7 +24,7 @@ function getCodeCoverage() {
     'public/coverage/coverage.json',
   );
   const coverageData = JSON.parse(fs.readFileSync(coverageFilePath, 'utf8'));
-  return coverageData.metrics.covered_percent.toFixed(1);
+  return coverageData.metrics.covered_percent.toFixed(2);
 }
 
 // Get gem version from the version file
@@ -247,7 +247,7 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Code Coverage</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-400">
-                Test suite covers{' '}
+                Tests cover{' '}
                 <span className="font-semibold" style={{ color: '#997afc' }}>
                   {coveragePercentage}%
                 </span>{' '}

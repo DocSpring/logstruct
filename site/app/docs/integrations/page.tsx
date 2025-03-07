@@ -51,7 +51,7 @@ function getLogTypeInfo(logType: LogType): {
 
     case LogType.REQUEST:
       return {
-        title: 'Lograge Integration (Request Logs)',
+        title: 'Request Logs (via Lograge)',
         description:
           'LogStruct configures Lograge to output request logs in a structured JSON format compatible with the rest of your logs. This includes parameters, response status, controller and action names, and request duration. You can log additional data by configuring a lograge_custom_options handler:',
         configuration_code: 'lograge_custom_options',
