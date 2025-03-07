@@ -166,4 +166,51 @@ class LogStructLogTypesExporterTest < Minitest::Test
     # Check for the metadata field definition in the ActiveStorageLog interface
     assert_includes content, "metadata?: Record<string, any>;", "ActiveStorageLog should have metadata as optional Record<string, any>"
   end
+
+  def test_security_log_event_union_type
+    # Get the actual Security log struct class
+    security_struct = LogStruct::Log::Security
+    
+    # Get the event prop info
+    event_prop_info = security_struct.props[:event]
+
+    # Extract the type info using our exporter
+    type_info = @exporter.extract_type_info(event_prop_info)
+
+    # Test that it's correctly identified as an enum union type
+    assert_equal "enum_union", type_info[:type], "Security event should be identified as an enum_union type"
+    assert_equal "LogEvent", type_info[:base_enum], "Security event should use LogEvent as base enum"
+    
+    # Verify we extracted the correct enum values - sort both arrays to avoid order issues
+    expected_values = ["IPSpoof", "CSRFViolation", "BlockedHost"].sort
+    extracted_values = type_info[:enum_values].sort
+    assert_equal expected_values, extracted_values, "Should extract the correct enum values"
+
+    # Test the resulting TypeScript type
+    ts_type = @exporter.typescript_type_for(type_info)
+    
+    # Order doesn't matter for union types, but we need to ensure all parts are present
+    # These should match how the enum values are declared in the TypeScript output
+    ["LogEvent.IP_SPOOF", "LogEvent.CSRF_VIOLATION", "LogEvent.BLOCKED_HOST"].each do |part|
+      assert_includes ts_type, part, "TypeScript type should include #{part}"
+    end
+    # Verify it's a union with pipe separators
+    assert_equal 2, ts_type.count("|"), "TypeScript type should have 2 union operators"
+
+    # Verify it appears correctly in the generated TypeScript
+    content = @exporter.generate_typescript_definitions
+    
+    # Check that the SecurityLog interface has the event field with a union type
+    # We don't check the exact string since the order may vary
+    security_log_section = content.match(/export interface SecurityLog \{.*?\}/m)
+    assert security_log_section, "Should find SecurityLog interface in the generated TypeScript"
+    
+    event_line = security_log_section[0].lines.find { |line| line.strip.start_with?("event:") }
+    assert event_line, "SecurityLog interface should have an event field"
+    
+    # Verify that the event line contains all three enum values and union operators
+    ["LogEvent.IP_SPOOF", "LogEvent.CSRF_VIOLATION", "LogEvent.BLOCKED_HOST", "|"].each do |part|
+      assert_includes event_line, part, "event field should include #{part} in its type"
+    end
+  end
 end

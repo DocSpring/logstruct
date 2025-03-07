@@ -206,10 +206,12 @@ module LogStruct
         type_obj = prop_info[:type]
         type_str = type_obj.to_s
 
-        # Uncomment for debugging
-        # puts "Extracting type info for: #{type_str}"
-        # puts "Array key present? #{prop_info.key?(:array)}" if prop_info.key?(:array)
-        # puts "Array value: #{prop_info[:array]}" if prop_info.key?(:array)
+        # Debug logging for complex types
+        # if type_str.include?("T.any") || type_str.include?("SecurityLogEvent")
+        #   puts "Extracting type info for: #{type_str}"
+        #   puts "Type object class: #{type_obj.class}"
+        #   puts "Type object inspect: #{type_obj.inspect}"
+        # end
 
         # Check for TypedHash specifically (handles metadata field correctly)
         if type_obj.is_a?(T::Types::TypedHash) || type_obj.instance_of?(::T::Types::TypedHash)
@@ -222,8 +224,77 @@ module LogStruct
         # Basic type information
         result = {optional: is_optional}
 
-        # Determine the actual type
-        if type_str.include?("LogStruct::LogLevel")
+        # Detect union types (T.any) or type aliases
+        if type_str.include?("T.any(") || type_str.include?("LogStruct::Log::")
+          # First, try to extract the base enum type (LogEvent, LogLevel, Source)
+          base_enum = nil
+          enum_values = []
+
+          # Check if it's a LogEvent union type
+          if type_str.include?("LogEvent::")
+            base_enum = "LogEvent"
+            enum_module = LogStruct::LogEvent
+          elsif type_str.include?("LogLevel::")
+            base_enum = "LogLevel"
+            enum_module = LogStruct::LogLevel
+          elsif type_str.include?("Source::")
+            base_enum = "Source"
+            enum_module = LogStruct::Source
+          end
+
+          if base_enum
+            result[:type] = "enum_union"
+            result[:base_enum] = base_enum
+
+            # Try to parse values from the T.any(...) format for direct T.any usage
+            if type_str =~ /T\.any\(([^)]+)\)/
+              values_str = $1
+              # Regex to extract enum constants like LogEvent::IPSpoof
+              values_str.scan(/#{base_enum}::([A-Za-z0-9_]+)/) do |match|
+                enum_values << match.first
+              end
+            end
+
+            # For type aliases like SecurityLogEvent, try to resolve the alias
+            if enum_values.empty? && type_str =~ /LogStruct::Log::([A-Za-z0-9_]+)::([A-Za-z0-9_]+LogEvent)/
+              log_class_name = $1
+              type_alias_name = $2
+
+              # Try to get the type alias from the log class
+              log_class = begin
+                Object.const_get("LogStruct::Log::#{log_class_name}") # rubocop:disable Sorbet/ConstantsFromStrings
+              rescue
+                nil
+              end
+              if log_class&.const_defined?(type_alias_name)
+                # Try to resolve the type alias through the class hierarchy
+                begin
+                  # Look at the type alias to extract the enum values
+                  # This is specific to LogStruct's enum pattern where the type alias is defined using T.any()
+                  # For this to work, we need to open up the class and extract the type alias content
+
+                  # Check if there are any constants in the LogEvent module that have this value in their name
+                  enum_module.constants.each do |const_name| # rubocop:disable Sorbet/ConstantsFromStrings
+                    # Check if this constant is used in the type definition at all
+                    potential_match = "#{base_enum}::#{const_name}"
+                    if type_str.include?(potential_match)
+                      enum_values << const_name.to_s
+                    end
+                  end
+                rescue => e
+                  # Log the error for debugging but continue with what we have
+                  puts "Error resolving type alias #{type_alias_name}: #{e.message}" if ENV["DEBUG"]
+                end
+              end
+            end
+
+            result[:enum_values] = enum_values unless enum_values.empty?
+          else
+            # Handle other types of unions that aren't enum-based
+            result[:type] = "any"
+          end
+        # Standard type handling for simple types
+        elsif type_str.include?("LogStruct::LogLevel")
           result[:type] = "enum"
           result[:values] = "LogLevel"
         elsif type_str.include?("LogStruct::Source")
@@ -270,7 +341,7 @@ module LogStruct
 
         # Uncomment for debugging
         # puts "Detected type: #{result[:type]}"
-        # puts "Item type: #{result[:item_type]}" if result[:item_type]
+        # puts "Enum values: #{result[:enum_values]}" if result[:enum_values]
 
         result
       end
@@ -280,6 +351,39 @@ module LogStruct
         case field_info[:type]
         when "enum"
           field_info[:values]
+        when "enum_union"
+          # Handle union of enum values
+          if field_info[:base_enum] && field_info[:enum_values]
+            # Create a union type like: LogEvent.IP_SPOOF | LogEvent.CSRF_VIOLATION | LogEvent.BLOCKED_HOST
+            field_info[:enum_values].map do |value|
+              # Get the Ruby enum object for the given value name (e.g., LogEvent::IPSpoof)
+              enum_class = case field_info[:base_enum]
+              when "LogEvent" then LogStruct::LogEvent
+              when "LogLevel" then LogStruct::LogLevel
+              when "Source" then LogStruct::Source
+              else nil
+              end
+
+              if enum_class
+                # Look up the actual enum value to get its serialized form
+                enum_value = begin
+                  enum_class.const_get(value)
+                rescue NameError
+                  nil
+                end
+
+                # Convert to TypeScript enum constant (serialized value -> uppercase)
+                serialized = enum_value&.serialize&.upcase || value.upcase
+                "#{field_info[:base_enum]}.#{serialized}"
+              else
+                # Fallback if we can't find the enum class
+                "#{field_info[:base_enum]}.#{value.upcase}"
+              end
+            end.join(" | ")
+          else
+            # Fallback to the base enum if we couldn't extract specific values
+            field_info[:base_enum] || "any"
+          end
         when "string"
           if field_info[:format] == "date-time"
           end

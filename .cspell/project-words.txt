@@ -6,6 +6,7 @@ bytesize
 carrierwave
 creds
 dalli
+favicons
 gettime
 Healthcheck
 Honeybadger
