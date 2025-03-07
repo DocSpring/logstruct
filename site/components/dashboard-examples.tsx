@@ -21,7 +21,7 @@ const chartColors = {
     line: '#3373fa', // 10% brighter than original
   },
   lightBlue: {
-    area: '#2d496b', // keeping this one as is (perfect)
+    area: '#2d496b',
     line: '#60a8fa',
   },
   mediumBlue: {

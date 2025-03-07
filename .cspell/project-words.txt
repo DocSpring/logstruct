@@ -19,6 +19,8 @@ LogStruct
 metaprogramming
 nilable
 optparse
+pentester
+pentesters
 procs
 progname
 railtie

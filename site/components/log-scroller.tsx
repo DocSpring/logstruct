@@ -85,7 +85,22 @@ export function LogScroller() {
 
   return (
     <div
-      className="w-full h-[375px] bg-black rounded-lg overflow-hidden"
+      className="w-full h-[375px] bg-black rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out"
+      style={{
+        transform: "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)",
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)',
+        transformOrigin: 'center center',
+        marginLeft: '-40px', // Shift more to the left
+        marginRight: '80px', // Increase right margin to compensate
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = "perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)";
+        e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35), -8px 8px 20px rgba(0, 0, 0, 0.15)';
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.transform = "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)";
+        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)';
+      }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => {
         setIsPaused(false);
@@ -97,45 +112,76 @@ export function LogScroller() {
         }, 100);
       }}
     >
-      <div className="relative flex items-center bg-[#393937] px-6 py-2 w-full">
+      <div 
+        className="relative flex items-center bg-[#393937] px-6 py-2 w-full"
+        style={{
+          borderBottom: '1px solid rgba(0, 0, 0, 0.3)',
+          boxShadow: '0 1px 0 rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <div className="absolute left-3 flex space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="w-3 h-3 rounded-full bg-red-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
+          <div className="w-3 h-3 rounded-full bg-yellow-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
+          <div className="w-3 h-3 rounded-full bg-green-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
         </div>
-        <div className="w-full text-center text-[#b5b5b3] font-extrabold text-xs font-sans">
+        <div 
+          className="w-full text-center text-[#b5b5b3] font-extrabold text-xs font-sans"
+          style={{ 
+            textShadow: '0 1px 0 rgba(0, 0, 0, 0.3)',
+            letterSpacing: '0.5px'
+          }}
+        >
           Rails Server Logs
         </div>
       </div>
 
-      <div
-        ref={scrollerRef}
-        className="h-[333px] flex flex-col overflow-auto px-6 py-2 bg-[#111421] relative"
-      >
-        <div className="flex-grow w-full">
-          {logs.length > 0 ? (
-            <SyntaxHighlighter
-              language="json"
-              style={atomDark}
-              lineProps={{
-                style: { wordBreak: 'normal', whiteSpace: 'pre-wrap' },
-              }}
-              wrapLines
-              wrapLongLines
-              customStyle={{
-                fontSize: '11px',
-                backgroundColor: '#111421',
-                padding: '12px',
-                borderRadius: '0px',
-                minHeight: '300px',
-              }}
-            >
-              {logs.join('\n\n')}
-            </SyntaxHighlighter>
-          ) : (
-            <div className="w-full h-[300px]"></div>
-          )}
+      {/* Container with relative positioning for the scrollable content and overlay */}
+      <div className="relative h-[333px]">
+        {/* Scrollable content */}
+        <div
+          ref={scrollerRef}
+          className="h-full flex flex-col overflow-auto px-6 py-2 bg-[#111421]"
+          style={{
+            backgroundImage: 'linear-gradient(to bottom, rgba(20, 22, 36, 0.8) 0%, rgba(17, 20, 33, 1) 20%)',
+            boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.3)',
+          }}
+        >
+          <div className="flex-grow w-full">
+            {logs.length > 0 ? (
+              <SyntaxHighlighter
+                language="json"
+                style={atomDark}
+                lineProps={{
+                  style: { wordBreak: 'normal', whiteSpace: 'pre-wrap' },
+                }}
+                wrapLines
+                wrapLongLines
+                customStyle={{
+                  fontSize: '11px',
+                  backgroundColor: 'transparent',
+                  padding: '12px',
+                  borderRadius: '0px',
+                  minHeight: '300px',
+                  textShadow: '0 1px 0 rgba(0, 0, 0, 0.7)',
+                  letterSpacing: '0.2px',
+                }}
+              >
+                {logs.join('\n\n')}
+              </SyntaxHighlighter>
+            ) : (
+              <div className="w-full h-[300px]"></div>
+            )}
+          </div>
         </div>
+        
+        {/* Reflection overlay - placed outside the scrollable div but inside the relative container */}
+        <div 
+          className="absolute inset-0 pointer-events-none" 
+          style={{
+            background: 'linear-gradient(110deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 45%, rgba(255,255,255,0) 85%, rgba(255,255,255,0.02) 100%)',
+            zIndex: 10,
+          }}
+        ></div>
       </div>
     </div>
   );
