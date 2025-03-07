@@ -40,6 +40,14 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Test that it includes the union type
     assert_includes content, "export type Log =", "Should export Log union type"
+    
+    # Check if the enums JSON file was created
+    enums_json_file = File.join(File.dirname(@output_ts_file), "sorbet-enums.json")
+    assert_path_exists enums_json_file, "Enums JSON file should have been created"
+    
+    # Check if the log structs JSON file was created
+    structs_json_file = File.join(File.dirname(@output_ts_file), "sorbet-log-structs.json")
+    assert_path_exists structs_json_file, "Log structs JSON file should have been created"
   end
 
   def test_generate_typescript_definitions
@@ -321,5 +329,88 @@ class LogStructLogTypesExporterTest < Minitest::Test
      "LogType.ACTIONMAILER", "LogType.CARRIERWAVE"].each do |log_type|
       assert_includes all_types_content, log_type, "AllLogTypes array should contain #{log_type}"
     end
+  end
+  
+  def test_exports_enums_to_json
+    # Get the temp directory for output
+    enums_json_file = File.join(@temp_dir, "sorbet-enums.json")
+    
+    # Get the data
+    data = @exporter.send(:generate_data)
+    
+    # Export enums to JSON
+    @exporter.export_enums_to_json(data[:enums], enums_json_file)
+    
+    # Verify file exists
+    assert_path_exists enums_json_file, "Enums JSON file should have been created"
+    
+    # Read and parse the JSON
+    json_data = JSON.parse(File.read(enums_json_file))
+    
+    # Verify structure
+    assert json_data.is_a?(Hash), "JSON data should be a hash"
+    
+    # Check for specific enums
+    assert json_data.key?("LogStruct::LogLevel"), "Should include LogStruct::LogLevel"
+    assert json_data.key?("LogStruct::Source"), "Should include LogStruct::Source"
+    assert json_data.key?("LogStruct::LogEvent"), "Should include LogStruct::LogEvent"
+    
+    # Check that values are properly structured
+    log_level_values = json_data["LogStruct::LogLevel"]
+    assert log_level_values.is_a?(Array), "Values should be an array"
+    assert log_level_values.first.is_a?(Hash), "Each value should be a hash"
+    assert log_level_values.first.key?("name"), "Each value should have a name"
+    assert log_level_values.first.key?("value"), "Each value should have a value"
+    
+    # Check for specific enum values
+    log_level_values.each do |value|
+      if value["name"] == "Info"
+        assert_equal "info", value["value"], "Info enum should serialize as 'info'"
+      end
+    end
+  end
+  
+  def test_exports_log_structs_to_json
+    # Get the temp directory for output
+    structs_json_file = File.join(@temp_dir, "sorbet-log-structs.json")
+    
+    # Get the data
+    data = @exporter.send(:generate_data)
+    
+    # Export log structs to JSON
+    @exporter.export_log_structs_to_json(data[:logs], structs_json_file)
+    
+    # Verify file exists
+    assert_path_exists structs_json_file, "Log structs JSON file should have been created"
+    
+    # Read and parse the JSON
+    json_data = JSON.parse(File.read(structs_json_file))
+    
+    # Verify structure
+    assert json_data.is_a?(Hash), "JSON data should be a hash"
+    
+    # Check for specific structs
+    assert json_data.key?("LogStruct::Log::Request"), "Should include LogStruct::Log::Request"
+    assert json_data.key?("LogStruct::Log::Error"), "Should include LogStruct::Log::Error"
+    assert json_data.key?("LogStruct::Log::Plain"), "Should include LogStruct::Log::Plain"
+    
+    # Check struct structure
+    request_struct = json_data["LogStruct::Log::Request"]
+    assert_equal "Request", request_struct["name"], "Should have correct name"
+    assert request_struct.key?("fields"), "Should have fields"
+    
+    # Check field structure
+    fields = request_struct["fields"]
+    assert fields.is_a?(Hash), "Fields should be a hash"
+    
+    # Check specific fields
+    assert fields.key?("path"), "Should have path field"
+    assert fields.key?("status"), "Should have status field"
+    assert fields.key?("duration"), "Should have duration field"
+    
+    # Check field types
+    assert_equal "string", fields["path"]["type"], "Path should be a string"
+    assert_equal "integer", fields["status"]["type"], "Status should be an integer"
+    assert_equal "number", fields["duration"]["type"], "Duration should be a number"
   end
 end

@@ -28,6 +28,9 @@ module LogStruct
       # Public method to export TypeScript definitions and JSON key mappings to files
       sig { void }
       def export
+        # Get the data once and reuse for all exports
+        data = generate_data
+
         # Export TypeScript definitions
         puts "Exporting LogStruct types to TypeScript..."
         puts "Output file: #{@output_ts_file}"
@@ -36,7 +39,7 @@ module LogStruct
         FileUtils.mkdir_p(File.dirname(@output_ts_file))
 
         # Generate the TypeScript content
-        content = generate_typescript_definitions
+        content = generate_typescript(data)
 
         # Write to file
         File.write(@output_ts_file, content)
@@ -45,6 +48,9 @@ module LogStruct
 
         # Export LOG_KEYS mapping to JSON
         export_keys_to_json
+
+        # Export enums and log structs to JSON
+        export_data_to_json(data)
       end
 
       # Export LOG_KEYS mapping to a JSON file
@@ -70,15 +76,108 @@ module LogStruct
         puts "Exported key mappings to #{output_json_file}"
       end
 
+      # Export both enums and log structs to JSON files
+      sig { params(data: T::Hash[Symbol, T.untyped]).void }
+      def export_data_to_json(data)
+        # Export enums to JSON
+        export_enums_to_json(data[:enums])
+        
+        # Export log structs to JSON
+        export_log_structs_to_json(data[:logs])
+      end
+      
+      # Export Sorbet enums to a JSON file
+      sig { params(enums_data: T::Hash[Symbol, T::Array[String]], output_json_file: T.nilable(String)).void }
+      def export_enums_to_json(enums_data, output_json_file = nil)
+        # Default to the same directory as the TypeScript file
+        output_json_file ||= File.join(File.dirname(@output_ts_file), "sorbet-enums.json")
+
+        puts "Exporting Sorbet enums to JSON..."
+        puts "Output file: #{output_json_file}"
+
+        # Create output directory if needed
+        FileUtils.mkdir_p(File.dirname(output_json_file))
+
+        # Format enum data for JSON
+        json_enum_data = {}
+        
+        # For each enum, get the full class name and values
+        T::Enum.subclasses
+          .select { |klass| klass.name.to_s.start_with?("LogStruct::") }
+          .each do |enum_class|
+            # Get the full enum name (e.g., "LogStruct::LogLevel")
+            full_name = enum_class.name.to_s
+            
+            # Get the simple name (e.g., "LogLevel")
+            simple_name = full_name.split("::").last
+            
+            # Skip if we don't have data for this enum
+            next unless enums_data.key?(simple_name.to_sym)
+            
+            # Map enum values to their constant names
+            values_with_names = enum_class.values.map do |value|
+              constant_name = enum_class.constants.find { |const_name| enum_class.const_get(const_name) == value }&.to_s
+              serialized = value.serialize
+              
+              # Return a hash with name and value
+              {
+                name: constant_name,
+                value: serialized
+              }
+            end
+            
+            # Add to the JSON data
+            json_enum_data[full_name] = values_with_names
+          end
+
+        # Write to file with pretty formatting
+        File.write(output_json_file, JSON.pretty_generate(json_enum_data))
+
+        puts "Exported Sorbet enums to #{output_json_file}"
+      end
+
+      # Export LogStruct log structs to a JSON file
+      sig { params(logs_data: T::Hash[String, T::Hash[Symbol, T.untyped]], output_json_file: T.nilable(String)).void }
+      def export_log_structs_to_json(logs_data, output_json_file = nil)
+        # Default to the same directory as the TypeScript file
+        output_json_file ||= File.join(File.dirname(@output_ts_file), "sorbet-log-structs.json")
+
+        puts "Exporting LogStruct log structs to JSON..."
+        puts "Output file: #{output_json_file}"
+
+        # Create output directory if needed
+        FileUtils.mkdir_p(File.dirname(output_json_file))
+
+        # Format structs data for JSON
+        json_structs_data = {}
+        
+        # Process each log struct class
+        logs_data.each do |struct_name, struct_info|
+          # Get the full class name
+          full_name = "LogStruct::Log::#{struct_name}"
+          
+          # Add to the structs data
+          json_structs_data[full_name] = {
+            name: struct_name,
+            fields: struct_info[:fields].transform_keys(&:to_s)
+          }
+        end
+
+        # Write to file with pretty formatting
+        File.write(output_json_file, JSON.pretty_generate(json_structs_data))
+
+        puts "Exported LogStruct log structs to #{output_json_file}"
+      end
+
       # Public method to generate TypeScript definitions as a string
       # This is the method we can test easily without file I/O
       sig { returns(String) }
       def generate_typescript_definitions
         # Get the data
-        log_types_data = generate_data
+        data = generate_data
 
         # Transform data to TypeScript
-        generate_typescript(log_types_data)
+        generate_typescript(data)
       end
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
