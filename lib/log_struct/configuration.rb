@@ -18,7 +18,7 @@ module LogStruct
     # -------------------------------------------------------------------------------------
 
     prop :enabled, T::Boolean, default: true
-    prop :environments, T::Array[Symbol], factory: -> { [:test, :production] }
+    prop :enabled_environments, T::Array[Symbol], factory: -> { [:test, :production] }
     prop :local_environments, T::Array[Symbol], factory: -> { [:development, :test] }
     const :integrations, ConfigStruct::Integrations, factory: -> { ConfigStruct::Integrations.new }
     const :filters, ConfigStruct::Filters, factory: -> { ConfigStruct::Filters.new }

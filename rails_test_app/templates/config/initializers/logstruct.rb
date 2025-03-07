@@ -6,7 +6,7 @@ LogStruct.configure do |config|
   config.enabled = true
 
   # Specify which environments to enable in
-  config.environments = [:development, :test, :production]
+  config.enabled_environments = [:development, :test, :production]
 
   # Specify which environments are considered local/development
   config.local_environments = [:development, :test]

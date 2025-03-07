@@ -28,7 +28,7 @@ module Examples
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: environment_configuration
       # ----------------------------------------------------------
-      config.environments = [:test, :production]
+      config.enabled_environments = [:test, :production]
 
       # LogStruct will raise errors in local environments,
       # and log or report errors in production.
