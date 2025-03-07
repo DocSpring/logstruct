@@ -17,6 +17,13 @@ import {
   ActiveStorageLog,
   ActionMailerLog,
   CarrierWaveLog,
+  // Import the event type arrays for each log type
+  SecurityLogEvents,
+  ActiveJobLogEvents,
+  ShrineLogEvents,
+  ActiveStorageLogEvents,
+  ActionMailerLogEvents,
+  CarrierWaveLogEvents,
 } from './log-types';
 import logKeysMap from './log-keys.json';
 
@@ -51,6 +58,69 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   /**
+   * Select a valid event for a given log type
+   */
+  private getRandomEventForLogType(logType: LogType): LogEvent {
+    // Use the auto-generated event arrays from our TypeScript definitions
+    switch (logType) {
+      case LogType.REQUEST:
+        return LogEvent.REQUEST;
+      case LogType.ACTIVEJOB:
+        return this.sample(ActiveJobLogEvents);
+      case LogType.PLAIN:
+        return LogEvent.LOG;
+      case LogType.ERROR:
+        return LogEvent.ERROR;
+      case LogType.SECURITY:
+        return this.sample(SecurityLogEvents);
+      case LogType.SHRINE:
+        return this.sample(ShrineLogEvents);
+      case LogType.SIDEKIQ:
+        return LogEvent.LOG;
+      case LogType.ACTIVESTORAGE:
+        return this.sample(ActiveStorageLogEvents);
+      case LogType.ACTIONMAILER:
+        return this.sample(ActionMailerLogEvents);
+      case LogType.CARRIERWAVE:
+        return this.sample(CarrierWaveLogEvents);
+      default:
+        logType satisfies never;
+        throw new Error(`Unhandled log type: ${logType}`);
+    }
+  }
+
+  /**
+   * Get the source for a specific log type
+   */
+  private getSourceForLogType(logType: LogType): Source {
+    switch (logType) {
+      case LogType.REQUEST:
+        return Source.RAILS;
+      case LogType.ACTIVEJOB:
+        return Source.JOB;
+      case LogType.SECURITY:
+        return Source.SECURITY;
+      case LogType.SHRINE:
+        return Source.SHRINE;
+      case LogType.SIDEKIQ:
+        return Source.SIDEKIQ;
+      case LogType.ACTIVESTORAGE:
+        return Source.STORAGE;
+      case LogType.ACTIONMAILER:
+        return Source.MAILER;
+      case LogType.CARRIERWAVE:
+        return Source.CARRIERWAVE;
+      case LogType.PLAIN:
+      case LogType.ERROR:
+        // These can have any source
+        return this.randomEnum(Source);
+      default:
+        logType satisfies never;
+        throw new Error(`Unhandled log type: ${logType}`);
+    }
+  }
+
+  /**
    * Generate a typed log based on log type
    */
   generateTypedLog(logType: LogType): Partial<Log> {
@@ -63,12 +133,16 @@ export class LogGenerator extends RandomDataGenerator {
       level = Math.random() > 0.3 ? LogLevel.WARN : LogLevel.ERROR;
     }
 
-    // Create a log with common fields
-    const log: Partial<Log> = {
+    // Get valid source and event based on log type
+    const source = this.getSourceForLogType(logType);
+    const event = this.getRandomEventForLogType(logType);
+
+    // Create a base log with timestamp and level
+    const log = {
       timestamp: new Date().toISOString(),
-      level: level,
-      source: this.randomEnum(Source),
-      event: this.randomEnum(LogEvent),
+      level,
+      source,
+      event,
     };
 
     // Add type-specific fields
@@ -94,7 +168,8 @@ export class LogGenerator extends RandomDataGenerator {
       case LogType.CARRIERWAVE:
         return this.generateCarrierWaveLog(log as Partial<CarrierWaveLog>);
       default:
-        return log;
+        logType satisfies never;
+        throw new Error(`Unhandled log type: ${logType}`);
     }
   }
 
@@ -136,22 +211,27 @@ export class LogGenerator extends RandomDataGenerator {
   private generateActiveJobLog(
     log: Partial<ActiveJobLog>,
   ): Partial<ActiveJobLog> {
-    log.job_id = this.randomHex(8);
-    log.job_class = this.sample(SampleData.JOB_CLASSES);
-    log.queue_name = ['default', 'critical', 'low', 'mailers'][
-      this.randomInt(0, 3)
-    ];
-    log.arguments = [
-      this.randomInt(1, 100),
-      { action: this.sample(['create', 'update', 'process']) },
-    ];
-    log.duration = this.randomDuration();
-    log.data = {
-      retries: this.randomInt(0, 3),
-      scheduled_at: this.randomTimestamp(),
+    // Add specific fields for ActiveJobLog
+    const jobLog: Partial<ActiveJobLog> = {
+      ...log,
+      job_id: this.randomHex(8),
+      job_class: this.sample(SampleData.JOB_CLASSES),
+      queue_name: ['default', 'critical', 'low', 'mailers'][
+        this.randomInt(0, 3)
+      ],
+      arguments: [
+        this.randomInt(1, 100),
+        { action: this.sample(['create', 'update', 'process']) },
+      ],
+      // Only set duration if it's a FINISH event
+      duration: log.event === LogEvent.FINISH ? this.randomDuration() : 0,
+      data: {
+        retries: this.randomInt(0, 3),
+        scheduled_at: this.randomTimestamp(),
+      },
     };
 
-    return log;
+    return jobLog;
   }
 
   private generatePlainLog(log: Partial<PlainLog>): Partial<PlainLog> {
@@ -212,49 +292,99 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private generateSidekiqLog(log: Partial<SidekiqLog>): Partial<SidekiqLog> {
-    log.process_id = this.randomInt(1000, 9999);
-    log.thread_id = this.randomHex(8);
-    log.message = 'Job processing';
-    log.context = {
-      queue: 'default',
-      job_id: this.randomHex(12),
+    // Ensure we have the right source and event for SidekiqLog
+    const sidekiqLog: Partial<SidekiqLog> = {
+      ...log,
+      source: Source.SIDEKIQ,
+      event: LogEvent.LOG,
+      process_id: this.randomInt(1000, 9999),
+      thread_id: this.randomHex(8),
+      message: 'Job processing',
+      context: {
+        queue: 'default',
+        job_id: this.randomHex(12),
+      },
     };
 
-    return log;
+    return sidekiqLog;
   }
 
   private generateActiveStorageLog(
     log: Partial<ActiveStorageLog>,
   ): Partial<ActiveStorageLog> {
-    log.operation = 'upload';
-    log.storage = this.sample(SampleData.STORAGE_SERVICES);
-    log.file_id = this.randomHex(10);
-    log.filename = this.sample(SampleData.FILE_NAMES);
-    log.mime_type = this.sample(SampleData.FILE_TYPES);
-    log.size = this.randomInt(1000, 1000000);
-    log.metadata = { width: 800, height: 600 };
-    log.duration = this.randomDuration();
-    log.checksum = this.randomHex(32);
-    log.exist = true;
-    log.url = `https://storage.example.com/${this.randomHex(8)}`;
-    log.prefix = 'uploads';
-    log.range = 'bytes=0-1000';
+    // Determine the event first if not provided
+    const event =
+      log.event ||
+      this.sample([
+        LogEvent.UPLOAD,
+        LogEvent.DOWNLOAD,
+        LogEvent.DELETE,
+        LogEvent.EXIST,
+        LogEvent.METADATA,
+        LogEvent.STREAM,
+        LogEvent.URL,
+        LogEvent.UNKNOWN,
+      ]);
 
-    return log;
+    // Set appropriate operation based on event
+    let operation = 'upload';
+    if (event === LogEvent.DOWNLOAD || event === LogEvent.STREAM) {
+      operation = 'download';
+    } else if (event === LogEvent.DELETE) {
+      operation = 'delete';
+    } else if (event === LogEvent.METADATA) {
+      operation = 'metadata';
+    } else if (event === LogEvent.EXIST) {
+      operation = 'exists';
+    } else if (event === LogEvent.URL) {
+      operation = 'url';
+    }
+
+    // Ensure we have the right source and one of the valid events
+    const storageLog: Partial<ActiveStorageLog> = {
+      ...log,
+      source: Source.STORAGE,
+      event,
+      operation,
+      storage: this.sample(SampleData.STORAGE_SERVICES),
+      file_id: this.randomHex(10),
+      filename: this.sample(SampleData.FILE_NAMES),
+      mime_type: this.sample(SampleData.FILE_TYPES),
+      size: this.randomInt(1000, 1000000),
+      metadata: { width: 800, height: 600 },
+      duration: this.randomDuration(),
+      checksum: this.randomHex(32),
+      exist: true,
+      url: `https://storage.example.com/${this.randomHex(8)}`,
+      prefix: 'uploads',
+      range: 'bytes=0-1000',
+    };
+
+    return storageLog;
   }
 
   private generateActionMailerLog(
     log: Partial<ActionMailerLog>,
   ): Partial<ActionMailerLog> {
-    log.to = [this.randomEmail()];
-    log.from = 'notifications@example.com';
-    log.subject = 'Important notification';
-    log.data = {
-      mailer: this.sample(SampleData.MAILER_CLASSES),
-      action: this.sample(SampleData.MAILER_ACTIONS),
+    // Determine the event first if not provided
+    const event =
+      log.event || this.sample([LogEvent.DELIVERY, LogEvent.DELIVERED]);
+
+    // Ensure we have the right source and one of the valid events
+    const mailerLog: Partial<ActionMailerLog> = {
+      ...log,
+      source: Source.MAILER,
+      event,
+      to: [this.randomEmail()],
+      from: 'notifications@example.com',
+      subject: 'Important notification',
+      data: {
+        mailer: this.sample(SampleData.MAILER_CLASSES),
+        action: this.sample(SampleData.MAILER_ACTIONS),
+      },
     };
 
-    return log;
+    return mailerLog;
   }
 
   private generateCarrierWaveLog(
@@ -292,6 +422,10 @@ export class LogGenerator extends RandomDataGenerator {
       this.randomInt(1, 100),
       { action: this.sample(['create', 'update', 'process']) },
     ];
+    const data = {
+      retries: this.randomInt(0, 3),
+      scheduled_at: this.randomTimestamp(),
+    };
 
     // Enqueue event
     const enqueueLog: Partial<ActiveJobLog> = {
@@ -303,6 +437,8 @@ export class LogGenerator extends RandomDataGenerator {
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
+      duration: 0,
+      data,
     };
 
     // Start event (happens a little later)
@@ -319,6 +455,8 @@ export class LogGenerator extends RandomDataGenerator {
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
+      duration: 0,
+      data,
     };
 
     // Finish event (with duration)
@@ -334,6 +472,7 @@ export class LogGenerator extends RandomDataGenerator {
       queue_name: queueName,
       arguments: args,
       duration: duration,
+      data,
     };
 
     return [enqueueLog, startLog, finishLog];

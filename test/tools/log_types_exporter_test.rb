@@ -247,4 +247,45 @@ class LogStructLogTypesExporterTest < Minitest::Test
       "source field should be Source.JOB specifically, not just Source"
     refute_includes source_line, "Source;", "source field should not be the general Source enum"
   end
+  
+  def test_exports_log_event_type_arrays
+    # Test that we export valid event type arrays for each log type
+    content = @exporter.generate_typescript_definitions
+    
+    # Check Security log events array
+    security_array_match = content.match(/export const SecurityLogEvents: Array<(.*?)> = \[(.*?)\]/m)
+    assert security_array_match, "Should export a SecurityLogEvents array"
+    
+    # Check the union type for the array
+    security_type = security_array_match[1]
+    ["LogEvent.BLOCKED_HOST", "LogEvent.CSRF_VIOLATION", "LogEvent.IP_SPOOF"].each do |event|
+      assert_includes security_type, event, "SecurityLogEvents type should contain #{event}"
+    end
+    
+    # Check the array content
+    security_array_content = security_array_match[2]
+    ["LogEvent.BLOCKED_HOST", "LogEvent.CSRF_VIOLATION", "LogEvent.IP_SPOOF"].each do |event|
+      assert_includes security_array_content, event, "SecurityLogEvents array should contain #{event}"
+    end
+    
+    # Check ActiveJob log events array
+    activejob_array_match = content.match(/export const ActiveJobLogEvents: Array<(.*?)> = \[(.*?)\]/m)
+    assert activejob_array_match, "Should export an ActiveJobLogEvents array"
+    
+    # Check the array content
+    activejob_array_content = activejob_array_match[2]
+    ["LogEvent.ENQUEUE", "LogEvent.START", "LogEvent.FINISH", "LogEvent.SCHEDULE"].each do |event|
+      assert_includes activejob_array_content, event, "ActiveJobLogEvents array should contain #{event}"
+    end
+    
+    # Check ActiveStorage log events array
+    storage_array_match = content.match(/export const ActiveStorageLogEvents: Array<(.*?)> = \[(.*?)\]/m)
+    assert storage_array_match, "Should export an ActiveStorageLogEvents array"
+    
+    # Check the array content
+    storage_array_content = storage_array_match[2]
+    ["LogEvent.UPLOAD", "LogEvent.DOWNLOAD", "LogEvent.DELETE", "LogEvent.STREAM"].each do |event|
+      assert_includes storage_array_content, event, "ActiveStorageLogEvents array should contain #{event}"
+    end
+  end
 end

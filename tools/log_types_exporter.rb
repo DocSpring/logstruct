@@ -146,8 +146,33 @@ module LogStruct
 
         # Add interface for each log type
         ts_content << "// Log Interfaces"
+        
+        # Collect all event union types to generate arrays later
+        log_event_arrays = {}
+        
         data[:logs].each do |log_type, log_info|
           ts_content << "export interface #{log_type}Log {"
+          
+          # Collect valid event types if this log has an enum_union for events
+          event_field_info = log_info[:fields][:event]
+          if event_field_info && 
+             event_field_info[:type] == "enum_union" &&
+             event_field_info[:base_enum] == "LogEvent" && 
+             event_field_info[:enum_values]&.any?
+            
+            log_event_arrays[log_type] = event_field_info[:enum_values].map do |value|
+              # Map Ruby enum names to TypeScript enum values (e.g., "IPSpoof" -> "LogEvent.IP_SPOOF")
+              case value
+              when "IPSpoof" then "LogEvent.IP_SPOOF"
+              when "CSRFViolation" then "LogEvent.CSRF_VIOLATION" 
+              else
+                # Default conversion of StudlyCaps to SCREAMING_SNAKE_CASE
+                "LogEvent.#{value.gsub(/([a-z])([A-Z])/, '\1_\2').upcase}"
+              end
+            end
+          end
+          
+          # Output all fields with types
           log_info[:fields].each do |field_name, field_info|
             type_str = typescript_type_for(field_info)
             optional = field_info[:optional] ? "?" : ""
@@ -163,6 +188,20 @@ module LogStruct
         log_types = data[:logs].keys.map { |type| "  | #{type}Log" }
         ts_content << log_types.join("\n")
         ts_content << ";"
+        ts_content << ""
+        
+        # Add event arrays for each log type that has an enum_union
+        ts_content << "// Event type arrays for log types"
+        log_event_arrays.each do |log_type, event_values|
+          # Create a type-safe array with a specific union type for each log type's events
+          union_type = event_values.join(" | ")
+          ts_content << "export const #{log_type}LogEvents: Array<#{union_type}> = ["
+          event_values.each do |event|
+            ts_content << "  #{event},"
+          end
+          ts_content << "];"
+          ts_content << ""
+        end
 
         # Return the TypeScript content as a string
         ts_content.join("\n")
