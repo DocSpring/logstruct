@@ -175,8 +175,10 @@ module LogStruct
     end
 
     # Serializes Log (or string) into JSON
-    sig { params(severity: Integer, time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
+    sig { params(severity: T.any(String, Symbol, Integer), time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
+      level_enum = LogLevel.from_severity(severity)
+
       data = log_value_to_hash(log_value, time: time)
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
@@ -186,7 +188,7 @@ module LogStruct
       data[:src] ||= Source::App
       data[:evt] ||= LogEvent::Log
       data[:ts] ||= time.iso8601(3)
-      data[:lvl] ||= LogLevel.from_severity_int(severity) # Just a fallback, Log structs store their own level field
+      data[:lvl] ||= level_enum # Just a fallback, Log structs store their own level field
       data[:prog] = progname if progname.present?
 
       generate_json(data)
