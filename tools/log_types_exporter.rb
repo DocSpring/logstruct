@@ -146,32 +146,32 @@ module LogStruct
 
         # Add interface for each log type
         ts_content << "// Log Interfaces"
-        
+
         # Collect all event union types to generate arrays later
         log_event_arrays = {}
-        
+
         data[:logs].each do |log_type, log_info|
           ts_content << "export interface #{log_type}Log {"
-          
+
           # Collect valid event types if this log has an enum_union for events
           event_field_info = log_info[:fields][:event]
-          if event_field_info && 
-             event_field_info[:type] == "enum_union" &&
-             event_field_info[:base_enum] == "LogEvent" && 
-             event_field_info[:enum_values]&.any?
-            
+          if event_field_info &&
+              event_field_info[:type] == "enum_union" &&
+              event_field_info[:base_enum] == "LogEvent" &&
+              event_field_info[:enum_values]&.any?
+
             log_event_arrays[log_type] = event_field_info[:enum_values].map do |value|
               # Map Ruby enum names to TypeScript enum values (e.g., "IPSpoof" -> "LogEvent.IP_SPOOF")
               case value
               when "IPSpoof" then "LogEvent.IP_SPOOF"
-              when "CSRFViolation" then "LogEvent.CSRF_VIOLATION" 
+              when "CSRFViolation" then "LogEvent.CSRF_VIOLATION"
               else
                 # Default conversion of StudlyCaps to SCREAMING_SNAKE_CASE
                 "LogEvent.#{value.gsub(/([a-z])([A-Z])/, '\1_\2').upcase}"
               end
             end
           end
-          
+
           # Output all fields with types
           log_info[:fields].each do |field_name, field_info|
             type_str = typescript_type_for(field_info)
@@ -189,7 +189,7 @@ module LogStruct
         ts_content << log_types.join("\n")
         ts_content << ";"
         ts_content << ""
-        
+
         # Add event arrays for each log type that has an enum_union
         ts_content << "// Event type arrays for log types"
         log_event_arrays.each do |log_type, event_values|
@@ -452,7 +452,6 @@ module LogStruct
               when "LogEvent" then LogStruct::LogEvent
               when "LogLevel" then LogStruct::LogLevel
               when "Source" then LogStruct::Source
-              else nil
               end
 
               if enum_class

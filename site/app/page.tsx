@@ -136,8 +136,8 @@ export default function Home() {
               <h3 className="text-xl font-semibold">Type-safe with Sorbet</h3>
             </div>
             <p className="text-neutral-600 dark:text-neutral-400">
-              LogStruct is fully type-checked with Sorbet so your logs are
-              always structured correctly and have the right data.
+              LogStruct is fully type-checked with Sorbet. Your logs are
+              guaranteed to have the correct structure and valid data.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">

@@ -211,8 +211,8 @@ export class LogGenerator extends RandomDataGenerator {
   private generateActiveJobLog(
     log: Partial<ActiveJobLog>,
   ): Partial<ActiveJobLog> {
-    // Add specific fields for ActiveJobLog
-    const jobLog: Partial<ActiveJobLog> = {
+    // Create the basic job log without duration
+    const baseJobLog: Partial<ActiveJobLog> = {
       ...log,
       job_id: this.randomHex(8),
       job_class: this.sample(SampleData.JOB_CLASSES),
@@ -223,13 +223,17 @@ export class LogGenerator extends RandomDataGenerator {
         this.randomInt(1, 100),
         { action: this.sample(['create', 'update', 'process']) },
       ],
-      // Only set duration if it's a FINISH event
-      duration: log.event === LogEvent.FINISH ? this.randomDuration() : 0,
       data: {
         retries: this.randomInt(0, 3),
         scheduled_at: this.randomTimestamp(),
       },
     };
+
+    // Only add duration if it's a FINISH event
+    const jobLog: Partial<ActiveJobLog> =
+      log.event === LogEvent.FINISH
+        ? { ...baseJobLog, duration: this.randomDuration() }
+        : baseJobLog;
 
     return jobLog;
   }
@@ -437,7 +441,6 @@ export class LogGenerator extends RandomDataGenerator {
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
-      duration: 0,
       data,
     };
 
@@ -455,7 +458,6 @@ export class LogGenerator extends RandomDataGenerator {
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
-      duration: 0,
       data,
     };
 

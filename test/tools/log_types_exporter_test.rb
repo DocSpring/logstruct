@@ -184,6 +184,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
     # Verify we extracted the correct enum values - sort both arrays to avoid order issues
     expected_values = ["IPSpoof", "CSRFViolation", "BlockedHost"].sort
     extracted_values = type_info[:enum_values].sort
+
     assert_equal expected_values, extracted_values, "Should extract the correct enum values"
 
     # Test the resulting TypeScript type
@@ -203,9 +204,11 @@ class LogStructLogTypesExporterTest < Minitest::Test
     # Check that the SecurityLog interface has the event field with a union type
     # We don't check the exact string since the order may vary
     security_log_section = content.match(/export interface SecurityLog \{.*?\}/m)
+
     assert security_log_section, "Should find SecurityLog interface in the generated TypeScript"
 
     event_line = security_log_section[0].lines.find { |line| line.strip.start_with?("event:") }
+
     assert event_line, "SecurityLog interface should have an event field"
 
     # Verify that the event line contains all three enum values and union operators
@@ -229,6 +232,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Test the resulting TypeScript type
     ts_type = @exporter.typescript_type_for(type_info)
+
     assert_equal "Source.JOB", ts_type, "TypeScript type should be the specific enum value"
 
     # Now check that the full TypeScript generation includes this restricted type
@@ -236,54 +240,64 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Find the ActiveJobLog interface section
     job_log_section = content.match(/export interface ActiveJobLog \{.*?\}/m)
+
     assert job_log_section, "Should find ActiveJobLog interface in the generated TypeScript"
 
     # Extract the source line and check if it has the specific enum value
     source_line = job_log_section[0].lines.find { |line| line.strip.start_with?("source:") }
+
     assert source_line, "ActiveJobLog interface should have a source field"
 
     # The source field should be a specific enum value, not a generic Source enum
-    assert_equal "source: Source.JOB;", source_line.strip,
+    assert_equal "source: Source.JOB;",
+      source_line.strip,
       "source field should be Source.JOB specifically, not just Source"
     refute_includes source_line, "Source;", "source field should not be the general Source enum"
   end
-  
+
   def test_exports_log_event_type_arrays
     # Test that we export valid event type arrays for each log type
     content = @exporter.generate_typescript_definitions
-    
+
     # Check Security log events array
     security_array_match = content.match(/export const SecurityLogEvents: Array<(.*?)> = \[(.*?)\]/m)
+
     assert security_array_match, "Should export a SecurityLogEvents array"
-    
+
     # Check the union type for the array
     security_type = security_array_match[1]
+
     ["LogEvent.BLOCKED_HOST", "LogEvent.CSRF_VIOLATION", "LogEvent.IP_SPOOF"].each do |event|
       assert_includes security_type, event, "SecurityLogEvents type should contain #{event}"
     end
-    
+
     # Check the array content
     security_array_content = security_array_match[2]
+
     ["LogEvent.BLOCKED_HOST", "LogEvent.CSRF_VIOLATION", "LogEvent.IP_SPOOF"].each do |event|
       assert_includes security_array_content, event, "SecurityLogEvents array should contain #{event}"
     end
-    
+
     # Check ActiveJob log events array
     activejob_array_match = content.match(/export const ActiveJobLogEvents: Array<(.*?)> = \[(.*?)\]/m)
+
     assert activejob_array_match, "Should export an ActiveJobLogEvents array"
-    
+
     # Check the array content
     activejob_array_content = activejob_array_match[2]
+
     ["LogEvent.ENQUEUE", "LogEvent.START", "LogEvent.FINISH", "LogEvent.SCHEDULE"].each do |event|
       assert_includes activejob_array_content, event, "ActiveJobLogEvents array should contain #{event}"
     end
-    
+
     # Check ActiveStorage log events array
     storage_array_match = content.match(/export const ActiveStorageLogEvents: Array<(.*?)> = \[(.*?)\]/m)
+
     assert storage_array_match, "Should export an ActiveStorageLogEvents array"
-    
+
     # Check the array content
     storage_array_content = storage_array_match[2]
+
     ["LogEvent.UPLOAD", "LogEvent.DOWNLOAD", "LogEvent.DELETE", "LogEvent.STREAM"].each do |event|
       assert_includes storage_array_content, event, "ActiveStorageLogEvents array should contain #{event}"
     end

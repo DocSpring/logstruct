@@ -18,6 +18,7 @@ AllCops:
     - sorbet/rbi/dsl/**/*
     - sorbet/rbi/gems/**/*
     - sorbet/rbi/annotations/**/*
+    - rails_test_app/logstruct_test_app/bin/**/*
 
 Layout/MultilineHashKeyLineBreaks:
   Enabled: true
@@ -39,6 +40,8 @@ Rails/RakeEnvironment:
 Rails/Output:
   Enabled: false
 Rails/NegateInclude:
+  Enabled: false
+Rails/RefuteMethods:
   Enabled: false
 
 Performance/OpenStruct:
