@@ -34,10 +34,7 @@ export const metadata: Metadata = {
     'TypeScript',
   ],
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon.png' },
-    ]
+    icon: [{ url: '/favicon.ico' }, { url: '/favicon.png' }],
   },
 };
 

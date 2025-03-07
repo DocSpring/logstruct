@@ -106,36 +106,15 @@ class LoggingController < ApplicationController
     render json: {status: "ok", message: "Job enqueued for testing", job_id: job.job_id}
   end
 
-  # Structured logging
-  def test_structured
-    # Example of using built-in log structures for HTTP requests
-    http_log = LogStruct::Log::Request.new(
-      http_method: "GET",
-      path: "/logging/structured",
-      status: 200,
-      duration: 15.5
-    )
-    Rails.logger.info(http_log)
-
-    # Example of using log structures for exceptions (without actually raising)
-    exception_log = LogStruct::Log::Error.new(
-      err_class: "RuntimeError",
-      message: "Structured exception log example",
-      source: LogStruct::Source::App
-    )
-    Rails.logger.error(exception_log)
-
-    render json: {status: "ok", message: "Structured logging completed"}
-  end
-
   # Context and tagging
   def test_context
+    # TODO: Fix types for the tagged method
     # Test Rails' built-in tagged logging
-    Rails.logger.tagged("REQUEST_ID_123", "USER_456") do
+    T.unsafe(Rails.logger).tagged("REQUEST_ID_123", "USER_456") do
       Rails.logger.info("Message with tags")
 
       # Nested tags
-      Rails.logger.tagged("NESTED") do
+      T.unsafe(Rails.logger).tagged("NESTED") do
         Rails.logger.warn("Message with nested tags")
       end
     end

@@ -12,7 +12,7 @@ class User < ApplicationRecord
   private
 
   def log_creation
-    Rails.logger.info("User created with ID: #{id} and email: #{email}")
+    Rails.logger.info("User created with ID: #{id} and email: #{attributes["email"]}")
   end
 
   def log_update

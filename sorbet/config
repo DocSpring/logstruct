@@ -2,5 +2,5 @@
 .
 --ignore=tmp/
 --ignore=vendor/
---ignore=rails_test_app/templates/
+--ignore=rails_test_app/logstruct_test_app
 --enable-experimental-requires-ancestor

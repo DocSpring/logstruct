@@ -11,6 +11,8 @@ module LogStruct
   class Logger < ActiveSupport::Logger
     extend T::Sig
 
+    SeverityType = T.type_alias { T.any(String, Symbol, Integer) }
+
     # Initialize with the same parameters as ActiveSupport::Logger
     sig { params(logdev: T.any(String, IO, StringIO, NilClass), shift_age: T.nilable(Integer), shift_size: T.nilable(Integer), level: T.nilable(T.any(Integer, Symbol, String))).void }
     def initialize(logdev = nil, shift_age = 0, shift_size = 1048576, level: nil)
@@ -23,7 +25,7 @@ module LogStruct
 
     # Override add to ensure proper log level handling
     # Rails sends strings for severity, e.g. "INFO", "ERROR"
-    sig { params(severity: T.any(String, Symbol, Integer), message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
+    sig { params(severity: SeverityType, message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
     def add(severity, message = nil, progname = nil, &block)
       # Get the numeric severity level for comparison
       level_enum = LogLevel.from_severity(severity)
@@ -37,7 +39,7 @@ module LogStruct
       end
 
       # Let subclasses process the message by overriding process_log_data
-      log_data = process_log_data(level_enum, message, progname)
+      log_data = process_log_data(severity_int, message, progname)
 
       # Pass to formatter (int is the correct type according to RBIs)
       super(severity_int, nil, log_data)
@@ -47,7 +49,7 @@ module LogStruct
 
     # Process log data before sending to formatter
     # Subclasses should override this to format specific log types
-    sig { params(severity: LogLevel, message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
+    sig { params(severity: SeverityType, message: T.untyped, progname: T.nilable(String)).returns(T.untyped) }
     def process_log_data(severity, message, progname)
       # Default implementation returns message as is
       message || progname
