@@ -320,7 +320,7 @@ const DashboardExamples = () => {
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Area
+                {/* <Area
                   type="monotone"
                   dataKey="p99"
                   name="p99"
@@ -328,7 +328,7 @@ const DashboardExamples = () => {
                   fill={chartColors.purple.area}
                   fillOpacity={0.5}
                   dot={false}
-                />
+                /> */}
                 <Area
                   type="monotone"
                   dataKey="p95"
@@ -395,7 +395,7 @@ const DashboardExamples = () => {
         </Card>
 
         {/* Mailer Events Chart */}
-        <Card className="p-5 shadow-sm hidden sm:block">
+        {/* <Card className="p-5 shadow-sm hidden sm:block">
           <h3 className="text-lg font-semibold mb-2">Mailer Events</h3>
           <div className="h-64">
             <Chart aspectRatio={1.6}>
@@ -425,10 +425,10 @@ const DashboardExamples = () => {
               </AreaChart>
             </Chart>
           </div>
-        </Card>
+        </Card> */}
 
         {/* Security Events Chart */}
-        <Card className="p-5 shadow-sm hidden sm:block">
+        {/* <Card className="p-5 shadow-sm hidden sm:block">
           <h3 className="text-lg font-semibold mb-2">Security Events</h3>
           <div className="h-64">
             <Chart aspectRatio={1.6}>
@@ -467,7 +467,7 @@ const DashboardExamples = () => {
               </AreaChart>
             </Chart>
           </div>
-        </Card>
+        </Card> */}
 
         {/* Rack Attack Rate Limiting */}
         <Card className="p-5 shadow-sm hidden lg:block">
@@ -479,7 +479,7 @@ const DashboardExamples = () => {
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Area
+                {/* <Area
                   type="monotone"
                   dataKey="pentesters"
                   name="Pentesters"
@@ -487,11 +487,11 @@ const DashboardExamples = () => {
                   fill={chartColors.purple.area}
                   fillOpacity={0.5}
                   dot={false}
-                />
+                /> */}
                 <Area
                   type="monotone"
                   dataKey="signup"
-                  name="Sign Up Limits"
+                  name="Sign Ups"
                   stroke={chartColors.darkBlue.line}
                   fill={chartColors.darkBlue.area}
                   fillOpacity={0.5}
@@ -500,7 +500,7 @@ const DashboardExamples = () => {
                 <Area
                   type="monotone"
                   dataKey="api"
-                  name="API Limits"
+                  name="API Requests"
                   stroke={chartColors.lightBlue.line}
                   fill={chartColors.lightBlue.area}
                   fillOpacity={0.5}
@@ -512,7 +512,7 @@ const DashboardExamples = () => {
         </Card>
 
         {/* Error Rates by Type */}
-        <Card className="p-5 shadow-sm hidden lg:block">
+        {/* <Card className="p-5 shadow-sm hidden lg:block">
           <h3 className="text-lg font-semibold mb-2">Error Rates</h3>
           <div className="h-64">
             <Chart aspectRatio={1.6}>
@@ -551,7 +551,7 @@ const DashboardExamples = () => {
               </AreaChart>
             </Chart>
           </div>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
