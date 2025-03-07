@@ -33,6 +33,12 @@ export const metadata: Metadata = {
     'Sorbet',
     'TypeScript',
   ],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png' },
+    ]
+  },
 };
 
 export default function RootLayout({

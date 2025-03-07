@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "next build",
+    "build": "node scripts/generate-favicons.js && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "generate-favicons": "node scripts/generate-favicons.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.3",
@@ -50,15 +51,16 @@
     "eslint-config-next": "^15.2.1",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5"
   },
   "optionalDependencies": {
-    "@tailwindcss/oxide-linux-x64-gnu": "latest",
-    "lightningcss-linux-x64-gnu": "latest",
     "@next/swc-linux-x64-gnu": "latest",
-    "@parcel/css-linux-x64-gnu": "latest"
+    "@parcel/css-linux-x64-gnu": "latest",
+    "@tailwindcss/oxide-linux-x64-gnu": "latest",
+    "lightningcss-linux-x64-gnu": "latest"
   }
 }

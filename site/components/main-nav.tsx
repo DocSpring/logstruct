@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
+import Image from 'next/image';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,9 +21,15 @@ export function MainNav() {
 
   return (
     <div className="mr-4 flex w-full items-center justify-between">
-      <div className="flex items-end space-x-2">
-        <Link href="/" className="font-bold text-xl leading-none">
-          LogStruct
+      <div className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2">
+          <Image 
+            src="/icons/logstruct.svg" 
+            alt="LogStruct Logo" 
+            width={32} 
+            height={32} 
+          />
+          <span className="font-bold text-xl leading-none">LogStruct</span>
         </Link>
         <a
           href="https://docspring.com"
@@ -149,9 +156,15 @@ export function MainNav() {
           </SheetTrigger>
           <SheetContent side="right" className="w-[280px] p-0">
             <div className="flex flex-col gap-4 p-6">
-              <div className="flex items-end space-x-2">
-                <Link href="/" className="font-bold text-xl leading-none">
-                  LogStruct
+              <div className="flex items-center space-x-2">
+                <Link href="/" className="flex items-center space-x-2">
+                  <Image 
+                    src="/icons/logstruct.svg" 
+                    alt="LogStruct Logo" 
+                    width={28} 
+                    height={28} 
+                  />
+                  <span className="font-bold text-xl leading-none">LogStruct</span>
                 </Link>
                 <a
                   href="https://docspring.com"
