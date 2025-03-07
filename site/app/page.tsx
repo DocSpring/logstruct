@@ -10,8 +10,6 @@ import {
   Globe,
   IceCream,
   PieChart,
-  Github,
-  Loader2,
 } from 'lucide-react';
 import fs from 'fs';
 import path from 'path';
@@ -117,83 +115,13 @@ export default function Home() {
 
       {/* Dashboard Examples Section */}
       <section className="py-16">
-        <h2 className="mb-8 text-3xl font-bold">Powerful Visualization</h2>
+        <h2 className="mb-8 text-3xl font-bold">Monitoring and Dashboards</h2>
         <p className="my-6 text-lg text-neutral-600 dark:text-neutral-400">
-          LogStruct's structured JSON logs make it easy to create detailed
-          CloudWatch dashboards to monitor your application:
+          Structured JSON logs are easy to parse, so you can quickly set up
+          metrics, alerts, and dashboards.
         </p>
 
         <DashboardClientWrapper />
-      </section>
-
-      {/* Project Status Section */}
-      <section className="py-16">
-        <h2 className="mb-8 text-3xl font-bold text-center">Project Status</h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <GitHubStatus />
-
-          <a
-            href="/coverage/index.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
-          >
-            <div className="flex items-center mb-4">
-              <div
-                className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
-                style={{ backgroundColor: 'rgba(79, 67, 151, 0.15)' }}
-              >
-                <PieChart className="h-5 w-5" style={{ color: '#997afc' }} />
-              </div>
-              <h3 className="text-xl font-semibold">Code Coverage</h3>
-            </div>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              Test suite covers{' '}
-              <span className="font-semibold" style={{ color: '#997afc' }}>
-                {coveragePercentage}%
-              </span>{' '}
-              of the codebase
-            </p>
-          </a>
-
-          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <div className="flex items-center mb-4">
-              <div
-                className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
-                style={{ backgroundColor: 'rgba(79, 67, 151, 0.15)' }}
-              >
-                <IceCream className="h-5 w-5" style={{ color: '#997afc' }} />
-              </div>
-              <h3 className="text-xl font-semibold">Type Coverage</h3>
-            </div>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              <span className="font-semibold" style={{ color: '#997afc' }}>
-                100%
-              </span>{' '}
-              type-checked with Sorbet
-            </p>
-          </div>
-
-          <a
-            href="https://rubygems.org/gems/logstruct"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-700 transition-colors"
-          >
-            <div className="flex items-center mb-4">
-              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-                <RubyGemsIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
-              </div>
-              <h3 className="text-xl font-semibold">RubyGems</h3>
-            </div>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              Latest release:{' '}
-              <span className="text-red-600 dark:text-red-400 font-semibold">
-                v{gemVersion}
-              </span>
-            </p>
-          </a>
-        </div>
       </section>
 
       {/* Features Grid */}
@@ -279,6 +207,76 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Project Status Section */}
+      <section className="py-16">
+        <h2 className="mb-8 text-3xl font-bold text-center">Project Status</h2>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <GitHubStatus />
+
+          <a
+            href="/coverage/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+          >
+            <div className="flex items-center mb-4">
+              <div
+                className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: 'rgba(79, 67, 151, 0.15)' }}
+              >
+                <PieChart className="h-5 w-5" style={{ color: '#997afc' }} />
+              </div>
+              <h3 className="text-xl font-semibold">Code Coverage</h3>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Test suite covers{' '}
+              <span className="font-semibold" style={{ color: '#997afc' }}>
+                {coveragePercentage}%
+              </span>{' '}
+              of the codebase
+            </p>
+          </a>
+
+          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <div className="flex items-center mb-4">
+              <div
+                className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
+                style={{ backgroundColor: 'rgba(79, 67, 151, 0.15)' }}
+              >
+                <IceCream className="h-5 w-5" style={{ color: '#997afc' }} />
+              </div>
+              <h3 className="text-xl font-semibold">Type Coverage</h3>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              <span className="font-semibold" style={{ color: '#997afc' }}>
+                100%
+              </span>{' '}
+              type-checked with Sorbet
+            </p>
+          </div>
+
+          <a
+            href="https://rubygems.org/gems/logstruct"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+          >
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <RubyGemsIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold">RubyGems</h3>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Latest release:{' '}
+              <span className="text-red-600 dark:text-red-400 font-semibold">
+                v{gemVersion}
+              </span>
+            </p>
+          </a>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="py-16">
         <h2 className="mb-12 text-center text-3xl font-bold">
@@ -331,7 +329,7 @@ export default function Home() {
               What about Rails Semantic Logger?
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              We didn&apos;t find out aboutt{' '}
+              We didn&apos;t find out about{' '}
               <a
                 href="https://github.com/reidmorrison/rails_semantic_logger"
                 target="_blank"

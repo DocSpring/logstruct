@@ -40,7 +40,7 @@ export function GitHubStatus() {
 
           const workflowsData = await workflowsResponse.json();
           const testWorkflow = workflowsData.workflows?.find(
-            (workflow: any) =>
+            (workflow: { path: string; name: string }) =>
               workflow.path === '.github/workflows/test.yml' ||
               workflow.name.toLowerCase().includes('test'),
           );

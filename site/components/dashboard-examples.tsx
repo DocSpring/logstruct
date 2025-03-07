@@ -4,17 +4,13 @@ import React from 'react';
 import { Card } from './ui/card';
 import {
   Chart,
-  LineChart,
-  Line,
   AreaChart,
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   CustomTooltip,
-  COLORS,
 } from './ui/recharts';
 import { LogGenerator } from '@/lib/log-generation/log-generator';
 
@@ -53,7 +49,7 @@ const generateChartData = () => {
   // Data for request duration
   const generateRequestDurationData = () => {
     const days = 14;
-    const data = [];
+    const data: Array<Record<string, number | string>> = [];
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
@@ -66,10 +62,12 @@ const generateChartData = () => {
       const avgValue = generator.randomInt(80, 150);
 
       // P95 is typically 1.5-2x the average
-      const p95Value = Math.round(avgValue * (1.5 + generator.random() * 0.5));
+      const p95Value = Math.round(
+        avgValue * (1.5 + generator.randomFloat(0, 0.5)),
+      );
 
       // P99 is typically 2-3x the average
-      const p99Value = Math.round(avgValue * (2 + generator.random() * 1));
+      const p99Value = Math.round(avgValue * (2 + generator.randomFloat(0, 1)));
 
       entry['avg'] = avgValue;
       entry['p95'] = p95Value;
@@ -85,7 +83,7 @@ const generateChartData = () => {
   const generateMailerData = () => {
     const days = 14;
 
-    const data = [];
+    const data: Array<Record<string, number | string>> = [];
 
     // Create specific days for error spikes
     const errorSpikes = [4, 11]; // Days with error spikes
@@ -128,7 +126,7 @@ const generateChartData = () => {
     const queues = ['default', 'critical', 'mailers', 'low'];
     const days = 7;
 
-    const data = [];
+    const data: Array<Record<string, number | string>> = [];
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
@@ -155,7 +153,7 @@ const generateChartData = () => {
   // Data for rack attack rate limiting - broken down by category
   const generateRackAttackData = () => {
     const days = 14;
-    const data = [];
+    const data: Array<Record<string, number | string>> = [];
 
     // Days with pentester spikes
     const pentesterSpikes = [4, 11]; // Specific days with pentester activities
@@ -202,10 +200,10 @@ const generateChartData = () => {
 
   // Data for security events with mostly zeros and occasional spikes
   const generateSecurityData = () => {
-    const eventTypes = ['blocked_host', 'ip_spoof', 'csrf_violation'];
+    // Security event types
     const days = 14;
 
-    const data = [];
+    const data: Array<Record<string, number | string>> = [];
 
     // Create a few spike days (rarely occurring security events)
     const blockedHostSpikes = [3, 10]; // Days with blocked host spikes
@@ -246,10 +244,10 @@ const generateChartData = () => {
 
   // Data for error rates - mostly low with occasional minor errors
   const generateErrorData = () => {
-    const errorTypes = ['500_errors', '422_errors', 'db_errors', 'timeouts'];
+    // Define error categories monitored
     const days = 14;
 
-    const data = [];
+    const data: Array<Record<string, number | string>> = [];
 
     // Create a spike pattern for specific days
     const error500Spikes = [4, 11]; // Days with server error spikes

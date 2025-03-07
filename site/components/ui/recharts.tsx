@@ -23,7 +23,11 @@ import {
 import { useTheme } from 'next-themes';
 
 // Custom tooltip component for dark mode compatibility
-const CustomTooltip = ({ active, payload, label }: TooltipProps<any, any>) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: TooltipProps<number, string>) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -81,72 +85,11 @@ interface ChartProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof chartVariants> {
   aspectRatio?: number;
+  children: React.ReactNode;
 }
 
 const Chart = React.forwardRef<HTMLDivElement, ChartProps>(
   ({ className, variant, aspectRatio = 2, children, ...props }, ref) => {
-    const { theme } = useTheme();
-    const isDark = theme === 'dark';
-
-    // Modified children with enhanced styling
-    const enhancedChildren = React.Children.map(children, (child) => {
-      if (!React.isValidElement(child)) return child;
-
-      return React.cloneElement(child as React.ReactElement, {
-        ...child.props,
-        // Apply better styling to chart elements
-        style: {
-          ...child.props.style,
-          fontFamily: "'Inter', system-ui, sans-serif",
-        },
-        // Add consistent grid styling for all chart types
-        children: React.Children.map(child.props.children, (grandChild) => {
-          if (!React.isValidElement(grandChild)) return grandChild;
-
-          // Add stylized CartesianGrid
-          if (grandChild.type === CartesianGrid) {
-            return React.cloneElement(grandChild as React.ReactElement, {
-              ...grandChild.props,
-              strokeDasharray: '3 3',
-              stroke: isDark ? '#374151' : '#e5e7eb', // gray-700 or gray-200
-              strokeOpacity: 0.8,
-            });
-          }
-
-          // Style the XAxis
-          if (grandChild.type === XAxis) {
-            return React.cloneElement(grandChild as React.ReactElement, {
-              ...grandChild.props,
-              stroke: isDark ? '#6b7280' : '#9ca3af', // gray-500 or gray-400
-              tick: { fill: isDark ? '#9ca3af' : '#4b5563', fontSize: 12 }, // gray-400 or gray-600
-              tickLine: { stroke: isDark ? '#6b7280' : '#9ca3af' }, // gray-500 or gray-400
-            });
-          }
-
-          // Style the YAxis
-          if (grandChild.type === YAxis) {
-            return React.cloneElement(grandChild as React.ReactElement, {
-              ...grandChild.props,
-              stroke: isDark ? '#6b7280' : '#9ca3af', // gray-500 or gray-400
-              tick: { fill: isDark ? '#9ca3af' : '#4b5563', fontSize: 12 }, // gray-400 or gray-600
-              tickLine: { stroke: isDark ? '#6b7280' : '#9ca3af' }, // gray-500 or gray-400
-            });
-          }
-
-          // Style the Legend
-          if (grandChild.type === Legend) {
-            return React.cloneElement(grandChild as React.ReactElement, {
-              ...grandChild.props,
-              iconSize: 10,
-              wrapperStyle: { fontSize: 12, paddingTop: 10 },
-            });
-          }
-
-          return grandChild;
-        }),
-      });
-    });
-
     return (
       <div
         ref={ref}
@@ -154,7 +97,7 @@ const Chart = React.forwardRef<HTMLDivElement, ChartProps>(
         {...props}
       >
         <ResponsiveContainer width="100%" aspect={aspectRatio}>
-          {enhancedChildren}
+          {React.isValidElement(children) ? children : <div>{children}</div>}
         </ResponsiveContainer>
       </div>
     );
