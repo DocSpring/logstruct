@@ -2,6 +2,7 @@ import { RubyCodeExample } from '@/components/ruby-code-example';
 import { EditPageLink } from '@/components/edit-page-link';
 import { CodeBlock } from '@/components/code-block';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+import Link from 'next/dist/client/link';
 
 export default function ConfigurationPage() {
   return (
@@ -59,8 +60,20 @@ export default function ConfigurationPage() {
         Error Handling Configuration
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides different error handling modes to control how errors
-        are processed:
+        LogStruct provides customizable error handling modes to control how
+        errors are processed. You probably don&apos;t want type-checking errors
+        or internal logging-related errors to crash your application, so our
+        default behavior is to log and report those errors without crashing. We
+        automatically detect which error reporting service you use (Sentry,
+        Bugsnag, Rollbar, etc.). If you use a service that we don&apos;t support
+        yet, you can configure a{' '}
+        <Link
+          className="text-gray-200 hover:underline"
+          href="#custom-error-reporting"
+        >
+          custom error handler
+        </Link>
+        . (Or you can send a PR!)
       </p>
 
       <RubyCodeExample name="error_handling_modes" />

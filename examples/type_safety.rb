@@ -22,7 +22,7 @@ module Examples
     )
 
     # Log the typed struct
-    Rails.logger.info(request_log)
+    LogStruct.log(request_log)
 
     # Create a typed error log entry
     error_log = LogStruct::Log::Error.new(
@@ -32,7 +32,7 @@ module Examples
     )
 
     # Log the error
-    Rails.logger.error(error_log)
+    LogStruct.log(error_log)
     # ----------------------------------------------------------
     # END CODE EXAMPLE: basic_typed_logging
     # ----------------------------------------------------------

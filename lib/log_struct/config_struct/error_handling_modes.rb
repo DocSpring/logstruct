@@ -8,12 +8,12 @@ module LogStruct
 
       # How to handle different types of errors
       # Modes:
-      # - :ignore - always ignore the error
-      # - :log - always log the error
-      # - :report - always report to tracking service and continue
-      # - :log_production - log in production, raise locally
-      # - :report_production - report in production, raise locally
-      # - :raise - always raise regardless of environment
+      # - Ignore - Ignore the error
+      # - Log - Log the error
+      # - Report - Log and report to error tracking service (but don't crash)
+      # - LogProduction - Log error in production, raise locally (dev/test)
+      # - ReportProduction - Report error in production, raise locally (dev/test)
+      # - Raise - Always raise the error
 
       # Configurable error handling categories
       prop :type_checking_errors, ErrorHandlingMode, default: ErrorHandlingMode::LogProduction

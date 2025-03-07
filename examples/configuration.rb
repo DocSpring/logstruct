@@ -98,26 +98,29 @@ module Examples
       # END CODE EXAMPLE: filter_configuration
       # ----------------------------------------------------------
 
+      # rubocop:disable Layout/ExtraSpacing
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: error_handling_modes
       # ----------------------------------------------------------
       # Configure error handling modes
       modes = config.error_handling_modes
-      modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-      modes.security_errors = LogStruct::ErrorHandlingMode::Report
-      modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
-      modes.type_checking_errors = LogStruct::ErrorHandlingMode::Raise
+      modes.type_checking_errors = LogStruct::ErrorHandlingMode::ReportProduction
+      modes.logstruct_errors     = LogStruct::ErrorHandlingMode::ReportProduction
+      modes.security_errors      = LogStruct::ErrorHandlingMode::Report
+      modes.standard_errors      = LogStruct::ErrorHandlingMode::Raise
 
-      # Available error handling modes:
+      # Error handling modes:
       # ------------------------------------------------------------
-      # ::Ignore          # Completely ignore errors
-      # ::Log             # Log errors but don't report them
-      # ::LogProduction   # Log in production, raise in development
-      # ::Report          # Log and report errors to error service
-      # ::Raise           # Always raise errors
-      # ----------------------------------------------------------
+      # Ignore:             Ignore the error
+      # Log:                Log the error
+      # Report:             Log and report to tracking service without crashing
+      # LogProduction:      Log error in production, raise during dev/test
+      # ReportProduction:   Report in production without crashing, raise during dev/test
+      # Raise:              Always raise the error (reported by tracking service)
+      # ------------------------------------------------------------
       # END CODE EXAMPLE: error_handling_modes
       # ----------------------------------------------------------
+      # rubocop:enable Layout/ExtraSpacing
     end
   end
 end
