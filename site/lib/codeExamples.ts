@@ -54,11 +54,22 @@ function unindentCode(code: string): string {
 }
 
 /**
+ * Interface for post-processing directives
+ */
+interface PostProcessingDirective {
+  type: 'replace';
+  pattern: RegExp;
+  replacement: string;
+}
+
+/**
  * Extracts a code example from file content using the BEGIN/END markers with separators
+ * and applies any post-processing directives
  */
 export function extractCodeExample(content: string, id: string): string | null {
+  // Enhanced pattern to capture post-processing directives
   const startPattern = new RegExp(
-    `\\s*#\\s*-+\\s*(?:\n|\\r\\n)\\s*#\\s*BEGIN CODE EXAMPLE:\\s*${id}\\s*(?:\n|\\r\\n)\\s*#\\s*-+`,
+    `\\s*#\\s*-+\\s*(?:\n|\\r\\n)\\s*#\\s*BEGIN CODE EXAMPLE:\\s*${id}(?:,\\s*([^\\n\\r]*))?\\s*(?:\n|\\r\\n)\\s*#\\s*-+`,
   );
   const endPattern = new RegExp(
     `\\s*#\\s*-+\\s*(?:\n|\\r\\n)\\s*#\\s*END CODE EXAMPLE:\\s*${id}\\s*(?:\n|\\r\\n)\\s*#\\s*-+`,
@@ -67,6 +78,65 @@ export function extractCodeExample(content: string, id: string): string | null {
   const startMatch = content.match(startPattern);
   if (!startMatch) return null;
 
+  // Extract directives if present
+  const directives: PostProcessingDirective[] = [];
+  if (startMatch[1]) {
+    const directivesStr = startMatch[1].trim();
+    
+    // Parse replace directives
+    if (directivesStr.includes('replace:')) {
+      // Better regex to handle both quoted and non-quoted replacements
+      // First, let's simplify by splitting on 'replace:' to get all directives
+      const parts = directivesStr.split('replace:');
+      
+      for (let i = 1; i < parts.length; i++) {
+        try {
+          const part = parts[i].trim();
+          
+          // Find the pattern part (between / and /)
+          const patternMatch = part.match(/^\s*\/([^/]+)\/([gimsuy]*)/);
+          if (!patternMatch) continue;
+          
+          const pattern = patternMatch[1];
+          const flags = patternMatch[2] || '';
+          
+          // Find the replacement part (after the last comma or the whole remainder)
+          let replacementPart = part.substring(patternMatch[0].length).trim();
+          
+          // If it starts with a comma, remove it
+          if (replacementPart.startsWith(',')) {
+            replacementPart = replacementPart.substring(1).trim();
+          }
+          
+          // Handle quoted replacement
+          let replacement = '';
+          if (replacementPart.startsWith('"') && replacementPart.includes('"')) {
+            // Extract text between first and second double quotes
+            const quoteMatch = replacementPart.match(/"([^"]*)"/);
+            if (quoteMatch) {
+              replacement = quoteMatch[1];
+            }
+          } else {
+            // If no quotes, just take the entire string up to the next directive or comma
+            const endIndex = replacementPart.indexOf(',');
+            replacement = endIndex > -1 
+              ? replacementPart.substring(0, endIndex).trim() 
+              : replacementPart.trim();
+          }
+          
+          // Create the directive
+          directives.push({
+            type: 'replace',
+            pattern: new RegExp(pattern, flags),
+            replacement: replacement
+          });
+        } catch (error) {
+          console.warn(`Invalid replace directive in: ${part}`, error);
+        }
+      }
+    }
+  }
+
   const startIndex = startMatch.index! + startMatch[0].length;
   const contentAfterStart = content.slice(startIndex);
 
@@ -74,7 +144,22 @@ export function extractCodeExample(content: string, id: string): string | null {
   if (!endMatch) return null;
 
   // Extract the code between markers without trimming (leading spaces are important)
-  const extractedCode = contentAfterStart.slice(0, endMatch.index);
+  let extractedCode = contentAfterStart.slice(0, endMatch.index);
+
+  // Apply post-processing directives
+  if (directives.length > 0) {
+    for (const directive of directives) {
+      if (directive.type === 'replace') {
+        // Apply the replacement globally if not already specified in the pattern flags
+        if (!directive.pattern.flags.includes('g')) {
+          const regex = new RegExp(directive.pattern.source, directive.pattern.flags + 'g');
+          extractedCode = extractedCode.replace(regex, directive.replacement);
+        } else {
+          extractedCode = extractedCode.replace(directive.pattern, directive.replacement);
+        }
+      }
+    }
+  }
 
   // Remove empty lines at the beginning and end
   const trimmedCode = extractedCode.replace(/^\s*\n/, '').replace(/\s*$/, '');
@@ -110,7 +195,7 @@ export function loadCodeExamples(): Record<string, CodeExample> {
       const filePath = path.join(examplesDir, file);
       const content = fs.readFileSync(filePath, 'utf8');
 
-      const regex = /\s*#\s*BEGIN CODE EXAMPLE:\s*(\w+)/g;
+      const regex = /\s*#\s*BEGIN CODE EXAMPLE:\s*(\w+)(?:,\s*[^)\n\r]*)?/g;
       let match;
 
       while ((match = regex.exec(content)) !== null) {
