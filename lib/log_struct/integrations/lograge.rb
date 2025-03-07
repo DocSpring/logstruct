@@ -94,13 +94,6 @@ module LogStruct
           options[:user_agent] = headers["HTTP_USER_AGENT"]
           options[:content_type] = headers["CONTENT_TYPE"]
           options[:accept] = headers["HTTP_ACCEPT"]
-
-          options[:basic_auth] = true if headers["basic_auth"]
-          return unless options[:basic_auth]
-
-          # Include API token information for debugging authentication
-          options[:basic_auth_username] = headers["basic_auth.username"]
-          options[:basic_auth_password] = headers["basic_auth.password"]
         end
 
         # Apply custom options from the application's configuration
