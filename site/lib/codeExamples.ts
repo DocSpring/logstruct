@@ -92,8 +92,8 @@ export function loadCodeExamples(): Record<string, CodeExample> {
   const examples: Record<string, CodeExample> = {};
 
   try {
-    // Path to examples directory (relative to project root)
-    const examplesDir = path.join(process.cwd(), '..', 'examples');
+    // Path to code examples directory (relative to project root)
+    const examplesDir = path.join(process.cwd(), '..', 'test/code_examples');
 
     // Check if directory exists
     if (!fs.existsSync(examplesDir)) {
