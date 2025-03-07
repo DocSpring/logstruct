@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running all tests with merged coverage reports"
+
+# Run the regular unit tests first
+echo "Running unit tests..."
+bin/test
+
+# Run the Rails integration tests
+echo "Running Rails integration tests..."
+bin/rails_tests
+
+# Merge the coverage reports
+echo "Merging coverage reports..."
+bin/merge_coverage
+
+echo "All tests completed!"
+echo "Coverage report available at site/public/coverage/index.html"

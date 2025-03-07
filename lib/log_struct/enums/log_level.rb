@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "logger"
+
 module LogStruct
   # Define log levels as an enum
   class LogLevel < T::Enum

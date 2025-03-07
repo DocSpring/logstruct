@@ -23,8 +23,8 @@ echo "===> Running ESLint"
 echo "===> Running CSpell Spellcheck"
 bin/spellcheck
 
-echo "===> Running Ruby tests"
-bin/test
+echo "===> Running all tests (unit + Rails integration)"
+bin/all_tests
 
 echo "===> Running TypeScript tests"
 (cd site && npm test)

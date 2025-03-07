@@ -15,7 +15,9 @@ module LogStruct
       extend T::Sig
 
       include Interfaces::CommonFields
+      include Interfaces::DataField
       include SerializeCommon
+      include MergeDataFields
 
       PlainLogEvent = T.type_alias {
         LogEvent::Log
@@ -33,10 +35,14 @@ module LogStruct
       # We don't want to crash with a type error in any of these cases.
       const :message, T.untyped # rubocop:disable Sorbet/ForbidUntypedStructProps
 
+      # Allow people to submit additional data
+      const :data, T::Hash[Symbol, T.untyped], default: {}
+
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize(strict = true)
         hash = serialize_common(strict)
+        merge_data_fields(hash)
         hash[LOG_KEYS.fetch(:message)] = message
         hash
       end

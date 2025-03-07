@@ -18,7 +18,8 @@ SimpleCov.start do
   add_filter "test/"
   enable_coverage :branch
   primary_coverage :branch
-  coverage_dir "site/public/coverage"
+  coverage_dir "./coverage"
+  command_name "Unit Tests"
 end
 
 require "minitest/autorun"
@@ -30,7 +31,6 @@ Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new(color: true)
 # Require standard libraries
 require "json"
 require "ostruct"
-require "logger"
 require "fileutils"
 
 # Dev libraries

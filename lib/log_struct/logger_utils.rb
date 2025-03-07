@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "logger"
+
 module LogStruct
   # Utility functions for working with loggers
   module LoggerUtils

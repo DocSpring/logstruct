@@ -27,6 +27,7 @@ reraise
 reraises
 reraising
 Rescuable
+resultset
 Rollbar
 rsig
 shadcn

@@ -76,13 +76,13 @@ gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
 gemfile_content = File.read(gemfile_path)
 
 # Print Gemfile content for debugging
-puts "Original Gemfile content:"
-puts "------------------------"
-puts gemfile_content
-puts "------------------------"
+# puts "Original Gemfile content:"
+# puts "------------------------"
+# puts gemfile_content
+# puts "------------------------"
 
 # Check if sqlite3 is in the Gemfile
-puts "SQLite3 in Gemfile: #{gemfile_content.include?("sqlite3") ? "YES" : "NO"}"
+# puts "SQLite3 in Gemfile: #{gemfile_content.include?("sqlite3") ? "YES" : "NO"}"
 
 # Add LogStruct gem
 logstruct_gem_line = "# LogStruct gem from local path\ngem \"logstruct\", path: \"#{ROOT_DIR}\"\n\n"
@@ -97,20 +97,20 @@ end
 # See: https://github.com/rails/rails/pull/54264
 if rails_version.start_with?("7.0")
   puts "Rails 7.0.x detected - pinning concurrent-ruby to 1.3.4 in Gemfile"
-  puts "See: https://github.com/rails/rails/pull/54264"
-  gemfile_content.sub!(/gem\s+["']rails["'].*$/,
-    ["\\0",
-      "",
-      "# Pin concurrent-ruby for Rails 7.0 compatibility",
-      "gem \"concurrent-ruby\", \"1.3.4\"",
-      "",
-      "# We also need a few other gems to get Rails 7.0.x working:",
-      'gem "logger"',
-      'gem "bigdecimal"',
-      'gem "mutex_m"',
-      "",
-      "# For testing",
-      'gem "drb"'].join("\n"))
+
+  rails_7_0_gems = <<~GEMS
+    # Needed for Rails 7.0
+    gem "concurrent-ruby", "1.3.4"
+    gem "logger"
+    gem "bigdecimal"
+    gem "mutex_m"
+
+    # For Testing
+    gem "drb"
+    gem "benchmark"
+  GEMS
+
+  gemfile_content += rails_7_0_gems
 end
 
 # Add test gems
@@ -123,13 +123,7 @@ test_gems = <<~GEMS
     gem 'simplecov-json'
   end
 GEMS
-
-# Add the test gems if they're not already there
-unless gemfile_content.include?("minitest-reporters") &&
-    gemfile_content.include?("simplecov") &&
-    gemfile_content.include?("simplecov-json")
-  gemfile_content += test_gems
-end
+gemfile_content += test_gems
 
 File.write(gemfile_path, gemfile_content)
 
@@ -155,10 +149,10 @@ end
 # Set up the database
 puts "Setting up Rails application in #{RAILS_APP_DIR}..."
 Dir.chdir(RAILS_APP_DIR) do
-  puts "Database configuration:"
-  puts "------------------------"
-  system("cat config/database.yml")
-  puts "------------------------"
+  # puts "Database configuration:"
+  # puts "------------------------"
+  # system("cat config/database.yml")
+  # puts "------------------------"
 
   puts "Setting up database..."
   db_command = "bin/rails db:create db:migrate"

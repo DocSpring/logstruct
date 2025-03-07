@@ -10,12 +10,14 @@
 
 ### Testing Commands
 
-- Run all Ruby tests: `bin/test`
+- Run all tests (unit + Rails integration): `bin/all_tests`
+- Run all Ruby unit tests: `bin/test`
 - Run single test file: `bin/test test/path_to_test.rb`
 - Run test at specific line: `bin/test test/path_to_test.rb:LINE_NUMBER`
 - Run test by name: `bin/test -n=test_method_name`
 - Debug a specific test: Add `debugger` statements (developer only)
-- Run Rails integration tests: `bin/test_with_rails`
+- Run Rails integration tests: `bin/rails_tests`
+- Merge coverage reports: `bin/merge_coverage`
 - Run Next.js TypeScript tests: `cd site && npm test`
 
 ### Quality Commands

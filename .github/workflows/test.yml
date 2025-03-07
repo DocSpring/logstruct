@@ -137,13 +137,21 @@ jobs:
       - name: Run tests
         run: bin/test
 
+      - name: Run Rails integration tests
+        run: bin/rails_tests
+
+      - name: Merge coverage reports
+        run: bin/merge_coverage
+
       # Save coverage data as an artifact
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: coverage-ruby3.4-rails8.0
-          path: site/public/coverage/
+          path: |
+            coverage/
+            coverage_rails/
           retention-days: 5
 
   matrix:
@@ -184,11 +192,5 @@ jobs:
       - name: Run Ruby tests
         run: bin/test
 
-      # Save coverage data as an artifact for site deployment
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: coverage-ruby${{ matrix.ruby }}-rails${{ matrix.rails }}
-          path: site/public/coverage/
-          retention-days: 30
+      - name: Run Rails integration tests
+        run: bin/rails_tests

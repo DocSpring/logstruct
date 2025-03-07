@@ -3,6 +3,7 @@
 /.yardoc
 /_yardoc/
 /coverage/
+/coverage_rails/
 /doc/
 /pkg/
 /tmp/

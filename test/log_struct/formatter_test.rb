@@ -258,6 +258,36 @@ module LogStruct
       assert_equal "TestObject", obj_result[:msg]
     end
 
+    def test_prevents_infinite_recursion_when_error_occurs
+      # Create an object that will cause an infinite loop when processed
+      problematic_object = Minitest::Mock.new
+      problematic_object.expect(
+        :as_json,
+        -> { raise "Error while processing as_json" }
+      ).expect(:is_a?, false, [Class])
+
+      # We expect the formatter to handle this gracefully without infinite recursion
+      formatter = LogStruct::Formatter.new
+
+      # Mock the error handling to avoid actual error reporting during tests
+      LogStruct.stub(:handle_exception, nil) do
+        # Should not raise SystemStackError
+        log_line = T.let(nil, T.nilable(String))
+        assert_nothing_raised do
+          log_line = formatter.call("INFO", Time.now, nil, problematic_object)
+        end
+
+        # Since we mocked handle_exception, just verify that we got a log line back
+        assert_not_nil log_line
+        assert_kind_of String, log_line
+
+        # It should still be valid JSON
+        assert_nothing_raised do
+          JSON.parse(T.must(log_line))
+        end
+      end
+    end
+
     private
 
     def create_user_class
