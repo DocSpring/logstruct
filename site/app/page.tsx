@@ -11,10 +11,12 @@ import {
   IceCream,
   PieChart,
   Github,
+  Loader2,
 } from 'lucide-react';
 import fs from 'fs';
 import path from 'path';
 import { RubyGemsIcon } from '@/components/icons';
+import { GitHubStatus } from '@/components/github-status';
 
 // Get code coverage percentage from JSON file
 function getCodeCoverage() {
@@ -22,6 +24,7 @@ function getCodeCoverage() {
   const coverageData = JSON.parse(fs.readFileSync(coverageFilePath, 'utf8'));
   return coverageData.metrics.covered_percent.toFixed(1);
 }
+
 
 // Get gem version from the version file
 function getGemVersion() {
@@ -110,22 +113,7 @@ export default function Home() {
       <section className="py-16">
         <h2 className="mb-8 text-3xl font-bold text-center">Project Status</h2>
         <div className="grid gap-8 sm:grid-cols-3">
-          <a 
-            href="https://github.com/DocSpring/logstruct/actions" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
-          >
-            <div className="flex items-center mb-4">
-              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                <Github className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-              </div>
-              <h3 className="text-xl font-semibold">Build Status</h3>
-            </div>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              CI/CD pipeline status: <span className="text-green-600 dark:text-green-400 font-semibold">✓ Passing</span>
-            </p>
-          </a>
+          <GitHubStatus />
           
           <a 
             href="/coverage/index.html" 
