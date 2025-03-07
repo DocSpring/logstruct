@@ -117,8 +117,6 @@ export function LogScroller() {
             <SyntaxHighlighter
               language="json"
               style={atomDark}
-              disableAutodetect
-              disableLinks
               lineProps={{
                 style: { wordBreak: 'normal', whiteSpace: 'pre-wrap' },
               }}

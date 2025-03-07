@@ -80,7 +80,7 @@ end`}
         <li>
           <a
             href="/docs/configuration"
-            className="text-purple-800 dark:text-purple-400 hover:underline"
+            className="text-gray-200 hover:underline"
           >
             Configuration
           </a>{' '}
@@ -89,17 +89,14 @@ end`}
         <li>
           <a
             href="/docs/integrations"
-            className="text-purple-800 dark:text-purple-400 hover:underline"
+            className="text-gray-200 hover:underline"
           >
             Integrations
           </a>{' '}
           - Explore built-in integrations with popular gems
         </li>
         <li>
-          <a
-            href="/docs/type-safety"
-            className="text-purple-800 dark:text-purple-400 hover:underline"
-          >
+          <a href="/docs/type-safety" className="text-gray-200 hover:underline">
             Type Safety
           </a>{' '}
           - Advanced logging with Sorbet type checking

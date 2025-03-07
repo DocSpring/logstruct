@@ -31,6 +31,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-syntax-highlighter": "^15.6.1",
+    "recharts": "^2.15.1",
     "rehype-highlight": "^7.0.2",
     "rehype-pretty-code": "^0.14.0",
     "remark": "^15.0.1",
@@ -62,5 +63,8 @@
     "@parcel/css-linux-x64-gnu": "latest",
     "@tailwindcss/oxide-linux-x64-gnu": "latest",
     "lightningcss-linux-x64-gnu": "latest"
+  },
+  "overrides": {
+    "react-is": "^19.0.0-rc-69d4b800-20241021"
   }
 }

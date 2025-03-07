@@ -61,7 +61,7 @@ export function SiteFooter() {
               href="https://docspring.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline underline-offset-4"
+              className="font-medium underline-offset-4"
             >
               DocSpring
             </Link>{' '}
@@ -70,7 +70,7 @@ export function SiteFooter() {
               href="https://github.com/DocSpring/logstruct/blob/main/LICENSE"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline underline-offset-4"
+              className="font-medium underline-offset-4"
             >
               MIT License
             </Link>

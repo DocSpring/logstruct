@@ -28,6 +28,7 @@ export function MainNav() {
             alt="LogStruct Logo"
             width={32}
             height={32}
+            className="mr-2"
           />
           <span className="font-bold text-xl leading-none">LogStruct</span>
         </Link>
@@ -84,7 +85,7 @@ export function MainNav() {
                         <div className="text-sm font-medium leading-none">
                           Configuration
                         </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-purple-600 dark:text-purple-400">
+                        <p className="line-clamp-2 text-sm leading-snug text-purple-600 dark:text-purple-500">
                           Learn how to customize LogStruct for your application
                         </p>
                       </a>

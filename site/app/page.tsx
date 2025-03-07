@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import { RubyGemsIcon } from '@/components/icons';
 import { GitHubStatus } from '@/components/github-status';
+import DashboardClientWrapper from '@/components/dashboard-client-wrapper';
 
 // Get code coverage percentage from JSON file
 function getCodeCoverage() {
@@ -112,6 +113,17 @@ export default function Home() {
             <CodeBlock language="bash">bundle install</CodeBlock>
           </div>
         </div>
+      </section>
+
+      {/* Dashboard Examples Section */}
+      <section className="py-16">
+        <h2 className="mb-8 text-3xl font-bold">Powerful Visualization</h2>
+        <p className="my-6 text-lg text-neutral-600 dark:text-neutral-400">
+          LogStruct's structured JSON logs make it easy to create detailed
+          CloudWatch dashboards to monitor your application:
+        </p>
+
+        <DashboardClientWrapper />
       </section>
 
       {/* Project Status Section */}
@@ -285,7 +297,7 @@ export default function Home() {
                 href="https://sorbet.org/docs/tstruct"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-800 dark:text-purple-400 hover:underline"
+                className="text-gray-200 hover:underline"
               >
                 <code>T::Struct</code>
               </a>{' '}
@@ -303,7 +315,7 @@ export default function Home() {
                 href="https://github.com/roidrage/lograge"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-800 dark:text-purple-400 hover:underline"
+                className="text-gray-200 hover:underline"
               >
                 <code>lograge</code>
               </a>{' '}
@@ -324,7 +336,7 @@ export default function Home() {
                 href="https://github.com/reidmorrison/rails_semantic_logger"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-800 dark:text-purple-400 hover:underline"
+                className="text-gray-200 hover:underline"
               >
                 Rails Semantic Logger
               </a>{' '}
@@ -342,7 +354,7 @@ export default function Home() {
                 href="https://www.docspring.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-800 dark:text-purple-400 hover:underline"
+                className="text-gray-200 hover:underline"
               >
                 DocSpring
               </a>
@@ -354,7 +366,7 @@ export default function Home() {
                 href="https://github.com/DocSpring/logstruct/issues"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-800 dark:text-purple-400 hover:underline"
+                className="text-gray-200 hover:underline"
               >
                 an issue on GitHub
               </a>{' '}
