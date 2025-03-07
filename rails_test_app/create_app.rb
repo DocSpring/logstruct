@@ -20,10 +20,17 @@ clean_env = {
 
 # Determine Rails version to use
 rails_version = ENV["RAILS_VERSION"] || "7.0.8"
+skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
+
+# Extract major and minor version for migrations
+@rails_major_minor = (rails_version.split(".")[0..1] || []).join(".")
+
+# Create directories
+FileUtils.mkdir_p(RAILS_APP_DIR)
 
 # Fix for Rails 7.0 compatibility with concurrent-ruby
 # See: https://github.com/rails/rails/pull/54264
-if rails_version.start_with?("7.0")
+if !skip_app_creation && rails_version.start_with?("7.0")
   puts "Rails 7.0.x detected - checking concurrent-ruby version..."
 
   # Check if concurrent-ruby 1.3.5+ is installed
@@ -36,20 +43,6 @@ if rails_version.start_with?("7.0")
     puts "concurrent-ruby version is compatible with Rails 7.0"
   end
 end
-
-# Extract major and minor version for migrations
-@rails_major_minor = (rails_version.split(".")[0..1] || []).join(".")
-
-# Create directories
-FileUtils.mkdir_p(RAILS_APP_DIR)
-
-# Use rails new to create a new application
-puts "Creating new Rails application with version #{rails_version}..."
-rails_new_command = "rails _#{rails_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
-       "--skip-sprockets --skip-javascript --skip-hotwire --skip-jbuilder --skip-asset-pipeline " \
-       "--skip-bootsnap --api -T"
-puts "=> Running command: #{rails_new_command}"
-system(clean_env, rails_new_command) || abort("Failed to create Rails application")
 
 # Copy template files into the test app
 def copy_template(file, target_path = nil)
@@ -71,66 +64,75 @@ def copy_template(file, target_path = nil)
   end
 end
 
-# Update Gemfile to include the local logstruct gem and test gems
-gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
-gemfile_content = File.read(gemfile_path)
+# Create a new Rails application if not skipping
+if !skip_app_creation
+  # Use rails new to create a new application
+  puts "Creating new Rails application with version #{rails_version}..."
+  rails_new_command = "rails _#{rails_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
+         "--skip-sprockets --skip-javascript --skip-hotwire --skip-jbuilder --skip-asset-pipeline " \
+         "--skip-bootsnap --api -T"
+  puts "=> Running command: #{rails_new_command}"
+  system(clean_env, rails_new_command) || abort("Failed to create Rails application")
 
-# Print Gemfile content for debugging
-# puts "Original Gemfile content:"
-# puts "------------------------"
-# puts gemfile_content
-# puts "------------------------"
+  # Update Gemfile to include the local logstruct gem and test gems
+  gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
+  gemfile_content = File.read(gemfile_path)
 
-# Check if sqlite3 is in the Gemfile
-# puts "SQLite3 in Gemfile: #{gemfile_content.include?("sqlite3") ? "YES" : "NO"}"
-
-# Add LogStruct gem
-logstruct_gem_line = "# LogStruct gem from local path\ngem \"logstruct\", path: \"#{ROOT_DIR}\"\n\n"
-if gemfile_content.include?("logstruct")
-  puts "LogStruct gem already in Gemfile"
-else
-  # Add after the source line
-  gemfile_content.sub!(/^source.*$/, "\\0\n\n#{logstruct_gem_line}")
-end
-
-# Pin concurrent-ruby version for Rails 7.0 compatibility if needed
-# See: https://github.com/rails/rails/pull/54264
-if rails_version.start_with?("7.0")
-  puts "Rails 7.0.x detected - pinning concurrent-ruby to 1.3.4 in Gemfile"
-
-  rails_7_0_gems = <<~GEMS
-    # Needed for Rails 7.0
-    gem "concurrent-ruby", "1.3.4"
-    gem "logger"
-    gem "bigdecimal"
-    gem "mutex_m"
-
-    # For Testing
-    gem "drb"
-    gem "benchmark"
-  GEMS
-
-  gemfile_content += rails_7_0_gems
-end
-
-# Add test gems
-test_gems = <<~GEMS
-
-  # Test gems
-  group :test do
-    gem 'minitest-reporters'
-    gem 'simplecov'
-    gem 'simplecov-json'
+  # Add LogStruct gem
+  logstruct_gem_line = "# LogStruct gem from local path\ngem \"logstruct\", path: \"#{ROOT_DIR}\"\n\n"
+  if gemfile_content.include?("logstruct")
+    puts "LogStruct gem already in Gemfile"
+  else
+    # Add after the source line
+    gemfile_content.sub!(/^source.*$/, "\\0\n\n#{logstruct_gem_line}")
   end
-GEMS
-gemfile_content += test_gems
 
-File.write(gemfile_path, gemfile_content)
+  # Pin concurrent-ruby version for Rails 7.0 compatibility if needed
+  # See: https://github.com/rails/rails/pull/54264
+  if rails_version.start_with?("7.0")
+    puts "Rails 7.0.x detected - pinning concurrent-ruby to 1.3.4 in Gemfile"
 
-# Run initial bundle install
-puts "Running initial bundle install..."
-Dir.chdir(RAILS_APP_DIR) do
-  system(clean_env, "bundle install") || abort("Bundle install failed")
+    rails_7_0_gems = <<~GEMS
+      # Needed for Rails 7.0
+      gem "concurrent-ruby", "1.3.4"
+      gem "logger"
+      gem "bigdecimal"
+      gem "mutex_m"
+
+      # For Testing
+      gem "drb"
+      gem "benchmark"
+    GEMS
+
+    gemfile_content += rails_7_0_gems
+  end
+
+  # Add test gems
+  test_gems = <<~GEMS
+
+    # Test gems
+    group :test do
+      gem 'minitest-reporters'
+      gem 'simplecov'
+      gem 'simplecov-json'
+    end
+  GEMS
+  gemfile_content += test_gems
+
+  File.write(gemfile_path, gemfile_content)
+
+  # Run initial bundle install
+  puts "Running initial bundle install..."
+  Dir.chdir(RAILS_APP_DIR) do
+    system(clean_env, "bundle install") || abort("Bundle install failed")
+  end
+
+  # Set up ActiveStorage
+  puts "Setting up ActiveStorage..."
+  Dir.chdir(RAILS_APP_DIR) do
+    # Install ActiveStorage
+    system(clean_env, "bin/rails active_storage:install") || abort("ActiveStorage installation failed")
+  end
 end
 
 # Copy all template files
@@ -149,18 +151,12 @@ end
 # Set up the database
 puts "Setting up Rails application in #{RAILS_APP_DIR}..."
 Dir.chdir(RAILS_APP_DIR) do
-  # puts "Database configuration:"
-  # puts "------------------------"
-  # system("cat config/database.yml")
-  # puts "------------------------"
-
   puts "Setting up database..."
-  db_command = "bin/rails db:create db:migrate"
+  db_command = "bin/rails db:migrate"
   puts "=> Running command: #{db_command}"
-
   system(clean_env, db_command) || abort("Database setup failed")
 end
 
 puts
-puts "Test Rails app created successfully in #{RAILS_APP_DIR}"
+puts "Test Rails app created/updated successfully in #{RAILS_APP_DIR}"
 puts "To run the tests: cd #{RAILS_APP_DIR} && bin/rails test"

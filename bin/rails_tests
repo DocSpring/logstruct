@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Always rebuild the test app
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 TEST_APP_DIR="$PROJECT_ROOT/rails_test_app/logstruct_test_app"
 CREATE_APP_SCRIPT="$PROJECT_ROOT/rails_test_app/create_app.rb"
 RAILS_VERSION="${RAILS_VERSION:-"7.0.8"}"
+FORCE_RECREATE="${FORCE_RECREATE:-false}"
 
 # Show what we're testing
 echo "Testing LogStruct with Rails ${RAILS_VERSION}"
@@ -18,24 +17,32 @@ if ! gem list -i "^bundler$" > /dev/null 2>&1; then
   gem install bundler
 fi
 
-# Clean up any existing test app
-if [ -d "$TEST_APP_DIR" ]; then
-  echo "Removing existing test app..."
+# Only recreate the app if FORCE_RECREATE is set or the app doesn't exist
+if [ "$FORCE_RECREATE" = "true" ] && [ -d "$TEST_APP_DIR" ]; then
+  echo "Force recreating test app..."
   rm -rf "$TEST_APP_DIR"
 fi
 
-# Always create a fresh test app
-echo "Creating Rails test app..."
+# Create the test app if it doesn't exist
+if [ ! -d "$TEST_APP_DIR" ]; then
+  echo "Creating Rails test app..."
 
-# Make sure the create_app.rb script exists
-if [ ! -f "$CREATE_APP_SCRIPT" ]; then
-  echo "Error: Create app script not found at $CREATE_APP_SCRIPT"
-  echo "Make sure all template files are in place before running this script."
-  exit 1
+  # Make sure the create_app.rb script exists
+  if [ ! -f "$CREATE_APP_SCRIPT" ]; then
+    echo "Error: Create app script not found at $CREATE_APP_SCRIPT"
+    echo "Make sure all template files are in place before running this script."
+    exit 1
+  fi
+
+  # Create the test app with the specified Rails version
+  RAILS_VERSION="$RAILS_VERSION" ruby "$CREATE_APP_SCRIPT"
+else
+  echo "Using existing test app at $TEST_APP_DIR"
+  
+  # Still copy templates to ensure latest code is used
+  echo "Updating template files..."
+  RAILS_VERSION="$RAILS_VERSION" SKIP_APP_CREATION="true" ruby "$CREATE_APP_SCRIPT"
 fi
-
-# Create the test app with the specified Rails version
-RAILS_VERSION="$RAILS_VERSION" ruby "$CREATE_APP_SCRIPT"
 
 # Run the tests in the test app
 echo "Running integration tests in Rails test app..."
