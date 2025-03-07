@@ -48,10 +48,12 @@ You do not need to check if these are defined with `defined?` - they are guarant
 ## Code Style
 
 - Use strict Sorbet typing with `# typed: strict` annotations
-- You can use `# typed: true` in tests, `T.let` can be annoying
+- You can use `# typed: true` in tests
 - Method signatures must include proper return types
 - Use `::` prefixes for external modules (Rails/third-party gems)
-- Avoid `T.unsafe` - use proper typing or `T.let`/`T.cast` when necessary
+- `T.must` may be used very sparingly but only in tests - e.g. `T.must(log_file.path)`
+- `T.unsafe` must NEVER be used. Use proper typing or `T.let`/`T.cast` when necessary
+- Don't call `def` inside a method definition in tests (or anywhere). Use mocks or stubs.
 - For modules included in other classes, use `requires_ancestor`
 - Custom type overrides belong in `sorbet/rbi/overrides/`
 - Follow standard Ruby naming conventions:
