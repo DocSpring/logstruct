@@ -353,7 +353,7 @@ const DashboardExamples = () => {
         </Card>
 
         {/* Sidekiq Job Chart */}
-        <Card className="p-5 shadow-sm">
+        <Card className="p-5 shadow-sm hidden sm:block">
           <h3 className="text-lg font-semibold mb-2">Sidekiq Jobs</h3>
           <div className="h-64">
             <Chart aspectRatio={1.6}>

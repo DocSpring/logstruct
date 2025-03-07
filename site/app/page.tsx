@@ -173,12 +173,13 @@ export default function Home() {
                   <Puzzle className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
                 </div>
                 <h3 className="text-xl font-semibold">
-                  Integrates with Rails (and more)
+                  Integrates with Everything
                 </h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-400">
-                Integrates with ActiveJob, ActionMailer, ActiveStorage, Sidekiq,
-                Lograge, and more to provide consistent structured logging.
+                Integrates with ActiveJob, ActionMailer, ActiveStorage, Lograge,
+                Sidekiq, Carrierwave, and more to provide consistent structured
+                logging. (Open a PR to add support for your favorite gem!)
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">

@@ -17,7 +17,28 @@ export function LogScroller() {
   const [logs, setLogs] = useState<string[]>([]);
   const [isPaused, setIsPaused] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [isStandalone, setIsStandalone] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  
+  // Check if we're in standalone mode based on window width
+  useEffect(() => {
+    // Set initial state
+    if (typeof window !== 'undefined') {
+      setIsStandalone(window.innerWidth < 1280); // xl breakpoint
+      
+      // Add resize listener
+      const handleResize = () => {
+        setIsStandalone(window.innerWidth < 1280);
+      };
+      
+      window.addEventListener('resize', handleResize);
+      
+      // Clean up
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, []);
 
   // Format log for display
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,24 +109,60 @@ export function LogScroller() {
   if (!isVisible) {
     return <div className="w-full h-[375px]"></div>;
   }
+  
+  // We now use the isStandalone state which is controlled by the resize listener
+  
+  const baseStyle = {
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)',
+  };
+  
+  // Different styles based on layout
+  const perspectiveStyle = isStandalone 
+    ? {
+        // Straight style for standalone mode
+        transform: "scale(1)",
+        marginLeft: '0',
+        marginRight: '0',
+        ...baseStyle
+      }
+    : {
+        // 3D perspective for side-by-side mode
+        transform: "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)",
+        transformOrigin: 'center center',
+        marginLeft: '-40px',
+        marginRight: '80px',
+        ...baseStyle
+      };
+  
+  const onMouseOverStyle = isStandalone
+    ? {
+        transform: "scale(1.01)",
+        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35)'
+      }
+    : {
+        transform: "perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)",
+        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35), -8px 8px 20px rgba(0, 0, 0, 0.15)'
+      };
+  
+  const onMouseOutStyle = isStandalone
+    ? {
+        transform: "scale(1)",
+        boxShadow: baseStyle.boxShadow
+      }
+    : {
+        transform: "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)",
+        boxShadow: baseStyle.boxShadow
+      };
 
   return (
     <div
       className="w-full h-[375px] bg-black rounded-lg overflow-hidden shadow-lg transition-all duration-300 ease-in-out"
-      style={{
-        transform: "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)",
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)',
-        transformOrigin: 'center center',
-        marginLeft: '-40px', // Shift more to the left
-        marginRight: '80px', // Increase right margin to compensate
-      }}
+      style={perspectiveStyle}
       onMouseOver={(e) => {
-        e.currentTarget.style.transform = "perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)";
-        e.currentTarget.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35), -8px 8px 20px rgba(0, 0, 0, 0.15)';
+        Object.assign(e.currentTarget.style, onMouseOverStyle);
       }}
       onMouseOut={(e) => {
-        e.currentTarget.style.transform = "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)";
-        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)';
+        Object.assign(e.currentTarget.style, onMouseOutStyle);
       }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => {
