@@ -52,7 +52,7 @@ export function SiteFooter() {
               href="https://logstruct.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline underline-offset-4"
+              className="font-medium"
             >
               LogStruct
             </Link>{' '}

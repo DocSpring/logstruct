@@ -285,6 +285,7 @@ export default function Home() {
                 href="https://sorbet.org/docs/tstruct"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-purple-800 dark:text-purple-400 hover:underline"
               >
                 <code>T::Struct</code>
               </a>{' '}
@@ -302,6 +303,7 @@ export default function Home() {
                 href="https://github.com/roidrage/lograge"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-purple-800 dark:text-purple-400 hover:underline"
               >
                 <code>lograge</code>
               </a>{' '}
@@ -314,24 +316,15 @@ export default function Home() {
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
             <h3 className="mb-4 text-xl font-semibold">
-              How was this site created?
-            </h3>
-            <p className="text-neutral-600 dark:text-neutral-400">
-              The gem and website were both built using Claude Code and Cursor.
-              It&apos;s been a great learning experience. We&apos;re planning to
-              use the same approach to overhaul the DocSpring docs site.
-            </p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">
               What about Rails Semantic Logger?
             </h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              We didn&apos;t find{' '}
+              We didn&apos;t find out aboutt{' '}
               <a
                 href="https://github.com/reidmorrison/rails_semantic_logger"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-purple-800 dark:text-purple-400 hover:underline"
               >
                 Rails Semantic Logger
               </a>{' '}
@@ -339,6 +332,33 @@ export default function Home() {
               overlap, but LogStruct still has some unique features and
               advantages, especially if you use Sorbet to type-check your Rails
               app.
+            </p>
+          </div>
+          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <h3 className="mb-4 text-xl font-semibold">Who uses LogStruct?</h3>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              LogStruct was just released recently, but we use it at{' '}
+              <a
+                href="https://www.docspring.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-800 dark:text-purple-400 hover:underline"
+              >
+                DocSpring
+              </a>
+              . We&apos;re a document automation platform built with Ruby on
+              Rails, and we help businesses automate document workflows. Our API
+              makes it easy to fill out PDF forms or generate PDFs from
+              HTML/CSS/Liquid templates. Open{' '}
+              <a
+                href="https://github.com/DocSpring/logstruct/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-800 dark:text-purple-400 hover:underline"
+              >
+                an issue on GitHub
+              </a>{' '}
+              if you use LogStruct and we&apos;ll add you to the list!
             </p>
           </div>
         </div>

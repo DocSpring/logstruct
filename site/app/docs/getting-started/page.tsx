@@ -80,7 +80,7 @@ end`}
         <li>
           <a
             href="/docs/configuration"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-purple-800 dark:text-purple-400 hover:underline"
           >
             Configuration
           </a>{' '}
@@ -89,7 +89,7 @@ end`}
         <li>
           <a
             href="/docs/integrations"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-purple-800 dark:text-purple-400 hover:underline"
           >
             Integrations
           </a>{' '}
@@ -98,7 +98,7 @@ end`}
         <li>
           <a
             href="/docs/type-safety"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
+            className="text-purple-800 dark:text-purple-400 hover:underline"
           >
             Type Safety
           </a>{' '}

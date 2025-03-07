@@ -23,11 +23,11 @@ export function MainNav() {
     <div className="mr-4 flex w-full items-center justify-between">
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center space-x-2">
-          <Image 
-            src="/icons/logstruct.svg" 
-            alt="LogStruct Logo" 
-            width={32} 
-            height={32} 
+          <Image
+            src="/icons/logstruct.svg"
+            alt="LogStruct Logo"
+            width={32}
+            height={32}
           />
           <span className="font-bold text-xl leading-none">LogStruct</span>
         </Link>
@@ -84,8 +84,8 @@ export function MainNav() {
                         <div className="text-sm font-medium leading-none">
                           Configuration
                         </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-400">
-                          Learn how to configure LogStruct for your application
+                        <p className="line-clamp-2 text-sm leading-snug text-purple-600 dark:text-purple-400">
+                          Learn how to customize LogStruct for your application
                         </p>
                       </a>
                     </NavigationMenuLink>
@@ -158,13 +158,15 @@ export function MainNav() {
             <div className="flex flex-col gap-4 p-6">
               <div className="flex items-center space-x-2">
                 <Link href="/" className="flex items-center space-x-2">
-                  <Image 
-                    src="/icons/logstruct.svg" 
-                    alt="LogStruct Logo" 
-                    width={28} 
-                    height={28} 
+                  <Image
+                    src="/icons/logstruct.svg"
+                    alt="LogStruct Logo"
+                    width={28}
+                    height={28}
                   />
-                  <span className="font-bold text-xl leading-none">LogStruct</span>
+                  <span className="font-bold text-xl leading-none">
+                    LogStruct
+                  </span>
                 </Link>
                 <a
                   href="https://docspring.com"

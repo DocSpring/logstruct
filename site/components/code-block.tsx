@@ -36,8 +36,8 @@ export function CodeBlock({
       style={atomDark}
       showLineNumbers={showLineNumbers}
       wrapLines={true}
-      disableAutodetect={true}
-      disableLinks={true}
+      disableAutodetect
+      disableLinks
       lineProps={(lineNumber) => {
         const style = { display: 'block', width: '100%' };
         if (highlightLines.includes(lineNumber)) {
