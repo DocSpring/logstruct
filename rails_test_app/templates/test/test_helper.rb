@@ -3,6 +3,7 @@
 require "simplecov"
 require "simplecov-json"
 require "sorbet-runtime"
+require "debug"
 
 # Configure SimpleCov for Rails integration tests
 SimpleCov.formatters = [
@@ -10,33 +11,38 @@ SimpleCov.formatters = [
   SimpleCov::Formatter::JSONFormatter
 ]
 
-# Configure SimpleCov to focus on the logstruct gem code, not the Rails app itself
+# We need to configure SimpleCov before loading any application code
 SimpleCov.start do
   T.bind(self, T.all(SimpleCov::Configuration, Kernel))
 
-  # Only track files from the logstruct gem, not the Rails app
-  # Get absolute path to logstruct lib directory
-  logstruct_lib_dir = File.expand_path("../../../lib", __dir__)
-  puts "Tracking files in: #{logstruct_lib_dir}"
-
-  # Use absolute paths for tracking
-  track_files "#{logstruct_lib_dir}/**/*.rb"
-
-  # Exclude Rails app files
-  add_filter "/app/"
-  add_filter "/bin/"
-  add_filter "/config/"
-  add_filter "/db/"
-  add_filter "/test/"
-  add_filter "/.bundle/"
-
-  # Store in a separate directory for merging later
+  # Coverage is stored in a directory relative to the Rails app
   coverage_dir "../../coverage_rails"
-  command_name "Rails Integration Tests"
+  command_name "test:integration"
 
   # Enable branch coverage
   enable_coverage :branch
+  primary_coverage :branch
+
+  # The key issue: The path in the Rails test app needs to correctly point to the gem
+  # when loaded as a path-based gem
+  gem_path = File.expand_path("../../../../", __FILE__)
+  lib_path = File.join(gem_path, "lib")
+  # puts "LogStruct gem path: #{gem_path}"
+  # puts "LogStruct lib path: #{lib_path}"
+  add_group "LogStruct", lib_path
+
+  # This will remove the :root_filter and :bundler_filter that come via simplecov's defaults
+  filters.clear
+  add_filter do |src|
+    !(src.filename =~ /^#{lib_path}/)
+  end
+
+  track_files "#{lib_path}/**/*.rb"
 end
+
+debugger
+# Require logstruct after starting SimpleCov
+require "logstruct"
 
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"

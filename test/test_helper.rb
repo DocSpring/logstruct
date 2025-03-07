@@ -14,12 +14,13 @@ SimpleCov.formatters = [
 
 SimpleCov.start do
   T.bind(self, SimpleCov::Configuration)
+  coverage_dir "./coverage"
+  command_name "test"
 
   add_filter "test/"
+
   enable_coverage :branch
   primary_coverage :branch
-  coverage_dir "./coverage"
-  command_name "Unit Tests"
 end
 
 require "minitest/autorun"
