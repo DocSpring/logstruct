@@ -47,6 +47,8 @@ You do not need to check if these are defined with `defined?` - they are guarant
 
 ## Code Style
 
+- NEVER add comments about what you changed (e.g. "this was moved", or "more performant".)
+- NEVER worry about backwards compatibility. This is all brand new code, you must delete old methods and files after refactoring, don't keep them for compatibility.
 - Use strict Sorbet typing with `# typed: strict` annotations
 - You can use `# typed: true` in tests
 - Method signatures must include proper return types
@@ -63,6 +65,7 @@ You do not need to check if these are defined with `defined?` - they are guarant
 - Handle errors explicitly via type-safe interfaces
 - NEVER ignore warnings (especially deprecation warnings) - keep the logs clean
 - When handling objects with as_json method in Rails apps, consider whether ActiveSupport's default implementation or a custom implementation is being used
+- Use minitest mocks and stubs, not `def`, `Object`, etc.
 
 ## Code Comments
 

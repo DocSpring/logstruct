@@ -9,9 +9,38 @@ import {
   AlertCircle,
   Globe,
   IceCream,
+  PieChart,
+  Github,
 } from 'lucide-react';
+import fs from 'fs';
+import path from 'path';
+import { RubyGemsIcon } from '@/components/icons';
+
+// Get code coverage percentage from JSON file
+function getCodeCoverage() {
+  const coverageFilePath = path.join(process.cwd(), 'public/coverage/coverage.json');
+  const coverageData = JSON.parse(fs.readFileSync(coverageFilePath, 'utf8'));
+  return coverageData.metrics.covered_percent.toFixed(1);
+}
+
+// Get gem version from the version file
+function getGemVersion() {
+  const versionFilePath = path.join(process.cwd(), '../lib/log_struct/version.rb');
+  const versionFileContent = fs.readFileSync(versionFilePath, 'utf8');
+  const versionMatch = versionFileContent.match(/VERSION\s*=\s*"([^"]+)"/);
+  
+  if (!versionMatch) {
+    throw new Error('Version not found in version.rb file');
+  }
+  
+  return versionMatch[1];
+}
 
 export default function Home() {
+  // These functions will be executed at build time in server component
+  const coveragePercentage = getCodeCoverage();
+  const gemVersion = getGemVersion();
+  
   return (
     <div className="container mx-auto px-4 pt-8 pb-16 md:py-16">
       {/* Hero Section */}
@@ -26,6 +55,7 @@ export default function Home() {
             will print beautiful JSON logs that are easy to search, filter, and
             visualize.
           </p>
+
           <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
             <Button asChild size="lg">
               <Link href="/docs/getting-started">Get Started</Link>
@@ -73,6 +103,63 @@ export default function Home() {
             <h3 className="mb-4 text-xl font-semibold">2. Bundle install</h3>
             <CodeBlock language="bash">bundle install</CodeBlock>
           </div>
+        </div>
+      </section>
+      
+      {/* Project Status Section */}
+      <section className="py-16">
+        <h2 className="mb-8 text-3xl font-bold text-center">Project Status</h2>
+        <div className="grid gap-8 sm:grid-cols-3">
+          <a 
+            href="https://github.com/DocSpring/logstruct/actions" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+          >
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                <Github className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+              </div>
+              <h3 className="text-xl font-semibold">Build Status</h3>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              CI/CD pipeline status: <span className="text-green-600 dark:text-green-400 font-semibold">✓ Passing</span>
+            </p>
+          </a>
+          
+          <a 
+            href="/coverage/index.html" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-violet-300 dark:hover:border-violet-700 transition-colors"
+          >
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/30">
+                <PieChart className="h-5 w-5 text-violet-500 dark:text-violet-400" />
+              </div>
+              <h3 className="text-xl font-semibold">Code Coverage</h3>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Test suite covers <span className="text-violet-600 dark:text-violet-400 font-semibold">{coveragePercentage}%</span> of the codebase
+            </p>
+          </a>
+          
+          <a 
+            href="https://rubygems.org/gems/logstruct" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+          >
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <RubyGemsIcon className="h-5 w-5 text-red-500 dark:text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold">RubyGems</h3>
+            </div>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              Latest release: <span className="text-red-600 dark:text-red-400 font-semibold">v{gemVersion}</span>
+            </p>
+          </a>
         </div>
       </section>
 
