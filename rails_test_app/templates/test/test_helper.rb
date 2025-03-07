@@ -15,32 +15,22 @@ SimpleCov.formatters = [
 SimpleCov.start do
   T.bind(self, T.all(SimpleCov::Configuration, Kernel))
 
+  gem_path = File.expand_path("../../../../", __FILE__)
+  SimpleCov.root(gem_path)
+
+  add_group "LogStruct", "lib"
+  # add_group "Test App", "rails_test_app/logstruct_test_app"
+  add_filter "rails_test_app"
+
   # Coverage is stored in a directory relative to the Rails app
-  coverage_dir "../../coverage_rails"
+  coverage_dir "coverage_rails"
   command_name "test:integration"
 
   # Enable branch coverage
   enable_coverage :branch
   primary_coverage :branch
-
-  # The key issue: The path in the Rails test app needs to correctly point to the gem
-  # when loaded as a path-based gem
-  gem_path = File.expand_path("../../../../", __FILE__)
-  lib_path = File.join(gem_path, "lib")
-  # puts "LogStruct gem path: #{gem_path}"
-  # puts "LogStruct lib path: #{lib_path}"
-  add_group "LogStruct", lib_path
-
-  # This will remove the :root_filter and :bundler_filter that come via simplecov's defaults
-  filters.clear
-  add_filter do |src|
-    !(src.filename =~ /^#{lib_path}/)
-  end
-
-  track_files "#{lib_path}/**/*.rb"
 end
 
-debugger
 # Require logstruct after starting SimpleCov
 require "logstruct"
 

@@ -36,6 +36,8 @@ Rails/ApplicationMailer:
 # Not a Rails app
 Rails/RakeEnvironment:
   Enabled: false
+Rails/Output:
+  Enabled: false
 
 Performance/OpenStruct:
   Exclude:
