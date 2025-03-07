@@ -8,7 +8,7 @@ module LogStruct
 
     # Get the appropriate log target (device) from an existing logger
     # Falls back to Rails.logger or stdout if available
-    sig { params(original_logger: T.nilable(Logger)).returns(T.any(String, IO)) }
+    sig { params(original_logger: T.nilable(Logger)).returns(T.any(String, IO, StringIO)) }
     def self.determine_log_target(original_logger = nil)
       if original_logger&.respond_to?(:instance_variable_get) &&
           (logger_dev = original_logger.instance_variable_get(:@logdev))

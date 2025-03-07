@@ -2,15 +2,13 @@ import { LogScroller } from '@/components/log-scroller';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
-import { 
-  FileJson, 
-  Shield, 
-  FilterX, 
-  Tag, 
-  Puzzle, 
-  AlertCircle, 
+import {
+  FilterX,
+  Tag,
+  Puzzle,
+  AlertCircle,
   Globe,
-  IceCream
+  IceCream,
 } from 'lucide-react';
 
 export default function Home() {
@@ -87,9 +85,7 @@ export default function Home() {
               <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                 <IceCream className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
               </div>
-              <h3 className="text-xl font-semibold">
-                Type-safe with Sorbet
-              </h3>
+              <h3 className="text-xl font-semibold">Type-safe with Sorbet</h3>
             </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               LogStruct is fully type-checked with Sorbet so your logs are
@@ -150,9 +146,7 @@ export default function Home() {
               <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                 <Globe className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
               </div>
-              <h3 className="text-xl font-semibold">
-                Universal Compatibility
-              </h3>
+              <h3 className="text-xl font-semibold">Universal Compatibility</h3>
             </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               Works with any gem - just use Rails.logger like normal.

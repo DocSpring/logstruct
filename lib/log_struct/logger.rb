@@ -12,7 +12,7 @@ module LogStruct
     extend T::Sig
 
     # Initialize with the same parameters as ActiveSupport::Logger
-    sig { params(logdev: T.any(String, IO, NilClass), shift_age: T.nilable(Integer), shift_size: T.nilable(Integer), level: T.nilable(T.any(Integer, Symbol, String))).void }
+    sig { params(logdev: T.any(String, IO, StringIO, NilClass), shift_age: T.nilable(Integer), shift_size: T.nilable(Integer), level: T.nilable(T.any(Integer, Symbol, String))).void }
     def initialize(logdev = nil, shift_age = 0, shift_size = 1048576, level: nil)
       super
       self.formatter = LogStruct::Formatter.new

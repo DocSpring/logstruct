@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
+# typed: strict
 # frozen_string_literal: true
 
 require "json"
 require "pathname"
+require "sorbet-runtime"
 
 # Load the coverage JSON file
 coverage_file = File.join(File.dirname(__FILE__), "../site/public/coverage/coverage.json")
@@ -21,16 +23,16 @@ puts "|------------|---------------|-----------|"
 
 sorted_files.first(20).each do |file|
   filename = file["filename"]
-  if filename.start_with?(root_dir)
-    relative_path = filename[root_dir.length + 1..]
+  relative_path = if filename.start_with?(root_dir)
+    filename[root_dir.length + 1..]
   else
-    relative_path = filename
+    filename
   end
-  
+
   covered_lines = file["covered_lines"]
   total_lines = file["lines_of_code"]
   coverage_percent = file["covered_percent"].round(2)
-  
+
   puts "| #{coverage_percent}% | #{covered_lines}/#{total_lines} | #{relative_path} |"
 end
 
@@ -51,6 +53,6 @@ puts "|-----------|-------------------|"
 
 no_test_files.sort.each do |file|
   relative_path = file[root_dir.length + 1..]
-  expected_test_path = relative_path.gsub("lib/", "test/").gsub(".rb", "_test.rb")
+  expected_test_path = T.must(relative_path).gsub("lib/", "test/").gsub(".rb", "_test.rb")
   puts "| #{relative_path} | #{expected_test_path} |"
 end
