@@ -34,6 +34,17 @@
 - Generate spellcheck dictionary: `bin/generate_lockfile_words`
 - Generate TypeScript types from Ruby log structs: `ruby scripts/export_typescript_types.rb`
 
+# Core Dependencies
+
+This gem requires Rails 7.0+ and will always have access to these core Rails modules:
+
+- `::Rails`
+- `::ActiveSupport`
+- `::ActionDispatch`
+- `::ActionController`
+
+You do not need to check if these are defined with `defined?` - they are guaranteed to be available.
+
 ## Code Style
 
 - Use strict Sorbet typing with `# typed: strict` annotations

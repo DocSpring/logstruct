@@ -24,4 +24,8 @@ module LogStruct
   extend Concerns::ErrorHandling::ClassMethods
   extend Concerns::Configuration::ClassMethods
   extend Concerns::Logging::ClassMethods
+
+  # Set enabled at require time based on current Rails environment.
+  # (Users can disable or enable LogStruct later in an initializer.)
+  set_enabled_from_rails_env!
 end

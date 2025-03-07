@@ -37,6 +37,13 @@ module LogStruct
           config.enabled
         end
 
+        sig { void }
+        def set_enabled_from_rails_env!
+          # Set enabled based on current Rails environment.
+          # (Users can disable or enable LogStruct later in an initializer.)
+          config.enabled = config.enabled_environments.include?(::Rails.env.to_sym)
+        end
+
         sig { returns(T::Boolean) }
         def is_local?
           config.local_environments.include?(::Rails.env.to_sym)
