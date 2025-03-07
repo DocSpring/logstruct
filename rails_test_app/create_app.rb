@@ -2,6 +2,8 @@
 # typed: true
 # frozen_string_literal: true
 
+require "bundler/setup"
+
 require "fileutils"
 require "rails/version"
 require "erb"
@@ -15,7 +17,11 @@ RAILS_APP_DIR = File.expand_path("logstruct_test_app", __dir__)
 clean_env = {
   "PATH" => ENV["PATH"],
   "HOME" => ENV["HOME"],
-  "RAILS_ENV" => "development"
+  "RAILS_ENV" => "development",
+  "BUNDLE_GEMFILE" => nil,
+  "GEM_HOME" => nil,
+  "GEM_PATH" => nil,
+  "RUBYOPT" => nil
 }
 
 # Determine Rails version to use
