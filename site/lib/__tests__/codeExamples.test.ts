@@ -81,11 +81,13 @@ describe('Code Examples Integration', () => {
     // Check that we have the expected code structure
     // The actual indentation may vary based on the current test/code_examples files
     expect(lines[0]).toMatch(/LogStruct\.configure do \|config\|/);
-    
+
     // Check that relative indentation is preserved (don't check exact content)
     if (lines.length > 2) {
       // Find a line with indentation
-      const indentedLine = lines.find(line => line.trim().length > 0 && line.startsWith('  '));
+      const indentedLine = lines.find(
+        (line) => line.trim().length > 0 && line.startsWith('  '),
+      );
       if (indentedLine) {
         expect(indentedLine.startsWith('  ')).toBe(true);
       }
@@ -107,7 +109,9 @@ console.log(example);
 `;
 
     const extracted = extractCodeExample(content, 'basic_example');
-    expect(extracted).toBe('const example = "Hello, world!";\nconsole.log(example);');
+    expect(extracted).toBe(
+      'const example = "Hello, world!";\nconsole.log(example);',
+    );
   });
 
   it('supports replace directives', () => {
@@ -159,7 +163,9 @@ const result = compute();
 `;
 
     const extracted = extractCodeExample(content, 'complex_replace');
-    expect(extracted).toBe('const value = 42;\n// value\n// "testing"\nconst result = compute();');
+    expect(extracted).toBe(
+      'const value = 42;\n// value\n// "testing"\nconst result = compute();',
+    );
   });
 
   it('preserves indentation after replacements', () => {
@@ -180,10 +186,12 @@ function calculate() {
 `;
 
     const extracted = extractCodeExample(content, 'indentation_example');
-    expect(extracted).toBe('function calculate() {\n  const result = sum(1, 2);\n  if (result > 0) {\n    return sum(result, 3);\n  }\n  return 0;\n}');
+    expect(extracted).toBe(
+      'function calculate() {\n  const result = sum(1, 2);\n  if (result > 0) {\n    return sum(result, 3);\n  }\n  return 0;\n}',
+    );
   });
 
-  it('handles the enum case from type_safety_test.rb', () => {
+  it('handles replace directives', () => {
     const content = `
 # ----------------------------------------------------------
 # BEGIN CODE EXAMPLE: log_enums, replace: /enums << /, ""
@@ -194,21 +202,6 @@ enums << LogStruct::LogLevel::Info
 enums << LogStruct::LogLevel::Warn
 enums << LogStruct::LogLevel::Error
 enums << LogStruct::LogLevel::Fatal
-
-# Log sources
-enums << LogStruct::Source::Rails
-enums << LogStruct::Source::App
-enums << LogStruct::Source::Job
-enums << LogStruct::Source::Mailer
-enums << LogStruct::Source::Security
-enums << LogStruct::Source::TypeChecking
-
-# Error handling modes
-enums << LogStruct::ErrorHandlingMode::Ignore         # Completely ignore errors
-enums << LogStruct::ErrorHandlingMode::Log            # Log errors but don't report them
-enums << LogStruct::ErrorHandlingMode::LogProduction  # Log in production, raise in development
-enums << LogStruct::ErrorHandlingMode::Report         # Log and report errors to error service
-enums << LogStruct::ErrorHandlingMode::Raise          # Always raise errors
 # ----------------------------------------------------------
 # END CODE EXAMPLE: log_enums
 # ----------------------------------------------------------

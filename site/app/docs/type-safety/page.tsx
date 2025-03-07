@@ -1,5 +1,6 @@
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
+import { EnumsList } from '@/components/enums-list';
 import { LogStructuresList } from '@/components/log-structures-list';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 
@@ -26,23 +27,6 @@ export default async function TypeSafetyPage() {
         name="basic_typed_logging"
         title="Basic Typed Logging Example"
       />
-
-      <h2 className="text-2xl font-bold mt-10 mb-4">
-        Available Log Structures
-      </h2>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides several typed log structures for different use cases:
-      </p>
-
-      {/* Dynamic list of log structures from the JSON data */}
-      <LogStructuresList />
-
-      <h2 className="text-2xl font-bold mt-10 mb-4">Enums and Constants</h2>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides typed enums for common values used in logs:
-      </p>
-
-      <RubyCodeExample name="log_enums" title="Log Levels and Enums" />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">
         Adding Sorbet to Your Application
@@ -104,6 +88,20 @@ gem "sorbet-runtime"
         name="custom_log_structure"
         title="Creating Custom Log Structures"
       />
+
+      <h1 className="text-4xl font-bold mt-10 mb-4">
+        Available Log Structures
+      </h1>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        LogStruct provides several typed log structures for different use cases:
+      </p>
+      <LogStructuresList />
+
+      <h1 className="text-4xl font-bold mt-10 mb-4">Enums</h1>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        LogStruct provides typed enums for common values used in logs:
+      </p>
+      <EnumsList />
 
       <EditPageLink />
     </div>

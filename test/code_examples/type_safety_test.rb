@@ -47,42 +47,6 @@ module LogStruct
         assert_equal "An error occurred during processing", error_log.message
       end
 
-      def test_log_enums
-        enums = T.let([], T::Array[T.any(LogStruct::LogLevel, LogStruct::Source, LogStruct::ErrorHandlingMode)])
-        # ----------------------------------------------------------
-        # BEGIN CODE EXAMPLE: log_enums, replace: /enums << /, ""
-        # ----------------------------------------------------------
-        # Log levels
-        enums << LogStruct::LogLevel::Debug
-        enums << LogStruct::LogLevel::Info
-        enums << LogStruct::LogLevel::Warn
-        enums << LogStruct::LogLevel::Error
-        enums << LogStruct::LogLevel::Fatal
-
-        # Log sources
-        enums << LogStruct::Source::Rails
-        enums << LogStruct::Source::App
-        enums << LogStruct::Source::Job
-        enums << LogStruct::Source::Mailer
-        enums << LogStruct::Source::Security
-        enums << LogStruct::Source::TypeChecking
-
-        # Error handling modes
-        enums << LogStruct::ErrorHandlingMode::Ignore         # Completely ignore errors
-        enums << LogStruct::ErrorHandlingMode::Log            # Log errors but don't report them
-        enums << LogStruct::ErrorHandlingMode::LogProduction  # Log in production, raise in development
-        enums << LogStruct::ErrorHandlingMode::Report         # Log and report errors to error service
-        enums << LogStruct::ErrorHandlingMode::Raise          # Always raise errors
-        # ----------------------------------------------------------
-        # END CODE EXAMPLE: log_enums
-        # ----------------------------------------------------------
-        # rubocop:enable Lint/Void
-
-        assert_includes(enums, LogStruct::LogLevel::Debug)
-        assert_includes(enums, LogStruct::Source::App)
-        assert_includes(enums, LogStruct::ErrorHandlingMode::Ignore)
-      end
-
       # Custom log structure must be defined at module level, not inside a method
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: custom_log_structure
