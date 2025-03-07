@@ -38,6 +38,7 @@ Sidekiq
 solargraph
 ssns
 testtask
+vercel
 wordlists
 xorshift
 yardoc

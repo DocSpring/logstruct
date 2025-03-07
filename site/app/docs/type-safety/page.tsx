@@ -1,8 +1,9 @@
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
+import { LogStructuresList } from '@/components/log-structures-list';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 
-export default function TypeSafetyPage() {
+export default async function TypeSafetyPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-4xl font-bold">Type Safety</h1>
@@ -33,68 +34,8 @@ export default function TypeSafetyPage() {
         LogStruct provides several typed log structures for different use cases:
       </p>
 
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::Plain
-          </code>{' '}
-          - For general purpose logging with a message and context
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::Request
-          </code>{' '}
-          - For HTTP request details
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::Error
-          </code>{' '}
-          - For exception details with stack traces
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::ActionMailer
-          </code>{' '}
-          - For email delivery events
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::ActiveJob
-          </code>{' '}
-          - For background job execution
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::ActiveStorage
-          </code>{' '}
-          - For file storage operations
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::Shrine
-          </code>{' '}
-          - For Shrine file upload events
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::CarrierWave
-          </code>{' '}
-          - For CarrierWave upload events
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::Sidekiq
-          </code>{' '}
-          - For Sidekiq job processing
-        </li>
-        <li>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::Security
-          </code>{' '}
-          - For security-related events
-        </li>
-      </ul>
+      {/* Dynamic list of log structures from the JSON data */}
+      <LogStructuresList />
 
       <h2 className="text-2xl font-bold mt-10 mb-4">Enums and Constants</h2>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">

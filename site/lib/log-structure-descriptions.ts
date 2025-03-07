@@ -1,0 +1,30 @@
+/**
+ * Descriptions for each LogStruct log structure
+ * These are used in the documentation to explain what each log structure is for
+ */
+export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
+  Plain: 'For general purpose logging',
+  Request: 'For HTTP request details',
+  Error: 'For exception details with stack traces',
+  ActionMailer: 'For email delivery events',
+  ActiveJob: 'For background job execution',
+  ActiveStorage: 'For file storage operations',
+  Shrine: 'For Shrine file upload events',
+  CarrierWave: 'For CarrierWave upload events',
+  Sidekiq: 'For Sidekiq job processing',
+  Security: 'For security-related events',
+};
+
+/**
+ * Get the description for a log structure
+ * @param structName The name of the log structure (e.g., "Plain", "Request")
+ * @returns The description of the log structure
+ * @throws Error if no description is found for the structure
+ */
+export function getLogStructureDescription(structName: string): string {
+  const description = LOG_STRUCTURE_DESCRIPTIONS[structName];
+  if (!description) {
+    throw new Error(`No description found for log structure: ${structName}`);
+  }
+  return description;
+}
