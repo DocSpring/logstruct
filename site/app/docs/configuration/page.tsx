@@ -6,7 +6,9 @@ import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 export default function ConfigurationPage() {
   return (
     <div className="space-y-6">
-      <HeadingWithAnchor id="configuration" level={1}>Configuration</HeadingWithAnchor>
+      <HeadingWithAnchor id="configuration" level={1}>
+        Configuration
+      </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
         LogStruct is designed to be highly configurable while working with
         sensible defaults. You can customize how and where logs are generated,
@@ -63,14 +65,18 @@ export default function ConfigurationPage() {
 
       <RubyCodeExample name="error_handling_modes" />
 
-      <HeadingWithAnchor id="custom-lograge-options">Custom Lograge Options</HeadingWithAnchor>
+      <HeadingWithAnchor id="custom-lograge-options">
+        Custom Lograge Options
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         You can extend Lograge request logging with custom fields:
       </p>
 
       <RubyCodeExample name="lograge_custom_options" />
 
-      <HeadingWithAnchor id="custom-string-scrubbing">Custom String Scrubbing</HeadingWithAnchor>
+      <HeadingWithAnchor id="custom-string-scrubbing">
+        Custom String Scrubbing
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         You can implement custom string scrubbers to filter out sensitive data
         that isn&apos;t caught by the built-in filters:
@@ -78,7 +84,9 @@ export default function ConfigurationPage() {
 
       <RubyCodeExample name="custom_string_scrubber" />
 
-      <HeadingWithAnchor id="custom-error-reporting">Custom Error Reporting</HeadingWithAnchor>
+      <HeadingWithAnchor id="custom-error-reporting">
+        Custom Error Reporting
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         You can customize how errors are reported by implementing your own error
         reporting handler:
@@ -86,7 +94,9 @@ export default function ConfigurationPage() {
 
       <RubyCodeExample name="error_reporting_handler" />
 
-      <HeadingWithAnchor id="sorbet-integration">Sorbet Integration</HeadingWithAnchor>
+      <HeadingWithAnchor id="sorbet-integration">
+        Sorbet Integration
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct integrates with Sorbet to handle type checking errors based on
         the environment. We raise type errors or logging-related errors in

@@ -143,6 +143,15 @@ module LogStruct
         end
         ts_content << "}"
         ts_content << ""
+        
+        # Add array of all log types for iteration
+        ts_content << "// Array of all log types for iteration"
+        ts_content << "export const AllLogTypes: Array<LogType> = ["
+        data[:logs].keys.each do |log_type|
+          ts_content << "  LogType.#{log_type.upcase},"
+        end
+        ts_content << "];"
+        ts_content << ""
 
         # Add interface for each log type
         ts_content << "// Log Interfaces"

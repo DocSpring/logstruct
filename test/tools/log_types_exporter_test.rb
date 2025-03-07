@@ -302,4 +302,24 @@ class LogStructLogTypesExporterTest < Minitest::Test
       assert_includes storage_array_content, event, "ActiveStorageLogEvents array should contain #{event}"
     end
   end
+
+  def test_exports_all_log_types_array
+    # Test that we export the array of all log types
+    content = @exporter.generate_typescript_definitions
+
+    # Check for the AllLogTypes array
+    all_types_match = content.match(/export const AllLogTypes: Array<LogType> = \[(.*?)\]/m)
+
+    assert all_types_match, "Should export an AllLogTypes array"
+
+    # Check the array content
+    all_types_content = all_types_match[1]
+
+    # Check that all log types are included in the array
+    ["LogType.SIDEKIQ", "LogType.SHRINE", "LogType.SECURITY", "LogType.REQUEST",
+     "LogType.PLAIN", "LogType.ERROR", "LogType.ACTIVEJOB", "LogType.ACTIVESTORAGE",
+     "LogType.ACTIONMAILER", "LogType.CARRIERWAVE"].each do |log_type|
+      assert_includes all_types_content, log_type, "AllLogTypes array should contain #{log_type}"
+    end
+  end
 end

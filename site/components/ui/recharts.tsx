@@ -30,9 +30,12 @@ const CustomTooltip = ({
 }: TooltipProps<number, string>) => {
   const { theme, resolvedTheme } = useTheme();
   // Check both theme from context and document class for more reliability
-  const isDarkFromClass = typeof document !== 'undefined' ? 
-    document.documentElement.classList.contains('dark') : false;
-  const isDark = resolvedTheme === 'dark' || theme === 'dark' || isDarkFromClass;
+  const isDarkFromClass =
+    typeof document !== 'undefined'
+      ? document.documentElement.classList.contains('dark')
+      : false;
+  const isDark =
+    resolvedTheme === 'dark' || theme === 'dark' || isDarkFromClass;
 
   // For debugging - remove in production
   // console.log('Theme info:', { theme, resolvedTheme, isDarkFromClass, isDark });

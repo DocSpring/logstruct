@@ -24,6 +24,8 @@ import {
   ActiveStorageLogEvents,
   ActionMailerLogEvents,
   CarrierWaveLogEvents,
+  // Import the array of all log types
+  AllLogTypes,
 } from './log-types';
 import logKeysMap from './log-keys.json';
 
