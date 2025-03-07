@@ -2,6 +2,16 @@ import { LogScroller } from '@/components/log-scroller';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
+import { 
+  FileJson, 
+  Shield, 
+  FilterX, 
+  Tag, 
+  Puzzle, 
+  AlertCircle, 
+  Globe,
+  IceCream
+} from 'lucide-react';
 
 export default function Home() {
   return (
@@ -73,9 +83,14 @@ export default function Home() {
         <h2 className="mb-12 text-center text-3xl font-bold">Features</h2>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">
-              Type-safe with Sorbet
-            </h3>
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
+                <IceCream className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
+              </div>
+              <h3 className="text-xl font-semibold">
+                Type-safe with Sorbet
+              </h3>
+            </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               LogStruct is fully type-checked with Sorbet so your logs are
               guaranteed to have the correct structure. And no risk of{' '}
@@ -83,37 +98,62 @@ export default function Home() {
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">
-              Advanced Filtering and Scrubbing
-            </h3>
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
+                <FilterX className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
+              </div>
+              <h3 className="text-xl font-semibold">
+                Advanced Filtering and Scrubbing
+              </h3>
+            </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               Parameter and string filtering for security and privacy, hiding
               sensitive data.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">Tagged Logging</h3>
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
+                <Tag className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
+              </div>
+              <h3 className="text-xl font-semibold">Tagged Logging</h3>
+            </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               Full support for tagged logging with both string and hash tags.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">Gem Integrations</h3>
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
+                <Puzzle className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
+              </div>
+              <h3 className="text-xl font-semibold">Gem Integrations</h3>
+            </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               Built-in integrations with Sidekiq, Carrierwave, Shrine,
               ActiveStorage, and more.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">Error Handling</h3>
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
+                <AlertCircle className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
+              </div>
+              <h3 className="text-xl font-semibold">Error Handling</h3>
+            </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               Configurable error handling with multiple reporting options.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-            <h3 className="mb-4 text-xl font-semibold">
-              Universal Compatibility
-            </h3>
+            <div className="flex items-center mb-4">
+              <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
+                <Globe className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
+              </div>
+              <h3 className="text-xl font-semibold">
+                Universal Compatibility
+              </h3>
+            </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               Works with any gem - just use Rails.logger like normal.
             </p>
