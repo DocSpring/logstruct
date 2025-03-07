@@ -197,8 +197,7 @@ export default function Home() {
             </div>
             <p className="text-neutral-600 dark:text-neutral-400">
               LogStruct is fully type-checked with Sorbet so your logs are
-              guaranteed to have the correct structure. And no risk of{' '}
-              <code>undefined method `[]&apos; for nil:NilClass</code>.
+              always structured correctly and have the right data.
             </p>
           </div>
           <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">

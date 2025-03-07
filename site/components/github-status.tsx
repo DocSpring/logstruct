@@ -91,58 +91,60 @@ export function GitHubStatus() {
       <p className="text-neutral-600 dark:text-neutral-400">
         CI/CD pipeline status: {' '}
         {workflowStatus.loading ? (
-          <span className="text-blue-600 dark:text-blue-400 font-semibold inline-flex items-center">
-            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          <span className="text-blue-600 dark:text-blue-400 font-semibold inline-flex items-center h-5">
+            <span className="flex items-center justify-center h-4 w-4 mr-1">
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </span>
             <span>Loading...</span>
           </span>
         ) : workflowStatus.conclusion === 'success' ? (
-          <span className="text-green-600 dark:text-green-400 font-semibold inline-flex items-center">
+          <span className="text-green-600 dark:text-green-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">✓</span>
             <span>Passing</span>
           </span>
         ) : workflowStatus.conclusion === 'failure' ? (
-          <span className="text-red-600 dark:text-red-400 font-semibold inline-flex items-center">
+          <span className="text-red-600 dark:text-red-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">✗</span>
             <span>Failing</span>
           </span>
         ) : workflowStatus.status === 'in_progress' ? (
-          <span className="text-yellow-600 dark:text-yellow-400 font-semibold inline-flex items-center">
+          <span className="text-yellow-600 dark:text-yellow-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">⟳</span>
             <span>Running</span>
           </span>
         ) : workflowStatus.conclusion === 'cancelled' ? (
-          <span className="text-orange-600 dark:text-orange-400 font-semibold inline-flex items-center">
+          <span className="text-orange-600 dark:text-orange-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">×</span>
             <span>Cancelled</span>
           </span>
         ) : workflowStatus.conclusion === 'skipped' ? (
-          <span className="text-blue-500 dark:text-blue-400 font-semibold inline-flex items-center">
+          <span className="text-blue-500 dark:text-blue-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">⤭</span>
             <span>Skipped</span>
           </span>
         ) : workflowStatus.conclusion === 'timed_out' ? (
-          <span className="text-red-600 dark:text-red-400 font-semibold inline-flex items-center">
+          <span className="text-red-600 dark:text-red-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">⏱</span>
             <span>Timed Out</span>
           </span>
         ) : workflowStatus.conclusion === 'action_required' ? (
-          <span className="text-orange-600 dark:text-orange-400 font-semibold inline-flex items-center">
+          <span className="text-orange-600 dark:text-orange-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">⚠</span>
             <span>Action Required</span>
           </span>
         ) : workflowStatus.conclusion === 'neutral' ? (
-          <span className="text-neutral-600 dark:text-neutral-400 font-semibold inline-flex items-center">
+          <span className="text-neutral-600 dark:text-neutral-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">◯</span>
             <span>Neutral</span>
           </span>
         ) : workflowStatus.conclusion === 'stale' ? (
-          <span className="text-gray-600 dark:text-gray-400 font-semibold inline-flex items-center">
+          <span className="text-gray-600 dark:text-gray-400 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">⊖</span>
             <span>Stale</span>
           </span>
         ) : (
-          <span className="text-neutral-600 dark:text-neutral-400 font-semibold">
-            {workflowStatus.conclusion || workflowStatus.status || "Unknown"}
+          <span className="text-neutral-600 dark:text-neutral-400 font-semibold inline-flex items-center h-5">
+            <span>{workflowStatus.conclusion || workflowStatus.status || "Unknown"}</span>
           </span>
         )}
       </p>
