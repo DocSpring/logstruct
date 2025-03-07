@@ -266,6 +266,83 @@ export default function Home() {
           </Button>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <section className="py-16">
+        <h2 className="mb-12 text-center text-3xl font-bold">
+          Frequently Asked Questions
+        </h2>
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <h3 className="mb-4 text-xl font-semibold">
+              Do I need to use Sorbet?
+            </h3>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              No! LogStruct works great as a standard Ruby gem. You don&apos;t
+              need to use Sorbet in your app, but <code>sorbet-runtime</code> is
+              a dependency since we use{' '}
+              <a
+                href="https://sorbet.org/docs/tstruct"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <code>T::Struct</code>
+              </a>{' '}
+              and other Sorbet features. You can use the regular Rails logger or
+              our typed API - it&apos;s up to you.
+            </p>
+          </div>
+          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <h3 className="mb-4 text-xl font-semibold">
+              Why was LogStruct built?
+            </h3>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              We were already using the{' '}
+              <a
+                href="https://github.com/roidrage/lograge"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <code>lograge</code>
+              </a>{' '}
+              gem to format our request logs as JSON, but we realized that our
+              logs contained a lot of other information that would be useful for
+              CloudWatch metrics and dashboards. We wrote most of this code in
+              our own Rails app before deciding to extract it and release it as
+              a gem.
+            </p>
+          </div>
+          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <h3 className="mb-4 text-xl font-semibold">
+              How was this site created?
+            </h3>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              The gem and website were both built using Claude Code and Cursor.
+              It&apos;s been a great learning experience. We&apos;re planning to
+              use the same approach to overhaul the DocSpring docs site.
+            </p>
+          </div>
+          <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <h3 className="mb-4 text-xl font-semibold">
+              What about Rails Semantic Logger?
+            </h3>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              We didn&apos;t find{' '}
+              <a
+                href="https://github.com/reidmorrison/rails_semantic_logger"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Rails Semantic Logger
+              </a>{' '}
+              until we had already built most of this! There&apos;s a lot of
+              overlap, but LogStruct still has some unique features and
+              advantages, especially if you use Sorbet to type-check your Rails
+              app.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
