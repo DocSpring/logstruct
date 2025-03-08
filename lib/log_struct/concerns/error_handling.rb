@@ -43,7 +43,7 @@ module LogStruct
             error,
             context || {}
           )
-          LogStruct.log(error_log)
+          LogStruct.error(error_log)
         end
 
         # Report an error using the configured handler or MultiErrorReporter

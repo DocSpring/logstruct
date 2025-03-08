@@ -85,7 +85,7 @@ module LogStruct
         )
 
         # Log structured data
-        LogStruct.log(log_data)
+        LogStruct.info(log_data)
       end
     end
   end

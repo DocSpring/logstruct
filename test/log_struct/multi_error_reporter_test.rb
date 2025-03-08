@@ -54,9 +54,9 @@ module LogStruct
       # Skip if Sentry is not defined
       skip "Sentry is not available" unless defined?(::Sentry)
 
-      # Create a log mock to verify LogStruct.log was called correctly
+      # Create a log mock to verify LogStruct.error was called correctly
       log_mock = Minitest::Mock.new
-      LogStruct.stub(:log, log_mock) do
+      LogStruct.stub(:error, log_mock) do
         # Force Sentry to raise an error
         ::Sentry.stub(:capture_exception, ->(_exception, _options) { raise "Sentry error" }) do
           # Expect log to be called with an Exception log struct with source LogStruct
@@ -181,7 +181,7 @@ module LogStruct
         # Verify that RailsLogger is detected when no services are available
         assert_equal ErrorReporter::RailsLogger, MultiErrorReporter.reporter
 
-        # Create a log mock to verify LogStruct.log was called correctly
+        # Create a log mock to verify LogStruct.error was called correctly
         log_mock = Minitest::Mock.new
         log_mock.expect(:call, nil) do |log_entry|
           assert_instance_of Log::Error, log_entry
@@ -193,7 +193,7 @@ module LogStruct
         end
 
         # This is where we actually call report_error with our mock
-        LogStruct.stub(:log, log_mock) do
+        LogStruct.stub(:error, log_mock) do
           MultiErrorReporter.report_error(@exception, @context)
         end
 

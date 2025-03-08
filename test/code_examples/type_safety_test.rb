@@ -19,8 +19,8 @@ module LogStruct
           source: LogStruct::Source::Rails
         )
 
-        # Log the typed struct
-        LogStruct.log(request_log)
+        # Log the typed struct at info level
+        LogStruct.info(request_log)
 
         # Create a typed error log entry
         error_log = LogStruct::Log::Error.new(
@@ -29,8 +29,8 @@ module LogStruct
           message: "An error occurred during processing"
         )
 
-        # Log the error
-        LogStruct.log(error_log)
+        # Log the error at error level
+        LogStruct.error(error_log)
         # ----------------------------------------------------------
         # END CODE EXAMPLE: basic_typed_logging
         # ----------------------------------------------------------

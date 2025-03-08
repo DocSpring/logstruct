@@ -65,13 +65,12 @@ module LogStruct
           # Create a structured log entry
           log_data = Log::ActionMailer.new(
             event: event_type,
-            level: Level::Info,
             to: to,
             from: from,
             subject: subject,
             additional_data: data
           )
-          LogStruct.log(log_data)
+          LogStruct.info(log_data)
           log_data
         end
 

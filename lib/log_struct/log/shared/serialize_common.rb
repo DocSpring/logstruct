@@ -20,8 +20,7 @@ module LogStruct
         {
           LOG_KEYS.fetch(:source) => source.serialize,
           LOG_KEYS.fetch(:event) => event.serialize,
-          LOG_KEYS.fetch(:timestamp) => timestamp.iso8601(3),
-          LOG_KEYS.fetch(:level) => level.serialize
+          LOG_KEYS.fetch(:timestamp) => timestamp.iso8601(3)
         }
       end
     end

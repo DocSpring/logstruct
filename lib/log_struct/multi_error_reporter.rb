@@ -129,7 +129,7 @@ module LogStruct
       end
 
       # Fallback logging when no error reporting services are available
-      # Uses the LogStruct.log method to properly log the error
+      # Uses the LogStruct.error method to properly log the error
       sig { params(error: StandardError, context: T::Hash[T.untyped, T.untyped]).void }
       def fallback_logging(error, context = {})
         return if error.nil?
@@ -141,8 +141,8 @@ module LogStruct
           context
         )
 
-        # Use LogStruct.log to properly log the error
-        LogStruct.log(error_log)
+        # Use LogStruct.error to properly log the error
+        LogStruct.error(error_log)
       end
     end
   end

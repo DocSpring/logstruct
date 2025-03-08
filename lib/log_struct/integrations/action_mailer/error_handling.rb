@@ -58,7 +58,7 @@ module LogStruct
           )
 
           # Log the structured error
-          LogStruct.log(exception_data)
+          LogStruct.error(exception_data)
         end
 
         # Log when email delivery fails
@@ -106,7 +106,7 @@ module LogStruct
             )
 
             # Log the exception with structured data
-            LogStruct.log(exception_data)
+            LogStruct.error(exception_data)
 
             # Call the error handler
             LogStruct.handle_exception(error, source: Source::Mailer, context: context)
@@ -131,7 +131,7 @@ module LogStruct
           )
 
           # Log the error at info level since it's not a critical error
-          LogStruct.log(exception_data)
+          LogStruct.info(exception_data)
         end
 
         sig { params(error: StandardError).returns(String) }

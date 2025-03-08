@@ -1,7 +1,6 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../enums/level"
 require_relative "../log"
 
 module LogStruct
@@ -11,26 +10,34 @@ module LogStruct
       module ClassMethods
         extend T::Sig
 
-        # Type-safe interface for Rails.logger
+        # Log a log struct at debug level
         sig { params(log: Log::Interfaces::CommonFields).void }
-        def log(log)
-          level = log.level
-          case level
-          when Level::Debug
-            Rails.logger.debug(log)
-          when Level::Info
-            Rails.logger.info(log)
-          when Level::Warn
-            Rails.logger.warn(log)
-          when Level::Error
-            Rails.logger.error(log)
-          when Level::Fatal
-            Rails.logger.fatal(log)
-          when Level::Unknown
-            Rails.logger.error(log) # Log unknown severity as error
-          else
-            T.absurd(level)
-          end
+        def debug(log)
+          Rails.logger.debug(log)
+        end
+
+        # Log a log struct at info level
+        sig { params(log: Log::Interfaces::CommonFields).void }
+        def info(log)
+          Rails.logger.info(log)
+        end
+
+        # Log a log struct at warn level
+        sig { params(log: Log::Interfaces::CommonFields).void }
+        def warn(log)
+          Rails.logger.warn(log)
+        end
+
+        # Log a log struct at error level
+        sig { params(log: Log::Interfaces::CommonFields).void }
+        def error(log)
+          Rails.logger.error(log)
+        end
+
+        # Log a log struct at fatal level
+        sig { params(log: Log::Interfaces::CommonFields).void }
+        def fatal(log)
+          Rails.logger.fatal(log)
         end
       end
     end

@@ -193,7 +193,7 @@ module LogStruct
       data[:src] ||= Source::App
       data[:evt] ||= Event::Log
       data[:ts] ||= time.iso8601(3)
-      data[:lvl] ||= level_enum # Just a fallback, Log structs store their own level field
+      data[:lvl] = level_enum # Set level from severity parameter
       data[:prog] = progname if progname.present?
 
       generate_json(data)

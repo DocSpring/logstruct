@@ -3,7 +3,6 @@
 
 require_relative "../../enums/source"
 require_relative "../../enums/event"
-require_relative "../../enums/level"
 
 module LogStruct
   module Log
@@ -26,10 +25,6 @@ module LogStruct
         # The timestamp of the log entry (JSON property: ts)
         sig { abstract.returns(Time) }
         def timestamp; end
-
-        # The log level of the log entry (JSON property: lvl)
-        sig { abstract.returns(Level) }
-        def level; end
 
         # All logs must define a custom serialize method
         # If the class is a T::Struct that responds to serialize then we can be sure

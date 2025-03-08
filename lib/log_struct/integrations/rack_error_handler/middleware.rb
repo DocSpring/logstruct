@@ -97,7 +97,7 @@ module LogStruct
               referer: request.referer,
               request_id: request.request_id
             )
-            LogStruct.log(security_log)
+            LogStruct.error(security_log)
 
             # Report to error reporting service and/or re-raise
             context = extract_request_context(env)
@@ -116,7 +116,7 @@ module LogStruct
               error,
               context
             )
-            LogStruct.log(exception_log)
+            LogStruct.error(exception_log)
 
             # Re-raise any standard errors to let Rails or error reporter handle it.
             # Rails will also log the request details separately

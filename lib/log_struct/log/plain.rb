@@ -29,7 +29,6 @@ module LogStruct
       const :source, Source, default: T.let(Source::App, Source)
       const :event, PlainEvent, default: T.let(Event::Log, PlainEvent)
       const :timestamp, Time, factory: -> { Time.now }
-      const :level, Level, default: T.let(Level::Info, Level)
 
       # Plain log messages can be any type (String, Number, Array, Hash, etc.)
       # Developers might do something like Rails.logger.info(123) or Rails.logger.info(@variable)
