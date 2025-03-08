@@ -3,17 +3,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export function EditPageLink() {
+interface EditPageLinkProps {
+  path?: string;
+}
+
+export function EditPageLink({ path }: EditPageLinkProps) {
   const pathname = usePathname();
 
-  // Convert the path to a GitHub file path
-  // For /docs/getting-started, the file is at site/app/docs/getting-started/page.tsx
-  // Handle special case for root paths to avoid double slashes
-  const filePath =
-    pathname === '/' ? '/site/app/page.tsx' : `/site/app${pathname}/page.tsx`;
+  // Allow overriding the path or derive it from the pathname
+  const derivedPath =
+    path ??
+    // Convert the path to a GitHub file path
+    // For /docs/getting-started, the file is at site/app/docs/getting-started/page.tsx
+    // Handle special case for root paths to avoid double slashes
+    (pathname === '/' ? '/site/app/page.tsx' : `/site/app${pathname}/page.tsx`);
 
   // Ensure there are no double slashes in the path
-  const normalizedPath = filePath.replace(/\/\//g, '/');
+  const normalizedPath = derivedPath.replace(/\/\//g, '/');
 
   const githubEditUrl = `https://github.com/DocSpring/logstruct/edit/main${normalizedPath}`;
 

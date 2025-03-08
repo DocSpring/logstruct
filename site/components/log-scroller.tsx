@@ -140,7 +140,7 @@ export function LogScroller() {
 
   // Different styles based on window state and layout
   let perspectiveStyle = {};
-  
+
   if (isMinimized) {
     // Minimized state - small window in bottom right
     perspectiveStyle = {
@@ -191,7 +191,7 @@ export function LogScroller() {
   }
 
   // Mouse over effects - only for non-minimized state
-  const onMouseOverStyle = isMinimized 
+  const onMouseOverStyle = isMinimized
     ? {}
     : isStandalone
       ? {
@@ -220,7 +220,7 @@ export function LogScroller() {
         };
 
   // Adjust height based on maximized state
-  const heightClass = isMaximized ? "h-screen" : "h-[375px]";
+  const heightClass = isMaximized ? 'h-screen' : 'h-[375px]';
 
   return (
     <div
@@ -293,7 +293,7 @@ export function LogScroller() {
               e.stopPropagation();
               isMaximized ? handleRestore() : handleMaximize();
             }}
-            title={isMaximized ? "Click to restore" : "Click to maximize"}
+            title={isMaximized ? 'Click to restore' : 'Click to maximize'}
           ></div>
         </div>
         <div
@@ -308,7 +308,9 @@ export function LogScroller() {
       </div>
 
       {/* Container with relative positioning for the scrollable content and overlay */}
-      <div className={`relative ${isMaximized ? "h-[calc(100vh-30px)]" : "h-[333px]"}`}>
+      <div
+        className={`relative ${isMaximized ? 'h-[calc(100vh-30px)]' : 'h-[333px]'}`}
+      >
         {/* Scrollable content */}
         <div
           ref={scrollerRef}
@@ -342,7 +344,9 @@ export function LogScroller() {
                 {logs.join('\n\n')}
               </SyntaxHighlighter>
             ) : (
-              <div className={`w-full ${isMaximized ? 'h-[calc(100vh-100px)]' : 'h-[300px]'}`}></div>
+              <div
+                className={`w-full ${isMaximized ? 'h-[calc(100vh-100px)]' : 'h-[300px]'}`}
+              ></div>
             )}
           </div>
         </div>

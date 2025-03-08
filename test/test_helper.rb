@@ -25,6 +25,7 @@ end
 
 require "minitest/autorun"
 require "minitest/reporters"
+require "climate_control"
 
 # Use pretty reporters with minimal output
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new(color: true)

@@ -66,6 +66,11 @@ export default function DocsLayout({
                     title="Sorbet Types"
                     active={pathname === '/docs/sorbet-types'}
                   />
+                  <DocNavItem
+                    href="/docs/supported-gem-versions"
+                    title="Supported Gem Versions"
+                    active={pathname === '/docs/supported-gem-versions'}
+                  />
                 </nav>
 
                 <h2 className="mt-6 mb-3 text-lg font-semibold">Reference</h2>

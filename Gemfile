@@ -18,14 +18,7 @@ gem "bigdecimal"
 gem "drb"  # For ActiveSupport::TestCase
 gem "mutex_m"
 
-# Supported integrations
-gem "bugsnag", "~> 6.26"
-gem "carrierwave", "~> 3.0"
-gem "honeybadger", "~> 5.4"
-gem "rollbar", "~> 3.4"
-gem "sentry-ruby", "~> 5.15"
-gem "shrine", "~> 3.5"
-gem "sidekiq", "~> 7.2"
+# Sorbet is needed for development
 gem "sorbet", "~> 0.5"
 
 # Essential testing gems that don't have Ruby version restrictions
