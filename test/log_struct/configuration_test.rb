@@ -104,7 +104,6 @@ module LogStruct
     end
 
     def test_merge_rails_filter_parameters
-
       # Store original filter keys
       original_filter_keys = LogStruct.config.filters.filter_keys.dup
 

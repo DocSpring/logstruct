@@ -72,23 +72,24 @@ module LogStruct
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: typed_logging
         # ----------------------------------------------------------
-        # Create a typed request log entry
-        request_log = LogStruct::Log::Request.new(
-          source: LogStruct::Source::Rails,
-          http_method: "GET",
-          path: "/users",
-          status: 200,
-          duration: 45.2
+        # Create a typed log entry
+        log = LogStruct::Log::Plain.new(
+          source: LogStruct::Source::App,
+          message: "User signed in",
+          additional_data: {
+            user_id: 123,
+            ip_address: "192.168.1.1"
+          }
         )
 
         # Log the typed struct
-        Rails.logger.info(request_log)
+        Rails.logger.info(log)
         # ----------------------------------------------------------
         # END CODE EXAMPLE: typed_logging
         # ----------------------------------------------------------
 
         # Simple assertion to make the test pass
-        assert_instance_of LogStruct::Log::Request, request_log
+        assert_instance_of LogStruct::Log::Plain, log
       end
 
       def test_basic_configuration

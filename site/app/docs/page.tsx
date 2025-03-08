@@ -75,8 +75,7 @@ export default function DocsPage() {
             </CodeBlock>
             <Callout className="mt-4">
               This approach is ideal for most applications. No knowledge of
-              Sorbet is required and you don&apos;t need to worry about
-              type-checking.
+              Sorbet is required.
             </Callout>
           </TabsContent>
           <TabsContent value="typed" className="mt-0.5">

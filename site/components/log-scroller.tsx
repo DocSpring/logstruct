@@ -291,7 +291,11 @@ export function LogScroller() {
             style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}
             onClick={(e) => {
               e.stopPropagation();
-              isMaximized ? handleRestore() : handleMaximize();
+              if (isMaximized) {
+                handleRestore();
+              } else {
+                handleMaximize();
+              }
             }}
             title={isMaximized ? 'Click to restore' : 'Click to maximize'}
           ></div>

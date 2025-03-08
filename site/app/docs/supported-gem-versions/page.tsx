@@ -1,6 +1,6 @@
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { EditPageLink } from '@/components/edit-page-link';
-import { parseGemspec, GemDependency } from '@/lib/gemspec-parser';
+import { parseGemspec } from '@/lib/gemspec-parser';
 import { Card } from '@/components/ui/card';
 import { Callout } from '@/components/ui/callout';
 
