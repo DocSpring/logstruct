@@ -62,6 +62,11 @@ export default function DocsLayout({
                     active={pathname === '/docs/integrations'}
                   />
                   <DocNavItem
+                    href="/docs/filtering-sensitive-data"
+                    title="Filtering Sensitive Data"
+                    active={pathname === '/docs/filtering-sensitive-data'}
+                  />
+                  <DocNavItem
                     href="/docs/sorbet-types"
                     title="Sorbet Types"
                     active={pathname === '/docs/sorbet-types'}

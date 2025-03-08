@@ -203,7 +203,7 @@ module LogStruct
 
           # Configure which params should include hashes for values
           config.filters.filter_keys_with_hashes = [
-            :email, :email_address, :user_email
+            :email, :email_address
           ]
 
           # Configure sensitive data filtering for all strings

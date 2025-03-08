@@ -42,10 +42,14 @@ module LogStruct
       sig { params(string: String, include_hash: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_string(string, include_hash)
         filtered_string = {
-          _class: String,
-          _bytes: string.bytesize
+          _class: String
         }
-        filtered_string[:_hash] = HashUtils.hash_value(string) if include_hash
+        if include_hash
+          filtered_string[:_hash] = HashUtils.hash_value(string)
+        else
+          filtered_string[:_bytes] = string.bytesize
+        end
+
         filtered_string
       end
 

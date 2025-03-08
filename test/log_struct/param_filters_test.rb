@@ -53,7 +53,7 @@ module LogStruct
       result = ParamFilters.summarize_string(string, true)
 
       assert_equal String, result[:_class]
-      assert_equal string.bytesize, result[:_bytes]
+      refute result.key?(:_bytes)
       assert result.key?(:_hash)
       assert_instance_of String, result[:_hash]
     end
@@ -129,7 +129,7 @@ module LogStruct
       result = ParamFilters.summarize_json_attribute("email", "john@example.com")
 
       assert_equal String, result[:_class]
-      assert_equal "john@example.com".bytesize, result[:_bytes]
+      refute result.key?(:_bytes)
       assert result.key?(:_hash)
     end
 

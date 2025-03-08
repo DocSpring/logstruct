@@ -45,7 +45,7 @@ module LogStruct
 
           # Add additional sensitive fields from your application
           config.filters.filter_keys_with_hashes = [
-            :email, :email_address, :user_email
+            :email, :email_address
           ]
 
           # Set a unique hash salt for your application (used for email hashing)
