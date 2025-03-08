@@ -10,6 +10,8 @@ inherit_gem:
 
 AllCops:
   NewCops: enable
+  SuggestExtensions:
+    rubocop-rails: false
   Exclude:
     - node_modules/**/*
     - public/**/*

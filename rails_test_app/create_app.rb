@@ -42,6 +42,7 @@ require "bundler/setup"
 require "fileutils"
 require "rails/version"
 require "erb"
+require "sorbet-runtime"
 
 # Path constants
 ROOT_DIR = File.expand_path("..", __dir__)
@@ -63,7 +64,7 @@ clean_env = {
 skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
 
 # Extract major and minor version for migrations and load_defaults
-@rails_major_minor = rails_version.split(".")[0..1].join(".")
+@rails_major_minor = T.must(rails_version.split(".")[0..1]).join(".")
 
 # Create directories
 FileUtils.mkdir_p(RAILS_APP_DIR)
@@ -178,11 +179,11 @@ Dir.glob(File.join(TEMPLATE_DIR, "*")).each do |file|
   copy_template(relative_path)
 end
 
-# Run bundle install again to ensure all dependencies are correctly resolved
-puts "Running final bundle install..."
-Dir.chdir(RAILS_APP_DIR) do
-  system(clean_env, "bundle install") || abort("Bundle install failed")
-end
+# # Run bundle install again to ensure all dependencies are correctly resolved
+# puts "Running final bundle install..."
+# Dir.chdir(RAILS_APP_DIR) do
+#   system(clean_env, "bundle install") || abort("Bundle install failed")
+# end
 
 # Set up the database
 puts "Setting up Rails application in #{RAILS_APP_DIR}..."

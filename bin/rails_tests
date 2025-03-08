@@ -35,7 +35,7 @@ fi
 
 # Only recreate the app if FORCE_RECREATE is set or the app doesn't exist
 if [ "$FORCE_RECREATE" = "true" ] && [ -d "$TEST_APP_DIR" ]; then
-  echo "Force recreating test app..."
+  echo "Removing existing test app: $TEST_APP_DIR"
   rm -rf "$TEST_APP_DIR"
 fi
 
