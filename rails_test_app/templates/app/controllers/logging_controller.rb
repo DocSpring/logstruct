@@ -12,7 +12,7 @@ class LoggingController < ApplicationController
     # For structured data, use LogStruct's Log::Plain
     plain_log = LogStruct::Log::Plain.new(
       message: "Structured log message",
-      level: LogStruct::LogLevel::Info,
+      level: LogStruct::Level::Info,
       source: LogStruct::Source::App
     )
     Rails.logger.info(plain_log)
@@ -50,7 +50,7 @@ class LoggingController < ApplicationController
     5.times do |i|
       custom_log = LogStruct::Log::Plain.new(
         message: "Custom log message #{i}",
-        level: LogStruct::LogLevel::Info,
+        level: LogStruct::Level::Info,
         source: LogStruct::Source::App,
         data: {
           iteration: i,

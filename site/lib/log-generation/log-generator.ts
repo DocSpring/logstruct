@@ -4,7 +4,7 @@ import { SampleData } from './sample-data';
 import {
   LogType,
   Log,
-  LogLevel,
+  Level,
   Source,
   LogEvent,
   RequestLog,
@@ -127,12 +127,12 @@ export class LogGenerator extends RandomDataGenerator {
    */
   generateTypedLog(logType: LogType): Partial<Log> {
     // Determine appropriate log level based on log type
-    let level = LogLevel.INFO; // Default to INFO for most logs
+    let level = Level.INFO; // Default to INFO for most logs
     if (logType === LogType.ERROR) {
-      level = LogLevel.ERROR;
+      level = Level.ERROR;
     } else if (logType === LogType.SECURITY) {
       // Security logs are often warnings or errors
-      level = Math.random() > 0.3 ? LogLevel.WARN : LogLevel.ERROR;
+      level = Math.random() > 0.3 ? Level.WARN : Level.ERROR;
     }
 
     // Get valid source and event based on log type
@@ -436,7 +436,7 @@ export class LogGenerator extends RandomDataGenerator {
     // Enqueue event
     const enqueueLog: Partial<ActiveJobLog> = {
       timestamp: new Date().toISOString(),
-      level: LogLevel.INFO,
+      level: Level.INFO,
       source: Source.JOB,
       event: LogEvent.ENQUEUE,
       job_id: jobId,
@@ -453,7 +453,7 @@ export class LogGenerator extends RandomDataGenerator {
     );
     const startLog: Partial<ActiveJobLog> = {
       timestamp: startTime.toISOString(),
-      level: LogLevel.INFO,
+      level: Level.INFO,
       source: Source.JOB,
       event: LogEvent.START,
       job_id: jobId,
@@ -468,7 +468,7 @@ export class LogGenerator extends RandomDataGenerator {
     const finishTime = new Date(startTime.getTime() + duration);
     const finishLog: Partial<ActiveJobLog> = {
       timestamp: finishTime.toISOString(),
-      level: LogLevel.INFO,
+      level: Level.INFO,
       source: Source.JOB,
       event: LogEvent.FINISH,
       job_id: jobId,

@@ -4,7 +4,7 @@
 # Common Enums
 require_relative "enums/source"
 require_relative "enums/log_event"
-require_relative "enums/log_level"
+require_relative "enums/level"
 
 # Log Structs
 require_relative "log/carrierwave"

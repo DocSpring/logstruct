@@ -81,11 +81,11 @@ module LogStruct
       def export_data_to_json(data)
         # Export enums to JSON
         export_enums_to_json(data[:enums])
-        
+
         # Export log structs to JSON
         export_log_structs_to_json(data[:logs])
       end
-      
+
       # Export Sorbet enums to a JSON file
       sig { params(enums_data: T::Hash[Symbol, T::Array[String]], output_json_file: T.nilable(String)).void }
       def export_enums_to_json(enums_data, output_json_file = nil)
@@ -100,32 +100,32 @@ module LogStruct
 
         # Format enum data for JSON
         json_enum_data = {}
-        
+
         # For each enum, get the full class name and values
         T::Enum.subclasses
           .select { |klass| klass.name.to_s.start_with?("LogStruct::") }
           .each do |enum_class|
-            # Get the full enum name (e.g., "LogStruct::LogLevel")
+            # Get the full enum name (e.g., "LogStruct::Level")
             full_name = enum_class.name.to_s
-            
-            # Get the simple name (e.g., "LogLevel")
+
+            # Get the simple name (e.g., "Level")
             simple_name = full_name.split("::").last
-            
+
             # Skip if we don't have data for this enum
-            next unless enums_data.key?(simple_name.to_sym)
-            
+            next unless simple_name && enums_data.key?(simple_name.to_sym)
+
             # Map enum values to their constant names
             values_with_names = enum_class.values.map do |value|
               constant_name = enum_class.constants.find { |const_name| enum_class.const_get(const_name) == value }&.to_s
               serialized = value.serialize
-              
+
               # Return a hash with name and value
               {
                 name: constant_name,
                 value: serialized
               }
             end
-            
+
             # Add to the JSON data
             json_enum_data[full_name] = values_with_names
           end
@@ -150,12 +150,12 @@ module LogStruct
 
         # Format structs data for JSON
         json_structs_data = {}
-        
+
         # Process each log struct class
         logs_data.each do |struct_name, struct_info|
           # Get the full class name
           full_name = "LogStruct::Log::#{struct_name}"
-          
+
           # Add to the structs data
           json_structs_data[full_name] = {
             name: struct_name,
@@ -415,7 +415,7 @@ module LogStruct
           end
         # Detect union types (T.any) or type aliases
         elsif type_str.include?("T.any(") || type_str.include?("LogStruct::Log::")
-          # First, try to extract the base enum type (LogEvent, LogLevel, Source)
+          # First, try to extract the base enum type (LogEvent, Level, Source)
           base_enum = nil
           enum_values = []
 
@@ -423,9 +423,9 @@ module LogStruct
           if type_str.include?("LogEvent::")
             base_enum = "LogEvent"
             enum_module = LogStruct::LogEvent
-          elsif type_str.include?("LogLevel::")
-            base_enum = "LogLevel"
-            enum_module = LogStruct::LogLevel
+          elsif type_str.include?("Level::")
+            base_enum = "Level"
+            enum_module = LogStruct::Level
           elsif type_str.include?("Source::")
             base_enum = "Source"
             enum_module = LogStruct::Source
@@ -483,9 +483,9 @@ module LogStruct
             result[:type] = "any"
           end
         # Standard type handling for simple types
-        elsif type_str.include?("LogStruct::LogLevel")
+        elsif type_str.include?("LogStruct::Level")
           result[:type] = "enum"
-          result[:values] = "LogLevel"
+          result[:values] = "Level"
         elsif type_str.include?("LogStruct::Source")
           result[:type] = "enum"
           result[:values] = "Source"
@@ -558,7 +558,7 @@ module LogStruct
               # Get the Ruby enum object for the given value name (e.g., LogEvent::IPSpoof)
               enum_class = case field_info[:base_enum]
               when "LogEvent" then LogStruct::LogEvent
-              when "LogLevel" then LogStruct::LogLevel
+              when "Level" then LogStruct::Level
               when "Source" then LogStruct::Source
               end
 

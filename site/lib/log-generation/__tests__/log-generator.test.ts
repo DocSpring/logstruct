@@ -1,5 +1,5 @@
 import { LogGenerator } from '../log-generator';
-import { LogType, LogLevel, Source, LogEvent } from '../log-types';
+import { LogType, Level, Source, LogEvent } from '../log-types';
 
 describe('LogGenerator', () => {
   let generator: LogGenerator;
@@ -80,9 +80,9 @@ describe('LogGenerator', () => {
     expect(sequence[2].source).toBe(Source.JOB);
 
     // All should have the info log level
-    expect(sequence[0].level).toBe(LogLevel.INFO);
-    expect(sequence[1].level).toBe(LogLevel.INFO);
-    expect(sequence[2].level).toBe(LogLevel.INFO);
+    expect(sequence[0].level).toBe(Level.INFO);
+    expect(sequence[1].level).toBe(Level.INFO);
+    expect(sequence[2].level).toBe(Level.INFO);
 
     // Only the finish event should have a duration
     expect(sequence[0]).not.toHaveProperty('duration');

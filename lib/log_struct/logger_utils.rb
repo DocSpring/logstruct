@@ -34,7 +34,7 @@ module LogStruct
     # Extract the log level from an existing logger
     # Falls back to Rails.logger or INFO if available
     sig { params(original_logger: T.nilable(::Logger)).returns(T.any(Integer, Symbol, String)) }
-    def self.determine_log_level(original_logger = nil)
+    def self.determine_level(original_logger = nil)
       # Use original logger's level if possible
       return original_logger.level if original_logger&.respond_to?(:level)
 
@@ -53,10 +53,10 @@ module LogStruct
     def self.create_logger(logger_class, original_logger: nil, options: {})
       # Extract options or fall back to determined values
       log_target = options.key?(:logdev) ? options[:logdev] : determine_log_target(original_logger)
-      log_level = options.key?(:level) ? options[:level] : determine_log_level(original_logger)
+      level = options.key?(:level) ? options[:level] : determine_level(original_logger)
 
       # Create the logger with the correct parameters
-      logger_class.new(log_target, level: log_level)
+      logger_class.new(log_target, level: level)
     end
   end
 end

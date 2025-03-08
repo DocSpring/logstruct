@@ -26,7 +26,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
     content = File.read(@output_ts_file)
 
     # Test that TS content has necessary components
-    assert_includes content, "export enum LogLevel", "Should export LogLevel enum"
+    assert_includes content, "export enum Level", "Should export Level enum"
     assert_includes content, "export enum Source", "Should export Source enum"
     assert_includes content, "export enum LogEvent", "Should export LogEvent enum"
     assert_includes content, "export enum LogType", "Should export LogType enum"
@@ -40,11 +40,11 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Test that it includes the union type
     assert_includes content, "export type Log =", "Should export Log union type"
-    
+
     # Check if the enums JSON file was created
     enums_json_file = File.join(File.dirname(@output_ts_file), "sorbet-enums.json")
     assert_path_exists enums_json_file, "Enums JSON file should have been created"
-    
+
     # Check if the log structs JSON file was created
     structs_json_file = File.join(File.dirname(@output_ts_file), "sorbet-log-structs.json")
     assert_path_exists structs_json_file, "Log structs JSON file should have been created"
@@ -56,7 +56,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Verify basic structure
     assert_kind_of String, content
-    assert_includes content, "export enum LogLevel"
+    assert_includes content, "export enum Level"
     assert_includes content, "export enum LogType"
   end
 
@@ -64,9 +64,9 @@ class LogStructLogTypesExporterTest < Minitest::Test
     # Test that all expected enums are exported
     enums = @exporter.send(:export_enums)
 
-    # Check LogLevel is included
-    assert enums.key?(:LogLevel), "LogLevel enum should be included"
-    assert_includes enums[:LogLevel], :info, "LogLevel should include :info"
+    # Check Level is included
+    assert enums.key?(:Level), "Level enum should be included"
+    assert_includes enums[:Level], :info, "Level should include :info"
 
     # Check Source is included
     assert enums.key?(:Source), "Source enum should be included"
@@ -116,8 +116,8 @@ class LogStructLogTypesExporterTest < Minitest::Test
     assert_equal "any", ts_type, "Plain log message TypeScript type should be any"
   end
 
-  def test_log_level_is_enum_type
-    # Test with the actual LogLevel enum field from a log class
+  def test_level_is_enum_type
+    # Test with the actual Level enum field from a log class
     request_struct = LogStruct::Log::Request
     level_prop_info = request_struct.props[:level]
 
@@ -125,13 +125,13 @@ class LogStructLogTypesExporterTest < Minitest::Test
     type_info = @exporter.extract_type_info(level_prop_info)
 
     # Test that it's correctly identified as an enum
-    assert_equal "enum", type_info[:type], "LogLevel should be identified as an enum type"
-    assert_equal "LogLevel", type_info[:values], "LogLevel enum name should be preserved"
+    assert_equal "enum", type_info[:type], "Level should be identified as an enum type"
+    assert_equal "Level", type_info[:values], "Level enum name should be preserved"
 
     # Test the resulting TypeScript type
     ts_type = @exporter.typescript_type_for(type_info)
 
-    assert_equal "LogLevel", ts_type, "LogLevel TypeScript type should match the enum name"
+    assert_equal "Level", ts_type, "Level TypeScript type should match the enum name"
   end
 
   def test_timestamp_is_date_time_string
@@ -330,84 +330,84 @@ class LogStructLogTypesExporterTest < Minitest::Test
       assert_includes all_types_content, log_type, "AllLogTypes array should contain #{log_type}"
     end
   end
-  
+
   def test_exports_enums_to_json
     # Get the temp directory for output
     enums_json_file = File.join(@temp_dir, "sorbet-enums.json")
-    
+
     # Get the data
     data = @exporter.send(:generate_data)
-    
+
     # Export enums to JSON
     @exporter.export_enums_to_json(data[:enums], enums_json_file)
-    
+
     # Verify file exists
     assert_path_exists enums_json_file, "Enums JSON file should have been created"
-    
+
     # Read and parse the JSON
     json_data = JSON.parse(File.read(enums_json_file))
-    
+
     # Verify structure
     assert json_data.is_a?(Hash), "JSON data should be a hash"
-    
+
     # Check for specific enums
-    assert json_data.key?("LogStruct::LogLevel"), "Should include LogStruct::LogLevel"
+    assert json_data.key?("LogStruct::Level"), "Should include LogStruct::Level"
     assert json_data.key?("LogStruct::Source"), "Should include LogStruct::Source"
     assert json_data.key?("LogStruct::LogEvent"), "Should include LogStruct::LogEvent"
-    
+
     # Check that values are properly structured
-    log_level_values = json_data["LogStruct::LogLevel"]
-    assert log_level_values.is_a?(Array), "Values should be an array"
-    assert log_level_values.first.is_a?(Hash), "Each value should be a hash"
-    assert log_level_values.first.key?("name"), "Each value should have a name"
-    assert log_level_values.first.key?("value"), "Each value should have a value"
-    
+    level_values = json_data["LogStruct::Level"]
+    assert level_values.is_a?(Array), "Values should be an array"
+    assert level_values.first.is_a?(Hash), "Each value should be a hash"
+    assert level_values.first.key?("name"), "Each value should have a name"
+    assert level_values.first.key?("value"), "Each value should have a value"
+
     # Check for specific enum values
-    log_level_values.each do |value|
+    level_values.each do |value|
       if value["name"] == "Info"
         assert_equal "info", value["value"], "Info enum should serialize as 'info'"
       end
     end
   end
-  
+
   def test_exports_log_structs_to_json
     # Get the temp directory for output
     structs_json_file = File.join(@temp_dir, "sorbet-log-structs.json")
-    
+
     # Get the data
     data = @exporter.send(:generate_data)
-    
+
     # Export log structs to JSON
     @exporter.export_log_structs_to_json(data[:logs], structs_json_file)
-    
+
     # Verify file exists
     assert_path_exists structs_json_file, "Log structs JSON file should have been created"
-    
+
     # Read and parse the JSON
     json_data = JSON.parse(File.read(structs_json_file))
-    
+
     # Verify structure
     assert json_data.is_a?(Hash), "JSON data should be a hash"
-    
+
     # Check for specific structs
     assert json_data.key?("LogStruct::Log::Request"), "Should include LogStruct::Log::Request"
     assert json_data.key?("LogStruct::Log::Error"), "Should include LogStruct::Log::Error"
     assert json_data.key?("LogStruct::Log::Plain"), "Should include LogStruct::Log::Plain"
-    
+
     # Check struct structure
     request_struct = json_data["LogStruct::Log::Request"]
     assert_equal "Request", request_struct["name"], "Should have correct name"
     assert request_struct.key?("fields"), "Should have fields"
-    
+
     # Check field structure
     fields = request_struct["fields"]
     assert fields.is_a?(Hash), "Fields should be a hash"
-    
+
     # Check specific fields
     assert fields.key?("path"), "Should have path field"
     assert fields.key?("status"), "Should have status field"
     assert fields.key?("duration"), "Should have duration field"
-    
+
     # Check field types
     assert_equal "string", fields["path"]["type"], "Path should be a string"
     assert_equal "integer", fields["status"]["type"], "Status should be an integer"

@@ -5,5 +5,5 @@
 require_relative "enums/error_handling_mode"
 require_relative "enums/error_reporter"
 require_relative "enums/log_event"
-require_relative "enums/log_level"
+require_relative "enums/level"
 require_relative "enums/source"

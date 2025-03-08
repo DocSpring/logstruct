@@ -59,8 +59,8 @@ module LogStruct
             const :event, Symbol
             const :timestamp, Time
             const :level,
-              LogStruct::LogLevel,
-              default: T.let(LogStruct::LogLevel::Info, LogStruct::LogLevel)
+              LogStruct::Level,
+              default: T.let(LogStruct::Level::Info, LogStruct::Level)
 
             prop :payment_id, String
             prop :amount, Float
@@ -80,7 +80,7 @@ module LogStruct
           source: :payment_processed,
           event: :payment_processed,
           timestamp: Time.now,
-          level: LogStruct::LogLevel::Info,
+          level: LogStruct::Level::Info,
           payment_id: "pay_123456",
           amount: 99.99,
           currency: "USD",
@@ -95,7 +95,7 @@ module LogStruct
         assert_equal :payment_processed, payment_log.source
         assert_equal :payment_processed, payment_log.event
         assert_kind_of Time, payment_log.timestamp
-        assert_equal LogStruct::LogLevel::Info, payment_log.level
+        assert_equal LogStruct::Level::Info, payment_log.level
         assert_equal "pay_123456", payment_log.payment_id
         assert_in_delta(99.99, payment_log.amount)
         assert_equal "USD", payment_log.currency

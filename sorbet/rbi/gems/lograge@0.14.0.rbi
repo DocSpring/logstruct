@@ -29,10 +29,10 @@ module Lograge
   def ignore_tests=(val); end
 
   # source://lograge//lib/lograge.rb#99
-  def log_level; end
+  def level; end
 
   # source://lograge//lib/lograge.rb#99
-  def log_level=(val); end
+  def level=(val); end
 
   # source://lograge//lib/lograge.rb#28
   def logger; end
@@ -210,10 +210,10 @@ module Lograge
     def keep_original_rails_log; end
 
     # source://lograge//lib/lograge.rb#99
-    def log_level; end
+    def level; end
 
     # source://lograge//lib/lograge.rb#99
-    def log_level=(val); end
+    def level=(val); end
 
     # source://lograge//lib/lograge.rb#28
     def logger; end

@@ -7,7 +7,7 @@ require_relative "shared/serialize_common"
 require_relative "shared/add_request_fields"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../enums/log_level"
+require_relative "../enums/level"
 require_relative "../log_keys"
 
 module LogStruct
@@ -29,7 +29,7 @@ module LogStruct
       const :source, Source::Rails, default: T.let(Source::Rails, Source::Rails)
       const :event, RequestLogEvent, default: T.let(LogEvent::Request, RequestLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
-      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :level, Level, default: T.let(Level::Info, Level)
 
       # Request-specific fields
       # NOTE: `method` is a reserved word, so we use `http_method`

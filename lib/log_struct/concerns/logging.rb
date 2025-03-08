@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../enums/log_level"
+require_relative "../enums/level"
 require_relative "../log"
 
 module LogStruct
@@ -16,17 +16,17 @@ module LogStruct
         def log(log)
           level = log.level
           case level
-          when LogLevel::Debug
+          when Level::Debug
             Rails.logger.debug(log)
-          when LogLevel::Info
+          when Level::Info
             Rails.logger.info(log)
-          when LogLevel::Warn
+          when Level::Warn
             Rails.logger.warn(log)
-          when LogLevel::Error
+          when Level::Error
             Rails.logger.error(log)
-          when LogLevel::Fatal
+          when Level::Fatal
             Rails.logger.fatal(log)
-          when LogLevel::Unknown
+          when Level::Unknown
             Rails.logger.error(log) # Log unknown severity as error
           else
             T.absurd(level)

@@ -749,7 +749,7 @@ class Rails::Application::Configuration < ::Rails::Engine::Configuration
   def beginning_of_week=(_arg0); end
 
   # source://railties//lib/rails/application/configuration.rb#385
-  def broadcast_log_level; end
+  def broadcast_level; end
 
   # Returns the value of attribute cache_classes.
   #
@@ -1072,13 +1072,13 @@ class Rails::Application::Configuration < ::Rails::Engine::Configuration
   # source://railties//lib/rails/application/configuration.rb#14
   def log_formatter=(_arg0); end
 
-  # Returns the value of attribute log_level.
+  # Returns the value of attribute level.
   #
   # source://railties//lib/rails/application/configuration.rb#28
-  def log_level; end
+  def level; end
 
   # source://railties//lib/rails/application/configuration.rb#380
-  def log_level=(level); end
+  def level=(level); end
 
   # Returns the value of attribute log_tags.
   #

@@ -3,7 +3,7 @@
 
 require_relative "../../enums/source"
 require_relative "../../enums/log_event"
-require_relative "../../enums/log_level"
+require_relative "../../enums/level"
 
 module LogStruct
   module Log
@@ -28,7 +28,7 @@ module LogStruct
         def timestamp; end
 
         # The log level of the log entry (JSON property: lvl)
-        sig { abstract.returns(LogLevel) }
+        sig { abstract.returns(Level) }
         def level; end
 
         # All logs must define a custom serialize method

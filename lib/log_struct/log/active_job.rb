@@ -7,7 +7,7 @@ require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../enums/log_level"
+require_relative "../enums/level"
 require_relative "../log_keys"
 
 module LogStruct
@@ -34,7 +34,7 @@ module LogStruct
       const :source, Source::Job, default: T.let(Source::Job, Source::Job)
       const :event, ActiveJobLogEvent
       const :timestamp, Time, factory: -> { Time.now }
-      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :level, Level, default: T.let(Level::Info, Level)
 
       # Job-specific fields
       const :job_id, T.nilable(String), default: nil

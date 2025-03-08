@@ -5,7 +5,7 @@ require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../enums/log_level"
+require_relative "../enums/level"
 require_relative "../log_keys"
 
 module LogStruct
@@ -32,7 +32,7 @@ module LogStruct
       const :source, Source::Shrine, default: T.let(Source::Shrine, Source::Shrine)
       const :event, ShrineLogEvent
       const :timestamp, Time, factory: -> { Time.now }
-      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :level, Level, default: T.let(Level::Info, Level)
 
       # Shrine-specific fields
       const :storage, T.nilable(String), default: nil

@@ -12508,7 +12508,7 @@ class ActionView::LogSubscriber < ::ActiveSupport::LogSubscriber
     def attach_to(*_arg0); end
 
     # source://activesupport/7.2.2.1/lib/active_support/log_subscriber.rb#84
-    def log_levels; end
+    def levels; end
   end
 end
 

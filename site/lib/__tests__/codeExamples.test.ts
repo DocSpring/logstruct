@@ -197,18 +197,18 @@ function calculate() {
 # BEGIN CODE EXAMPLE: log_enums, replace: /enums << /, ""
 # ----------------------------------------------------------
 # Log levels
-enums << LogStruct::LogLevel::Debug
-enums << LogStruct::LogLevel::Info
-enums << LogStruct::LogLevel::Warn
-enums << LogStruct::LogLevel::Error
-enums << LogStruct::LogLevel::Fatal
+enums << LogStruct::Level::Debug
+enums << LogStruct::Level::Info
+enums << LogStruct::Level::Warn
+enums << LogStruct::Level::Error
+enums << LogStruct::Level::Fatal
 # ----------------------------------------------------------
 # END CODE EXAMPLE: log_enums
 # ----------------------------------------------------------
 `;
 
     const extracted = extractCodeExample(content, 'log_enums');
-    expect(extracted).toContain('LogStruct::LogLevel::Debug');
+    expect(extracted).toContain('LogStruct::Level::Debug');
     expect(extracted).toContain('LogStruct::Source::Rails');
     expect(extracted).toContain('LogStruct::ErrorHandlingMode::Ignore');
     expect(extracted).not.toContain('enums <<');

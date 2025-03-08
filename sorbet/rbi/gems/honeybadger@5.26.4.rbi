@@ -1749,7 +1749,7 @@ class Honeybadger::Config
   # @api private
   #
   # source://honeybadger//lib/honeybadger/config.rb#274
-  def log_level(key = T.unsafe(nil)); end
+  def level(key = T.unsafe(nil)); end
 
   # @api private
   #

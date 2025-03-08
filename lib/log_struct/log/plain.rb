@@ -5,7 +5,7 @@ require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../enums/log_level"
+require_relative "../enums/level"
 require_relative "../log_keys"
 
 module LogStruct
@@ -27,7 +27,7 @@ module LogStruct
       const :source, Source, default: T.let(Source::App, Source)
       const :event, PlainLogEvent, default: T.let(LogEvent::Log, PlainLogEvent)
       const :timestamp, Time, factory: -> { Time.now }
-      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :level, Level, default: T.let(Level::Info, Level)
 
       # Plain log messages can be any type (String, Number, Array, Hash, etc.)
       # Developers might do something like Rails.logger.info(123) or Rails.logger.info(@variable)

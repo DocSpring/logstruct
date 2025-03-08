@@ -35,7 +35,7 @@ export async function EnumsList() {
 
   // Get enum names we want to display (in a specific order)
   const enumOrder = [
-    'LogStruct::LogLevel',
+    'LogStruct::Level',
     'LogStruct::Source',
     'LogStruct::LogEvent',
     'LogStruct::ErrorHandlingMode',

@@ -1,6 +1,6 @@
 import { RandomDataGenerator } from '../random-data-generator';
 import { SampleData } from '../sample-data';
-import { LogLevel, Source, LogEvent } from '../log-types';
+import { Level, Source, LogEvent } from '../log-types';
 
 describe('RandomDataGenerator', () => {
   let generator: RandomDataGenerator;
@@ -20,8 +20,8 @@ describe('RandomDataGenerator', () => {
   });
 
   test('should generate random enum values', () => {
-    const logLevel = generator.randomEnum(LogLevel);
-    expect(Object.values(LogLevel)).toContain(logLevel);
+    const level = generator.randomEnum(Level);
+    expect(Object.values(Level)).toContain(level);
 
     const source = generator.randomEnum(Source);
     expect(Object.values(Source)).toContain(source);

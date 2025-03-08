@@ -177,7 +177,7 @@ module LogStruct
     # Serializes Log (or string) into JSON
     sig { params(severity: T.any(String, Symbol, Integer), time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
     def call(severity, time, progname, log_value)
-      level_enum = LogLevel.from_severity(severity)
+      level_enum = Level.from_severity(severity)
 
       data = log_value_to_hash(log_value, time: time)
 

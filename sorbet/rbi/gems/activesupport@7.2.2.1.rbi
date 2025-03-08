@@ -8124,13 +8124,13 @@ class ActiveSupport::LogSubscriber < ::ActiveSupport::Subscriber
     def flush_all!; end
 
     # source://activesupport//lib/active_support/log_subscriber.rb#84
-    def log_levels; end
+    def levels; end
 
     # source://activesupport//lib/active_support/log_subscriber.rb#84
-    def log_levels=(value); end
+    def levels=(value); end
 
     # source://activesupport//lib/active_support/log_subscriber.rb#84
-    def log_levels?; end
+    def levels?; end
 
     # source://activesupport//lib/active_support/log_subscriber.rb#107
     def log_subscribers; end
@@ -8154,7 +8154,7 @@ class ActiveSupport::LogSubscriber < ::ActiveSupport::Subscriber
     def set_event_levels; end
 
     # source://activesupport//lib/active_support/log_subscriber.rb#127
-    def subscribe_log_level(method, level); end
+    def subscribe_level(method, level); end
   end
 end
 

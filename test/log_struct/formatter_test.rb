@@ -46,7 +46,7 @@ module LogStruct
       log_entry = LogStruct::Log::Plain.new(
         message: "Test message",
         source: LogStruct::Source::App,
-        level: LogStruct::LogLevel::Info
+        level: LogStruct::Level::Info
       )
 
       result = JSON.parse(@formatter.call(@severity, @time, @progname, log_entry))
@@ -212,7 +212,7 @@ module LogStruct
       log_entry = LogStruct::Log::Plain.new(
         message: "Struct message",
         source: LogStruct::Source::App,
-        level: LogStruct::LogLevel::Info
+        level: LogStruct::Level::Info
       )
 
       result = @formatter.log_value_to_hash(log_entry, time: @time)

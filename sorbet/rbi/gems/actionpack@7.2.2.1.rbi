@@ -4496,7 +4496,7 @@ class ActionController::LogSubscriber < ::ActiveSupport::LogSubscriber
 
   class << self
     # source://activesupport/7.2.2.1/lib/active_support/log_subscriber.rb#84
-    def log_levels; end
+    def levels; end
   end
 end
 
@@ -14244,7 +14244,7 @@ class ActionDispatch::LogSubscriber < ::ActiveSupport::LogSubscriber
 
   class << self
     # source://activesupport/7.2.2.1/lib/active_support/log_subscriber.rb#84
-    def log_levels; end
+    def levels; end
   end
 end
 

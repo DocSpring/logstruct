@@ -103,28 +103,28 @@ module LogStruct
       end
     end
 
-    # ===== determine_log_level tests =====
+    # ===== determine_level tests =====
 
-    def test_determine_log_level_with_original_logger
+    def test_determine_level_with_original_logger
       # Set up logger with known level
       test_logger = ::Logger.new(StringIO.new)
       test_logger.level = ::Logger::DEBUG
 
-      level = LoggerUtils.determine_log_level(test_logger)
+      level = LoggerUtils.determine_level(test_logger)
 
       assert_equal ::Logger::DEBUG, level
     end
 
-    def test_determine_log_level_with_rails_logger
+    def test_determine_level_with_rails_logger
       # Set up Rails logger with known level
       ::Rails.logger.level = ::Logger::WARN
 
-      level = LoggerUtils.determine_log_level(nil)
+      level = LoggerUtils.determine_level(nil)
 
       assert_equal ::Logger::WARN, level
     end
 
-    def test_determine_log_level_with_unresponsive_logger
+    def test_determine_level_with_unresponsive_logger
       # We need to use a properly typed logger but mock it to be unresponsive
       unresponsive_logger = ::Logger.new(StringIO.new)
 
@@ -136,7 +136,7 @@ module LogStruct
         method_name != :level
       end
 
-      level = LoggerUtils.determine_log_level(unresponsive_logger)
+      level = LoggerUtils.determine_level(unresponsive_logger)
 
       assert_equal ::Logger::INFO, level
     end
@@ -227,7 +227,7 @@ module LogStruct
 
       # Stub the determine methods to control their return values
       LoggerUtils.stub(:determine_log_target, original_io) do
-        LoggerUtils.stub(:determine_log_level, original_level) do
+        LoggerUtils.stub(:determine_level, original_level) do
           # We'll use the real LogStruct::Logger class but stub the new method
           real_new = LogStruct::Logger.method(:new)
 

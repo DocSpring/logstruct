@@ -5,7 +5,7 @@ require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
 require_relative "../enums/log_event"
-require_relative "../enums/log_level"
+require_relative "../enums/level"
 
 module LogStruct
   module Log
@@ -34,7 +34,7 @@ module LogStruct
       const :source, Source::Storage, default: T.let(Source::Storage, Source::Storage)
       const :event, ActiveStorageLogEvent
       const :timestamp, Time, factory: -> { Time.now }
-      const :level, LogLevel, default: T.let(LogLevel::Info, LogLevel)
+      const :level, Level, default: T.let(Level::Info, Level)
 
       # ActiveStorage-specific fields
       const :operation, T.nilable(Symbol), default: nil

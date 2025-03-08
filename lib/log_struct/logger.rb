@@ -3,7 +3,7 @@
 
 require "active_support/logger"
 require_relative "formatter"
-require_relative "enums/log_level"
+require_relative "enums/level"
 
 module LogStruct
   # Base Logger class that uses LogStruct::Formatter
@@ -28,7 +28,7 @@ module LogStruct
     sig { params(severity: SeverityType, message: T.untyped, progname: T.nilable(String), block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
     def add(severity, message = nil, progname = nil, &block)
       # Get the numeric severity level for comparison
-      level_enum = LogLevel.from_severity(severity)
+      level_enum = Level.from_severity(severity)
       severity_int = level_enum.to_severity_int
 
       return true if @level && @level > severity_int
