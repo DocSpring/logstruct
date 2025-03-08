@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+import { getCodeExample } from '@/lib/codeExamples';
 
 export default function DocsPage() {
   return (
@@ -15,42 +16,27 @@ export default function DocsPage() {
         Rails app prints beautiful JSON logs to STDOUT.
       </p>
 
-      <div className="my-8">
+      <div className="mt-4">
         <Tabs defaultValue="ruby">
-          <TabsList>
-            <TabsTrigger value="ruby">Plain Ruby</TabsTrigger>
-            <TabsTrigger value="typed">Sorbet Types</TabsTrigger>
+          <TabsList className="w-full cursor-pointer">
+            <TabsTrigger value="ruby" className="cursor-pointer">
+              Plain Ruby
+            </TabsTrigger>
+            <TabsTrigger value="typed" className="cursor-pointer">
+              Sorbet Types
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="ruby" className="mt-4">
+          <TabsContent value="ruby" className="mt-2">
             <CodeBlock language="ruby">
-              {`# Log a simple string
-Rails.logger.info "User signed in"
-
-# Log a hash with custom fields
-Rails.logger.info({
-  event: "user_login",
-  user_id: 123,
-  ip_address: "192.168.1.1",
-  custom_field: "any value you want"
-})`}
+              {getCodeExample('basic_logging').code}
             </CodeBlock>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
               {`This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.`}
             </p>
           </TabsContent>
-          <TabsContent value="typed" className="mt-4">
+          <TabsContent value="typed" className="mt-2">
             <CodeBlock language="ruby">
-              {`# Create a typed request log entry
-request_log = LogStruct::Log::Request.new(
-  source: LogStruct::Source::Rails,
-  method: "GET",
-  path: "/users",
-  status: 200,
-  duration_ms: 45.2,
-)
-
-# Log the typed struct
-Rails.logger.info(request_log)`}
+              {getCodeExample('typed_logging').code}
             </CodeBlock>
             <p className="mt-4 text-neutral-600 dark:text-neutral-400">
               This approach provides several benefits: type checking at

@@ -6,6 +6,48 @@ require "test_helper"
 module LogStruct
   module CodeExamples
     class ConfigurationTest < ActiveSupport::TestCase
+      def test_basic_logging # rubocop:disable Minitest/NoAssertions
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: basic_logging
+        # ----------------------------------------------------------
+        # Log a simple string
+        Rails.logger.info "User signed in"
+
+        # Log a hash with custom fields
+        Rails.logger.info({
+          event: "user_login",
+          user_id: 123,
+          ip_address: "192.168.1.1",
+          custom_field: "any value you want"
+        })
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: basic_logging
+        # ----------------------------------------------------------
+      end
+
+      def test_typed_logging
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: typed_logging
+        # ----------------------------------------------------------
+        # Create a typed request log entry
+        request_log = LogStruct::Log::Request.new(
+          source: LogStruct::Source::Rails,
+          http_method: "GET",
+          path: "/users",
+          status: 200,
+          duration: 45.2,
+        )
+
+        # Log the typed struct
+        Rails.logger.info(request_log)
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: typed_logging
+        # ----------------------------------------------------------
+
+        # Simple assertion to make the test pass
+        assert_instance_of LogStruct::Log::Request, request_log
+      end
+
       def test_basic_configuration
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: basic_configuration
