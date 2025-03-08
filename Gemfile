@@ -35,6 +35,7 @@ group :test do
   gem "minitest-reporters", "~> 1.6"
   gem "simplecov", "~> 0.22", require: false
   gem "simplecov-json", "~> 0.2", require: false
+  gem "climate_control", "~> 1.2"
   gem "thor"
 end
 

@@ -39,9 +39,26 @@ module LogStruct
 
         sig { void }
         def set_enabled_from_rails_env!
-          # Set enabled based on current Rails environment.
-          # (Users can disable or enable LogStruct later in an initializer.)
-          config.enabled = config.enabled_environments.include?(::Rails.env.to_sym)
+          # Set enabled based on current Rails environment and the LOGSTRUCT_ENABLED env var.
+          # Precedence:
+          # 1. Check if current Rails environment is in enabled_environments
+          # 2. Check if LOGSTRUCT_ENABLED env var is set to "true"
+          # 3. Default to whatever is set in config.enabled (which defaults to true)
+
+          # First check if current Rails environment is in enabled_environments
+          rails_env_enabled = config.enabled_environments.include?(::Rails.env.to_sym)
+
+          # Then check if LOGSTRUCT_ENABLED env var is set
+          env_var_enabled = if !rails_env_enabled && ENV["LOGSTRUCT_ENABLED"]
+            # Only override if env var is "true"
+            ENV["LOGSTRUCT_ENABLED"] == "true"
+          else
+            # If rails_env_enabled is true or ENV var is not set, use rails_env_enabled
+            rails_env_enabled
+          end
+
+          # Set enabled based on the determined value
+          config.enabled = env_var_enabled
         end
 
         sig { returns(T::Boolean) }

@@ -55,9 +55,55 @@ module LogStruct
       end
     end
 
+    def test_set_enabled_from_env_var_true
+      # Set up test conditions
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [] # No environments enabled
+
+      # Use ClimateControl to modify ENV
+      ClimateControl.modify LOGSTRUCT_ENABLED: "true" do
+        # Stub Rails.env to not match enabled_environments
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert LogStruct.config.enabled, "LogStruct should be enabled when LOGSTRUCT_ENABLED=true"
+        end
+      end
+    end
+
+    def test_set_enabled_from_env_var_not_true
+      # Set up test conditions
+      LogStruct.config.enabled = true
+      LogStruct.config.enabled_environments = [] # No environments enabled
+
+      # Use ClimateControl to modify ENV
+      ClimateControl.modify LOGSTRUCT_ENABLED: "yes" do
+        # Stub Rails.env to not match enabled_environments
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert_not LogStruct.config.enabled, 'LogStruct should be disabled when LOGSTRUCT_ENABLED is not "true"'
+        end
+      end
+    end
+
+    def test_enabled_environment_takes_precedence_over_env_var
+      # Set up test conditions
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:test] # Test environment is enabled
+
+      # Use ClimateControl to modify ENV
+      ClimateControl.modify LOGSTRUCT_ENABLED: "false" do
+        # Stub Rails.env to match enabled_environments
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert LogStruct.config.enabled, "Environment should take precedence over env var"
+        end
+      end
+    end
+
     def test_merge_rails_filter_parameters
-      # Skip in typescript check mode (we'll only run this in normal test mode)
-      return if ENV["TYPECHECK"]
 
       # Store original filter keys
       original_filter_keys = LogStruct.config.filters.filter_keys.dup
