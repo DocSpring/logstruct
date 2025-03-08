@@ -28,8 +28,29 @@ clean_env = {
 rails_version = ENV["RAILS_VERSION"] || "7.0.8"
 skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
 
-# Extract major and minor version for migrations
-@rails_major_minor = (rails_version.split(".")[0..1] || []).join(".")
+# Extract major and minor version for migrations and load_defaults
+@rails_major_minor = rails_version.split(".")[0..1].join(".")
+
+# Get a valid version for rails new command (must be in format like 7.0.8)
+rails_gem_version = rails_version
+if rails_version.count(".") < 2
+  # For partial versions like "7.0" or "7.1", we'll use the latest patch version
+  latest_version = nil
+  
+  case rails_version
+  when "7.0"
+    latest_version = "7.0.8"  # Known stable version
+  when "7.1"
+    latest_version = "7.1.3"  # Known stable version
+  else
+    puts "Warning: Using partial version #{rails_version} directly. This may cause issues."
+  end
+  
+  if latest_version
+    puts "Using Rails #{latest_version} to create app with load_defaults #{rails_version}"
+    rails_gem_version = latest_version
+  end
+end
 
 # Create directories
 FileUtils.mkdir_p(RAILS_APP_DIR)
@@ -73,8 +94,8 @@ end
 # Create a new Rails application if not skipping
 if !skip_app_creation
   # Use rails new to create a new application
-  puts "Creating new Rails application with version #{rails_version}..."
-  rails_new_command = "rails _#{rails_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
+  puts "Creating new Rails application with version #{rails_gem_version}..."
+  rails_new_command = "rails _#{rails_gem_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
          "--skip-sprockets --skip-javascript --skip-hotwire --skip-jbuilder --skip-asset-pipeline " \
          "--skip-bootsnap --api -T"
   puts "=> Running command: #{rails_new_command}"
@@ -164,5 +185,12 @@ Dir.chdir(RAILS_APP_DIR) do
 end
 
 puts
+
+# Save the Rails version to a file for future comparisons
+# Use the original version number (like "7.1") that was requested by the user
+version_file = File.join(RAILS_APP_DIR, ".rails_version")
+File.write(version_file, ENV["RAILS_VERSION"] || rails_version)
+puts "Rails version #{ENV["RAILS_VERSION"] || rails_version} saved to #{version_file}"
+
 puts "Test Rails app created/updated successfully in #{RAILS_APP_DIR}"
 puts "To run the tests: cd #{RAILS_APP_DIR} && bin/rails test"
