@@ -118,7 +118,7 @@ export function GitHubStatus() {
       }
       target="_blank"
       rel="noopener noreferrer"
-      className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors hover:no-underline"
+      className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors hover:no-underline"
     >
       <div className="flex items-center mb-4">
         <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">

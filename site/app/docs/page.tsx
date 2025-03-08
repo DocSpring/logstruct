@@ -6,8 +6,8 @@ import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 export default function DocsPage() {
   return (
     <div className="space-y-6">
-      <HeadingWithAnchor id="logstruct-documentation" level={1}>
-        LogStruct Documentation
+      <HeadingWithAnchor id="introduction" level={1}>
+        Introduction
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
         LogStruct adds JSON structured logging to any Rails app. Simply add the

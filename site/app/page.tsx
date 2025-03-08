@@ -236,7 +236,7 @@ export default function Home() {
               href="/coverage/index.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 transition-colors hover:no-underline"
+              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors hover:no-underline"
             >
               <div className="flex items-center mb-4">
                 <div
@@ -256,7 +256,7 @@ export default function Home() {
               </p>
             </a>
 
-            <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 ">
+            <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
               <div className="flex items-center mb-4">
                 <div
                   className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
@@ -279,7 +279,7 @@ export default function Home() {
               href="https://rubygems.org/gems/logstruct"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-700 transition-colors hover:no-underline"
+              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-gray-400 dark:hover:border-gray-500 transition-colors hover:no-underline"
             >
               <div className="flex items-center mb-4">
                 <div
@@ -314,10 +314,17 @@ export default function Home() {
                 Do I need to use Sorbet?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
-                No, Sorbet is not required for users of the gem. We use it
-                internally for development to ensure type safety, but you can
-                use the regular Rails logger as usual without any Sorbet
-                configuration.
+                No, you can use LogStruct even if you don&apos;t use Sorbet. You
+                can use the regular Rails logger as usual without worrying about
+                Sorbet types.{' '}
+                <a href="https://sorbet.org/docs/runtime">
+                  <code>sorbet-runtime</code>
+                </a>{' '}
+                is a dependency, but you can even{' '}
+                <Link href="/docs/configuration/#error-handling-configuration">
+                  configure LogStruct to completely ignore type-checking errors.
+                </Link>{' '}
+                (Not recommended!)
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -353,7 +360,7 @@ export default function Home() {
                 What about Rails Semantic Logger?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
-                We didn&apos;t find out about{' '}
+                Full disclosure: We didn&apos;t find out about{' '}
                 <a
                   href="https://github.com/reidmorrison/rails_semantic_logger"
                   target="_blank"
@@ -361,9 +368,9 @@ export default function Home() {
                 >
                   Rails Semantic Logger
                 </a>{' '}
-                until we had already built most of LogStruct! There&apos;s a lot
+                until we had already built most of LogStruct. There&apos;s a lot
                 of overlap, but LogStruct does have some unique features like
-                powerful log filtering and type safety.
+                type safety, powerful log filtering, and error handling.
               </p>
             </div>
           </div>

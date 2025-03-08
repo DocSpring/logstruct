@@ -144,6 +144,7 @@ module LogStruct
         LogStruct.configure do |config|
           # Configure error handling modes
           modes = config.error_handling_modes
+
           modes.type_checking_errors = LogStruct::ErrorHandlingMode::ReportProduction
           modes.logstruct_errors = LogStruct::ErrorHandlingMode::ReportProduction
           modes.security_errors = LogStruct::ErrorHandlingMode::Report
