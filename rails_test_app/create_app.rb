@@ -25,50 +25,34 @@ clean_env = {
 }
 
 # Determine Rails version to use
-rails_version = ENV["RAILS_VERSION"] || "7.0.8"
+rails_version = ENV["RAILS_VERSION"] || "7.0"
 skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
 
 # Extract major and minor version for migrations and load_defaults
 @rails_major_minor = rails_version.split(".")[0..1].join(".")
-
-# Get a valid version for rails new command (must be in format like 7.0.8)
-rails_gem_version = rails_version
-if rails_version.count(".") < 2
-  # For partial versions like "7.0" or "7.1", we'll use the latest patch version
-  latest_version = nil
-  
-  case rails_version
-  when "7.0"
-    latest_version = "7.0.8"  # Known stable version
-  when "7.1"
-    latest_version = "7.1.3"  # Known stable version
-  else
-    puts "Warning: Using partial version #{rails_version} directly. This may cause issues."
-  end
-  
-  if latest_version
-    puts "Using Rails #{latest_version} to create app with load_defaults #{rails_version}"
-    rails_gem_version = latest_version
-  end
-end
 
 # Create directories
 FileUtils.mkdir_p(RAILS_APP_DIR)
 
 # Fix for Rails 7.0 compatibility with concurrent-ruby
 # See: https://github.com/rails/rails/pull/54264
-if !skip_app_creation && rails_version.start_with?("7.0")
-  puts "Rails 7.0.x detected - checking concurrent-ruby version..."
+if rails_version == "7.0"
+  puts "Rails 7.0 detected - checking concurrent-ruby version..."
 
   # Check if concurrent-ruby 1.3.5+ is installed
   gem_list_output = `gem list concurrent-ruby`
   if gem_list_output.include?("1.3.5")
     puts "Downgrading concurrent-ruby to 1.3.4 for Rails 7.0 compatibility..."
+    # First uninstall the incompatible version
     system("gem uninstall concurrent-ruby -v '>= 1.3.5' -I")
-    system("gem install concurrent-ruby -v '1.3.4'")
-  else
-    puts "concurrent-ruby version is compatible with Rails 7.0"
   end
+  
+  # Always make sure 1.3.4 is installed
+  puts "Installing concurrent-ruby 1.3.4 for Rails 7.0 compatibility..."
+  system("gem install concurrent-ruby -v '1.3.4' --no-document")
+  
+  # Update GEM_PATH so the gem is available to this script
+  ENV["GEM_PATH"] = `gem env gempath`.strip
 end
 
 # Copy template files into the test app
@@ -94,8 +78,8 @@ end
 # Create a new Rails application if not skipping
 if !skip_app_creation
   # Use rails new to create a new application
-  puts "Creating new Rails application with version #{rails_gem_version}..."
-  rails_new_command = "rails _#{rails_gem_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
+  puts "Creating new Rails application with version #{rails_version}..."
+  rails_new_command = "rails _#{rails_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
          "--skip-sprockets --skip-javascript --skip-hotwire --skip-jbuilder --skip-asset-pipeline " \
          "--skip-bootsnap --api -T"
   puts "=> Running command: #{rails_new_command}"
@@ -114,24 +98,37 @@ if !skip_app_creation
     gemfile_content.sub!(/^source.*$/, "\\0\n\n#{logstruct_gem_line}")
   end
 
-  # Pin concurrent-ruby version for Rails 7.0 compatibility if needed
-  # See: https://github.com/rails/rails/pull/54264
-  if rails_version.start_with?("7.0")
-    puts "Rails 7.0.x detected - pinning concurrent-ruby to 1.3.4 in Gemfile"
-
-    rails_7_0_gems = <<~GEMS
-      # Needed for Rails 7.0
+  # Common gems for all Rails versions
+  common_gems = <<~GEMS
+    # Common gems for all Rails versions
+    gem "bigdecimal"
+    gem "mutex_m"
+    gem "drb"
+    gem "benchmark"
+  GEMS
+  
+  # Add version-specific gems
+  case rails_version
+  when "7.0"
+    puts "Rails 7.0 detected - adding compatible gems to Gemfile"
+    additional_gems = <<~GEMS
+      # Rails 7.0 specific gems
       gem "concurrent-ruby", "1.3.4"
       gem "logger"
-      gem "bigdecimal"
-      gem "mutex_m"
-
-      # For Testing
-      gem "drb"
-      gem "benchmark"
+      
+      #{common_gems}
     GEMS
-
-    gemfile_content += rails_7_0_gems
+    gemfile_content += additional_gems
+  when "7.1"
+    puts "Rails 7.1 detected - adding compatible gems to Gemfile"
+    gemfile_content += common_gems
+  when "8.0"
+    puts "Rails 8.0 detected - adding compatible gems to Gemfile"
+    # Add any Rails 8.0 specific gems if needed
+    gemfile_content += common_gems
+  else
+    # For any other version, just add the common gems
+    gemfile_content += common_gems
   end
 
   # Add test gems

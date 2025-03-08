@@ -50,6 +50,12 @@ end
 
 # Development and linting tools that may have higher Ruby version requirements
 group :development do
+  # concurrent-ruby 1.3.5 stopped requiring logger.
+  # This causes Rails 7.0 to crash. (Our gem works fine either way,
+  # but it's annoying that we have to keep uninstalling 1.3.5 to
+  # run our integration tests.)
+  # See: https://github.com/rails/rails/pull/54264
+  gem "concurrent-ruby", "<= 1.3.4"
   gem "debug"
   gem "amazing_print"
   gem "listen", require: false

@@ -38,6 +38,11 @@ module LogStruct
       Thread.current[:activesupport_tagged_logging_tags] = []
     end
 
+    sig { params(tags: T::Array[String]).returns(T.untyped) }
+    def push_tags(*tags)
+      current_tags.concat(tags)
+    end
+
     sig { params(string: String).returns(String) }
     def scrub_string(string)
       # Use StringScrubber module to scrub sensitive information from strings
