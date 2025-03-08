@@ -17,7 +17,7 @@ export default function ConfigurationPage() {
       </p>
 
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        Create a file at
+        Create a file at{' '}
         <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
           config/initializers/logstruct.rb
         </code>{' '}

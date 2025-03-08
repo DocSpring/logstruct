@@ -18,7 +18,7 @@ export default function DocsPage() {
 
       <div className="mt-4">
         <Tabs defaultValue="ruby">
-          <TabsList className="w-full cursor-pointer">
+          <TabsList className="cursor-pointer w-fit">
             <TabsTrigger value="ruby" className="cursor-pointer">
               Plain Ruby
             </TabsTrigger>
@@ -26,7 +26,7 @@ export default function DocsPage() {
               Sorbet Types
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="ruby" className="mt-2">
+          <TabsContent value="ruby" className="mt-0.5">
             <CodeBlock language="ruby">
               {getCodeExample('basic_logging').code}
             </CodeBlock>
@@ -34,7 +34,7 @@ export default function DocsPage() {
               {`This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.`}
             </p>
           </TabsContent>
-          <TabsContent value="typed" className="mt-2">
+          <TabsContent value="typed" className="mt-0.5">
             <CodeBlock language="ruby">
               {getCodeExample('typed_logging').code}
             </CodeBlock>
