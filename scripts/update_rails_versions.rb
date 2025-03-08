@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# typed: strict
+# typed: true
 
 # This script fetches the latest patch versions for each supported Rails version
 # and updates them in the codebase.
@@ -8,7 +8,7 @@ require "json"
 require "net/http"
 
 # Rails versions we support
-SUPPORTED_MAJOR_MINOR = ["7.0", "7.1", "8.0"]
+SUPPORTED_MAJOR_MINOR = ["7.0", "7.1", "7.2", "8.0"]
 
 # Files to update
 CREATE_APP_SCRIPT = File.expand_path("../rails_test_app/create_app.rb", __dir__)
@@ -87,9 +87,9 @@ def update_github_workflow(versions)
   # Update the matrix versions
   versions.each do |major_minor, version|
     # Look for matrix entries with this major.minor version
-    # Allow for different patch versions (e.g., .8, .8.7)
-    if /rails:\s*'#{major_minor}[\.\d]+'/.match?(updated_content)
-      updated_content.gsub!(/rails:\s*'#{major_minor}[\.\d]+'/, "rails: '#{version}'")
+    # Handle both cases: with patch number (7.0.8) or without (7.2)
+    if updated_content.match?(/rails:\s*'#{major_minor}([\.\d]*)'/)
+      updated_content.gsub!(/rails:\s*'#{major_minor}([\.\d]*)'/, "rails: '#{version}'")
       puts "  Updated matrix Rails #{major_minor} to version #{version}"
     else
       puts "  Warning: Could not find matrix entry for Rails #{major_minor} in test.yml"

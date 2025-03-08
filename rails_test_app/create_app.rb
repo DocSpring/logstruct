@@ -8,21 +8,21 @@ rails_version = ENV["RAILS_VERSION"] || "7.0"
 # Map major.minor versions to specific patch versions
 # This mapping will be updated by scripts/update_rails_versions.rb
 if rails_version.count(".") < 2
-  case rails_version
+  latest_version = case rails_version
   when "7.0"
-    latest_version = "7.0.8.7"  # Updated by update_rails_versions.rb script
+    "7.0.8.7"  # Updated by update_rails_versions script
   when "7.1"
-    latest_version = "7.1.5.1"  # Updated by update_rails_versions.rb script
+    "7.1.5.1"  # Updated by update_rails_versions script
+  when "7.2"
+    "7.2.2.1"  # Updated by update_rails_versions script
   when "8.0"
-    latest_version = "8.0.1"  # Updated by update_rails_versions.rb script
+    "8.0.1"  # Updated by update_rails_versions script
   else
-    puts "Warning: Using unrecognized Rails version #{rails_version}"
+    raise "Unrecognized Rails version #{rails_version}"
   end
 
-  if latest_version
-    puts "Mapping Rails #{rails_version} to #{latest_version}"
-    rails_version = latest_version
-  end
+  puts "Mapping Rails #{rails_version} to #{latest_version}"
+  rails_version = latest_version
 end
 
 # Get currently installed Rails versions
@@ -142,18 +142,6 @@ if !skip_app_creation
   gem "mutex_m"
   gem "drb"
   gem "benchmark"
-
-  # Add version-specific gems
-  case rails_version
-  when "7.0"
-    "7.0.8.7"  # Updated by update_rails_versions.rb script
-  when "7.1"
-    "7.1.5.1"  # Updated by update_rails_versions.rb script
-  when "8.0"
-    "8.0.1"  # Updated by update_rails_versions.rb script
-  else
-    puts "Warning: Using unrecognized Rails version #{rails_version}"
-  end
 
   # Add test gems
   test_gems = <<~GEMS

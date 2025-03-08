@@ -170,6 +170,10 @@ jobs:
             ruby: '3.3'
             rails: '7.1.5.1'
 
+          - name: 'Ruby 3.4 / Rails 7.2'
+            ruby: '3.4'
+            rails: '7.2.2.1'
+
     env:
       RAILS_VERSION: ${{ matrix.rails }}
       RUBY_VERSION: ${{ matrix.ruby }}
@@ -194,4 +198,3 @@ jobs:
 
       - name: Run Rails integration tests
         run: bin/rails_tests
-b

@@ -80,6 +80,7 @@ Sorbet/StrictSigil:
     - 'test/**/*'
     - 'sorbet/**/*'
     - 'rails_test_app/**/*.rb'
+    - 'scripts/**/*.rb'
   SuggestedStrictness: strict
 
 # Require typed: true for test files
@@ -88,6 +89,7 @@ Sorbet/TrueSigil:
   Include:
     - 'test/**/*.rb'
     - 'rails_test_app/**/*.rb'
+    - 'scripts/**/*.rb'
   SuggestedStrictness: true
 
 # Don't try to validate typing on generated Sorbet RBI files
