@@ -119,6 +119,10 @@ if !skip_app_creation
   puts "=> Running command: #{rails_new_command}"
   system(clean_env, rails_new_command) || abort("Failed to create Rails application")
 
+  # Remove the default .rubocop.yml file since it messes up our own RuboCop
+  puts "=> Deleting default .rubocop.yml"
+  FileUtils.rm_f(File.join(RAILS_APP_DIR, ".rubocop.yml"))
+
   # Update Gemfile to include the local logstruct gem and test gems
   gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
   gemfile_content = File.read(gemfile_path)
@@ -133,22 +137,20 @@ if !skip_app_creation
   end
 
   # Common gems for all Rails versions
-  common_gems = <<~GEMS
-    # Common gems for all Rails versions
-    gem "bigdecimal"
-    gem "mutex_m"
-    gem "drb"
-    gem "benchmark"
-  GEMS
+  # Common gems for all Rails versions
+  gem "bigdecimal"
+  gem "mutex_m"
+  gem "drb"
+  gem "benchmark"
 
   # Add version-specific gems
   case rails_version
   when "7.0"
-    latest_version = "7.0.8.7"  # Updated by update_rails_versions.rb script
+    "7.0.8.7"  # Updated by update_rails_versions.rb script
   when "7.1"
-    latest_version = "7.1.5.1"  # Updated by update_rails_versions.rb script
+    "7.1.5.1"  # Updated by update_rails_versions.rb script
   when "8.0"
-    latest_version = "8.0.1"  # Updated by update_rails_versions.rb script
+    "8.0.1"  # Updated by update_rails_versions.rb script
   else
     puts "Warning: Using unrecognized Rails version #{rails_version}"
   end

@@ -290,11 +290,6 @@ GEM
     rubocop-performance (1.23.1)
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
-    rubocop-rails (2.29.1)
-      activesupport (>= 4.2.0)
-      rack (>= 1.1)
-      rubocop (>= 1.52.0, < 2.0)
-      rubocop-ast (>= 1.31.1, < 2.0)
     rubocop-sorbet (0.8.9)
       rubocop (>= 1)
     ruby-progressbar (1.13.0)
@@ -434,7 +429,6 @@ DEPENDENCIES
   rubocop
   rubocop-minitest
   rubocop-performance
-  rubocop-rails
   rubocop-sorbet
   sentry-ruby (~> 5.15)
   shrine (~> 3.5)

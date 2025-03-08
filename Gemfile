@@ -60,7 +60,7 @@ group :development do
   gem "amazing_print"
   gem "listen", require: false
   gem "rubocop-performance", require: false
-  gem "rubocop-rails", require: false
+  # gem "rubocop-rails", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-sorbet", require: false
   gem "rubocop", require: false
