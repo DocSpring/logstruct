@@ -96,7 +96,7 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:block relative">
               <LogScroller />
             </div>
           </div>
