@@ -21,6 +21,31 @@ export default async function TypeSafetyPage() {
         documentation and IDE support.
       </p>
 
+      <HeadingWithAnchor id="adding-sorbet">
+        Adding Sorbet to Your Application
+      </HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        To fully utilize LogStruct&apos;s type safety features, you can add
+        Sorbet to your application:
+      </p>
+
+      <CodeBlock language="ruby">
+        {`# In your Gemfile
+gem "sorbet", group: :development
+gem "sorbet-runtime"`}
+      </CodeBlock>
+
+      <p>Then run:</p>
+      <CodeBlock language="bash">
+        {`bundle install
+bundle exec srb init`}
+      </CodeBlock>
+
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        See the <a href="https://sorbet.org/docs/overview">Sorbet docs</a> for
+        more information.
+      </p>
+
       <HeadingWithAnchor id="using-logstruct-with-sorbet">
         Using LogStruct with Sorbet
       </HeadingWithAnchor>
@@ -34,24 +59,6 @@ export default async function TypeSafetyPage() {
         name="basic_typed_logging"
         title="Basic Typed Logging Example"
       />
-
-      <HeadingWithAnchor id="adding-sorbet">
-        Adding Sorbet to Your Application
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        To fully utilize LogStruct&apos;s type safety features, you should add
-        Sorbet to your application:
-      </p>
-
-      <CodeBlock language="bash">
-        {`# In your Gemfile
-gem "sorbet", group: :development
-gem "sorbet-runtime"
-
-# Then run
-# bundle install
-# bundle exec srb init`}
-      </CodeBlock>
 
       <HeadingWithAnchor id="benefits">
         Benefits of Type Safety

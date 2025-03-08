@@ -4,6 +4,7 @@ import { RubyCodeExample } from '@/components/ruby-code-example';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { LogGenerator } from '@/lib/log-generation';
 import { LogType, AllLogTypes } from '@/lib/log-generation/log-types';
+import { getCodeExample } from '@/lib/codeExamples';
 
 // Helper to format logs as JSON strings for display
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -190,14 +191,7 @@ export default function IntegrationsPage() {
         </HeadingWithAnchor>
         <div className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
           <CodeBlock language="ruby" unwrapped={true}>
-            {`# Enable Sorbet error handling
-config.integrations.enable_sorbet_error_handlers = true
-
-# This configures the following error handlers:
-# - T::Configuration.inline_type_error_handler
-# - T::Configuration.call_validation_error_handler
-# - T::Configuration.sig_builder_error_handler
-# - T::Configuration.sig_validation_error_handler`}
+            {getCodeExample('sorbet_error_handlers_configuration').code}
           </CodeBlock>
         </div>
       </div>

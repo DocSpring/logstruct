@@ -2,6 +2,7 @@ import { EditPageLink } from '@/components/edit-page-link';
 import { CodeBlock } from '@/components/code-block';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+import { getCodeExample } from '@/lib/codeExamples';
 
 export default function GettingStartedPage() {
   return (
@@ -57,22 +58,7 @@ export default function GettingStartedPage() {
       </p>
 
       <CodeBlock language="ruby">
-        {`# Log a simple message
-Rails.logger.info "User signed in"
-
-# Log structured data
-Rails.logger.info({
-  src: "rails",
-  evt: "user_login",
-  user_id: user.id,
-  ip_address: request.remote_ip
-})
-
-# Log with tags
-Rails.logger.tagged("Authentication") do
-  Rails.logger.info "User signed in"
-  Rails.logger.info({ user_id: user.id, ip_address: request.remote_ip })
-end`}
+        {getCodeExample('getting_started_basic_logging').code}
       </CodeBlock>
 
       <p className="text-neutral-600 dark:text-neutral-400 mt-6">

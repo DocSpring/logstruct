@@ -3,6 +3,7 @@ import { EditPageLink } from '@/components/edit-page-link';
 import { CodeBlock } from '@/components/code-block';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import Link from 'next/dist/client/link';
+import { getCodeExample } from '@/lib/codeExamples';
 
 export default function ConfigurationPage() {
   return (
@@ -114,14 +115,7 @@ export default function ConfigurationPage() {
       </p>
 
       <CodeBlock language="ruby">
-        {`# Enable Sorbet error handling
-config.integrations.enable_sorbet_error_handlers = true
-
-# This configures the following error handlers:
-# - T::Configuration.inline_type_error_handler
-# - T::Configuration.call_validation_error_handler
-# - T::Configuration.sig_builder_error_handler
-# - T::Configuration.sig_validation_error_handler`}
+        {getCodeExample('sorbet_error_handlers_configuration').code}
       </CodeBlock>
 
       <EditPageLink />

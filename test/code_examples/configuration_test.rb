@@ -6,6 +6,15 @@ require "test_helper"
 module LogStruct
   module CodeExamples
     class ConfigurationTest < ActiveSupport::TestCase
+      class MockUser < T::Struct
+        const :id, Integer
+        const :email, String
+      end
+
+      class MockRequest < T::Struct
+        const :remote_ip, String
+      end
+
       def test_basic_logging # rubocop:disable Minitest/NoAssertions
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: basic_logging
@@ -25,6 +34,37 @@ module LogStruct
         # ----------------------------------------------------------
       end
 
+      def test_getting_started_basic_logging # rubocop:disable Minitest/NoAssertions
+        user = MockUser.new(id: 123, email: "user@example.com")
+        request = MockRequest.new(remote_ip: "192.168.1.1")
+
+        # Set up tagged logger
+        Rails.logger = ActiveSupport::TaggedLogging.new(Rails.logger)
+
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: getting_started_basic_logging
+        # ----------------------------------------------------------
+        # Log a simple message
+        Rails.logger.info "User signed in"
+
+        # Log structured data
+        Rails.logger.info({
+          src: "rails",
+          evt: "user_login",
+          user_id: user.id,
+          ip_address: request.remote_ip
+        })
+
+        # Log with tags
+        Rails.logger.tagged("Authentication") do
+          Rails.logger.info "User signed in"
+          Rails.logger.info(user_id: user.id, ip_address: request.remote_ip)
+        end
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: getting_started_basic_logging
+        # ----------------------------------------------------------
+      end
+
       def test_typed_logging
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: typed_logging
@@ -35,7 +75,7 @@ module LogStruct
           http_method: "GET",
           path: "/users",
           status: 200,
-          duration: 45.2,
+          duration: 45.2
         )
 
         # Log the typed struct
@@ -113,6 +153,22 @@ module LogStruct
         # ----------------------------------------------------------
         # END CODE EXAMPLE: integrations_configuration
         # ----------------------------------------------------------
+
+        LogStruct.configure do |config|
+          # ----------------------------------------------------------
+          # BEGIN CODE EXAMPLE: sorbet_error_handlers_configuration
+          # ----------------------------------------------------------
+          config.integrations.enable_sorbet_error_handlers = true
+
+          # This configures the following error handlers for Sorbet:
+          # - T::Configuration.inline_type_error_handler
+          # - T::Configuration.call_validation_error_handler
+          # - T::Configuration.sig_builder_error_handler
+          # - T::Configuration.sig_validation_error_handler
+          # ----------------------------------------------------------
+          # END CODE EXAMPLE: sorbet_error_handlers_configuration
+          # ----------------------------------------------------------
+        end
 
         # Verify integration configurations are applied
         assert LogStruct.configuration.integrations.enable_lograge

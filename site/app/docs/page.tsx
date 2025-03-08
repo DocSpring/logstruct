@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+import { Callout } from '@/components/ui/callout';
 import { getCodeExample } from '@/lib/codeExamples';
 
 export default function DocsPage() {
@@ -15,6 +16,48 @@ export default function DocsPage() {
         gem to your Gemfile and add an initializer to configure it. Now your
         Rails app prints beautiful JSON logs to STDOUT.
       </p>
+
+      <HeadingWithAnchor id="features" level={2}>
+        Features
+      </HeadingWithAnchor>
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+        <li>
+          JSON logging enabled by default in production and test environments.
+        </li>
+        <li>
+          Sets up <a href="https://github.com/roidrage/lograge">Lograge</a> for
+          structured request logging.
+        </li>
+        <li>
+          Uses{' '}
+          <a href="https://github.com/reidmorrison/semantic_logger">
+            Semantic Logger
+          </a>{' '}
+          as the logging framework.
+        </li>
+        <li>
+          Automatic integration with many Rails components and third-party gems.
+        </li>
+        <li>
+          Customizable error handling and reporting with sensible,
+          production-ready defaults.
+        </li>
+        <li>
+          Sensitive data scrubbing and param filtering for security and privacy.
+        </li>
+        <li>
+          Host authorization response app for logging &quot;blocked host&quot;
+          security violations.
+        </li>
+        <li>
+          Rack middleware for logging errors, IP Spoofing, CSRF violations, etc.
+        </li>
+        <li>Type checking with Sorbet.</li>
+      </ul>
+
+      <HeadingWithAnchor id="logging-with-logstruct" level={2}>
+        Logging with LogStruct
+      </HeadingWithAnchor>
 
       <div className="mt-4">
         <Tabs defaultValue="ruby">
@@ -30,43 +73,24 @@ export default function DocsPage() {
             <CodeBlock language="ruby">
               {getCodeExample('basic_logging').code}
             </CodeBlock>
-            <p className="mt-4 text-neutral-600 dark:text-neutral-400">
-              {`This approach is ideal for most applications and follows Ruby's philosophy of flexibility and developer convenience.`}
-            </p>
+            <Callout className="mt-4">
+              This approach is ideal for most applications. No knowledge of
+              Sorbet is required and you don&apos;t need to worry about
+              type-checking.
+            </Callout>
           </TabsContent>
           <TabsContent value="typed" className="mt-0.5">
             <CodeBlock language="ruby">
               {getCodeExample('typed_logging').code}
             </CodeBlock>
-            <p className="mt-4 text-neutral-600 dark:text-neutral-400">
-              This approach provides several benefits: type checking at
-              development time, consistent log structure, IDE autocompletion,
-              and better documentation.
-            </p>
+            <Callout className="mt-4" type="success">
+              This approach provides several benefits: IDE autocompletion, type
+              checking (in all environments), and guaranteed log structure with
+              valid data.
+            </Callout>
           </TabsContent>
         </Tabs>
       </div>
-
-      <HeadingWithAnchor id="features" level={2}>
-        Features
-      </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
-        <li>
-          JSON logging enabled by default in production and test environments
-        </li>
-        <li>ActionMailer integration for email delivery logging</li>
-        <li>ActiveJob integration for job execution logging</li>
-        <li>Sidekiq integration for background job logging</li>
-        <li>Shrine and CarrierWave integration for file upload logging</li>
-        <li>ActiveStorage integration for cloud storage operations</li>
-        <li>Error handling and reporting</li>
-        <li>Metadata collection for rich context</li>
-        <li>Lograge integration for structured request logging</li>
-        <li>Sensitive data scrubbing for security and privacy</li>
-        <li>Host authorization logging for security violations</li>
-        <li>Rack middleware for enhanced error logging</li>
-        <li>Type checking with Sorbet and RBS annotations</li>
-      </ul>
 
       <div className="mt-10 flex gap-4">
         <a
