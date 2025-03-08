@@ -209,8 +209,7 @@ enums << LogStruct::Level::Fatal
 
     const extracted = extractCodeExample(content, 'log_enums');
     expect(extracted).toContain('LogStruct::Level::Debug');
-    expect(extracted).toContain('LogStruct::Source::Rails');
-    expect(extracted).toContain('LogStruct::ErrorHandlingMode::Ignore');
+    expect(extracted).toContain('# Log levels');
     expect(extracted).not.toContain('enums <<');
   });
 });

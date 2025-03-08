@@ -43,10 +43,12 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Check if the enums JSON file was created
     enums_json_file = File.join(File.dirname(@output_ts_file), "sorbet-enums.json")
+
     assert_path_exists enums_json_file, "Enums JSON file should have been created"
 
     # Check if the log structs JSON file was created
     structs_json_file = File.join(File.dirname(@output_ts_file), "sorbet-log-structs.json")
+
     assert_path_exists structs_json_file, "Log structs JSON file should have been created"
   end
 
@@ -325,8 +327,8 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Check that all log types are included in the array
     ["LogType.SIDEKIQ", "LogType.SHRINE", "LogType.SECURITY", "LogType.REQUEST",
-     "LogType.PLAIN", "LogType.ERROR", "LogType.ACTIVEJOB", "LogType.ACTIVESTORAGE",
-     "LogType.ACTIONMAILER", "LogType.CARRIERWAVE"].each do |log_type|
+      "LogType.PLAIN", "LogType.ERROR", "LogType.ACTIVEJOB", "LogType.ACTIVESTORAGE",
+      "LogType.ACTIONMAILER", "LogType.CARRIERWAVE"].each do |log_type|
       assert_includes all_types_content, log_type, "AllLogTypes array should contain #{log_type}"
     end
   end
@@ -348,7 +350,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
     json_data = JSON.parse(File.read(enums_json_file))
 
     # Verify structure
-    assert json_data.is_a?(Hash), "JSON data should be a hash"
+    assert_kind_of Hash, json_data, "JSON data should be a hash"
 
     # Check for specific enums
     assert json_data.key?("LogStruct::Level"), "Should include LogStruct::Level"
@@ -357,8 +359,9 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Check that values are properly structured
     level_values = json_data["LogStruct::Level"]
-    assert level_values.is_a?(Array), "Values should be an array"
-    assert level_values.first.is_a?(Hash), "Each value should be a hash"
+
+    assert_kind_of Array, level_values, "Values should be an array"
+    assert_kind_of Hash, level_values.first, "Each value should be a hash"
     assert level_values.first.key?("name"), "Each value should have a name"
     assert level_values.first.key?("value"), "Each value should have a value"
 
@@ -387,7 +390,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
     json_data = JSON.parse(File.read(structs_json_file))
 
     # Verify structure
-    assert json_data.is_a?(Hash), "JSON data should be a hash"
+    assert_kind_of Hash, json_data, "JSON data should be a hash"
 
     # Check for specific structs
     assert json_data.key?("LogStruct::Log::Request"), "Should include LogStruct::Log::Request"
@@ -396,12 +399,14 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     # Check struct structure
     request_struct = json_data["LogStruct::Log::Request"]
+
     assert_equal "Request", request_struct["name"], "Should have correct name"
     assert request_struct.key?("fields"), "Should have fields"
 
     # Check field structure
     fields = request_struct["fields"]
-    assert fields.is_a?(Hash), "Fields should be a hash"
+
+    assert_kind_of Hash, fields, "Fields should be a hash"
 
     # Check specific fields
     assert fields.key?("path"), "Should have path field"

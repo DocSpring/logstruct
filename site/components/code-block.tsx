@@ -7,24 +7,24 @@ import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 // Custom code theme based on atomDark but with better Ruby module styling
 const customTheme = {
   ...atomDark,
-  'namespace': {
+  namespace: {
     color: '#81a2be', // Softer blue instead of yellow
     fontStyle: 'normal', // Remove italics
-    textDecoration: 'none' // Remove underline
+    textDecoration: 'none', // Remove underline
   },
   'entity.name.module': {
     color: '#81a2be', // Match the namespace color
     fontStyle: 'normal',
-    textDecoration: 'none'
+    textDecoration: 'none',
   },
   'class-name': {
     color: '#de935f', // More vibrant orange for class names
-    fontStyle: 'normal'
+    fontStyle: 'normal',
   },
-  'constant': {
+  constant: {
     color: '#81a2be', // Same blue for constants
-    fontWeight: 'normal'
-  }
+    fontWeight: 'normal',
+  },
 };
 
 interface CodeBlockProps {

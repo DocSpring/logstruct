@@ -30,10 +30,10 @@ module LogStruct
         # In a test context, we need a mock for ActiveSupport::Notifications::Event
         # Create a simple struct to act as our event
         mock_payload = {user_id: 123, account_id: 456, other_data: "test"}
-        
+
         # Simple event class with just a payload attribute
         event = Struct.new(:payload).new(mock_payload)
-        
+
         # Create a stub handler that ignores the event type for testing
         stub_handler = lambda do |evt, opts|
           # Copy the relevant fields from the payload
@@ -41,7 +41,7 @@ module LogStruct
           opts[:account_id] = evt.payload[:account_id] if evt.payload[:account_id]
           opts
         end
-        
+
         # Call the handler to verify it works
         options = {}
         result = stub_handler.call(event, options)

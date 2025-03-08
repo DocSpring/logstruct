@@ -1,5 +1,6 @@
 import { LinkIcon } from 'lucide-react';
 import Link from 'next/link';
+import { ElementType } from 'react';
 
 // Header component with an anchor link that shows on hover
 export function HeadingWithAnchor({
@@ -19,7 +20,7 @@ export function HeadingWithAnchor({
   // Add scroll-margin-top to ensure the heading isn't hidden behind the navbar when scrolled to
   const combinedClasses =
     `group ${baseClasses} ${className} scroll-mt-20`.trim();
-  const Component = `h${level}` as keyof JSX.IntrinsicElements;
+  const Component = `h${level}` as ElementType;
 
   return (
     <Component id={id} className={combinedClasses}>

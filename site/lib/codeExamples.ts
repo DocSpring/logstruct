@@ -82,35 +82,38 @@ export function extractCodeExample(content: string, id: string): string | null {
   const directives: PostProcessingDirective[] = [];
   if (startMatch[1]) {
     const directivesStr = startMatch[1].trim();
-    
+
     // Parse replace directives
     if (directivesStr.includes('replace:')) {
       // Better regex to handle both quoted and non-quoted replacements
       // First, let's simplify by splitting on 'replace:' to get all directives
       const parts = directivesStr.split('replace:');
-      
+
       for (let i = 1; i < parts.length; i++) {
         try {
           const part = parts[i].trim();
-          
+
           // Find the pattern part (between / and /)
           const patternMatch = part.match(/^\s*\/([^/]+)\/([gimsuy]*)/);
           if (!patternMatch) continue;
-          
+
           const pattern = patternMatch[1];
           const flags = patternMatch[2] || '';
-          
+
           // Find the replacement part (after the last comma or the whole remainder)
           let replacementPart = part.substring(patternMatch[0].length).trim();
-          
+
           // If it starts with a comma, remove it
           if (replacementPart.startsWith(',')) {
             replacementPart = replacementPart.substring(1).trim();
           }
-          
+
           // Handle quoted replacement
           let replacement = '';
-          if (replacementPart.startsWith('"') && replacementPart.includes('"')) {
+          if (
+            replacementPart.startsWith('"') &&
+            replacementPart.includes('"')
+          ) {
             // Extract text between first and second double quotes
             const quoteMatch = replacementPart.match(/"([^"]*)"/);
             if (quoteMatch) {
@@ -119,19 +122,20 @@ export function extractCodeExample(content: string, id: string): string | null {
           } else {
             // If no quotes, just take the entire string up to the next directive or comma
             const endIndex = replacementPart.indexOf(',');
-            replacement = endIndex > -1 
-              ? replacementPart.substring(0, endIndex).trim() 
-              : replacementPart.trim();
+            replacement =
+              endIndex > -1
+                ? replacementPart.substring(0, endIndex).trim()
+                : replacementPart.trim();
           }
-          
+
           // Create the directive
           directives.push({
             type: 'replace',
             pattern: new RegExp(pattern, flags),
-            replacement: replacement
+            replacement: replacement,
           });
         } catch (error) {
-          console.warn(`Invalid replace directive in: ${part}`, error);
+          console.warn(`Invalid replace directive in: ${parts[i]}`, error);
         }
       }
     }
@@ -152,10 +156,16 @@ export function extractCodeExample(content: string, id: string): string | null {
       if (directive.type === 'replace') {
         // Apply the replacement globally if not already specified in the pattern flags
         if (!directive.pattern.flags.includes('g')) {
-          const regex = new RegExp(directive.pattern.source, directive.pattern.flags + 'g');
+          const regex = new RegExp(
+            directive.pattern.source,
+            directive.pattern.flags + 'g',
+          );
           extractedCode = extractedCode.replace(regex, directive.replacement);
         } else {
-          extractedCode = extractedCode.replace(directive.pattern, directive.replacement);
+          extractedCode = extractedCode.replace(
+            directive.pattern,
+            directive.replacement,
+          );
         }
       }
     }

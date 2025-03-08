@@ -62,7 +62,7 @@ export async function EnumsList() {
               {getEnumDescription(enumName)}
             </p>
             <ul className="list-disc list-inside space-y-1 text-neutral-600 dark:text-neutral-400 ml-4">
-              {values.map(({ name, value }) => (
+              {values.map(({ name }) => (
                 <li key={`${enumName}-${name}`}>
                   <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
                     {shortName}::{name}
