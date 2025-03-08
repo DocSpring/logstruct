@@ -24,6 +24,9 @@ module LogStruct
     initializer "logstruct.setup", before: :build_middleware_stack do |app|
       next unless LogStruct.enabled?
 
+      # Merge Rails filter parameters into our filters
+      LogStruct.merge_rails_filter_parameters!
+
       # Set up all integrations
       Integrations.setup_integrations
     end

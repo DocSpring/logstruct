@@ -53,6 +53,28 @@ module LogStruct
         def is_production?
           !is_local?
         end
+
+        sig { void }
+        def merge_rails_filter_parameters!
+          return unless ::Rails.application.config.respond_to?(:filter_parameters)
+
+          rails_filter_params = ::Rails.application.config.filter_parameters
+          return unless rails_filter_params.is_a?(Array)
+
+          # Convert all Rails filter parameters to symbols and merge with our filter keys
+          converted_params = rails_filter_params.map do |param|
+            param.respond_to?(:to_sym) ? param.to_sym : param
+          end
+
+          # Add Rails filter parameters to our filter keys
+          config.filters.filter_keys += converted_params
+
+          # Ensure no duplicates
+          config.filters.filter_keys.uniq!
+
+          # Clear Rails filter parameters since we've incorporated them
+          ::Rails.application.config.filter_parameters.clear
+        end
       end
     end
   end

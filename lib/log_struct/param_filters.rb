@@ -54,12 +54,19 @@ module LogStruct
       def summarize_hash(hash)
         return {_class: "Hash", _empty: true} if hash.empty?
 
-        {
+        # Don't include byte size if hash contains any filtered keys
+        has_sensitive_keys = hash.keys.any? { |key| should_filter_key?(key) }
+
+        summary = {
           _class: Hash,
           _keys_count: hash.keys.size,
-          _keys: hash.keys.map(&:to_sym).take(10),
-          _bytes: hash.to_json.bytesize
+          _keys: hash.keys.map(&:to_sym).take(10)
         }
+
+        # Only add byte size if no sensitive keys are present
+        summary[:_bytes] = hash.to_json.bytesize unless has_sensitive_keys
+
+        summary
       end
 
       # Summarize an Array for logging, including details about the size and items

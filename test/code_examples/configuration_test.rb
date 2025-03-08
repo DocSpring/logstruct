@@ -15,7 +15,8 @@ module LogStruct
         const :remote_ip, String
       end
 
-      def test_basic_logging # rubocop:disable Minitest/NoAssertions
+      def test_basic_logging
+        user = MockUser.new(id: 123, email: "user@example.com")
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: basic_logging
         # ----------------------------------------------------------
@@ -25,16 +26,17 @@ module LogStruct
         # Log a hash with custom fields
         Rails.logger.info({
           event: "user_login",
-          user_id: 123,
+          user_id: user.id,
           ip_address: "192.168.1.1",
           custom_field: "any value you want"
         })
         # ----------------------------------------------------------
         # END CODE EXAMPLE: basic_logging
         # ----------------------------------------------------------
+        assert_equal 123, user.id # Stop minitest complaining
       end
 
-      def test_getting_started_basic_logging # rubocop:disable Minitest/NoAssertions
+      def test_getting_started_basic_logging
         user = MockUser.new(id: 123, email: "user@example.com")
         request = MockRequest.new(remote_ip: "192.168.1.1")
 
@@ -63,6 +65,7 @@ module LogStruct
         # ----------------------------------------------------------
         # END CODE EXAMPLE: getting_started_basic_logging
         # ----------------------------------------------------------
+        assert_equal 123, user.id # Stop minitest complaining
       end
 
       def test_typed_logging
