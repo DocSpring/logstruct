@@ -28,17 +28,18 @@ const getLogStructsData = cache(async (): Promise<LogStructsData> => {
 export async function LogStructuresList() {
   // Get the log structs data
   const structsData = await getLogStructsData();
-  
+
   // Extract struct names (sorted alphabetically)
-  const structEntries = Object.entries(structsData)
-    .sort(([, a], [, b]) => a.name.localeCompare(b.name));
-  
+  const structEntries = Object.entries(structsData).sort(([, a], [, b]) =>
+    a.name.localeCompare(b.name),
+  );
+
   return (
     <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
       {structEntries.map(([fullName, { name }]) => (
         <li key={fullName}>
           <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            LogStruct::Log::{name}
+            Log::{name}
           </code>{' '}
           - {getLogStructureDescription(name)}
         </li>

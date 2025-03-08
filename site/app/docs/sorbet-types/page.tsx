@@ -93,10 +93,17 @@ gem "sorbet-runtime"
       />
 
       <HeadingWithAnchor id="available-log-classes" level={1}>
-        Available Log Classes
+        Log Classes
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides several log classes for different use cases:
+        Log classes are{' '}
+        <a
+          className="text-gray-200 hover:underline"
+          href="https://sorbet.org/docs/tstruct"
+        >
+          <code>Typed Structs</code>
+        </a>{' '}
+        under the <code>LogStruct::</code> module.
       </p>
       <LogStructuresList />
 
@@ -104,7 +111,14 @@ gem "sorbet-runtime"
         Enums
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides typed enums for common values used in logs:
+        Common values are defined as{' '}
+        <a
+          className="text-gray-200 hover:underline"
+          href="https://sorbet.org/docs/tenum"
+        >
+          <code>Typed Enums</code>
+        </a>{' '}
+        under the <code>LogStruct::</code> module.
       </p>
       <EnumsList />
 
