@@ -117,7 +117,7 @@ jobs:
     name: 'Pilot Test: Ruby 3.4 / Rails 8.0'
     runs-on: ubuntu-22.04
     env:
-      RAILS_VERSION: '8.0'
+      RAILS_VERSION: '8.0.1'
       RUBY_VERSION: '3.4'
       CI: 'true'
       BUNDLE_WITHOUT: 'development'
@@ -164,11 +164,11 @@ jobs:
         include:
           - name: 'Ruby 3.2 / Rails 7.0'
             ruby: '3.2'
-            rails: '7.0'
+            rails: '7.0.8.7'
 
           - name: 'Ruby 3.3 / Rails 7.1'
             ruby: '3.3'
-            rails: '7.1'
+            rails: '7.1.5.1'
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}

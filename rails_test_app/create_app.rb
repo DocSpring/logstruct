@@ -5,12 +5,36 @@
 # Determine Rails version to use before loading bundler
 rails_version = ENV["RAILS_VERSION"] || "7.0"
 
-# Check if the required Rails version is installed
+# Map major.minor versions to specific patch versions
+# This mapping will be updated by scripts/update_rails_versions.rb
+if rails_version.count(".") < 2
+  case rails_version
+  when "7.0"
+    latest_version = "7.0.8.7"  # Updated by update_rails_versions.rb script
+  when "7.1"
+    latest_version = "7.1.5.1"  # Updated by update_rails_versions.rb script
+  when "8.0"
+    latest_version = "8.0.1"  # Updated by update_rails_versions.rb script
+  else
+    puts "Warning: Using unrecognized Rails version #{rails_version}"
+  end
+
+  if latest_version
+    puts "Mapping Rails #{rails_version} to #{latest_version}"
+    rails_version = latest_version
+  end
+end
+
+# Get currently installed Rails versions
 rails_gems = `gem list rails -l`
-if !rails_gems.include?("rails (#{rails_version}") && !rails_gems.include?("rails-#{rails_version}")
-  puts "Rails #{rails_version} not found locally. Attempting to install..."
+installed_versions = rails_gems.scan(/rails \(([^)]+)\)/).flatten.first&.split(", ") || []
+
+# Check if we need to install this version
+if !installed_versions.include?(rails_version)
+  puts "Rails #{rails_version} not found. Installing..."
   system("gem install rails -v '#{rails_version}' --no-document") || abort("Failed to install Rails #{rails_version}")
-  puts "Rails #{rails_version} installed successfully"
+else
+  puts "Rails #{rails_version} already installed"
 end
 
 require "bundler/setup"
@@ -56,11 +80,11 @@ if rails_version == "7.0"
     # First uninstall the incompatible version
     system("gem uninstall concurrent-ruby -v '>= 1.3.5' -I")
   end
-  
+
   # Always make sure 1.3.4 is installed
   puts "Installing concurrent-ruby 1.3.4 for Rails 7.0 compatibility..."
   system("gem install concurrent-ruby -v '1.3.4' --no-document")
-  
+
   # Update GEM_PATH so the gem is available to this script
   ENV["GEM_PATH"] = `gem env gempath`.strip
 end
@@ -116,29 +140,17 @@ if !skip_app_creation
     gem "drb"
     gem "benchmark"
   GEMS
-  
+
   # Add version-specific gems
   case rails_version
   when "7.0"
-    puts "Rails 7.0 detected - adding compatible gems to Gemfile"
-    additional_gems = <<~GEMS
-      # Rails 7.0 specific gems
-      gem "concurrent-ruby", "1.3.4"
-      gem "logger"
-      
-      #{common_gems}
-    GEMS
-    gemfile_content += additional_gems
+    latest_version = "7.0.8.7"  # Updated by update_rails_versions.rb script
   when "7.1"
-    puts "Rails 7.1 detected - adding compatible gems to Gemfile"
-    gemfile_content += common_gems
+    latest_version = "7.1.5.1"  # Updated by update_rails_versions.rb script
   when "8.0"
-    puts "Rails 8.0 detected - adding compatible gems to Gemfile"
-    # Add any Rails 8.0 specific gems if needed
-    gemfile_content += common_gems
+    latest_version = "8.0.1"  # Updated by update_rails_versions.rb script
   else
-    # For any other version, just add the common gems
-    gemfile_content += common_gems
+    puts "Warning: Using unrecognized Rails version #{rails_version}"
   end
 
   # Add test gems
