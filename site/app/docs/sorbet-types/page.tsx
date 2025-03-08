@@ -97,10 +97,7 @@ gem "sorbet-runtime"
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Log classes are{' '}
-        <a
-          className="text-gray-200 hover:underline"
-          href="https://sorbet.org/docs/tstruct"
-        >
+        <a href="https://sorbet.org/docs/tstruct">
           <code>Typed Structs</code>
         </a>{' '}
         under the <code>LogStruct::</code> module.
@@ -112,10 +109,7 @@ gem "sorbet-runtime"
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Common values are defined as{' '}
-        <a
-          className="text-gray-200 hover:underline"
-          href="https://sorbet.org/docs/tenum"
-        >
+        <a href="https://sorbet.org/docs/tenum">
           <code>Typed Enums</code>
         </a>{' '}
         under the <code>LogStruct::</code> module.

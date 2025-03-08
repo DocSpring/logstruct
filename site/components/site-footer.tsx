@@ -52,7 +52,7 @@ export function SiteFooter() {
               href="https://logstruct.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium"
+              className="text-gray-200 hover:text-white font-medium underline-offset-4"
             >
               LogStruct
             </Link>{' '}
@@ -61,16 +61,16 @@ export function SiteFooter() {
               href="https://docspring.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline-offset-4"
+              className="text-gray-200 hover:text-white font-medium underline-offset-4"
             >
               DocSpring
             </Link>{' '}
             and is released under the{' '}
             <Link
-              href="https://github.com/DocSpring/logstruct/blob/main/LICENSE"
+              href="https://github.com/DocSpring/logstruct/blob/main/LICENSE.txt"
               target="_blank"
               rel="noreferrer"
-              className="font-medium underline-offset-4"
+              className="text-gray-200 hover:text-white font-medium underline-offset-4"
             >
               MIT License
             </Link>

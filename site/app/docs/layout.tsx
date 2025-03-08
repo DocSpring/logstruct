@@ -87,7 +87,7 @@ export default function DocsLayout({
 
           {/* Main content */}
           <main className="flex-1 min-w-0">
-            <div className="max-w-3xl mx-auto">{children}</div>
+            <div className="max-w-3xl mx-auto docs-content">{children}</div>
           </main>
         </div>
       </div>

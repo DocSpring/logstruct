@@ -19,20 +19,20 @@ export function LogScroller() {
   const [isVisible, setIsVisible] = useState(true);
   const [isStandalone, setIsStandalone] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  
+
   // Check if we're in standalone mode based on window width
   useEffect(() => {
     // Set initial state
     if (typeof window !== 'undefined') {
       setIsStandalone(window.innerWidth < 1280); // xl breakpoint
-      
+
       // Add resize listener
       const handleResize = () => {
         setIsStandalone(window.innerWidth < 1280);
       };
-      
+
       window.addEventListener('resize', handleResize);
-      
+
       // Clean up
       return () => {
         window.removeEventListener('resize', handleResize);
@@ -109,49 +109,55 @@ export function LogScroller() {
   if (!isVisible) {
     return <div className="w-full h-[375px]"></div>;
   }
-  
+
   // We now use the isStandalone state which is controlled by the resize listener
-  
+
   const baseStyle = {
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)',
+    boxShadow:
+      '0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.3), -5px 5px 15px rgba(0, 0, 0, 0.15)',
   };
-  
+
   // Different styles based on layout
-  const perspectiveStyle = isStandalone 
+  const perspectiveStyle = isStandalone
     ? {
         // Straight style for standalone mode
-        transform: "scale(1)",
+        transform: 'scale(1)',
         marginLeft: '0',
         marginRight: '0',
-        ...baseStyle
+        ...baseStyle,
       }
     : {
         // 3D perspective for side-by-side mode
-        transform: "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)",
+        transform:
+          'perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)',
         transformOrigin: 'center center',
         marginLeft: '-40px',
         marginRight: '80px',
-        ...baseStyle
+        ...baseStyle,
       };
-  
+
   const onMouseOverStyle = isStandalone
     ? {
-        transform: "scale(1.01)",
-        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35)'
+        transform: 'scale(1.01)',
+        boxShadow:
+          '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35)',
       }
     : {
-        transform: "perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)",
-        boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35), -8px 8px 20px rgba(0, 0, 0, 0.15)'
+        transform:
+          'perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)',
+        boxShadow:
+          '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35), -8px 8px 20px rgba(0, 0, 0, 0.15)',
       };
-  
+
   const onMouseOutStyle = isStandalone
     ? {
-        transform: "scale(1)",
-        boxShadow: baseStyle.boxShadow
+        transform: 'scale(1)',
+        boxShadow: baseStyle.boxShadow,
       }
     : {
-        transform: "perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)",
-        boxShadow: baseStyle.boxShadow
+        transform:
+          'perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)',
+        boxShadow: baseStyle.boxShadow,
       };
 
   return (
@@ -175,7 +181,7 @@ export function LogScroller() {
         }, 100);
       }}
     >
-      <div 
+      <div
         className="relative flex items-center bg-[#393937] px-6 py-2 w-full"
         style={{
           borderBottom: '1px solid rgba(0, 0, 0, 0.3)',
@@ -183,20 +189,28 @@ export function LogScroller() {
         }}
       >
         <div className="absolute left-3 flex space-x-2">
-          <div 
-            className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400 transition-colors" 
+          <div
+            className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400 transition-colors"
             style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}
             onClick={() => setIsVisible(false)}
             title="Click to close"
           ></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
-          <div className="w-3 h-3 rounded-full bg-green-500" style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}></div>
+          <div
+            className="w-3 h-3 rounded-full bg-yellow-500 cursor-pointer hover:bg-yellow-400 transition-colors"
+            style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}
+            onClick={() => setIsVisible(false)}
+            title="Click to minimize"
+          ></div>
+          <div
+            className="w-3 h-3 rounded-full bg-green-500"
+            style={{ boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)' }}
+          ></div>
         </div>
-        <div 
+        <div
           className="w-full text-center text-[#b5b5b3] font-extrabold text-xs font-sans"
-          style={{ 
+          style={{
             textShadow: '0 1px 0 rgba(0, 0, 0, 0.3)',
-            letterSpacing: '0.5px'
+            letterSpacing: '0.5px',
           }}
         >
           Rails Server Logs
@@ -210,7 +224,8 @@ export function LogScroller() {
           ref={scrollerRef}
           className="h-full flex flex-col overflow-auto px-6 py-2 bg-[#111421]"
           style={{
-            backgroundImage: 'linear-gradient(to bottom, rgba(20, 22, 36, 0.8) 0%, rgba(17, 20, 33, 1) 20%)',
+            backgroundImage:
+              'linear-gradient(to bottom, rgba(20, 22, 36, 0.8) 0%, rgba(17, 20, 33, 1) 20%)',
             boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.3)',
           }}
         >
@@ -241,12 +256,13 @@ export function LogScroller() {
             )}
           </div>
         </div>
-        
+
         {/* Reflection overlay - placed outside the scrollable div but inside the relative container */}
-        <div 
-          className="absolute inset-0 pointer-events-none" 
+        <div
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(110deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 45%, rgba(255,255,255,0) 85%, rgba(255,255,255,0.02) 100%)',
+            background:
+              'linear-gradient(110deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 45%, rgba(255,255,255,0) 85%, rgba(255,255,255,0.02) 100%)',
             zIndex: 10,
           }}
         ></div>

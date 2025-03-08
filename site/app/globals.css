@@ -123,4 +123,17 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Default link style if no other classes are defined */
+  main a:not([class]) {
+    @apply text-gray-200 hover:underline;
+  }
+
+  nav a:not([class]) {
+    @apply text-gray-200 hover:no-underline;
+  }
+
+  footer a:not([class]) {
+    @apply text-gray-200 hover:underline;
+  }
 }

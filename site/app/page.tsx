@@ -236,7 +236,7 @@ export default function Home() {
               href="/coverage/index.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-purple-300 dark:hover:border-purple-700 transition-colors hover:no-underline"
             >
               <div className="flex items-center mb-4">
                 <div
@@ -256,7 +256,7 @@ export default function Home() {
               </p>
             </a>
 
-            <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 ">
               <div className="flex items-center mb-4">
                 <div
                   className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
@@ -279,7 +279,7 @@ export default function Home() {
               href="https://rubygems.org/gems/logstruct"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-700 transition-colors"
+              className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800 hover:border-red-300 dark:hover:border-red-700 transition-colors hover:no-underline"
             >
               <div className="flex items-center mb-4">
                 <div
@@ -338,7 +338,6 @@ export default function Home() {
                   href="https://github.com/roidrage/lograge"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-200 hover:underline"
                 >
                   <code>lograge</code>
                 </a>{' '}
@@ -359,7 +358,6 @@ export default function Home() {
                   href="https://github.com/reidmorrison/rails_semantic_logger"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-200 hover:underline"
                 >
                   Rails Semantic Logger
                 </a>{' '}

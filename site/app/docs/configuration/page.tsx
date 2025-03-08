@@ -67,13 +67,8 @@ export default function ConfigurationPage() {
         automatically detect which error reporting service you use (Sentry,
         Bugsnag, Rollbar, etc.). If you use a service that we don&apos;t support
         yet, you can configure a{' '}
-        <Link
-          className="text-gray-200 hover:underline"
-          href="#custom-error-reporting"
-        >
-          custom error handler
-        </Link>
-        . (Or you can send a PR!)
+        <Link href="#custom-error-reporting">custom error handler</Link>. (Or
+        you can send a PR!)
       </p>
 
       <RubyCodeExample name="error_handling_modes" />
