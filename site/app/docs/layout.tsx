@@ -62,9 +62,9 @@ export default function DocsLayout({
                     active={pathname === '/docs/integrations'}
                   />
                   <DocNavItem
-                    href="/docs/type-safety"
-                    title="Type Safety"
-                    active={pathname === '/docs/type-safety'}
+                    href="/docs/sorbet-types"
+                    title="Sorbet Types"
+                    active={pathname === '/docs/sorbet-types'}
                   />
                 </nav>
 

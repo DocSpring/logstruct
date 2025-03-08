@@ -1,22 +1,29 @@
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { EnumsList } from '@/components/enums-list';
+import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { LogStructuresList } from '@/components/log-structures-list';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 
 export default async function TypeSafetyPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Type Safety</h1>
+      <HeadingWithAnchor id="sorbet-types" level={1}>
+        Sorbet Types
+      </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
         LogStruct is built with type safety in mind and provides full type
-        checking support through Sorbet. This helps catch errors at development
-        time and provides better documentation and IDE support.
+        checking support through{' '}
+        <a className="text-gray-200 hover:underline" href="https://sorbet.org/">
+          Sorbet
+        </a>
+        . This helps catch errors at development time and provides better
+        documentation and IDE support.
       </p>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">
+      <HeadingWithAnchor id="using-logstruct-with-sorbet">
         Using LogStruct with Sorbet
-      </h2>
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct includes predefined log structures with strict typing. These
         structures ensure your logs have a consistent format and that required
@@ -28,9 +35,9 @@ export default async function TypeSafetyPage() {
         title="Basic Typed Logging Example"
       />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">
+      <HeadingWithAnchor id="adding-sorbet">
         Adding Sorbet to Your Application
-      </h2>
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         To fully utilize LogStruct&apos;s type safety features, you should add
         Sorbet to your application:
@@ -46,7 +53,9 @@ gem "sorbet-runtime"
 # bundle exec srb init`}
       </CodeBlock>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Benefits of Type Safety</h2>
+      <HeadingWithAnchor id="benefits">
+        Benefits of Type Safety
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Using LogStruct&apos;s typed structures provides several benefits:
       </p>
@@ -55,17 +64,11 @@ gem "sorbet-runtime"
         <li>Catches errors at development time, not at runtime</li>
         <li>Ensures consistent log structure</li>
         <li>Provides better IDE autocompletion</li>
-        <li>
-          Makes it easier to understand which fields are required and which are
-          optional
-        </li>
-        <li>Improves code documentation through type annotations</li>
-        <li>Prevents inappropriate use of undocumented fields</li>
       </ul>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">
+      <HeadingWithAnchor id="error-handling">
         Error Handling for Type Errors
-      </h2>
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct installs appropriate error handlers for Sorbet type checking
         errors.
@@ -76,28 +79,30 @@ gem "sorbet-runtime"
         title="Sorbet Error Handler Configuration"
       />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">
-        Creating Custom Log Structures
-      </h2>
+      <HeadingWithAnchor id="custom-log-classes">
+        Creating Custom Log Classes
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can create your own typed log structures by extending
-        LogStruct&apos;s base classes:
+        You can create your own typed log classes by extending LogStruct&apos;s
+        base classes:
       </p>
 
       <RubyCodeExample
-        name="custom_log_structure"
-        title="Creating Custom Log Structures"
+        name="custom_log_class"
+        title="Creating Custom Log Classes"
       />
 
-      <h1 className="text-4xl font-bold mt-10 mb-4">
-        Available Log Structures
-      </h1>
+      <HeadingWithAnchor id="available-log-classes" level={1}>
+        Available Log Classes
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct provides several typed log structures for different use cases:
+        LogStruct provides several log classes for different use cases:
       </p>
       <LogStructuresList />
 
-      <h1 className="text-4xl font-bold mt-10 mb-4">Enums</h1>
+      <HeadingWithAnchor id="enums" level={1}>
+        Enums
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         LogStruct provides typed enums for common values used in logs:
       </p>

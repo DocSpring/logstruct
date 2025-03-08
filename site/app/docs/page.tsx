@@ -1,11 +1,14 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
+import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 
 export default function DocsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">LogStruct Documentation</h1>
+      <HeadingWithAnchor id="logstruct-documentation" level={1}>
+        LogStruct Documentation
+      </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
         LogStruct adds JSON structured logging to any Rails app. Simply add the
         gem to your Gemfile and add an initializer to configure it. Now your
@@ -58,7 +61,9 @@ Rails.logger.info(request_log)`}
         </Tabs>
       </div>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Features</h2>
+      <HeadingWithAnchor id="features" level={2}>
+        Features
+      </HeadingWithAnchor>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
         <li>
           JSON logging enabled by default in production and test environments

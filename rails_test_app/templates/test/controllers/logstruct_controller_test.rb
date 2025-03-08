@@ -41,7 +41,7 @@ class LogstructTest < ActionDispatch::IntegrationTest
   end
 
   # Test custom log structures
-  def test_custom_log_structures_work
+  def test_custom_log_classs_work
     get "/logging/custom"
 
     assert_response :success

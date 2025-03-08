@@ -49,7 +49,7 @@ module LogStruct
 
       # Custom log structure must be defined at module level, not inside a method
       # ----------------------------------------------------------
-      # BEGIN CODE EXAMPLE: custom_log_structure
+      # BEGIN CODE EXAMPLE: custom_log_class
       # ----------------------------------------------------------
       # Define a custom log structure
       module TestApp
@@ -71,10 +71,10 @@ module LogStruct
         end
       end
       # ----------------------------------------------------------
-      # END CODE EXAMPLE: custom_log_structure
+      # END CODE EXAMPLE: custom_log_class
       # ----------------------------------------------------------
 
-      def test_custom_log_structure
+      def test_custom_log_class
         # Create a payment log using the class defined above
         payment_log = TestApp::Logs::PaymentProcessed.new(
           source: :payment_processed,

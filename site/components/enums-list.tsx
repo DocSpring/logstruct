@@ -1,5 +1,9 @@
-import { getEnumDescription, getEnumValueDescription } from '@/lib/enum-descriptions';
+import {
+  getEnumDescription,
+  getEnumValueDescription,
+} from '@/lib/enum-descriptions';
 import { cache } from 'react';
+import { HeadingWithAnchor } from './heading-with-anchor';
 
 // Interface for the enum data in the JSON file
 interface EnumData {
@@ -28,30 +32,32 @@ const getEnumsData = cache(async (): Promise<EnumData> => {
 export async function EnumsList() {
   // Get the enums data
   const enumsData = await getEnumsData();
-  
+
   // Get enum names we want to display (in a specific order)
   const enumOrder = [
     'LogStruct::LogLevel',
     'LogStruct::Source',
     'LogStruct::LogEvent',
-    'LogStruct::ErrorHandlingMode'
+    'LogStruct::ErrorHandlingMode',
   ];
-  
+
   // Filter and sort enums
   const sortedEnums = Object.keys(enumsData)
-    .filter(enumName => enumOrder.includes(enumName))
+    .filter((enumName) => enumOrder.includes(enumName))
     .sort((a, b) => enumOrder.indexOf(a) - enumOrder.indexOf(b));
-  
+
   return (
     <div className="space-y-6">
-      {sortedEnums.map(enumName => {
+      {sortedEnums.map((enumName) => {
         const values = enumsData[enumName];
         // Get short name (last part after ::)
         const shortName = enumName.split('::').pop() || '';
-        
+
         return (
           <div key={enumName} className="mb-4">
-            <h3 className="text-xl font-bold mb-2">{shortName}</h3>
+            <HeadingWithAnchor id={`enums-${shortName.toLowerCase()}`}>
+              {shortName}
+            </HeadingWithAnchor>
             <p className="text-neutral-600 dark:text-neutral-400 mb-2">
               {getEnumDescription(enumName)}
             </p>

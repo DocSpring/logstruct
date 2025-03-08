@@ -1,17 +1,22 @@
 import { EditPageLink } from '@/components/edit-page-link';
 import { CodeBlock } from '@/components/code-block';
 import { RubyCodeExample } from '@/components/ruby-code-example';
+import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 
 export default function GettingStartedPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Getting Started with LogStruct</h1>
+      <HeadingWithAnchor id="getting-started" level={1}>
+        Getting Started with LogStruct
+      </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
         Follow these steps to add LogStruct to your Rails application and start
         enjoying the benefits of structured JSON logging.
       </p>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Installation</h2>
+      <HeadingWithAnchor id="installation" level={2}>
+        Installation
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         {`Add this line to your application's Gemfile:`}
       </p>
@@ -26,7 +31,9 @@ export default function GettingStartedPage() {
         {`LogStruct is now installed and will automatically enable JSON structured logging in the test and production environments.`}
       </p>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Basic Configuration</h2>
+      <HeadingWithAnchor id="basic-configuration" level={2}>
+        Basic Configuration
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         While LogStruct works out of the box with zero configuration, you might
         want to customize it to better suit your application. Create a new file
@@ -42,7 +49,9 @@ export default function GettingStartedPage() {
         title="config/initializers/logstruct.rb"
       />
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Basic Usage</h2>
+      <HeadingWithAnchor id="basic-usage" level={2}>
+        Basic Usage
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         You can use LogStruct with the standard Rails logger:
       </p>
@@ -72,7 +81,9 @@ end`}
         management systems.
       </p>
 
-      <h2 className="text-2xl font-bold mt-10 mb-4">Next Steps</h2>
+      <HeadingWithAnchor id="next-steps" level={2}>
+        Next Steps
+      </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Explore these pages to learn more about LogStruct:
       </p>
