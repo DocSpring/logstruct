@@ -67,7 +67,7 @@ export function SiteFooter() {
             </Link>{' '}
             and is released under the{' '}
             <Link
-              href="https://github.com/DocSpring/logstruct/blob/main/LICENSE.txt"
+              href="https://github.com/DocSpring/logstruct/blob/main/LICENSE"
               target="_blank"
               rel="noreferrer"
               className="text-gray-200 hover:text-white font-medium underline-offset-4"
