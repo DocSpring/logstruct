@@ -25,9 +25,11 @@ if rails_version.count(".") < 2
   rails_version = latest_version
 end
 
+
 # Get currently installed Rails versions
 rails_gems = `gem list rails -l`
 installed_versions = rails_gems.scan(/rails \(([^)]+)\)/).flatten.first&.split(", ") || []
+
 
 # Check if we need to install this version
 if !installed_versions.include?(rails_version)
@@ -37,12 +39,15 @@ else
   puts "Rails #{rails_version} already installed"
 end
 
-require "bundler/setup"
+
+# Don't require bundler/setup - we want to avoid loading our project's Gemfile
 
 require "fileutils"
-require "rails/version"
 require "erb"
 require "sorbet-runtime"
+
+# Make the rails_version available as an instance variable for the ERB templates
+@rails_version = rails_version
 
 # Path constants
 ROOT_DIR = File.expand_path("..", __dir__)
@@ -54,6 +59,8 @@ clean_env = {
   "PATH" => ENV["PATH"],
   "HOME" => ENV["HOME"],
   "RAILS_ENV" => "development",
+  "RAILS_VERSION" => nil,
+  "RUBY_VERSION" => nil,
   "BUNDLE_GEMFILE" => nil,
   "GEM_HOME" => nil,
   "GEM_PATH" => nil,
@@ -114,6 +121,8 @@ end
 if !skip_app_creation
   # Use rails new to create a new application
   puts "Creating new Rails application with version #{rails_version}..."
+
+  # Try using gem's exec command with proper version specification
   rails_new_command = "rails _#{rails_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
          "--skip-sprockets --skip-javascript --skip-hotwire --skip-jbuilder --skip-asset-pipeline " \
          "--skip-bootsnap --api -T"
@@ -123,6 +132,30 @@ if !skip_app_creation
   # Remove the default .rubocop.yml file since it messes up our own RuboCop
   puts "=> Deleting default .rubocop.yml"
   FileUtils.rm_f(File.join(RAILS_APP_DIR, ".rubocop.yml"))
+
+  # Verify we're using the correct Rails version defaults
+  if rails_version.start_with?("8.0")
+    defaults_dir = File.join(RAILS_APP_DIR, "config/initializers")
+    rails72_defaults = File.join(defaults_dir, "new_framework_defaults_7_2.rb")
+    rails80_defaults = File.join(defaults_dir, "new_framework_defaults_8_0.rb")
+
+    # Check if we have the wrong defaults file
+    if File.exist?(rails72_defaults) && !File.exist?(rails80_defaults)
+      abort(<<~ERROR)
+        ERROR: Expected Rails 8.0 but found Rails 7.2 defaults file!
+
+        This indicates a serious problem with how Rails is being executed.
+        You have Rails 8.0.1 installed, but the generator is using Rails 7.2 behavior.
+
+        Possible solutions to try:
+        1. Make sure your Ruby environment is set up correctly
+        2. Try using a direct path to the rails executable
+        3. Try running the command manually outside of this script
+
+        Command attempted: #{rails_new_command}
+      ERROR
+    end
+  end
 
   # Update Gemfile to include the local logstruct gem and test gems
   gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
@@ -179,11 +212,6 @@ Dir.glob(File.join(TEMPLATE_DIR, "*")).each do |file|
   copy_template(relative_path)
 end
 
-# # Run bundle install again to ensure all dependencies are correctly resolved
-# puts "Running final bundle install..."
-# Dir.chdir(RAILS_APP_DIR) do
-#   system(clean_env, "bundle install") || abort("Bundle install failed")
-# end
 
 # Set up the database
 puts "Setting up Rails application in #{RAILS_APP_DIR}..."

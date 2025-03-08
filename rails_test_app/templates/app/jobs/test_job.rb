@@ -23,7 +23,7 @@ class TestJob < ApplicationJob
         source: LogStruct::Source::Job,
         err_class: e.class,
         message: e.message,
-        data: {job_class: self.class.name, job_id: job_id}
+        additional_data: {job_class: self.class.name, job_id: job_id}
       )
       logger.error(exception_log)
     end

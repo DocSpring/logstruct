@@ -52,7 +52,7 @@ class LoggingController < ApplicationController
         message: "Custom log message #{i}",
         level: LogStruct::Level::Info,
         source: LogStruct::Source::App,
-        data: {
+        additional_data: {
           iteration: i,
           timestamp: Time.now.to_f,
           random: rand(100)
