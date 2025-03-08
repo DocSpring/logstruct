@@ -25,11 +25,9 @@ if rails_version.count(".") < 2
   rails_version = latest_version
 end
 
-
 # Get currently installed Rails versions
 rails_gems = `gem list rails -l`
 installed_versions = rails_gems.scan(/rails \(([^)]+)\)/).flatten.first&.split(", ") || []
-
 
 # Check if we need to install this version
 if !installed_versions.include?(rails_version)
@@ -39,50 +37,15 @@ else
   puts "Rails #{rails_version} already installed"
 end
 
-
-# Don't require bundler/setup - we want to avoid loading our project's Gemfile
-
-require "fileutils"
-require "erb"
-require "sorbet-runtime"
-
-# Make the rails_version available as an instance variable for the ERB templates
-@rails_version = rails_version
-
-# Path constants
-ROOT_DIR = File.expand_path("..", __dir__)
-TEMPLATE_DIR = File.expand_path("templates", __dir__)
-RAILS_APP_DIR = File.expand_path("logstruct_test_app", __dir__)
-
-# Use a clean environment with minimal variables
-clean_env = {
-  "PATH" => ENV["PATH"],
-  "HOME" => ENV["HOME"],
-  "RAILS_ENV" => "development",
-  "RAILS_VERSION" => nil,
-  "RUBY_VERSION" => nil,
-  "BUNDLE_GEMFILE" => nil,
-  "GEM_HOME" => nil,
-  "GEM_PATH" => nil,
-  "RUBYOPT" => nil
-}
-
-# Check if we should skip app creation
-skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
-
-# Extract major and minor version for migrations and load_defaults
-@rails_major_minor = T.must(rails_version.split(".")[0..1]).join(".")
-
-# Create directories
-FileUtils.mkdir_p(RAILS_APP_DIR)
-
 # Fix for Rails 7.0 compatibility with concurrent-ruby
+# (Have to run this before bundler/setup)
 # See: https://github.com/rails/rails/pull/54264
-if rails_version == "7.0"
+if rails_version.start_with?("7.0")
   puts "Rails 7.0 detected - checking concurrent-ruby version..."
 
   # Check if concurrent-ruby 1.3.5+ is installed
   gem_list_output = `gem list concurrent-ruby`
+  puts "gem_list_output: #{gem_list_output}"
   if gem_list_output.include?("1.3.5")
     puts "Downgrading concurrent-ruby to 1.3.4 for Rails 7.0 compatibility..."
     # First uninstall the incompatible version
@@ -96,6 +59,43 @@ if rails_version == "7.0"
   # Update GEM_PATH so the gem is available to this script
   ENV["GEM_PATH"] = `gem env gempath`.strip
 end
+
+require "bundler/setup"
+require "fileutils"
+require "erb"
+
+# Make the rails_version available as an instance variable for the ERB templates
+@rails_version = rails_version
+
+# Path constants
+ROOT_DIR = File.expand_path("..", __dir__)
+TEMPLATE_DIR = File.expand_path("templates", __dir__)
+RAILS_APP_DIR = File.expand_path("logstruct_test_app", __dir__)
+
+# IMPORTANT - Use a clean environment with minimal variables
+# Requiring Bundler and Rails sets a bunch of environment variables that break everything
+# if we're not careful.
+clean_env = {
+  "PATH" => ENV["PATH"],
+  "HOME" => ENV["HOME"],
+  "RAILS_ENV" => "development",
+  "RAILS_VERSION" => nil,
+  "RUBY_VERSION" => nil,
+  "BUNDLE_GEMFILE" => nil,
+  "BUNDLER_SETUP" => nil,
+  "GEM_HOME" => nil,
+  "GEM_PATH" => nil,
+  "RUBYOPT" => nil
+}
+
+# Check if we should skip app creation
+skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
+
+# Extract major and minor version for migrations and load_defaults
+@rails_major_minor = (rails_version.split(".")[0..1] || []).join(".")
+
+# Create directories
+FileUtils.mkdir_p(RAILS_APP_DIR)
 
 # Copy template files into the test app
 def copy_template(file, target_path = nil)
@@ -133,30 +133,6 @@ if !skip_app_creation
   puts "=> Deleting default .rubocop.yml"
   FileUtils.rm_f(File.join(RAILS_APP_DIR, ".rubocop.yml"))
 
-  # Verify we're using the correct Rails version defaults
-  if rails_version.start_with?("8.0")
-    defaults_dir = File.join(RAILS_APP_DIR, "config/initializers")
-    rails72_defaults = File.join(defaults_dir, "new_framework_defaults_7_2.rb")
-    rails80_defaults = File.join(defaults_dir, "new_framework_defaults_8_0.rb")
-
-    # Check if we have the wrong defaults file
-    if File.exist?(rails72_defaults) && !File.exist?(rails80_defaults)
-      abort(<<~ERROR)
-        ERROR: Expected Rails 8.0 but found Rails 7.2 defaults file!
-
-        This indicates a serious problem with how Rails is being executed.
-        You have Rails 8.0.1 installed, but the generator is using Rails 7.2 behavior.
-
-        Possible solutions to try:
-        1. Make sure your Ruby environment is set up correctly
-        2. Try using a direct path to the rails executable
-        3. Try running the command manually outside of this script
-
-        Command attempted: #{rails_new_command}
-      ERROR
-    end
-  end
-
   # Update Gemfile to include the local logstruct gem and test gems
   gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
   gemfile_content = File.read(gemfile_path)
@@ -171,14 +147,11 @@ if !skip_app_creation
   end
 
   # Common gems for all Rails versions
-  # Common gems for all Rails versions
-  gem "bigdecimal"
-  gem "mutex_m"
-  gem "drb"
-  gem "benchmark"
-
-  # Add test gems
-  test_gems = <<~GEMS
+  gemfile_content += <<~GEMS
+    gem "bigdecimal"
+    gem "mutex_m"
+    gem "drb"
+    gem "benchmark"
 
     # Test gems
     group :test do
@@ -187,8 +160,14 @@ if !skip_app_creation
       gem 'simplecov-json'
     end
   GEMS
-  gemfile_content += test_gems
 
+  # Have to pin concurrent-ruby to 1.3.4 for Rails 7.0 compatibility
+  if rails_version.start_with?("7.0")
+    gemfile_content += <<~GEMS
+      gem "logger"
+      gem "concurrent-ruby", "<= 1.3.4"
+    GEMS
+  end
   File.write(gemfile_path, gemfile_content)
 
   # Run initial bundle install
@@ -211,7 +190,6 @@ Dir.glob(File.join(TEMPLATE_DIR, "*")).each do |file|
   relative_path = File.basename(file)
   copy_template(relative_path)
 end
-
 
 # Set up the database
 puts "Setting up Rails application in #{RAILS_APP_DIR}..."

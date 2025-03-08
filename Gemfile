@@ -11,17 +11,7 @@ unless ENV["RUBY_VERSION"]
   ruby File.read(File.expand_path(".ruby-version", __dir__)).strip
 end
 
-# Define Rails version based on environment variable
-rails_version = ENV["RAILS_VERSION"] || "7.0"
-
-case rails_version
-when "7.0"
-  gem "rails", "~> 7.0"
-when "7.1"
-  gem "rails", "~> 7.1"
-when "8.0"
-  gem "rails", "~> 8.0"
-end
+gem "rails", "~> #{ENV["RAILS_VERSION"] || "7.2.2.1"}", require: false
 
 # Add these gems to silence Ruby 3.4 warnings
 gem "bigdecimal"
