@@ -4,7 +4,7 @@
 require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -17,20 +17,20 @@ module LogStruct
       include Interfaces::CommonFields
       include SerializeCommon
 
-      ShrineLogEvent = T.type_alias {
+      ShrineEvent = T.type_alias {
         T.any(
-          LogEvent::Upload,
-          LogEvent::Download,
-          LogEvent::Delete,
-          LogEvent::Metadata,
-          LogEvent::Exist,
-          LogEvent::Unknown
+          Event::Upload,
+          Event::Download,
+          Event::Delete,
+          Event::Metadata,
+          Event::Exist,
+          Event::Unknown
         )
       }
 
       # Common fields
       const :source, Source::Shrine, default: T.let(Source::Shrine, Source::Shrine)
-      const :event, ShrineLogEvent
+      const :event, ShrineEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

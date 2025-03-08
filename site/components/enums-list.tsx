@@ -37,7 +37,7 @@ export async function EnumsList() {
   const enumOrder = [
     'LogStruct::Level',
     'LogStruct::Source',
-    'LogStruct::LogEvent',
+    'LogStruct::Event',
     'LogStruct::ErrorHandlingMode',
   ];
 

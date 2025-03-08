@@ -4,7 +4,7 @@
 require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -19,13 +19,13 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
-      PlainLogEvent = T.type_alias {
-        LogEvent::Log
+      PlainEvent = T.type_alias {
+        Event::Log
       }
 
       # Common fields
       const :source, Source, default: T.let(Source::App, Source)
-      const :event, PlainLogEvent, default: T.let(LogEvent::Log, PlainLogEvent)
+      const :event, PlainEvent, default: T.let(Event::Log, PlainEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

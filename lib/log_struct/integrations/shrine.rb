@@ -26,14 +26,14 @@ module LogStruct
         shrine_log_subscriber = T.unsafe(lambda do |event|
           payload = event.payload.except(:io, :metadata, :name).dup
 
-          # Map event name to LogEvent type
+          # Map event name to Event type
           event_type = case event.name
-          when :upload then LogEvent::Upload
-          when :download then LogEvent::Download
-          when :delete then LogEvent::Delete
-          when :metadata then LogEvent::Metadata
-          when :exists then LogEvent::Exist # ActiveStorage uses 'exist', may as well use that
-          else LogEvent::Unknown
+          when :upload then Event::Upload
+          when :download then Event::Download
+          when :delete then Event::Delete
+          when :metadata then Event::Metadata
+          when :exists then Event::Exist # ActiveStorage uses 'exist', may as well use that
+          else Event::Unknown
           end
 
           # Create structured log data
@@ -65,7 +65,7 @@ module LogStruct
 
         # Configure Shrine to use our structured log subscriber
         ::Shrine.plugin :instrumentation,
-          log_events: %i[upload exists download delete],
+          events: %i[upload exists download delete],
           log_subscriber: shrine_log_subscriber
       end
     end

@@ -4,7 +4,7 @@
 require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -18,11 +18,11 @@ module LogStruct
       include SerializeCommon
 
       # Define valid event types for Sidekiq (currently only Log is used)
-      SidekiqLogEvent = T.type_alias { LogEvent::Log }
+      SidekiqEvent = T.type_alias { Event::Log }
 
       # Common fields
       const :source, Source::Sidekiq, default: T.let(Source::Sidekiq, Source::Sidekiq)
-      const :event, SidekiqLogEvent, default: T.let(LogEvent::Log, SidekiqLogEvent)
+      const :event, SidekiqEvent, default: T.let(Event::Log, SidekiqEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

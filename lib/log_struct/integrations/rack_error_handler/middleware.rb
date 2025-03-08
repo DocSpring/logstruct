@@ -61,7 +61,7 @@ module LogStruct
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             # Create a security log for IP spoofing
             security_log = Log::Security.new(
-              event: LogEvent::IPSpoof,
+              event: Event::IPSpoof,
               message: ip_spoof_error.message,
               # Can't call .remote_ip on the request because that's what raises the error.
               # Have to pass the client_ip and x_forwarded_for headers.
@@ -88,7 +88,7 @@ module LogStruct
             # Create a security log for CSRF error
             request = ::ActionDispatch::Request.new(env)
             security_log = Log::Security.new(
-              event: LogEvent::CSRFViolation,
+              event: Event::CSRFViolation,
               message: invalid_auth_token_error.message,
               path: request.path,
               http_method: request.method,

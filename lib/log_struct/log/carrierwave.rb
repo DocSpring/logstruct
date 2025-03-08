@@ -6,7 +6,7 @@ require_relative "interfaces/data_field"
 require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -21,20 +21,20 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
-      CarrierWaveLogEvent = T.type_alias {
+      CarrierWaveEvent = T.type_alias {
         T.any(
-          LogEvent::Upload,
-          LogEvent::Download,
-          LogEvent::Delete,
-          LogEvent::Metadata,
-          LogEvent::Exist,
-          LogEvent::Unknown
+          Event::Upload,
+          Event::Download,
+          Event::Delete,
+          Event::Metadata,
+          Event::Exist,
+          Event::Unknown
         )
       }
 
       # Common fields
       const :source, Source::CarrierWave, default: T.let(Source::CarrierWave, Source::CarrierWave)
-      const :event, CarrierWaveLogEvent
+      const :event, CarrierWaveEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

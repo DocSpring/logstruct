@@ -3,7 +3,7 @@
 
 # Common Enums
 require_relative "enums/source"
-require_relative "enums/log_event"
+require_relative "enums/event"
 require_relative "enums/level"
 
 # Log Structs

@@ -6,7 +6,7 @@ require "active_support/core_ext/object/blank"
 require "json"
 require "globalid"
 require_relative "enums/source"
-require_relative "enums/log_event"
+require_relative "enums/event"
 require_relative "string_scrubber"
 require_relative "log"
 require_relative "param_filters"
@@ -92,7 +92,7 @@ module LogStruct
             "[GLOBALID_ERROR]"
           end
         end
-      when Source, LogEvent
+      when Source, Event
         arg.serialize
       when String
         scrub_string(arg)
@@ -186,7 +186,7 @@ module LogStruct
 
       # Add standard fields if not already present
       data[:src] ||= Source::App
-      data[:evt] ||= LogEvent::Log
+      data[:evt] ||= Event::Log
       data[:ts] ||= time.iso8601(3)
       data[:lvl] ||= level_enum # Just a fallback, Log structs store their own level field
       data[:prog] = progname if progname.present?

@@ -4,7 +4,7 @@
 require_relative "interfaces/common_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 
 module LogStruct
@@ -17,22 +17,22 @@ module LogStruct
       include SerializeCommon
 
       # Define valid event types for ActiveStorage
-      ActiveStorageLogEvent = T.type_alias {
+      ActiveStorageEvent = T.type_alias {
         T.any(
-          LogEvent::Upload,
-          LogEvent::Download,
-          LogEvent::Delete,
-          LogEvent::Metadata,
-          LogEvent::Exist,
-          LogEvent::Stream,
-          LogEvent::Url,
-          LogEvent::Unknown
+          Event::Upload,
+          Event::Download,
+          Event::Delete,
+          Event::Metadata,
+          Event::Exist,
+          Event::Stream,
+          Event::Url,
+          Event::Unknown
         )
       }
 
       # Common fields
       const :source, Source::Storage, default: T.let(Source::Storage, Source::Storage)
-      const :event, ActiveStorageLogEvent
+      const :event, ActiveStorageEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

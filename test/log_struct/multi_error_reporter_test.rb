@@ -63,7 +63,7 @@ module LogStruct
           log_mock.expect(:call, nil) do |log_entry|
             assert_instance_of Log::Error, log_entry
             assert_equal Source::LogStruct, log_entry.source
-            assert_equal LogEvent::Error, log_entry.event
+            assert_equal Event::Error, log_entry.event
             true
           end
 

@@ -256,7 +256,7 @@ module LogStruct
         ts_content << "// Log Interfaces"
 
         # Collect all event union types to generate arrays later
-        log_event_arrays = {}
+        event_arrays = {}
 
         data[:logs].each do |log_type, log_info|
           ts_content << "export interface #{log_type}Log {"
@@ -265,17 +265,17 @@ module LogStruct
           event_field_info = log_info[:fields][:event]
           if event_field_info &&
               event_field_info[:type] == "enum_union" &&
-              event_field_info[:base_enum] == "LogEvent" &&
+              event_field_info[:base_enum] == "Event" &&
               event_field_info[:enum_values]&.any?
 
-            log_event_arrays[log_type] = event_field_info[:enum_values].map do |value|
-              # Map Ruby enum names to TypeScript enum values (e.g., "IPSpoof" -> "LogEvent.IP_SPOOF")
+            event_arrays[log_type] = event_field_info[:enum_values].map do |value|
+              # Map Ruby enum names to TypeScript enum values (e.g., "IPSpoof" -> "Event.IP_SPOOF")
               case value
-              when "IPSpoof" then "LogEvent.IP_SPOOF"
-              when "CSRFViolation" then "LogEvent.CSRF_VIOLATION"
+              when "IPSpoof" then "Event.IP_SPOOF"
+              when "CSRFViolation" then "Event.CSRF_VIOLATION"
               else
                 # Default conversion of StudlyCaps to SCREAMING_SNAKE_CASE
-                "LogEvent.#{value.gsub(/([a-z])([A-Z])/, '\1_\2').upcase}"
+                "Event.#{value.gsub(/([a-z])([A-Z])/, '\1_\2').upcase}"
               end
             end
           end
@@ -300,10 +300,10 @@ module LogStruct
 
         # Add event arrays for each log type that has an enum_union
         ts_content << "// Event type arrays for log types"
-        log_event_arrays.each do |log_type, event_values|
+        event_arrays.each do |log_type, event_values|
           # Create a type-safe array with a specific union type for each log type's events
           union_type = event_values.join(" | ")
-          ts_content << "export const #{log_type}LogEvents: Array<#{union_type}> = ["
+          ts_content << "export const #{log_type}Events: Array<#{union_type}> = ["
           event_values.each do |event|
             ts_content << "  #{event},"
           end
@@ -355,7 +355,7 @@ module LogStruct
         type_str = type_obj.to_s
 
         # Debug logging for complex types
-        # if type_str.include?("T.any") || type_str.include?("SecurityLogEvent")
+        # if type_str.include?("T.any") || type_str.include?("SecurityEvent")
         #   puts "Extracting type info for: #{type_str}"
         #   puts "Type object class: #{type_obj.class}"
         #   puts "Type object inspect: #{type_obj.inspect}"
@@ -415,14 +415,14 @@ module LogStruct
           end
         # Detect union types (T.any) or type aliases
         elsif type_str.include?("T.any(") || type_str.include?("LogStruct::Log::")
-          # First, try to extract the base enum type (LogEvent, Level, Source)
+          # First, try to extract the base enum type (Event, Level, Source)
           base_enum = nil
           enum_values = []
 
-          # Check if it's a LogEvent union type
-          if type_str.include?("LogEvent::")
-            base_enum = "LogEvent"
-            enum_module = LogStruct::LogEvent
+          # Check if it's a Event union type
+          if type_str.include?("Event::")
+            base_enum = "Event"
+            enum_module = LogStruct::Event
           elsif type_str.include?("Level::")
             base_enum = "Level"
             enum_module = LogStruct::Level
@@ -438,14 +438,14 @@ module LogStruct
             # Try to parse values from the T.any(...) format for direct T.any usage
             if type_str =~ /T\.any\(([^)]+)\)/
               values_str = $1
-              # Regex to extract enum constants like LogEvent::IPSpoof
+              # Regex to extract enum constants like Event::IPSpoof
               values_str.scan(/#{base_enum}::([A-Za-z0-9_]+)/) do |match|
                 enum_values << match.first
               end
             end
 
-            # For type aliases like SecurityLogEvent, try to resolve the alias
-            if enum_values.empty? && type_str =~ /LogStruct::Log::([A-Za-z0-9_]+)::([A-Za-z0-9_]+LogEvent)/
+            # For type aliases like SecurityEvent, try to resolve the alias
+            if enum_values.empty? && type_str =~ /LogStruct::Log::([A-Za-z0-9_]+)::([A-Za-z0-9_]+Event)/
               log_class_name = $1
               type_alias_name = $2
 
@@ -462,7 +462,7 @@ module LogStruct
                   # This is specific to LogStruct's enum pattern where the type alias is defined using T.any()
                   # For this to work, we need to open up the class and extract the type alias content
 
-                  # Check if there are any constants in the LogEvent module that have this value in their name
+                  # Check if there are any constants in the Event module that have this value in their name
                   enum_module.constants.each do |const_name|
                     # Check if this constant is used in the type definition at all
                     potential_match = "#{base_enum}::#{const_name}"
@@ -489,9 +489,9 @@ module LogStruct
         elsif type_str.include?("LogStruct::Source")
           result[:type] = "enum"
           result[:values] = "Source"
-        elsif type_str.include?("LogStruct::LogEvent")
+        elsif type_str.include?("LogStruct::Event")
           result[:type] = "enum"
-          result[:values] = "LogEvent"
+          result[:values] = "Event"
         elsif type_str.include?("T::Array") || type_str.include?("TypedArray") || (type_str == "T::Array[String]") || prop_info.key?(:array)
           result[:type] = "array"
 
@@ -553,11 +553,11 @@ module LogStruct
         when "enum_union"
           # Handle union of enum values
           if field_info[:base_enum] && field_info[:enum_values]
-            # Create a union type like: LogEvent.IP_SPOOF | LogEvent.CSRF_VIOLATION | LogEvent.BLOCKED_HOST
+            # Create a union type like: Event.IP_SPOOF | Event.CSRF_VIOLATION | Event.BLOCKED_HOST
             field_info[:enum_values].map do |value|
-              # Get the Ruby enum object for the given value name (e.g., LogEvent::IPSpoof)
+              # Get the Ruby enum object for the given value name (e.g., Event::IPSpoof)
               enum_class = case field_info[:base_enum]
-              when "LogEvent" then LogStruct::LogEvent
+              when "Event" then LogStruct::Event
               when "Level" then LogStruct::Level
               when "Source" then LogStruct::Source
               end

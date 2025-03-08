@@ -52,7 +52,7 @@ module LogStruct
           # Log the store operation with structured data
           log_data = Log::CarrierWave.new(
             source: Source::CarrierWave,
-            event: LogEvent::Upload,
+            event: Event::Upload,
             duration: duration * 1000.0, # Convert to ms
             model: model.class.name,
             uploader: self.class.name,
@@ -86,7 +86,7 @@ module LogStruct
           # Log the retrieve operation with structured data
           log_data = Log::CarrierWave.new(
             source: Source::CarrierWave,
-            event: LogEvent::Download,
+            event: Event::Download,
             duration: duration * 1000.0, # Convert to ms
             uploader: self.class.name,
             storage: storage.class.name,

@@ -3,7 +3,7 @@
 
 module LogStruct
   # Define log event types as an enum
-  class LogEvent < T::Enum
+  class Event < T::Enum
     enums do
       # Plain log messages
       Log = new(:log)

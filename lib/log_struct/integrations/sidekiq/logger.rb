@@ -26,7 +26,7 @@ module LogStruct
           # Create a Sidekiq log struct with the message
           Log::Sidekiq.new(
             level: LogStruct::Level.from_severity(severity),
-            event: LogEvent::Log,
+            event: Event::Log,
             message: message,
             process_id: ::Process.pid,
             thread_id: tid,

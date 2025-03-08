@@ -24,20 +24,20 @@ module LogStruct
         # Log when an email is about to be delivered
         sig { void }
         def log_email_delivery
-          log_mailer_event(LogEvent::Delivery)
+          log_mailer_event(Event::Delivery)
         end
 
         # Log when an email is delivered
         sig { void }
         def log_email_delivered
-          log_mailer_event(LogEvent::Delivered)
+          log_mailer_event(Event::Delivered)
         end
 
         private
 
         # Log a mailer event with the given event type
         sig do
-          params(event_type: Log::ActionMailer::ActionMailerLogEvent,
+          params(event_type: Log::ActionMailer::ActionMailerEvent,
             level: Symbol,
             additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped)
         end

@@ -7,7 +7,7 @@ require_relative "interfaces/message_field"
 require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -22,13 +22,13 @@ module LogStruct
       include Interfaces::MessageField
       include MergeDataFields
 
-      ErrorLogEvent = T.type_alias {
-        LogEvent::Error
+      ErrorEvent = T.type_alias {
+        Event::Error
       }
 
       # Common fields
       const :source, Source # Used by all sources, should not have a default.
-      const :event, ErrorLogEvent, default: T.let(LogEvent::Error, ErrorLogEvent)
+      const :event, ErrorEvent, default: T.let(Event::Error, ErrorEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Error, Level)
 

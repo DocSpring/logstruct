@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../log/active_storage"
 
 module LogStruct
@@ -41,25 +41,25 @@ module LogStruct
         # Map service events to log event types
         event_type = case event_name
         when "service_upload"
-          LogEvent::Upload
+          Event::Upload
         when "service_download"
-          LogEvent::Download
+          Event::Download
         when "service_delete"
-          LogEvent::Delete
+          Event::Delete
         when "service_delete_prefixed"
-          LogEvent::Delete
+          Event::Delete
         when "service_exist"
-          LogEvent::Exist
+          Event::Exist
         when "service_url"
-          LogEvent::Url
+          Event::Url
         when "service_download_chunk"
-          LogEvent::Download
+          Event::Download
         when "service_stream"
-          LogEvent::Stream
+          Event::Stream
         when "service_update_metadata"
-          LogEvent::Metadata
+          Event::Metadata
         else
-          LogEvent::Unknown
+          Event::Unknown
         end
 
         # Map the event name to an operation

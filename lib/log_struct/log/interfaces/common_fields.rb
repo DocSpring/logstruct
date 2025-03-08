@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "../../enums/source"
-require_relative "../../enums/log_event"
+require_relative "../../enums/event"
 require_relative "../../enums/level"
 
 module LogStruct
@@ -20,7 +20,7 @@ module LogStruct
         def source; end
 
         # The event type of the log entry (JSON property: evt)
-        sig { abstract.returns(LogEvent) }
+        sig { abstract.returns(Event) }
         def event; end
 
         # The timestamp of the log entry (JSON property: ts)

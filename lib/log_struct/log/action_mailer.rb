@@ -6,7 +6,7 @@ require_relative "interfaces/data_field"
 require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -21,13 +21,13 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
-      ActionMailerLogEvent = T.type_alias {
-        T.any(LogEvent::Delivery, LogEvent::Delivered)
+      ActionMailerEvent = T.type_alias {
+        T.any(Event::Delivery, Event::Delivered)
       }
 
       # Common fields
       const :source, Source::Mailer, default: T.let(Source::Mailer, Source::Mailer)
-      const :event, ActionMailerLogEvent
+      const :event, ActionMailerEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

@@ -6,7 +6,7 @@ require_relative "interfaces/request_fields"
 require_relative "shared/serialize_common"
 require_relative "shared/add_request_fields"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -21,13 +21,13 @@ module LogStruct
       include SerializeCommon
       include AddRequestFields
 
-      RequestLogEvent = T.type_alias {
-        LogEvent::Request
+      RequestEvent = T.type_alias {
+        Event::Request
       }
 
       # Common fields
       const :source, Source::Rails, default: T.let(Source::Rails, Source::Rails)
-      const :event, RequestLogEvent, default: T.let(LogEvent::Request, RequestLogEvent)
+      const :event, RequestEvent, default: T.let(Event::Request, RequestEvent)
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

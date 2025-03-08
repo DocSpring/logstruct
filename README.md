@@ -128,7 +128,7 @@ end
 # Or you can use our type-safe log entry structs. (Sorbet not required.)
 request_log = LogStruct::Log::Request.new(
   src: LogStruct::LogSource::Rails,
-  evt: LogStruct::LogEvent::Request,
+  evt: LogStruct::Event::Request,
   user_id: user.id,
   ip_address: request.remote_ip
 )
@@ -171,7 +171,7 @@ For applications that benefit from strict type checking (especially those using 
 # Create a typed request log entry
 request_log = LogStruct::LogEntries::Request.new(
   src: LogStruct::LogSource::Rails,
-  evt: LogStruct::LogEvent::Request,
+  evt: LogStruct::Event::Request,
   method: "GET",
   path: "/users",
   controller: "UsersController",
@@ -186,7 +186,7 @@ Rails.logger.info(request_log)
 # Create a typed error log entry
 error_log = LogStruct::LogEntries::Error.new(
   src: LogStruct::Source::Rails,
-  evt: LogStruct::LogEvent::Error,
+  evt: LogStruct::Event::Error,
   error_class: "ArgumentError",
   message: "Invalid parameter",
   backtrace: error.backtrace&.first(10)

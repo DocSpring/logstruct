@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "../../enums/source"
-require_relative "../../enums/log_event"
+require_relative "../../enums/event"
 require_relative "../../log/active_job"
 require_relative "../../log/error"
 
@@ -16,13 +16,13 @@ module LogStruct
         sig { params(event: T.untyped).void }
         def enqueue(event)
           job = event.payload[:job]
-          log_job_event(LogEvent::Enqueue, job, event)
+          log_job_event(Event::Enqueue, job, event)
         end
 
         sig { params(event: T.untyped).void }
         def enqueue_at(event)
           job = event.payload[:job]
-          log_job_event(LogEvent::Schedule, job, event, scheduled_at: job.scheduled_at)
+          log_job_event(Event::Schedule, job, event, scheduled_at: job.scheduled_at)
         end
 
         sig { params(event: T.untyped).void }
@@ -34,19 +34,19 @@ module LogStruct
             # Log the exception with the job context
             log_exception(exception, job, event)
           else
-            log_job_event(LogEvent::Finish, job, event, duration: event.duration.round(2))
+            log_job_event(Event::Finish, job, event, duration: event.duration.round(2))
           end
         end
 
         sig { params(event: T.untyped).void }
         def perform_start(event)
           job = event.payload[:job]
-          log_job_event(LogEvent::Start, job, event)
+          log_job_event(Event::Start, job, event)
         end
 
         private
 
-        sig { params(event_type: T.any(LogEvent::Enqueue, LogEvent::Schedule, LogEvent::Start, LogEvent::Finish), job: T.untyped, _event: T.untyped, additional_data: T::Hash[Symbol, T.untyped]).void }
+        sig { params(event_type: T.any(Event::Enqueue, Event::Schedule, Event::Start, Event::Finish), job: T.untyped, _event: T.untyped, additional_data: T::Hash[Symbol, T.untyped]).void }
         def log_job_event(event_type, job, _event, additional_data = {})
           # Create structured log data
           log_data = Log::ActiveJob.new(

@@ -6,7 +6,7 @@ require_relative "interfaces/data_field"
 require_relative "shared/serialize_common"
 require_relative "shared/merge_data_fields"
 require_relative "../enums/source"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../log_keys"
 
@@ -21,18 +21,18 @@ module LogStruct
       include SerializeCommon
       include MergeDataFields
 
-      ActiveJobLogEvent = T.type_alias {
+      ActiveJobEvent = T.type_alias {
         T.any(
-          LogEvent::Enqueue,
-          LogEvent::Schedule,
-          LogEvent::Start,
-          LogEvent::Finish
+          Event::Enqueue,
+          Event::Schedule,
+          Event::Start,
+          Event::Finish
         )
       }
 
       # Common fields
       const :source, Source::Job, default: T.let(Source::Job, Source::Job)
-      const :event, ActiveJobLogEvent
+      const :event, ActiveJobEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Info, Level)
 

@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require "action_dispatch/middleware/host_authorization"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 
 module LogStruct
   module Integrations

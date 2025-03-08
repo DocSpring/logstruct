@@ -1,5 +1,5 @@
 import { LogGenerator } from '../log-generator';
-import { LogType, Level, Source, LogEvent } from '../log-types';
+import { LogType, Level, Source, Event } from '../log-types';
 
 describe('LogGenerator', () => {
   let generator: LogGenerator;
@@ -70,9 +70,9 @@ describe('LogGenerator', () => {
     expect(sequence[2].job_id).toBe(jobId);
 
     // Should have the right event types
-    expect(sequence[0].event).toBe(LogEvent.ENQUEUE);
-    expect(sequence[1].event).toBe(LogEvent.START);
-    expect(sequence[2].event).toBe(LogEvent.FINISH);
+    expect(sequence[0].event).toBe(Event.ENQUEUE);
+    expect(sequence[1].event).toBe(Event.START);
+    expect(sequence[2].event).toBe(Event.FINISH);
 
     // All should have the correct source
     expect(sequence[0].source).toBe(Source.JOB);

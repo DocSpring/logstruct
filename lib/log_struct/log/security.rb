@@ -8,7 +8,7 @@ require_relative "interfaces/request_fields"
 require_relative "shared/add_request_fields"
 require_relative "shared/merge_data_fields"
 require_relative "shared/serialize_common"
-require_relative "../enums/log_event"
+require_relative "../enums/event"
 require_relative "../enums/level"
 require_relative "../enums/source"
 require_relative "../log_keys"
@@ -27,17 +27,17 @@ module LogStruct
       include AddRequestFields
       include MergeDataFields
 
-      SecurityLogEvent = T.type_alias {
+      SecurityEvent = T.type_alias {
         T.any(
-          LogEvent::IPSpoof,
-          LogEvent::CSRFViolation,
-          LogEvent::BlockedHost
+          Event::IPSpoof,
+          Event::CSRFViolation,
+          Event::BlockedHost
         )
       }
 
       # Common fields
       const :source, Source::Security, default: T.let(Source::Security, Source::Security)
-      const :event, SecurityLogEvent
+      const :event, SecurityEvent
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: T.let(Level::Error, Level)
 

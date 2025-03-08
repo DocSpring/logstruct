@@ -6,7 +6,7 @@ export const ENUM_DESCRIPTIONS: Record<string, string> = {
   'LogStruct::Level': 'Log severity levels for different types of log messages',
   'LogStruct::Source':
     'Sources of log messages to identify which part of the system generated them',
-  'LogStruct::LogEvent':
+  'LogStruct::Event':
     'Event types for different kinds of operations and activities',
   'LogStruct::ErrorHandlingMode':
     'Error handling strategies for different types of errors',
@@ -61,7 +61,7 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
       'Report in production without crashing, raise during dev/test',
     Raise: 'Always raise the error (reported by tracking service)',
   },
-  'LogStruct::LogEvent': {
+  'LogStruct::Event': {
     Log: 'Standard log message',
     Request: 'HTTP request',
     Enqueue: 'Job added to queue',
