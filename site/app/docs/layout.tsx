@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { NestedDocNavItem } from '@/components/nested-doc-nav-item';
+import { AllLogTypes } from '@/lib/log-generation/log-types';
+import { getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
 
 interface DocNavItemProps {
   href: string;
@@ -37,44 +40,144 @@ export default function DocsLayout({
         <div className="flex flex-col gap-10 lg:flex-row">
           {/* Sidebar */}
           <aside className="w-full lg:w-64 xl:w-72 shrink-0">
-            <div className="sticky top-24">
+            <div className="sticky top-24 overflow-y-auto max-h-[calc(100vh-8rem)] pr-2 pb-10">
               <div className="p-1 space-y-1">
                 <h2 className="mb-3 text-lg font-semibold">Documentation</h2>
                 <nav className="space-y-1">
                   <DocNavItem
                     href="/docs"
                     title="Introduction"
-                    active={pathname === '/docs'}
+                    active={pathname === '/docs' || pathname === '/docs/'}
                   />
                   <DocNavItem
                     href="/docs/getting-started"
                     title="Getting Started"
-                    active={pathname === '/docs/getting-started'}
+                    active={pathname.startsWith('/docs/getting-started')}
                   />
-                  <DocNavItem
+                  <NestedDocNavItem
                     href="/docs/configuration"
                     title="Configuration"
-                    active={pathname === '/docs/configuration'}
+                    active={pathname.startsWith('/docs/configuration')}
+                    subHeadings={[
+                      {
+                        id: 'enabling-logstruct',
+                        title: 'Enabling LogStruct',
+                      },
+                      {
+                        id: 'environment-configuration',
+                        title: 'Environment Configuration',
+                      },
+                      {
+                        id: 'integration-configuration',
+                        title: 'Integration Configuration',
+                      },
+                      {
+                        id: 'filtering-sensitive-data',
+                        title: 'Filtering Sensitive Data',
+                      },
+                      {
+                        id: 'error-handling-configuration',
+                        title: 'Error Handling',
+                      },
+                      {
+                        id: 'custom-lograge-options',
+                        title: 'Custom Lograge Options',
+                      },
+                      {
+                        id: 'custom-string-scrubbing',
+                        title: 'Custom String Scrubbing',
+                      },
+                      {
+                        id: 'custom-error-reporting',
+                        title: 'Custom Error Reporting',
+                      },
+                      { id: 'sorbet-integration', title: 'Sorbet Integration' },
+                    ]}
                   />
-                  <DocNavItem
+                  <NestedDocNavItem
                     href="/docs/integrations"
                     title="Integrations"
-                    active={pathname === '/docs/integrations'}
+                    active={pathname.startsWith('/docs/integrations')}
+                    subHeadings={[
+                      // Dynamic entries from all log types
+                      ...(AllLogTypes.map((logType) => {
+                        const info = getLogTypeInfo(logType);
+                        if (!info) return null;
+
+                        const { title } = info;
+                        // Use the shared ID generation function
+                        const id = getTitleId(title);
+
+                        return { id, title };
+                      }).filter(Boolean) as Array<{
+                        id: string;
+                        title: string;
+                      }>),
+                      // Manually add Sorbet integration (special case in the page)
+                      { id: 'sorbet-integration', title: 'Sorbet Integration' },
+                    ]}
                   />
-                  <DocNavItem
+                  <NestedDocNavItem
                     href="/docs/filtering-sensitive-data"
                     title="Filtering Sensitive Data"
-                    active={pathname === '/docs/filtering-sensitive-data'}
+                    active={pathname.startsWith(
+                      '/docs/filtering-sensitive-data',
+                    )}
+                    subHeadings={[
+                      {
+                        id: 'parameter-filtering',
+                        title: 'Parameter Filtering',
+                      },
+                      {
+                        id: 'string-scrubbing',
+                        title: 'String Scrubbing',
+                      },
+                      {
+                        id: 'examples',
+                        title: 'Examples',
+                      },
+                    ]}
                   />
-                  <DocNavItem
+                  <NestedDocNavItem
                     href="/docs/sorbet-types"
                     title="Sorbet Types"
-                    active={pathname === '/docs/sorbet-types'}
+                    active={pathname.startsWith('/docs/sorbet-types')}
+                    subHeadings={[
+                      {
+                        id: 'what-is-sorbet',
+                        title: 'What is Sorbet?',
+                      },
+                      {
+                        id: 'adding-sorbet',
+                        title: 'Adding Sorbet to Your Application',
+                      },
+                      {
+                        id: 'using-logstruct-with-sorbet',
+                        title: 'Using LogStruct with Sorbet',
+                      },
+                      {
+                        id: 'error-handling',
+                        title: 'Error Handling for Type Errors',
+                      },
+                      {
+                        id: 'custom-log-classes',
+                        title: 'Custom Log Classes',
+                      },
+                      {
+                        id: 'builtin-log-classes',
+                        title: 'Built-In Log Classes',
+                      },
+                      {
+                        id: 'built-in-enums',
+                        title: 'Built-In Enums',
+                      },
+                    ]}
                   />
+
                   <DocNavItem
-                    href="/docs/supported-gem-versions"
-                    title="Supported Gem Versions"
-                    active={pathname === '/docs/supported-gem-versions'}
+                    href="/docs/supported-versions"
+                    title="Supported Versions"
+                    active={pathname.startsWith('/docs/supported-versions')}
                   />
                 </nav>
 

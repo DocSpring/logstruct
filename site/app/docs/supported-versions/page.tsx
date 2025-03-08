@@ -12,12 +12,16 @@ export default async function SupportedVersionsPage() {
 
   return (
     <div className="space-y-6">
-      <HeadingWithAnchor id="supported-gem-versions" level={1}>
-        Supported Gem Versions
+      <HeadingWithAnchor id="supported-versions" level={1}>
+        Supported Versions
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
-        LogStruct works with the following versions of Rails and various
-        integration gems.
+
+      <HeadingWithAnchor id="ruby-versions" level={2}>
+        Ruby Version
+      </HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-400">
+        LogStruct requires Ruby <span className="text-gray-200">3.2.0</span> or
+        higher.
       </p>
 
       <HeadingWithAnchor id="required-dependencies" level={2}>
@@ -75,13 +79,6 @@ export default async function SupportedVersionsPage() {
         not required for its core functionality.
       </p>
 
-      <Callout type="info">
-        <p>
-          Feel free to open a PR if you want to add support for an older version
-          or a different gem.
-        </p>
-      </Callout>
-
       <Card className="p-6">
         <div className="relative overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -122,13 +119,12 @@ export default async function SupportedVersionsPage() {
         </div>
       </Card>
 
-      <HeadingWithAnchor id="ruby-versions" level={2}>
-        Ruby Versions
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400">
-        LogStruct requires Ruby <span className="text-gray-200">3.2.0</span> or
-        higher.
-      </p>
+      <Callout type="info">
+        <p>
+          Please open a PR if you would like to add support for other gems or
+          older versions.
+        </p>
+      </Callout>
 
       <HeadingWithAnchor id="how-to-use" level={2}>
         How to Use Integrations

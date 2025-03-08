@@ -4,6 +4,7 @@ import { CodeBlock } from '@/components/code-block';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import Link from 'next/dist/client/link';
 import { getCodeExample } from '@/lib/codeExamples';
+import { Callout } from '@/components/ui/callout';
 
 export default function ConfigurationPage() {
   return (
@@ -26,6 +27,50 @@ export default function ConfigurationPage() {
       </p>
 
       <RubyCodeExample name="basic_configuration" />
+
+      <HeadingWithAnchor id="enabling-logstruct">
+        Enabling LogStruct
+      </HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        LogStruct can be enabled or disabled in the following ways:
+      </p>
+
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+        <li>
+          LogStruct will be <strong>enabled</strong> if the{' '}
+          <strong>
+            <code>LOGSTRUCT_ENABLED</code>
+          </strong>{' '}
+          environment variable is set to <code>&quot;true&quot;</code>.
+        </li>
+        <li>
+          LogStruct will be <strong>disabled</strong> if{' '}
+          <strong>
+            <code>LOGSTRUCT_ENABLED</code>
+          </strong>{' '}
+          is set to any other value.
+        </li>
+        <li>
+          If{' '}
+          <strong>
+            <code>LOGSTRUCT_ENABLED</code>
+          </strong>{' '}
+          is undefined, LogStruct will be <strong>enabled</strong> if the
+          current Rails environment is listed in{' '}
+          <code>config.enabled_environments</code>.
+        </li>
+        <li>
+          Finally, you can manually set <code>config.enabled</code> in an
+          initializer. This will override all other configuration methods.
+        </li>
+      </ul>
+
+      <p>
+        First, we check if <code>config.enabled_environments</code> includes the
+        current Rails environment. If it does, we use that value. Otherwise, we
+        check the <code>LOGSTRUCT_ENABLED</code> environment variable. If that
+        is not set, we fall back to <code>config.enabled</code>.
+      </p>
 
       <HeadingWithAnchor id="environment-configuration">
         Environment Configuration
@@ -56,6 +101,17 @@ export default function ConfigurationPage() {
       </p>
 
       <RubyCodeExample name="filter_configuration" />
+
+      <Callout type="info">
+        See the{' '}
+        <Link
+          href="/docs/filtering-sensitive-data"
+          className="text-blue-200 hover:text-white"
+        >
+          Filtering Sensitive Data
+        </Link>{' '}
+        docs for more information.
+      </Callout>
 
       <HeadingWithAnchor id="error-handling-configuration">
         Error Handling Configuration
@@ -97,8 +153,9 @@ export default function ConfigurationPage() {
         Custom Error Reporting
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can customize how errors are reported by implementing your own error
-        reporting handler:
+        {/* cspell:ignore doesn */}
+        If LogStruct doesn&apos;t support your error reporting service, you can
+        register a custom error reporting handler. (Or submit a PR!)
       </p>
 
       <RubyCodeExample name="error_reporting_handler" />

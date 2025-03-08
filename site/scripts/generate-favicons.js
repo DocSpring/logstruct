@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function generateFavicons() {
-  const svgPath = path.join(process.cwd(), 'public/icons/logstruct.svg');
+  const svgPath = path.join(process.cwd(), 'public/images/logstruct.svg');
   const pngOutputPath = path.join(process.cwd(), 'public/favicon.png');
 
   try {

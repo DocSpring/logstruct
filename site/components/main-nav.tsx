@@ -24,7 +24,7 @@ export function MainNav() {
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center space-x-2">
           <Image
-            src="/icons/logstruct.svg"
+            src="/images/logstruct.svg"
             alt="LogStruct Logo"
             width={32}
             height={32}
@@ -160,7 +160,7 @@ export function MainNav() {
               <div className="flex items-center space-x-2">
                 <Link href="/" className="flex items-center space-x-2">
                   <Image
-                    src="/icons/logstruct.svg"
+                    src="/images/logstruct.svg"
                     alt="LogStruct Logo"
                     width={28}
                     height={28}

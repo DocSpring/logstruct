@@ -4,21 +4,38 @@ import { EnumsList } from '@/components/enums-list';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { LogStructuresList } from '@/components/log-structures-list';
 import { RubyCodeExample } from '@/components/ruby-code-example';
+import { Callout } from '@/components/ui/callout';
+import Image from 'next/image';
 
 export default async function TypeSafetyPage() {
   return (
     <div className="space-y-6">
-      <HeadingWithAnchor id="sorbet-types" level={1}>
-        Sorbet Types
+      <HeadingWithAnchor id="what-is-sorbet" level={1}>
+        What is Sorbet?
       </HeadingWithAnchor>
+      <Image
+        src="/images/sorbet-logo.svg"
+        alt="Sorbet Logo"
+        width={100}
+        height={100}
+      />
       <p className="text-lg text-neutral-600 dark:text-neutral-400">
-        LogStruct is built with type safety in mind and provides full type
-        checking support through{' '}
-        <a className="text-gray-200 hover:underline" href="https://sorbet.org/">
+        <a href="https://sorbet.org/" target="_blank" rel="noopener noreferrer">
           Sorbet
-        </a>
-        . This helps catch errors at development time and provides better
-        documentation and IDE support.
+        </a>{' '}
+        is a static type checker for Ruby. Static type-checking has many
+        benefits:
+      </p>
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+        <li>Catches errors at development time, not at runtime</li>
+        <li>Ensures consistent log structure</li>
+        <li>Provides better IDE documentation and autocompletion</li>
+      </ul>
+
+      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+        LogStruct is built with Sorbet and provides full type-checking support.
+        We use it to catch errors during development and test and keep the code
+        bug-free.
       </p>
 
       <HeadingWithAnchor id="adding-sorbet">
@@ -43,64 +60,52 @@ bundle exec srb init`}
 
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         See the <a href="https://sorbet.org/docs/overview">Sorbet docs</a> for
-        more information.
+        more details.
       </p>
 
       <HeadingWithAnchor id="using-logstruct-with-sorbet">
         Using LogStruct with Sorbet
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct includes predefined log structures with strict typing. These
-        structures ensure your logs have a consistent format and that required
-        fields are always present.
+        LogStruct uses predefined log classes with strict typing. This ensures
+        that your logs have a consistent format and that required fields are
+        present and have the right type.
       </p>
 
-      <RubyCodeExample
-        name="basic_typed_logging"
-        title="Basic Typed Logging Example"
-      />
-
-      <HeadingWithAnchor id="benefits">
-        Benefits of Type Safety
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        Using LogStruct&apos;s typed structures provides several benefits:
-      </p>
-
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
-        <li>Catches errors at development time, not at runtime</li>
-        <li>Ensures consistent log structure</li>
-        <li>Provides better IDE autocompletion</li>
-      </ul>
+      <RubyCodeExample name="basic_typed_logging" />
 
       <HeadingWithAnchor id="error-handling">
         Error Handling for Type Errors
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct installs appropriate error handlers for Sorbet type checking
-        errors.
+        LogStruct configures Sorbet error handlers to log and report
+        type-checking errors. If you already use Sorbet and you want to keep
+        using your own error handlers, set{' '}
+        <code>enable_sorbet_error_handlers</code> to <code>false</code>. This
+        will prevent LogStruct from overriding your handlers.
       </p>
-
-      <RubyCodeExample
-        name="sorbet_error_handler"
-        title="Sorbet Error Handler Configuration"
-      />
+      <RubyCodeExample name="test_disable_sorbet_error_handler" />
 
       <HeadingWithAnchor id="custom-log-classes">
-        Creating Custom Log Classes
+        Custom Log Classes
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can create your own typed log classes by extending LogStruct&apos;s
-        base classes:
+        You can create your own typed log classes by inheriting from
+        Sorbet&apos;s <code>T::Struct</code> class.
       </p>
 
-      <RubyCodeExample
-        name="custom_log_class"
-        title="Creating Custom Log Classes"
-      />
+      <RubyCodeExample name="custom_log_class" />
 
-      <HeadingWithAnchor id="available-log-classes" level={1}>
-        Log Classes
+      <Callout type="info">
+        It is not currently possible to extend LogStruct&apos;s internal logging
+        classes or enums with additional values. We use exhaustiveness checks
+        throughout our code, and we also use them to ensure that our
+        documentation is accurate and up-to-date. You will need to create your
+        own <code>T::Struct</code> subclasses and use <code>Rails.logger</code>.
+      </Callout>
+
+      <HeadingWithAnchor id="builtin-log-classes" level={1}>
+        Built-In Log Classes
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Log classes are{' '}
@@ -111,8 +116,8 @@ bundle exec srb init`}
       </p>
       <LogStructuresList />
 
-      <HeadingWithAnchor id="enums" level={1}>
-        Enums
+      <HeadingWithAnchor id="built-in-enums" level={1}>
+        Built-In Enums
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Common values are defined as{' '}

@@ -16,7 +16,7 @@ export default function FilteringSensitiveDataPage() {
         still providing useful information for debugging.
       </p>
 
-      <HeadingWithAnchor id="parameter-filtering" level={2}>
+      <HeadingWithAnchor id="parameter-filtering" level={1} className="mt-16">
         Parameter Filtering
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">

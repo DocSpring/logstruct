@@ -87,7 +87,7 @@ module LogStruct
       end
     end
 
-    def test_enabled_environment_takes_precedence_over_env_var
+    def test_enabled_env_var_takes_precedence_over_environment
       # Set up test conditions
       LogStruct.config.enabled = false
       LogStruct.config.enabled_environments = [:test] # Test environment is enabled
@@ -98,7 +98,7 @@ module LogStruct
         Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
           LogStruct.set_enabled_from_rails_env!
 
-          assert LogStruct.config.enabled, "Environment should take precedence over env var"
+          refute LogStruct.config.enabled, "Env var should take precedence over environment"
         end
       end
     end

@@ -3,8 +3,9 @@ import { EditPageLink } from '@/components/edit-page-link';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { LogGenerator } from '@/lib/log-generation';
-import { LogType, AllLogTypes } from '@/lib/log-generation/log-types';
+import { AllLogTypes } from '@/lib/log-generation/log-types';
 import { getCodeExample } from '@/lib/codeExamples';
+import { getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
 
 // Helper to format logs as JSON strings for display
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,90 +15,6 @@ function formatLog(log: Record<string, any>): string {
 
 // Create a single log generator with a fixed seed for consistent examples
 const logGenerator = new LogGenerator(12345);
-
-// Generate information for each log type
-function getLogTypeInfo(logType: LogType): {
-  title: string;
-  description: string;
-  configuration_code?: string;
-} | null {
-  switch (logType) {
-    case LogType.ACTIONMAILER:
-      return {
-        title: 'ActionMailer Integration',
-        description:
-          "The ActionMailer integration automatically logs email delivery events and handles errors during email delivery. (If you're still on Rails 7.0.x, it also backports delivery callbacks from Rails 7.1.)",
-      };
-
-    case LogType.ACTIVEJOB:
-      return {
-        title: 'ActiveJob Integration',
-        description:
-          'The ActiveJob integration logs job enqueuing, execution, and completion events with detailed information about the job.',
-      };
-
-    case LogType.ACTIVESTORAGE:
-      return {
-        title: 'ActiveStorage Integration',
-        description:
-          'The ActiveStorage integration logs uploads, downloads, deletes, and other file operations with detailed information about the file and storage service.',
-      };
-
-    case LogType.CARRIERWAVE:
-      return {
-        title: 'CarrierWave Integration',
-        description:
-          'The CarrierWave integration adds structured logging for file upload operations, including file metadata and operation duration.',
-      };
-
-    case LogType.REQUEST:
-      return {
-        title: 'Request Logs (via Lograge)',
-        description:
-          'LogStruct configures Lograge to output request logs in a structured JSON format compatible with the rest of your logs. This includes parameters, response status, controller and action names, and request duration. You can log additional data by configuring a lograge_custom_options handler:',
-        configuration_code: 'lograge_custom_options',
-      };
-
-    case LogType.SECURITY:
-      return {
-        title: 'Security Logging',
-        description:
-          'LogStruct includes security-focused logging for Rails applications. This captures security violations like IP spoofing attacks, CSRF token errors, blocked host attempts, and other security-related events.',
-      };
-
-    case LogType.SHRINE:
-      return {
-        title: 'Shrine Integration',
-        description:
-          'The Shrine integration adds structured logging for file uploads and other Shrine operations, including file metadata and operation duration.',
-      };
-
-    case LogType.SIDEKIQ:
-      return {
-        title: 'Sidekiq Integration',
-        description:
-          'The Sidekiq integration configures structured JSON logging for Sidekiq worker and client logs, maintaining consistent format with other logs.',
-      };
-
-    case LogType.ERROR:
-      return {
-        title: 'Error Handling',
-        description:
-          "LogStruct provides structured error logging across your application, capturing error class, message, backtrace, and contextual data for better debugging. (We don't interfere with or replace your existing error reporting library, such as Sentry, Bugsnag, etc.)",
-      };
-
-    case LogType.PLAIN:
-      // Plain logs are not an integration
-      return null;
-
-    default:
-      logType satisfies never;
-      return {
-        title: 'Unknown Integration',
-        description: 'No information available for this integration.',
-      };
-  }
-}
 
 export default function IntegrationsPage() {
   return (
@@ -121,12 +38,7 @@ export default function IntegrationsPage() {
 
         return (
           <div key={logType} className="mt-10">
-            <HeadingWithAnchor
-              id={title
-                .toLowerCase()
-                .replace(/\s+/g, '-')
-                .replace(/[^a-z0-9-]/g, '')}
-            >
+            <HeadingWithAnchor id={getTitleId(title)}>
               {title}
             </HeadingWithAnchor>
             <p className="text-neutral-600 dark:text-neutral-400 mb-4">
@@ -137,10 +49,7 @@ export default function IntegrationsPage() {
             {configuration_code && (
               <>
                 <HeadingWithAnchor
-                  id={`${title
-                    .toLowerCase()
-                    .replace(/\s+/g, '-')
-                    .replace(/[^a-z0-9-]/g, '')}-configuration`}
+                  id={`${getTitleId(title)}-configuration`}
                   level={2}
                   className="text-xl font-semibold mt-6 mb-3"
                 >
@@ -154,10 +63,7 @@ export default function IntegrationsPage() {
 
             {/* Generate a log example for this type */}
             <HeadingWithAnchor
-              id={`${title
-                .toLowerCase()
-                .replace(/\s+/g, '-')
-                .replace(/[^a-z0-9-]/g, '')}-example`}
+              id={`${getTitleId(title)}-example`}
               level={2}
               className="text-xl font-semibold mt-6 mb-3"
             >

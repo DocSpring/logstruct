@@ -53,14 +53,25 @@ module LogStruct
       # ----------------------------------------------------------
       # Define a custom log structure
       module TestApp
-        module Logs
+        class Source < T::Enum
+          enums do
+            Payments = new
+            App = new
+          end
+        end
+
+        class Event < T::Enum
+          enums do
+            Processed = new
+            Failed = new
+          end
+        end
+
+        module Log
           class PaymentProcessed < T::Struct
-            const :source, Symbol
-            const :event, Symbol
-            const :timestamp, Time
-            const :level,
-              LogStruct::Level,
-              default: T.let(LogStruct::Level::Info, LogStruct::Level)
+            prop :source, Source
+            prop :event, Event
+            prop :timestamp, Time, factory: -> { Time.now }
 
             prop :payment_id, String
             prop :amount, Float
@@ -70,17 +81,17 @@ module LogStruct
           end
         end
       end
+
       # ----------------------------------------------------------
       # END CODE EXAMPLE: custom_log_class
       # ----------------------------------------------------------
 
       def test_custom_log_class
         # Create a payment log using the class defined above
-        payment_log = TestApp::Logs::PaymentProcessed.new(
-          source: :payment_processed,
-          event: :payment_processed,
+        payment_log = TestApp::Log::PaymentProcessed.new(
+          source: TestApp::Source::Payments,
+          event: TestApp::Event::Processed,
           timestamp: Time.now,
-          level: LogStruct::Level::Info,
           payment_id: "pay_123456",
           amount: 99.99,
           currency: "USD",
@@ -92,10 +103,9 @@ module LogStruct
         Rails.logger.info(payment_log)
 
         # Verify the custom log structure works correctly
-        assert_equal :payment_processed, payment_log.source
-        assert_equal :payment_processed, payment_log.event
+        assert_equal "payments", payment_log.source.serialize
+        assert_equal "processed", payment_log.event.serialize
         assert_kind_of Time, payment_log.timestamp
-        assert_equal LogStruct::Level::Info, payment_log.level
         assert_equal "pay_123456", payment_log.payment_id
         assert_in_delta(99.99, payment_log.amount)
         assert_equal "USD", payment_log.currency
@@ -103,20 +113,15 @@ module LogStruct
         assert_equal 123, payment_log.user_id
       end
 
-      def test_sorbet_error_handler
+      def test_disable_sorbet_error_handler
         # ----------------------------------------------------------
-        # BEGIN CODE EXAMPLE: sorbet_error_handler
+        # BEGIN CODE EXAMPLE: test_disable_sorbet_error_handler
         # ----------------------------------------------------------
-        # In development and test environments, type errors will raise exceptions
-        # In production, type errors will be logged but won't crash your application
-
-        # The Sorbet error handlers are enabled by default. If you already use Sorbet
-        # in your app and you define your own handlers, you can disable LogStruct handlers:
         LogStruct.configure do |config|
           config.integrations.enable_sorbet_error_handlers = false
         end
         # ----------------------------------------------------------
-        # END CODE EXAMPLE: sorbet_error_handler
+        # END CODE EXAMPLE: test_disable_sorbet_error_handler
         # ----------------------------------------------------------
 
         # Verify the configuration was applied
