@@ -48,7 +48,7 @@ module LogStruct
             download_options: payload[:download_options],
             options: payload[:options],
             # Data is flattened by the JSON formatter
-            data: payload.except(
+            additional_data: payload.except(
               :storage,
               :location,
               :uploader,

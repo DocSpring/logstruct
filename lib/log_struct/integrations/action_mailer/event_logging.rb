@@ -69,7 +69,7 @@ module LogStruct
             to: to,
             from: from,
             subject: subject,
-            data: data
+            additional_data: data
           )
           LogStruct.log(log_data)
           log_data

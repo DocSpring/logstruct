@@ -43,9 +43,16 @@ export class LogGenerator extends RandomDataGenerator {
    */
   transformLog(log: Partial<Log>): Record<string, any> {
     const transformedLog: Record<string, any> = {};
+    let additionalData: Record<string, any> | undefined;
 
     // Process each field in the log
     Object.entries(log).forEach(([propertyName, value]) => {
+      if (propertyName === 'additional_data' && value) {
+        // Save additional_data to merge later
+        additionalData = value as Record<string, any>;
+        return;
+      }
+
       const jsonKey = (logKeysMap as Record<string, string>)[propertyName];
       if (jsonKey) {
         // Use the mapped JSON key
@@ -55,6 +62,13 @@ export class LogGenerator extends RandomDataGenerator {
         transformedLog[propertyName] = value;
       }
     });
+
+    // Merge additional_data into the root object if it exists
+    if (additionalData) {
+      Object.entries(additionalData).forEach(([key, value]) => {
+        transformedLog[key] = value;
+      });
+    }
 
     return transformedLog;
   }
@@ -225,7 +239,7 @@ export class LogGenerator extends RandomDataGenerator {
         this.randomInt(1, 100),
         { action: this.sample(['create', 'update', 'process']) },
       ],
-      data: {
+      additional_data: {
         retries: this.randomInt(0, 3),
         scheduled_at: this.randomTimestamp(),
       },
@@ -255,7 +269,7 @@ export class LogGenerator extends RandomDataGenerator {
       this.sample(SampleData.BACKTRACE_LINES),
     );
 
-    log.data = {
+    log.additional_data = {
       context: `Error context ${this.randomHex(4)}`,
     };
 
@@ -274,7 +288,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.user_agent = 'Mozilla/5.0';
     log.referer = 'https://example.com';
     log.request_id = this.randomHex(16);
-    log.data = {
+    log.additional_data = {
       attempted_action: 'suspicious_activity',
     };
 
@@ -289,7 +303,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.options = { metadata: true };
     log.uploader = 'ImageUploader';
     log.duration = this.randomDuration();
-    log.data = {
+    log.additional_data = {
       content_type: this.sample(SampleData.FILE_TYPES),
       filename: this.sample(SampleData.FILE_NAMES),
     };
@@ -383,7 +397,7 @@ export class LogGenerator extends RandomDataGenerator {
       to: [this.randomEmail()],
       from: 'notifications@example.com',
       subject: 'Important notification',
-      data: {
+      additional_data: {
         mailer: this.sample(SampleData.MAILER_CLASSES),
         action: this.sample(SampleData.MAILER_ACTIONS),
       },
@@ -406,7 +420,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.uploader = 'AvatarUploader';
     log.model = 'User';
     log.mount_point = 'avatar';
-    log.data = {
+    log.additional_data = {
       versions: ['thumb', 'medium', 'large'],
     };
 
@@ -442,7 +456,7 @@ export class LogGenerator extends RandomDataGenerator {
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
-      data,
+      additional_data: data,
     };
 
     // Start event (happens a little later)
@@ -459,7 +473,7 @@ export class LogGenerator extends RandomDataGenerator {
       job_class: jobClass,
       queue_name: queueName,
       arguments: args,
-      data,
+      additional_data: data,
     };
 
     // Finish event (with duration)
@@ -475,7 +489,7 @@ export class LogGenerator extends RandomDataGenerator {
       queue_name: queueName,
       arguments: args,
       duration: duration,
-      data,
+      additional_data: data,
     };
 
     return [enqueueLog, startLog, finishLog];

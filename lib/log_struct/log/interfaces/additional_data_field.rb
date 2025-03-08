@@ -4,16 +4,16 @@
 module LogStruct
   module Log
     module Interfaces
-      # Common interface for logs that include a data field
-      module DataField
+      # Common interface for logs that include an additional_data field
+      module AdditionalDataField
         extend T::Sig
         extend T::Helpers
 
         interface!
 
-        # Data field for additional context
+        # Additional data field for extra context
         sig { abstract.returns(T::Hash[Symbol, T.untyped]) }
-        def data; end
+        def additional_data; end
       end
     end
   end

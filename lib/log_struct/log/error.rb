@@ -2,10 +2,10 @@
 # frozen_string_literal: true
 
 require_relative "interfaces/common_fields"
-require_relative "interfaces/data_field"
+require_relative "interfaces/additional_data_field"
 require_relative "interfaces/message_field"
 require_relative "shared/serialize_common"
-require_relative "shared/merge_data_fields"
+require_relative "shared/merge_additional_data_fields"
 require_relative "../enums/source"
 require_relative "../enums/event"
 require_relative "../enums/level"
@@ -18,9 +18,9 @@ module LogStruct
       extend T::Sig
 
       include Interfaces::CommonFields
-      include Interfaces::DataField
+      include Interfaces::AdditionalDataField
       include Interfaces::MessageField
-      include MergeDataFields
+      include MergeAdditionalDataFields
 
       ErrorEvent = T.type_alias {
         Event::Error
@@ -36,13 +36,13 @@ module LogStruct
       const :err_class, T.class_of(StandardError)
       const :message, String
       const :backtrace, T.nilable(T::Array[String]), default: nil
-      const :data, T::Hash[Symbol, T.untyped], default: {}
+      const :additional_data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize(strict = true)
         hash = serialize_common(strict)
-        merge_data_fields(hash)
+        merge_additional_data_fields(hash)
 
         # Add exception-specific fields
         hash[LOG_KEYS.fetch(:err_class)] = err_class.name
@@ -59,16 +59,16 @@ module LogStruct
         params(
           source: Source,
           ex: StandardError,
-          data: T::Hash[Symbol, T.untyped]
+          additional_data: T::Hash[Symbol, T.untyped]
         ).returns(Log::Error)
       }
-      def self.from_exception(source, ex, data = {})
+      def self.from_exception(source, ex, additional_data = {})
         new(
           source: source,
           message: ex.message,
           err_class: ex.class,
           backtrace: ex.backtrace,
-          data: data
+          additional_data: additional_data
         )
       end
     end

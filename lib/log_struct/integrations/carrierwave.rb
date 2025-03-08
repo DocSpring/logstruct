@@ -62,7 +62,7 @@ module LogStruct
             mime_type: file.content_type,
             size: file_size,
             file_id: identifier,
-            data: {
+            additional_data: {
               version: version_name.to_s,
               store_path: store_path,
               extension: file.extension
@@ -95,7 +95,7 @@ module LogStruct
             filename: file&.filename,
             mime_type: file&.content_type,
             size: file_size,
-            data: {
+            additional_data: {
               version: version_name.to_s
             }
           )

@@ -2,11 +2,11 @@
 # frozen_string_literal: true
 
 require_relative "interfaces/common_fields"
-require_relative "interfaces/data_field"
+require_relative "interfaces/additional_data_field"
 require_relative "interfaces/message_field"
 require_relative "interfaces/request_fields"
 require_relative "shared/add_request_fields"
-require_relative "shared/merge_data_fields"
+require_relative "shared/merge_additional_data_fields"
 require_relative "shared/serialize_common"
 require_relative "../enums/event"
 require_relative "../enums/level"
@@ -20,12 +20,12 @@ module LogStruct
       extend T::Sig
 
       include Interfaces::CommonFields
-      include Interfaces::DataField
+      include Interfaces::AdditionalDataField
       include Interfaces::MessageField
       include Interfaces::RequestFields
       include SerializeCommon
       include AddRequestFields
-      include MergeDataFields
+      include MergeAdditionalDataFields
 
       SecurityEvent = T.type_alias {
         T.any(
@@ -49,7 +49,7 @@ module LogStruct
       const :x_forwarded_for, T.nilable(String), default: nil
 
       # Additional data (merged into hash)
-      const :data, T::Hash[Symbol, T.untyped], default: {}
+      const :additional_data, T::Hash[Symbol, T.untyped], default: {}
 
       # Common request fields
       const :path, T.nilable(String), default: nil
@@ -64,7 +64,7 @@ module LogStruct
       def serialize(strict = true)
         hash = serialize_common(strict)
         add_request_fields(hash)
-        merge_data_fields(hash)
+        merge_additional_data_fields(hash)
 
         # Add security-specific fields
         hash[LOG_KEYS.fetch(:message)] = message if message

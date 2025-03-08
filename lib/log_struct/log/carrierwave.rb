@@ -2,9 +2,9 @@
 # frozen_string_literal: true
 
 require_relative "interfaces/common_fields"
-require_relative "interfaces/data_field"
+require_relative "interfaces/additional_data_field"
 require_relative "shared/serialize_common"
-require_relative "shared/merge_data_fields"
+require_relative "shared/merge_additional_data_fields"
 require_relative "../enums/source"
 require_relative "../enums/event"
 require_relative "../enums/level"
@@ -17,9 +17,9 @@ module LogStruct
       extend T::Sig
 
       include Interfaces::CommonFields
-      include Interfaces::DataField
+      include Interfaces::AdditionalDataField
       include SerializeCommon
-      include MergeDataFields
+      include MergeAdditionalDataFields
 
       CarrierWaveEvent = T.type_alias {
         T.any(
@@ -52,13 +52,13 @@ module LogStruct
       const :uploader, T.nilable(String), default: nil
       const :model, T.nilable(String), default: nil
       const :mount_point, T.nilable(String), default: nil
-      const :data, T::Hash[Symbol, T.untyped], default: {}
+      const :additional_data, T::Hash[Symbol, T.untyped], default: {}
 
       # Convert the log entry to a hash for serialization
       sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize(strict = true)
         hash = serialize_common(strict)
-        merge_data_fields(hash)
+        merge_additional_data_fields(hash)
 
         # Add file-specific fields if they're present
         hash[LOG_KEYS.fetch(:storage)] = storage if storage

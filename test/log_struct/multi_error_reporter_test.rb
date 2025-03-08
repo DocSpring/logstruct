@@ -188,7 +188,7 @@ module LogStruct
           assert_equal Source::LogStruct, log_entry.source
           assert_equal "Test error", log_entry.message
           assert_equal StandardError, log_entry.err_class
-          assert_equal @context, log_entry.data
+          assert_equal @context, log_entry.additional_data
           true
         end
 

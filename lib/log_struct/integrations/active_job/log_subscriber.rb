@@ -58,7 +58,7 @@ module LogStruct
             # Add arguments if the job class allows it
             arguments: job.class.log_arguments? ? job.arguments : nil,
             # Store additional data in the data hash
-            data: {
+            additional_data: {
               executions: job.executions,
               scheduled_at: additional_data[:scheduled_at],
               provider_job_id: job.provider_job_id
