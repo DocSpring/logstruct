@@ -134,24 +134,26 @@ jobs:
           ruby-version: '3.4'
           bundler-cache: true
 
+      # Coverage: /coverage
       - name: Run tests
         run: bin/test
 
+      # Coverage: /coverage_rails
       - name: Run Rails integration tests
         run: bin/rails_tests
 
+      # Merges /coverage and /coverage_rails into /site/public/coverage/
       - name: Merge coverage reports
         run: bin/merge_coverage
 
-      # Save coverage data as an artifact
+      # Save merged coverage data as an artifact for deploy workflow
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         if: success()
         with:
           name: coverage-ruby3.4-rails8.0
           path: |
-            coverage/
-            coverage_rails/
+            site/public/coverage/
           retention-days: 5
 
   matrix:
