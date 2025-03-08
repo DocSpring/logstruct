@@ -2,6 +2,17 @@
 # typed: true
 # frozen_string_literal: true
 
+# Determine Rails version to use before loading bundler
+rails_version = ENV["RAILS_VERSION"] || "7.0"
+
+# Check if the required Rails version is installed
+rails_gems = `gem list rails -l`
+if !rails_gems.include?("rails (#{rails_version}") && !rails_gems.include?("rails-#{rails_version}")
+  puts "Rails #{rails_version} not found locally. Attempting to install..."
+  system("gem install rails -v '#{rails_version}' --no-document") || abort("Failed to install Rails #{rails_version}")
+  puts "Rails #{rails_version} installed successfully"
+end
+
 require "bundler/setup"
 
 require "fileutils"
@@ -24,8 +35,7 @@ clean_env = {
   "RUBYOPT" => nil
 }
 
-# Determine Rails version to use
-rails_version = ENV["RAILS_VERSION"] || "7.0"
+# Check if we should skip app creation
 skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
 
 # Extract major and minor version for migrations and load_defaults
