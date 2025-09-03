@@ -3,6 +3,7 @@
 
 require_relative "integrations/integration_interface"
 require_relative "integrations/active_job"
+require_relative "integrations/active_record"
 require_relative "integrations/rack_error_handler"
 require_relative "integrations/host_authorization"
 require_relative "integrations/action_mailer"
@@ -26,6 +27,7 @@ module LogStruct
       Integrations::Lograge.setup(config) if config.integrations.enable_lograge
       Integrations::ActionMailer.setup(config) if config.integrations.enable_actionmailer
       Integrations::ActiveJob.setup(config) if config.integrations.enable_activejob
+      Integrations::ActiveRecord.setup(config) if config.integrations.enable_sql_logging
       Integrations::Sidekiq.setup(config) if config.integrations.enable_sidekiq
       Integrations::GoodJob.setup(config) if config.integrations.enable_goodjob
       Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization

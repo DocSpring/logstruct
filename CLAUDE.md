@@ -1,5 +1,11 @@
 # LogStruct Development Guide
 
+## 🚨 CRITICAL RULES - MUST ALWAYS BE FOLLOWED 🚨
+
+1. **NEVER mark a feature as done until `./bin/all_check` is passing (all linters and tests)**
+2. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
+3. **This rule must ALWAYS be followed no matter what**
+
 ## Commands
 
 ### Core Commands

@@ -17,6 +17,8 @@ import {
   ActiveStorageLog,
   ActionMailerLog,
   CarrierWaveLog,
+  GoodJobLog,
+  SQLLog,
   // Import the event type arrays for each log type
   SecurityEvents,
   ActiveJobEvents,
@@ -99,6 +101,10 @@ export class LogGenerator extends RandomDataGenerator {
         return this.sample(ActionMailerEvents);
       case LogType.CARRIERWAVE:
         return this.sample(CarrierWaveEvents);
+      case LogType.GOODJOB:
+        return Event.LOG; // GoodJob uses generic log events
+      case LogType.SQL:
+        return Event.DATABASE;
       default:
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
@@ -126,6 +132,10 @@ export class LogGenerator extends RandomDataGenerator {
         return Source.MAILER;
       case LogType.CARRIERWAVE:
         return Source.CARRIERWAVE;
+      case LogType.GOODJOB:
+        return Source.JOB;
+      case LogType.SQL:
+        return Source.APP;
       case LogType.PLAIN:
       case LogType.ERROR:
         // These can have any source
@@ -183,6 +193,10 @@ export class LogGenerator extends RandomDataGenerator {
         return this.generateActionMailerLog(log as Partial<ActionMailerLog>);
       case LogType.CARRIERWAVE:
         return this.generateCarrierWaveLog(log as Partial<CarrierWaveLog>);
+      case LogType.GOODJOB:
+        return this.generateGoodJobLog(log as Partial<GoodJobLog>);
+      case LogType.SQL:
+        return this.generateSQLLog(log as Partial<SQLLog>);
       default:
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
@@ -423,6 +437,45 @@ export class LogGenerator extends RandomDataGenerator {
     log.additional_data = {
       versions: ['thumb', 'medium', 'large'],
     };
+
+    return log;
+  }
+
+  private generateGoodJobLog(log: Partial<GoodJobLog>): Partial<GoodJobLog> {
+    log.job_id = this.randomHex(8);
+    log.job_class = this.sample(SampleData.JOB_CLASSES);
+    log.queue_name = this.sample(['default', 'critical', 'low']);
+    log.priority = this.randomInt(0, 100);
+    log.arguments = [{ id: this.randomInt(1, 1000) }];
+    log.executions = this.randomInt(0, 3);
+    log.exception_executions = 0;
+    log.scheduled_at = new Date().toISOString();
+    log.execution_time = this.randomFloat(0.1, 10.0);
+    log.thread_id = `thread-${this.randomHex(4)}`;
+    log.process_id = this.randomInt(1000, 99999);
+    log.batch_id = `batch-${this.randomHex(6)}`;
+    log.job_label = `${log.job_class}#perform`;
+
+    return log;
+  }
+
+  private generateSQLLog(log: Partial<SQLLog>): Partial<SQLLog> {
+    const operations = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
+    const tables = ['users', 'posts', 'comments', 'orders', 'products'];
+    const operation = this.sample(operations);
+    const table = this.sample(tables);
+
+    log.sql = `${operation} * FROM ${table} WHERE id = ?`;
+    log.name = `${table.charAt(0).toUpperCase() + table.slice(1).slice(0, -1)} Load`;
+    log.duration = this.randomFloat(0.1, 100.0);
+    log.row_count = operation === 'SELECT' ? this.randomInt(0, 100) : 1;
+    log.connection_adapter = 'PostgreSQLAdapter';
+    log.bind_params = [this.randomInt(1, 1000)];
+    log.database_name = 'production';
+    log.connection_pool_size = 5;
+    log.active_connections = this.randomInt(1, 5);
+    log.operation_type = operation;
+    log.table_names = [table];
 
     return log;
   }

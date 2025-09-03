@@ -71,6 +71,19 @@ module LogStruct
       # Filter noisy loggers (ActionView, etc.)
       # Default: false
       prop :filter_noisy_loggers, T::Boolean, default: false
+
+      # Enable SQL query logging through ActiveRecord instrumentation
+      # Default: false (can be resource intensive)
+      prop :enable_sql_logging, T::Boolean, default: false
+
+      # Only log SQL queries slower than this threshold (in milliseconds)
+      # Set to 0 or nil to log all queries
+      # Default: 100.0 (log queries taking >100ms)
+      prop :sql_slow_query_threshold, T.nilable(Float), default: 100.0
+
+      # Include bind parameters in SQL logs (disable in production for security)
+      # Default: true in development/test, false in production
+      prop :sql_log_bind_params, T::Boolean, factory: -> { !defined?(::Rails) || !::Rails.respond_to?(:env) || !::Rails.env.production? }
     end
   end
 end

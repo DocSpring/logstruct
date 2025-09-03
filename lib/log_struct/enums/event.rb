@@ -35,6 +35,9 @@ module LogStruct
       CSRFViolation = new(:csrf_violation)
       BlockedHost = new(:blocked_host)
 
+      # Database events
+      Database = new(:database)
+
       # Error events
       Error = new(:error)
 

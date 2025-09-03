@@ -12,11 +12,13 @@ require_relative "log/action_mailer"
 require_relative "log/active_storage"
 require_relative "log/active_job"
 require_relative "log/error"
+require_relative "log/good_job"
 require_relative "log/plain"
 require_relative "log/request"
 require_relative "log/security"
 require_relative "log/shrine"
 require_relative "log/sidekiq"
+require_relative "log/sql"
 
 module LogStruct
   # Type aliases for all possible log types
@@ -29,11 +31,13 @@ module LogStruct
       T.class_of(LogStruct::Log::ActiveStorage),
       T.class_of(LogStruct::Log::ActiveJob),
       T.class_of(LogStruct::Log::Error),
+      T.class_of(LogStruct::Log::GoodJob),
       T.class_of(LogStruct::Log::Plain),
       T.class_of(LogStruct::Log::Request),
       T.class_of(LogStruct::Log::Security),
       T.class_of(LogStruct::Log::Shrine),
-      T.class_of(LogStruct::Log::Sidekiq)
+      T.class_of(LogStruct::Log::Sidekiq),
+      T.class_of(LogStruct::Log::SQL)
     )
   end
 end

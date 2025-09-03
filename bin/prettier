@@ -4,4 +4,4 @@ set -euo pipefail
 PRETTIER_ARG="${1:---write}"
 
 # Format / check files with Prettier
-npx prettier . "$PRETTIER_ARG"
+pnpm exec prettier . "$PRETTIER_ARG"

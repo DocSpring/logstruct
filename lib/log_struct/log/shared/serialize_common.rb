@@ -24,6 +24,13 @@ module LogStruct
           LOG_KEYS.fetch(:timestamp) => timestamp.iso8601(3)
         }
       end
+
+      # Override as_json to use our custom serialize method instead of default T::Struct serialization
+      sig { params(options: T.untyped).returns(T::Hash[String, T.untyped]) }
+      def as_json(options = nil)
+        # Convert symbol keys to strings for JSON
+        serialize.transform_keys(&:to_s)
+      end
     end
   end
 end
