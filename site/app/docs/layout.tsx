@@ -175,6 +175,11 @@ export default function DocsLayout({
                   />
 
                   <DocNavItem
+                    href="/docs/comparison"
+                    title="Comparison with Other Gems"
+                    active={pathname.startsWith('/docs/comparison')}
+                  />
+                  <DocNavItem
                     href="/docs/supported-versions"
                     title="Supported Versions"
                     active={pathname.startsWith('/docs/supported-versions')}
