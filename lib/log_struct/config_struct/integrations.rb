@@ -51,6 +51,10 @@ module LogStruct
       # Enable or disable CarrierWave integration
       # Default: true
       prop :enable_carrierwave, T::Boolean, default: true
+
+      # Enable SemanticLogger integration for high-performance logging
+      # Default: true
+      prop :enable_semantic_logger, T::Boolean, default: true
     end
   end
 end

@@ -2,7 +2,9 @@
 # frozen_string_literal: true
 
 require "rails"
+require "semantic_logger"
 require_relative "formatter"
+require_relative "semantic_logger/setup"
 
 module LogStruct
   # Railtie to integrate with Rails
@@ -11,13 +13,8 @@ module LogStruct
     initializer "logstruct.configure_logger", after: :initialize_logger do |app|
       next unless LogStruct.enabled?
 
-      # At this early stage, set formatter on the existing logger
-      # This ensures all components get structured logging even if they
-      # cache a reference to Rails.logger early
-      original_logger = ::Rails.logger
-      if original_logger
-        original_logger.formatter = LogStruct::Formatter.new
-      end
+      # Use SemanticLogger for powerful logging features
+      LogStruct::SemanticLogger::Setup.configure_semantic_logger(app)
     end
 
     # Setup all integrations after logger setup is complete

@@ -18,6 +18,11 @@ require "log_struct/monkey_patches/active_support/tagged_logging/formatter"
 # Require integrations
 require "log_struct/integrations"
 
+# SemanticLogger integration - core feature for high-performance logging
+require "log_struct/semantic_logger/formatter"
+require "log_struct/semantic_logger/logger"
+require "log_struct/semantic_logger/setup"
+
 module LogStruct
   class Error < StandardError; end
 

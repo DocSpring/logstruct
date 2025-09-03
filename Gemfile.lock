@@ -4,6 +4,7 @@ PATH
     logstruct (0.1.0)
       lograge (>= 0.11)
       rails (>= 7.0)
+      semantic_logger (~> 4.15)
       sorbet-runtime (>= 0.5)
 
 GEM
@@ -298,6 +299,8 @@ GEM
       ffi (~> 1.12)
       logger
     securerandom (0.4.1)
+    semantic_logger (4.17.0)
+      concurrent-ruby (~> 1.0)
     sentry-ruby (5.22.4)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
