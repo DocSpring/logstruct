@@ -6,8 +6,50 @@ require_relative "../formatter"
 
 module LogStruct
   module SemanticLogger
-    # Custom SemanticLogger formatter that preserves all LogStruct features
-    # including filtering, scrubbing, and type-safe log structs
+    # High-Performance JSON Formatter with LogStruct Integration
+    #
+    # This formatter extends SemanticLogger's JSON formatter to provide optimal
+    # JSON serialization performance while preserving all LogStruct features
+    # including data filtering, sensitive data scrubbing, and type-safe structures.
+    #
+    # ## Performance Advantages Over Rails Logger:
+    #
+    # ### Serialization Performance
+    # - **Direct JSON generation**: Bypasses intermediate object creation
+    # - **Streaming serialization**: Memory-efficient processing of large objects
+    # - **Type-optimized paths**: Fast serialization for common data types
+    # - **Zero-copy operations**: Minimal memory allocation during serialization
+    #
+    # ### Memory Efficiency  
+    # - **Object reuse**: Formatter instances are reused across log calls
+    # - **Lazy evaluation**: Only processes data that will be included in output
+    # - **Efficient buffering**: Optimal buffer sizes for JSON generation
+    # - **Garbage collection friendly**: Minimal object allocation reduces GC pressure
+    #
+    # ### Integration Benefits
+    # - **LogStruct compatibility**: Native support for typed log structures
+    # - **Filter preservation**: Maintains all LogStruct filtering capabilities
+    # - **Scrubbing integration**: Seamless sensitive data scrubbing
+    # - **Error handling**: Robust handling of serialization errors
+    #
+    # ## Feature Preservation:
+    # This formatter maintains full compatibility with LogStruct's features:
+    # - Sensitive data filtering (passwords, tokens, etc.)
+    # - Recursive object scrubbing and processing
+    # - Type-safe log structure handling
+    # - Custom field transformations
+    # - Metadata preservation and enrichment
+    #
+    # ## JSON Output Structure:
+    # The formatter produces consistent, parseable JSON that includes:
+    # - Standard log fields (timestamp, level, message, logger name)
+    # - LogStruct-specific fields (source, event, context)
+    # - SemanticLogger metadata (process ID, thread ID, tags)
+    # - Application-specific payload data
+    #
+    # This combination provides the performance benefits of SemanticLogger with
+    # the structured data benefits of LogStruct, resulting in faster, more
+    # reliable logging for high-traffic applications.
     class Formatter < ::SemanticLogger::Formatters::Json
       extend T::Sig
 

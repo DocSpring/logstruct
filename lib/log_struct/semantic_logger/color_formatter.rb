@@ -6,7 +6,46 @@ require_relative "formatter"
 
 module LogStruct
   module SemanticLogger
-    # Colorized formatter that uses LogStruct formatting with SemanticLogger colorization
+    # Development-Optimized Colorized JSON Formatter
+    #
+    # This formatter extends SemanticLogger's Color formatter to provide beautiful,
+    # readable JSON output in development environments. It significantly improves
+    # the developer experience when working with structured logs.
+    #
+    # ## Benefits of Colorized Output:
+    #
+    # ### Readability
+    # - **Syntax highlighting**: JSON keys, values, and data types are color-coded
+    # - **Visual hierarchy**: Different colors help identify structure at a glance
+    # - **Error spotting**: Quickly identify malformed data or unexpected values
+    # - **Context separation**: Log entries are visually distinct from each other
+    #
+    # ### Performance in Development
+    # - **Faster debugging**: Quickly scan logs without reading every character
+    # - **Pattern recognition**: Colors help identify common log patterns
+    # - **Reduced cognitive load**: Less mental effort required to parse log output
+    # - **Improved workflow**: Spend less time reading logs, more time coding
+    #
+    # ### Customization
+    # - **Configurable colors**: Customize colors for keys, strings, numbers, etc.
+    # - **Environment-aware**: Automatically disabled in production/CI environments
+    # - **Fallback support**: Gracefully falls back to standard formatting if needed
+    #
+    # ## Color Mapping:
+    # - **Keys**: Yellow - Easy to spot field names
+    # - **Strings**: Green - Clear indication of text values
+    # - **Numbers**: Blue - Numeric values stand out
+    # - **Booleans**: Magenta - true/false values are distinctive
+    # - **Null**: Red - Missing values are immediately visible
+    # - **Logger names**: Cyan - Source identification
+    #
+    # ## Integration with SemanticLogger:
+    # This formatter preserves all SemanticLogger benefits (performance, threading,
+    # reliability) while adding visual enhancements. It processes LogStruct types,
+    # hashes, and plain messages with appropriate colorization.
+    #
+    # The formatter is automatically enabled in development when `enable_color_output`
+    # is true (default), providing zero-configuration enhanced logging experience.
     class ColorFormatter < ::SemanticLogger::Formatters::Color
       extend T::Sig
 
