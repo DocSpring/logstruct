@@ -25,29 +25,40 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: |
-            package-lock.json
-            site/package-lock.json
 
-      - name: Install dependencies
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
         run: |
-          # Install root and site npm dependencies
-          npm ci
-          cd site && npm ci && cd ..
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-          # Make sure bundler is using the correct Ruby version
-          ruby -v
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install npm packages
+        run: |
+          # Install root and site pnpm dependencies
+          pnpm install --frozen-lockfile
+          cd site && pnpm install --frozen-lockfile && cd ..
 
       - name: Generate CSpell dictionaries from package lockfiles
         run: |
-          bin/generate_lockfile_words
+          scripts/generate_lockfile_words.sh
 
       - name: CSpell (Spellcheck)
-        run: bin/spellcheck
+        run: scripts/spellcheck.sh
 
       - name: Prettier (Formatting)
-        run: bin/prettier --check
+        run: scripts/prettier.sh --check
 
       - name: Tapioca (Verify RBI files)
         run: |
@@ -74,10 +85,10 @@ jobs:
           fi
 
       - name: RuboCop (Linting/Formatting)
-        run: bin/rubocop
+        run: scripts/rubocop.rb
 
       - name: Sorbet (Typecheck)
-        run: bin/typecheck
+        run: scripts/typecheck.sh
 
   site:
     name: 'Next.js Site Tests'
@@ -95,11 +106,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: 'site/package-lock.json'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install site dependencies
-        run: cd site && npm ci
+        run: cd site && pnpm install --frozen-lockfile
 
       - name: Export TypeScript types from LogStruct
         run: |
@@ -107,11 +134,11 @@ jobs:
 
       - name: TypeScript type checking
         run: |
-          cd site && npx tsc --noEmit
+          cd site && pnpm exec tsc --noEmit
 
       - name: Run TypeScript tests
         run: |
-          cd site && npm test
+          cd site && pnpm test
 
   pilot:
     name: 'Pilot Test: Ruby 3.4 / Rails 8.0'
@@ -136,15 +163,15 @@ jobs:
 
       # Coverage: /coverage
       - name: Run tests
-        run: bin/test
+        run: scripts/test.rb
 
       # Coverage: /coverage_rails
       - name: Run Rails integration tests
-        run: bin/rails_tests
+        run: scripts/rails_tests.sh
 
       # Merges /coverage and /coverage_rails into /site/public/coverage/
       - name: Merge coverage reports
-        run: bin/merge_coverage
+        run: scripts/merge_coverage.sh
 
       # Save merged coverage data as an artifact for deploy workflow
       - name: Upload coverage reports
@@ -196,7 +223,7 @@ jobs:
           bundler-cache: true
 
       - name: Run Ruby tests
-        run: bin/test
+        run: scripts/test.rb
 
       - name: Run Rails integration tests
-        run: bin/rails_tests
+        run: scripts/rails_tests.sh

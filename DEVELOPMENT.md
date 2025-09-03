@@ -107,9 +107,9 @@ And you always need to check for any third-party gems that are not part of Rails
 - Follow test-driven development principles
 - Write tests for all new features
 - Ensure all tests pass before submitting a pull request
-- Regular tests: `bin/test`
-- Rails integration tests: `bin/test_with_rails`
-- You can specify Rails version for integration tests: `RAILS_VERSION=7.1.3 bin/test_with_rails`
+- Regular tests: `scripts/test.rb`
+- Rails integration tests: `scripts/rails_tests.sh`
+- You can specify Rails version for integration tests: `RAILS_VERSION=7.1.3 scripts/rails_tests.sh`
 
 ## Working with Sorbet and Tapioca
 

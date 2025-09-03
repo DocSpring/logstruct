@@ -2,45 +2,47 @@
 
 ## 🚨 CRITICAL RULES - MUST ALWAYS BE FOLLOWED 🚨
 
-1. **NEVER mark a feature as done until `./bin/all_check` is passing (all linters and tests)**
-2. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
-3. **This rule must ALWAYS be followed no matter what**
+1. **NEVER mark a feature as done until `./scripts/all_check.sh` and `./scripts/all_tests.sh` are ALL passing**
+2. **ALWAYS run both `./scripts/all_check.sh` and `./scripts/all_tests.sh` before claiming completion**
+3. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
+4. **This rule must ALWAYS be followed no matter what**
 
 ## Commands
 
 ### Core Commands
 
-- Setup: `bin/setup`
-- Run all checks: `bin/all` (runs typecheck, export, lint, test, etc.)
-- Interactive console: `bin/console`
+- Setup: `scripts/setup.sh`
+- Run all checks: `scripts/all_check.sh` (runs typecheck, export, lint, test, etc.)
+- Run all checks with auto-fix: `scripts/all_write.sh`
+- Interactive console: `scripts/console.rb`
 
 ### Testing Commands
 
-- Run all tests (unit + Rails integration): `bin/all_tests`
-- Run all Ruby unit tests: `bin/test`
-- Run single test file: `bin/test test/path_to_test.rb`
-- Run test at specific line: `bin/test test/path_to_test.rb:LINE_NUMBER`
-- Run test by name: `bin/test -n=test_method_name`
+- Run all tests (unit + Rails integration): `scripts/all_tests.sh`
+- Run all Ruby unit tests: `scripts/test.rb`
+- Run single test file: `scripts/test.rb test/path_to_test.rb`
+- Run test at specific line: `scripts/test.rb test/path_to_test.rb:LINE_NUMBER`
+- Run test by name: `scripts/test.rb -n=test_method_name`
 - Debug a specific test: Add `debugger` statements (developer only)
-- Run Rails integration tests: `bin/rails_tests`
-- Merge coverage reports: `bin/merge_coverage`
+- Run Rails integration tests: `scripts/rails_tests.sh`
+- Merge coverage reports: `scripts/merge_coverage.sh`
 - Run Next.js TypeScript tests: `cd site && npm test`
 
 ### Quality Commands
 
-- Ruby typecheck: `bin/typecheck`
-- Next.js typecheck: `cd site && npx tsc --noEmit`
-- Lint Ruby: `bin/rubocop`
-- Format Ruby: `bin/rubocop -A`
-- Format JS/TS/JSON: `bin/prettier --write`
-- Lint JS/TS/JSON: `bin/prettier --check`
-- Spellcheck: `bin/spellcheck`
+- Ruby typecheck: `scripts/typecheck.sh`
+- Next.js typecheck: `cd site && pnpm exec tsc --noEmit`
+- Lint Ruby: `scripts/rubocop.rb`
+- Format Ruby: `scripts/rubocop.rb -A`
+- Format JS/TS/JSON: `scripts/prettier.sh --write`
+- Lint JS/TS/JSON: `scripts/prettier.sh --check`
+- Spellcheck: `scripts/spellcheck.sh`
 
 ### Development Commands
 
-- Generate Sorbet RBI files: `bin/tapioca`
-- Generate spellcheck dictionary: `bin/generate_lockfile_words`
-- Generate TypeScript types from Ruby log structs: `ruby scripts/export_typescript_types.rb`
+- Generate Sorbet RBI files: `scripts/tapioca.rb`
+- Generate spellcheck dictionary: `scripts/generate_lockfile_words.sh`
+- Generate TypeScript types from Ruby log structs: `scripts/export_typescript_types.rb`
 
 # Core Dependencies
 

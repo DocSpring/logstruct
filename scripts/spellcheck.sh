@@ -2,4 +2,4 @@
 set -euo pipefail
 
 # Check spelling using CSpell
-npx cspell "**/*.{rb,md,js,json}" --no-progress 
+pnpm exec cspell "**/*.{rb,md,js,json}" --no-progress 

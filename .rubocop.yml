@@ -21,6 +21,7 @@ AllCops:
     - sorbet/rbi/gems/**/*
     - sorbet/rbi/annotations/**/*
     - rails_test_app/logstruct_test_app/**/*
+    - bin/**/* # Exclude bundler-generated binstubs
 
 Layout/MultilineHashKeyLineBreaks:
   Enabled: true
@@ -92,6 +93,8 @@ Sorbet/TrueSigil:
     - 'test/**/*.rb'
     - 'rails_test_app/**/*.rb'
     - 'scripts/**/*.rb'
+  Exclude:
+    - 'scripts/test.rb' # Has dynamic code that Sorbet can't handle
   SuggestedStrictness: true
 
 # Don't try to validate typing on generated Sorbet RBI files

@@ -5,15 +5,15 @@ echo "Running all tests with merged coverage reports"
 
 # Run the regular unit tests first
 echo "Running unit tests..."
-bin/test
+scripts/test.rb
 
 # Run the Rails integration tests
 echo "Running Rails integration tests..."
-bin/rails_tests
+scripts/rails_tests.sh
 
 # Merge the coverage reports
 echo "Merging coverage reports..."
-bin/merge_coverage
+scripts/merge_coverage.sh
 
 echo "All tests completed!"
 echo "Coverage report available at site/public/coverage/index.html"

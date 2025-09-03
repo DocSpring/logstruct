@@ -49,3 +49,4 @@ vercel
 wordlists
 xorshift
 yardoc
+TESTOPTS
