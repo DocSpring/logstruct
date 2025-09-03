@@ -210,12 +210,12 @@ module LogStruct
     sig { params(array: T::Array[T.untyped]).returns(T::Boolean) }
     def looks_like_backtrace?(array)
       return false if array.empty?
-      
+
       # Check if most elements look like backtrace lines (file.rb:123 or similar patterns)
       backtrace_like_count = array.first(5).count do |element|
         element.is_a?(String) && element.match?(/\A[^:\s]+:\d+/)
       end
-      
+
       # If at least 3 out of the first 5 elements look like backtrace lines, treat as backtrace
       backtrace_like_count >= 3
     end

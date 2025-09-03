@@ -41,7 +41,7 @@ module LogStruct
         sig { params(event: T.untyped).void }
         def enqueue(event)
           job_data = extract_job_data(event)
-          
+
           log_entry = LogStruct::Log::GoodJob.new(
             event: Event::Enqueue,
             level: Level::Info,
@@ -64,7 +64,7 @@ module LogStruct
         sig { params(event: T.untyped).void }
         def start(event)
           job_data = extract_job_data(event)
-          
+
           log_entry = LogStruct::Log::GoodJob.new(
             event: Event::Start,
             level: Level::Info,
@@ -82,11 +82,11 @@ module LogStruct
           logger.info(log_entry)
         end
 
-        # Job completed successfully event  
+        # Job completed successfully event
         sig { params(event: T.untyped).void }
         def finish(event)
           job_data = extract_job_data(event)
-          
+
           log_entry = LogStruct::Log::GoodJob.new(
             event: Event::Finish,
             level: Level::Info,
@@ -110,7 +110,7 @@ module LogStruct
         sig { params(event: T.untyped).void }
         def error(event)
           job_data = extract_job_data(event)
-          
+
           log_entry = LogStruct::Log::GoodJob.new(
             event: Event::Error,
             level: Level::Error,
@@ -134,7 +134,7 @@ module LogStruct
         sig { params(event: T.untyped).void }
         def schedule(event)
           job_data = extract_job_data(event)
-          
+
           log_entry = LogStruct::Log::GoodJob.new(
             event: Event::Schedule,
             level: Level::Info,
@@ -166,7 +166,7 @@ module LogStruct
           # Basic job information
           if job
             data[:job_id] = job.job_id if job.respond_to?(:job_id)
-            data[:job_class] = job.job_class if job.respond_to?(:job_class)  
+            data[:job_class] = job.job_class if job.respond_to?(:job_class)
             data[:queue_name] = job.queue_name if job.respond_to?(:queue_name)
             data[:arguments] = job.arguments if job.respond_to?(:arguments)
             data[:priority] = job.priority if job.respond_to?(:priority)
@@ -210,7 +210,7 @@ module LogStruct
           return nil unless execution.created_at && execution.performed_at
 
           (execution.performed_at - execution.created_at).to_f
-        rescue => e
+        rescue
           # Return nil if calculation fails
           nil
         end

@@ -177,7 +177,7 @@ module LogStruct
       #
       # ## Benefits of Complete Logger Replacement:
       # - **Consistent performance**: All Rails components benefit from SemanticLogger speed
-      # - **Unified formatting**: All logs use the same structured JSON format  
+      # - **Unified formatting**: All logs use the same structured JSON format
       # - **Centralized configuration**: Single point of control for all logging
       # - **Complete compatibility**: Maintains all Rails.logger API contracts
       #

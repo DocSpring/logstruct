@@ -22,13 +22,14 @@ module LogStruct
       end
 
       test "implements IntegrationInterface" do
-        assert GoodJob.singleton_class.included_modules.include?(IntegrationInterface)
+        assert_includes GoodJob.singleton_class.included_modules, IntegrationInterface
       end
 
       test "returns early when GoodJob is not defined" do
         # Mock GoodJob as not being defined
         skip_if_goodjob_defined do
           result = GoodJob.setup(LogStruct.config)
+
           assert_nil result
         end
       end
@@ -37,6 +38,7 @@ module LogStruct
         skip_if_goodjob_defined do
           LogStruct.config.enabled = false
           result = GoodJob.setup(LogStruct.config)
+
           assert_nil result
         end
       end
@@ -45,18 +47,17 @@ module LogStruct
         skip_if_goodjob_defined do
           LogStruct.config.integrations.enable_goodjob = false
           result = GoodJob.setup(LogStruct.config)
+
           assert_nil result
         end
       end
 
       test "configure_logger method exists and is private" do
-        assert GoodJob.respond_to?(:configure_logger, true)
-        refute GoodJob.respond_to?(:configure_logger, false)
+        assert_includes GoodJob.private_methods, :configure_logger
       end
 
       test "subscribe_to_notifications method exists and is private" do
-        assert GoodJob.respond_to?(:subscribe_to_notifications, true)
-        refute GoodJob.respond_to?(:subscribe_to_notifications, false)
+        assert_includes GoodJob.private_methods, :subscribe_to_notifications
       end
 
       test "integration is included in automatic setup" do
@@ -64,10 +65,11 @@ module LogStruct
         integrations_file = File.read(
           File.join(__dir__, "../../../lib/log_struct/integrations.rb")
         )
+
         assert_includes integrations_file, 'require_relative "integrations/good_job"'
-        
+
         # Check that setup is called conditionally
-        assert_includes integrations_file, 
+        assert_includes integrations_file,
           "Integrations::GoodJob.setup(config) if config.integrations.enable_goodjob"
       end
 

@@ -28,7 +28,7 @@ module LogStruct
     # - Thread and process information
     #
     # ## Usage Examples:
-    # 
+    #
     # ```ruby
     # # Job execution logging
     # LogStruct::Log::GoodJob.new(

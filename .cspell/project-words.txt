@@ -1,4 +1,6 @@
 ankane
+appender
+appenders
 autorun
 bindir
 binstub
@@ -10,6 +12,7 @@ creds
 dalli
 favicons
 gettime
+goodjob
 Healthcheck
 Honeybadger
 hotwire
@@ -21,6 +24,7 @@ LogStruct
 metaprogramming
 nilable
 optparse
+parseable
 pentester
 pentesters
 procs

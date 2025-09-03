@@ -13,7 +13,7 @@ module LogStruct
         setup do
           @original_logger = Rails.logger
           @log_output = StringIO.new
-          
+
           # Set up a test logger
           test_logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
           ::SemanticLogger.clear_appenders!
@@ -23,7 +23,7 @@ module LogStruct
             async: false
           )
           Rails.logger = test_logger
-          
+
           @subscriber = LogSubscriber.new
         end
 
@@ -62,7 +62,7 @@ module LogStruct
           assert_equal "job_123", log["job_id"]
           assert_equal "UserNotificationJob", log["job_class"]
           assert_equal "default", log["queue_name"]
-          assert_equal 0.1, log["execution_time"]
+          assert_in_delta(0.1, log["execution_time"])
         end
 
         test "start event creates proper log entry" do
@@ -82,7 +82,7 @@ module LogStruct
           assert_equal "TestJob", log["job_class"]
           assert_equal "priority", log["queue_name"]
           assert_equal 1, log["executions"]
-          assert_equal 0.5, log["wait_time"]
+          assert_in_delta(0.5, log["wait_time"])
           assert_equal Process.pid, log["pid"]
           assert log["tid"]
         end
@@ -105,7 +105,7 @@ module LogStruct
           assert_equal "job_789", log["job_id"]
           assert_equal "CompletedJob", log["job_class"]
           assert_equal 1, log["executions"]
-          assert_equal 2.5, log["run_time"]
+          assert_in_delta(2.5, log["run_time"])
           assert log["finished_at"]
           assert_equal "success", log["result"]
         end
@@ -113,7 +113,7 @@ module LogStruct
         test "error event creates proper log entry" do
           exception = StandardError.new("Job processing failed")
           exception.set_backtrace(["file1.rb:10", "file2.rb:20", "file3.rb:30"])
-          
+
           event_data = create_test_event({
             job: create_mock_job("FailedJob", "job_error", "critical"),
             execution: create_mock_execution(executions: 2, exception_executions: 1),
@@ -136,17 +136,20 @@ module LogStruct
           assert_equal "StandardError", log["err_class"]
           assert_equal "Job processing failed", log["error_message"]
           assert_equal ["file1.rb:10", "file2.rb:20", "file3.rb:30"], log["backtrace"]
-          assert_equal 1.2, log["run_time"]
+          assert_in_delta(1.2, log["run_time"])
         end
 
         test "schedule event creates proper log entry" do
           scheduled_time = Time.now + 1.hour
           event_data = create_test_event({
-            job: create_mock_job("ScheduledJob", "job_scheduled", "later", {
-              scheduled_at: scheduled_time,
-              priority: 10,
-              cron_key: "daily_cleanup"
-            }),
+            job: create_mock_job("ScheduledJob",
+              "job_scheduled",
+              "later",
+              {
+                scheduled_at: scheduled_time,
+                priority: 10,
+                cron_key: "daily_cleanup"
+              }),
             duration: 0.05
           })
 
@@ -163,7 +166,7 @@ module LogStruct
           assert_equal scheduled_time.iso8601, log["scheduled_at"]
           assert_equal 10, log["priority"]
           assert_equal "daily_cleanup", log["cron_key"]
-          assert_equal 0.05, log["execution_time"]
+          assert_in_delta(0.05, log["execution_time"])
         end
 
         test "handles missing job data gracefully" do
@@ -179,7 +182,7 @@ module LogStruct
           # Should still create a valid log entry
           assert_equal "enqueue", log["evt"]
           assert_equal "job", log["src"]
-          
+
           # Missing fields should not be present
           refute log.key?("job_id")
           refute log.key?("job_class")
@@ -211,23 +214,23 @@ module LogStruct
         test "calculates wait_time correctly" do
           created_at = Time.now - 5.0  # 5 seconds ago
           performed_at = Time.now
-          
+
           execution = create_mock_execution({
             created_at: created_at,
             performed_at: performed_at
           })
-          
+
           wait_time = @subscriber.send(:calculate_wait_time, execution)
-          
+
           assert_in_delta 5.0, wait_time, 0.1  # Allow small timing differences
         end
 
         test "handles missing timestamps in wait_time calculation" do
           # Execution without timestamps
-          execution = create_mock_execution({ created_at: nil, performed_at: nil })
-          
+          execution = create_mock_execution({created_at: nil, performed_at: nil})
+
           wait_time = @subscriber.send(:calculate_wait_time, execution)
-          
+
           assert_nil wait_time
         end
 
@@ -241,7 +244,7 @@ module LogStruct
         end
 
         def create_mock_job(job_class, job_id, queue_name, extra_attributes = {})
-          mock_job = OpenStruct.new({
+          OpenStruct.new({
             job_class: job_class,
             job_id: job_id,
             queue_name: queue_name,
@@ -250,8 +253,6 @@ module LogStruct
             scheduled_at: nil,
             enqueue_caller_location: nil
           }.merge(extra_attributes))
-          
-          mock_job
         end
 
         def create_mock_execution(attributes = {})

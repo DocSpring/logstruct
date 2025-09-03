@@ -33,7 +33,7 @@ module LogStruct
           define_method(level) do |message = nil, payload = nil, &block|
             # Extract basic job context from thread-local variables
             job_context = {}
-            
+
             if Thread.current[:good_job_execution]
               execution = Thread.current[:good_job_execution]
               if execution.respond_to?(:job_id)
@@ -62,7 +62,7 @@ module LogStruct
                 message: message || (block ? block.call : "")
               }
             )
-            
+
             # Pass the struct to SemanticLogger
             super(log_struct, payload, &nil)
           end

@@ -234,7 +234,7 @@ function ComparisonTable() {
       return (
         <Minus className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mx-auto" />
       );
-    return <span className="text-xs">{value}</span>;
+    return <span className="text-xs">{String(value)}</span>;
   };
 
   return (

@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+// Jest globals are available in test environment without explicit import
 import {
   getLogStructureDescription,
   LOG_STRUCTURE_DESCRIPTIONS,

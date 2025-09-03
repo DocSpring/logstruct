@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from '@jest/globals';
+// Jest globals are available in test environment without explicit import
 import fs from 'fs';
 import path from 'path';
 import {

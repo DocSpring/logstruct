@@ -12,14 +12,14 @@ module LogStruct
         setup do
           @original_appenders = ::SemanticLogger.appenders.dup
           ::SemanticLogger.clear_appenders!
-          
+
           @io = StringIO.new
           ::SemanticLogger.add_appender(
             io: @io,
             formatter: LogStruct::SemanticLogger::Formatter.new,
             async: false
           )
-          
+
           @logger = Logger.new("GoodJob")
           @logger.level = :debug  # Ensure all log levels are captured
         end
@@ -36,20 +36,21 @@ module LogStruct
         test "logs info messages with GoodJob structure" do
           @logger.info("Job started")
           ::SemanticLogger.flush
-          
+
           output = @io.string
+
           assert output && !output.empty?, "Expected output to be generated"
-          
+
           log = JSON.parse(output.lines.first.strip)
-          
+
           # Should use job source
           assert_equal "job", log["src"]
           assert_equal "log", log["evt"]
           assert_equal "info", log["lvl"]
-          
+
           # Should include message in additional_data
           assert_equal "Job started", log["message"]
-          
+
           # Should include process information
           assert_equal Process.pid, log["pid"]
           assert log["tid"]
@@ -58,10 +59,10 @@ module LogStruct
         test "logs error messages with proper level" do
           @logger.error("Job failed")
           ::SemanticLogger.flush
-          
+
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
-          
+
           assert_equal "error", log["lvl"]
           assert_equal "Job failed", log["message"]
         end
@@ -76,22 +77,22 @@ module LogStruct
             scheduled_at: Time.now,
             priority: 5
           )
-          
+
           Thread.current[:good_job_execution] = mock_execution
-          
+
           @logger.info("Processing job")
           ::SemanticLogger.flush
-          
+
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
-          
+
           assert_equal "job_123", log["job_id"]
           assert_equal "TestJob", log["job_class"]
           assert_equal "default", log["queue_name"]
           assert_equal 1, log["executions"]
           assert log["scheduled_at"]
           assert_equal 5, log["priority"]
-          
+
           # Clean up
           Thread.current[:good_job_execution] = nil
         end
@@ -99,17 +100,17 @@ module LogStruct
         test "handles missing job context gracefully" do
           # Ensure no job context is set
           Thread.current[:good_job_execution] = nil
-          
+
           @logger.info("Regular log message")
           ::SemanticLogger.flush
-          
+
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
-          
+
           # Should still log successfully
           assert_equal "job", log["src"]
           assert_equal "Regular log message", log["message"]
-          
+
           # Job-specific fields should be absent
           refute log.key?("job_id")
           refute log.key?("job_class")
@@ -123,28 +124,28 @@ module LogStruct
             "partial_job_123"
           end
           # job_class method intentionally missing
-          
+
           Thread.current[:good_job_execution] = mock_execution
-          
+
           @logger.info("Partial context job")
           ::SemanticLogger.flush
-          
+
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
-          
+
           # Should include available fields
           assert_equal "partial_job_123", log["job_id"]
-          
+
           # Should not include unavailable fields
           refute log.key?("job_class")
-          
+
           # Clean up
           Thread.current[:good_job_execution] = nil
         end
 
         test "supports all log levels" do
           levels = %w[debug info warn error fatal]
-          
+
           levels.each do |level|
             # Use a fresh StringIO for each level to avoid clearing issues
             io = StringIO.new
@@ -154,15 +155,15 @@ module LogStruct
               formatter: LogStruct::SemanticLogger::Formatter.new,
               async: false
             )
-            
+
             @logger.send(level, "Test #{level} message")
             ::SemanticLogger.flush
-            
+
             output = io.string
             next if output.empty?  # Skip if level is filtered out
-            
+
             log = JSON.parse(T.must(output.lines.first).strip)
-            
+
             assert_equal level, log["lvl"]
             assert_equal "Test #{level} message", log["message"]
           end
@@ -171,10 +172,10 @@ module LogStruct
         test "supports block syntax for messages" do
           @logger.info { "Block message" }
           ::SemanticLogger.flush
-          
+
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
-          
+
           assert_equal "Block message", log["message"]
         end
 
@@ -190,13 +191,13 @@ module LogStruct
         test "thread_id is consistently formatted" do
           @logger.info("Test message")
           ::SemanticLogger.flush
-          
+
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
-          
+
           # Should be a string representation of thread object_id
-          assert log["tid"].is_a?(String)
-          assert log["tid"].length > 0
+          assert_kind_of String, log["tid"]
+          assert_operator log["tid"].length, :>, 0
         end
       end
     end

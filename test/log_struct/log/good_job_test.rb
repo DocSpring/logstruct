@@ -39,17 +39,17 @@ module LogStruct
         scheduled_time = Time.now + 1.hour
         log_entry = GoodJob.new(
           event: Event::Start,
-          arguments: ["user_123", { notify: true }],
+          arguments: ["user_123", {notify: true}],
           executions: 2,
           exception_executions: 1,
           execution_time: 1.5,
           scheduled_at: scheduled_time
         )
 
-        assert_equal ["user_123", { notify: true }], log_entry.arguments
+        assert_equal ["user_123", {notify: true}], log_entry.arguments
         assert_equal 2, log_entry.executions
         assert_equal 1, log_entry.exception_executions
-        assert_equal 1.5, log_entry.execution_time
+        assert_in_delta(1.5, log_entry.execution_time)
         assert_equal scheduled_time, log_entry.scheduled_at
       end
 
@@ -95,16 +95,15 @@ module LogStruct
           finished_at: finished_time
         )
 
-        assert_equal 0.1, log_entry.wait_time
-        assert_equal 2.5, log_entry.run_time
+        assert_in_delta(0.1, log_entry.wait_time)
+        assert_in_delta(2.5, log_entry.run_time)
         assert_equal finished_time, log_entry.finished_at
       end
 
       test "serializes to hash with all fields" do
         scheduled_time = Time.now + 1.hour
         finished_time = Time.now
-        backtrace = ["file1.rb:10", "file2.rb:20"]
-        
+
         log_entry = GoodJob.new(
           event: Event::Finish,
           level: Level::Info,
@@ -129,7 +128,7 @@ module LogStruct
           wait_time: 0.1,
           run_time: 2.5,
           finished_at: finished_time,
-          additional_data: { custom_field: "value" }
+          additional_data: {custom_field: "value"}
         )
 
         hash = log_entry.serialize
@@ -151,7 +150,7 @@ module LogStruct
         assert_equal ["user_123"], hash[:arguments]
         assert_equal 1, hash[:executions]
         assert_equal 0, hash[:exception_executions]
-        assert_equal 1.5, hash[:execution_time]
+        assert_in_delta(1.5, hash[:execution_time])
         assert_equal scheduled_time.iso8601, hash[:scheduled_at]
 
         # Check GoodJob metadata
@@ -162,8 +161,8 @@ module LogStruct
         assert_equal "primary", hash[:database_connection_name]
 
         # Check performance metrics
-        assert_equal 0.1, hash[:wait_time]
-        assert_equal 2.5, hash[:run_time]
+        assert_in_delta(0.1, hash[:wait_time])
+        assert_in_delta(2.5, hash[:run_time])
         assert_equal finished_time.iso8601, hash[:finished_at]
 
         # Check additional data
@@ -201,6 +200,7 @@ module LogStruct
           Event::Schedule
         ].each do |event|
           log_entry = GoodJob.new(event: event)
+
           assert_equal event, log_entry.event
         end
       end
@@ -216,9 +216,10 @@ module LogStruct
         )
 
         hash = log_entry.serialize
+
         assert_equal 123, hash[:user_id]
         assert_equal "req_abc", hash[:request_id]
-        assert_equal 42.5, hash[:custom_metric]
+        assert_in_delta(42.5, hash[:custom_metric])
       end
 
       test "timestamp is automatically set" do
@@ -226,15 +227,15 @@ module LogStruct
         log_entry = GoodJob.new(event: Event::Log)
         after_time = Time.now
 
-        assert log_entry.timestamp >= before_time
-        assert log_entry.timestamp <= after_time
+        assert_operator log_entry.timestamp, :>=, before_time
+        assert_operator log_entry.timestamp, :<=, after_time
       end
 
       test "includes proper interfaces" do
-        assert GoodJob.included_modules.include?(Interfaces::CommonFields)
-        assert GoodJob.included_modules.include?(Interfaces::AdditionalDataField)
-        assert GoodJob.included_modules.include?(SerializeCommon)
-        assert GoodJob.included_modules.include?(MergeAdditionalDataFields)
+        assert_includes GoodJob.included_modules, Interfaces::CommonFields
+        assert_includes GoodJob.included_modules, Interfaces::AdditionalDataField
+        assert_includes GoodJob.included_modules, SerializeCommon
+        assert_includes GoodJob.included_modules, MergeAdditionalDataFields
       end
     end
   end

@@ -35,7 +35,7 @@ module LogStruct
     # ## Configuration:
     # The integration is automatically enabled when GoodJob is detected and
     # LogStruct configuration allows it. It can be disabled by setting:
-    # 
+    #
     # ```ruby
     # config.integrations.enable_goodjob = false
     # ```
@@ -44,7 +44,7 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up GoodJob structured logging
-      # 
+      #
       # This method configures GoodJob to use LogStruct's structured logging
       # by replacing the default logger and subscribing to job events.
       #
@@ -70,8 +70,8 @@ module LogStruct
       def self.configure_logger
         return unless defined?(::GoodJob)
 
-        # Use T.unsafe to avoid Sorbet errors with external constants
-        goodjob_module = T.unsafe(Object.const_get("GoodJob"))
+        # Use direct reference to avoid const_get - GoodJob is guaranteed to be defined here
+        goodjob_module = T.unsafe(GoodJob)
 
         # Replace GoodJob.logger with our structured logger if GoodJob is available
         if goodjob_module.respond_to?(:logger=)

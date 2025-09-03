@@ -20,7 +20,7 @@ module LogStruct
     # - **Type-optimized paths**: Fast serialization for common data types
     # - **Zero-copy operations**: Minimal memory allocation during serialization
     #
-    # ### Memory Efficiency  
+    # ### Memory Efficiency
     # - **Object reuse**: Formatter instances are reused across log calls
     # - **Lazy evaluation**: Only processes data that will be included in output
     # - **Efficient buffering**: Optimal buffer sizes for JSON generation
