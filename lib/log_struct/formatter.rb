@@ -76,8 +76,8 @@ module LogStruct
       when Array
         result = arg.map { |value| process_values(value, recursion_depth: recursion_depth + 1) }
 
-        # Filter large arrays
-        if result.size > 10
+        # Filter large arrays, but don't truncate backtraces (arrays of strings that look like file:line)
+        if result.size > 10 && !looks_like_backtrace?(result)
           result = result.take(10) + ["... and #{result.size - 10} more items"]
         end
         result
@@ -204,6 +204,20 @@ module LogStruct
     sig { params(data: T::Hash[T.untyped, T.untyped]).returns(String) }
     def generate_json(data)
       "#{data.to_json}\n"
+    end
+
+    # Check if an array looks like a backtrace (array of strings with file:line pattern)
+    sig { params(array: T::Array[T.untyped]).returns(T::Boolean) }
+    def looks_like_backtrace?(array)
+      return false if array.empty?
+      
+      # Check if most elements look like backtrace lines (file.rb:123 or similar patterns)
+      backtrace_like_count = array.first(5).count do |element|
+        element.is_a?(String) && element.match?(/\A[^:\s]+:\d+/)
+      end
+      
+      # If at least 3 out of the first 5 elements look like backtrace lines, treat as backtrace
+      backtrace_like_count >= 3
     end
   end
 end

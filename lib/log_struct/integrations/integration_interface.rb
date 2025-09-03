@@ -13,7 +13,8 @@ module LogStruct
       interface!
 
       # All integrations must implement this method to set up their functionality
-      sig { abstract.params(config: LogStruct::Configuration).void }
+      # @return [Boolean, nil] Returns true if setup was successful, nil if skipped
+      sig { abstract.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def setup(config); end
     end
   end

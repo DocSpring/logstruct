@@ -3,6 +3,7 @@
 
 require_relative "../../enums/source"
 require_relative "../../enums/event"
+require_relative "../../enums/level"
 
 module LogStruct
   module Log
@@ -21,6 +22,10 @@ module LogStruct
         # The event type of the log entry (JSON property: evt)
         sig { abstract.returns(Event) }
         def event; end
+
+        # The log level (JSON property: lvl)
+        sig { abstract.returns(Level) }
+        def level; end
 
         # The timestamp of the log entry (JSON property: ts)
         sig { abstract.returns(Time) }

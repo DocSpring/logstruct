@@ -18,11 +18,11 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up ActiveJob structured logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless defined?(::ActiveJob::LogSubscriber)
-        return unless config.enabled
-        return unless config.integrations.enable_activejob
+        return nil unless defined?(::ActiveJob::LogSubscriber)
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_activejob
 
         ::ActiveSupport.on_load(:active_job) do
           # Detach the default text formatter
@@ -31,6 +31,7 @@ module LogStruct
           # Attach our structured formatter
           Integrations::ActiveJob::LogSubscriber.attach_to :active_job
         end
+        true
       end
     end
   end

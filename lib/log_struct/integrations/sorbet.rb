@@ -13,9 +13,9 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up Sorbet error handlers to report errors through LogStruct
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless config.integrations.enable_sorbet_error_handlers
+        return nil unless config.integrations.enable_sorbet_error_handlers
 
         # Install inline type error handler
         # Called when T.let, T.cast, T.must, etc. fail
@@ -41,6 +41,8 @@ module LogStruct
         T::Configuration.sig_validation_error_handler = lambda do |error, _opts|
           LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
         end
+
+        true
       end
     end
   end

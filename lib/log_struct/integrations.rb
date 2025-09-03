@@ -9,6 +9,7 @@ require_relative "integrations/action_mailer"
 require_relative "integrations/lograge"
 require_relative "integrations/shrine"
 require_relative "integrations/sidekiq"
+require_relative "integrations/good_job"
 require_relative "integrations/active_storage"
 require_relative "integrations/carrierwave"
 require_relative "integrations/sorbet"
@@ -26,6 +27,7 @@ module LogStruct
       Integrations::ActionMailer.setup(config) if config.integrations.enable_actionmailer
       Integrations::ActiveJob.setup(config) if config.integrations.enable_activejob
       Integrations::Sidekiq.setup(config) if config.integrations.enable_sidekiq
+      Integrations::GoodJob.setup(config) if config.integrations.enable_goodjob
       Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization
       Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
       Integrations::Shrine.setup(config) if config.integrations.enable_shrine

@@ -13,16 +13,18 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up ActiveStorage structured logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless defined?(::ActiveStorage)
-        return unless config.enabled
-        return unless config.integrations.enable_activestorage
+        return nil unless defined?(::ActiveStorage)
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_activestorage
 
         # Subscribe to all ActiveStorage service events
         ::ActiveSupport::Notifications.subscribe(/service_.*\.active_storage/) do |*args|
           process_active_storage_event(::ActiveSupport::Notifications::Event.new(*args), config)
         end
+
+        true
       end
 
       private_class_method

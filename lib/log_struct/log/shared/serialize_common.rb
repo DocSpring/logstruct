@@ -18,8 +18,9 @@ module LogStruct
       sig { params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize_common(strict = true)
         {
-          LOG_KEYS.fetch(:source) => source.serialize,
-          LOG_KEYS.fetch(:event) => event.serialize,
+          LOG_KEYS.fetch(:source) => source.serialize.to_s,
+          LOG_KEYS.fetch(:event) => event.serialize.to_s,
+          LOG_KEYS.fetch(:level) => level.serialize.to_s,
           LOG_KEYS.fetch(:timestamp) => timestamp.iso8601(3)
         }
       end

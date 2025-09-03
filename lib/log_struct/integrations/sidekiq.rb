@@ -16,11 +16,11 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up Sidekiq structured logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless defined?(::Sidekiq)
-        return unless config.enabled
-        return unless config.integrations.enable_sidekiq
+        return nil unless defined?(::Sidekiq)
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_sidekiq
 
         # Configure Sidekiq server (worker) to use our logger
         ::Sidekiq.configure_server do |sidekiq_config|

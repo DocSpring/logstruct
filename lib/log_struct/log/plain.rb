@@ -28,6 +28,7 @@ module LogStruct
       # Common fields
       const :source, Source, default: T.let(Source::App, Source)
       const :event, PlainEvent, default: T.let(Event::Log, PlainEvent)
+      const :level, Level, default: T.let(Level::Info, Level)
       const :timestamp, Time, factory: -> { Time.now }
 
       # Plain log messages can be any type (String, Number, Array, Hash, etc.)

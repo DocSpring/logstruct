@@ -62,13 +62,10 @@ module LogStruct
       # Verify the LogStruct fields are present
       assert_equal "app", log["src"]
       assert_equal "log", log["evt"]
+      assert_equal "info", log["lvl"]
 
-      # Message can be in payload
-      if log["payload"]
-        assert_equal "Structured log", log["payload"]["message"]
-      else
-        assert_equal "Structured log", log["message"]
-      end
+      # Message should be in msg field
+      assert_equal "Structured log", log["msg"]
     end
 
     test "logs hashes with proper filtering" do

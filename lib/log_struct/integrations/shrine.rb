@@ -15,11 +15,11 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up Shrine structured logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless defined?(::Shrine)
-        return unless config.enabled
-        return unless config.integrations.enable_shrine
+        return nil unless defined?(::Shrine)
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_shrine
 
         # Create a structured log subscriber for Shrine
         # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
@@ -67,6 +67,8 @@ module LogStruct
         ::Shrine.plugin :instrumentation,
           events: %i[upload exists download delete],
           log_subscriber: shrine_log_subscriber
+
+        true
       end
     end
   end

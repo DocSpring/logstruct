@@ -29,10 +29,10 @@ module LogStruct
       FORBIDDEN_STATUS = T.let(403, Integer)
 
       # Set up host authorization logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless config.enabled
-        return unless config.integrations.enable_host_authorization
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_host_authorization
 
         # Define the response app as a separate variable to fix block alignment
         response_app = lambda do |env|
@@ -73,6 +73,8 @@ module LogStruct
         Rails.application.config.host_authorization = {
           response_app: response_app
         }
+
+        true
       end
     end
   end

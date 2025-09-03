@@ -15,14 +15,16 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up CarrierWave structured logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless defined?(::CarrierWave)
-        return unless config.enabled
-        return unless config.integrations.enable_carrierwave
+        return nil unless defined?(::CarrierWave)
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_carrierwave
 
         # Patch CarrierWave to add logging
         ::CarrierWave::Uploader::Base.prepend(LoggingMethods)
+
+        true
       end
 
       # Methods to add logging to CarrierWave operations

@@ -61,10 +61,16 @@ module LogStruct
 
       sig { params(log: ::SemanticLogger::Log, logger: T.untyped).returns(String) }
       def call(log, logger)
-        # Handle LogStruct types specially
-        if log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
+        # Handle LogStruct types specially - they get wrapped in payload hash by SemanticLogger
+        if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(LogStruct::Log::Interfaces::CommonFields)
           # Use our formatter to process LogStruct types
+          @logstruct_formatter.call(log.level, log.time, log.name, log.payload[:payload])
+        elsif log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
+          # Direct LogStruct (fallback case)
           @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
+        elsif log.payload.is_a?(Hash) && log.payload[:payload].is_a?(T::Struct)
+          # T::Struct wrapped in payload hash
+          @logstruct_formatter.call(log.level, log.time, log.name, log.payload[:payload])
         elsif log.payload.is_a?(Hash) || log.payload.is_a?(T::Struct)
           # Process hashes and T::Structs through our formatter
           @logstruct_formatter.call(log.level, log.time, log.name, log.payload)

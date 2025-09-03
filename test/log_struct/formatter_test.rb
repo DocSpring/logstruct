@@ -216,7 +216,7 @@ module LogStruct
       result = @formatter.log_value_to_hash(log_entry, time: @time)
 
       assert_equal "Struct message", result[:msg]
-      assert_equal :app, result[:src]
+      assert_equal "app", result[:src]
     end
 
     def test_log_value_to_hash_with_other_types

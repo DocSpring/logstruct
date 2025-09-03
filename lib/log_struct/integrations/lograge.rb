@@ -17,13 +17,15 @@ module LogStruct
         extend T::Sig
 
         # Set up lograge for structured request logging
-        sig { override.params(logstruct_config: LogStruct::Configuration).void }
+        sig { override.params(logstruct_config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
         def setup(logstruct_config)
-          return unless defined?(::Lograge)
-          return unless logstruct_config.enabled
-          return unless logstruct_config.integrations.enable_lograge
+          return nil unless defined?(::Lograge)
+          return nil unless logstruct_config.enabled
+          return nil unless logstruct_config.integrations.enable_lograge
 
           configure_lograge(logstruct_config)
+
+          true
         end
 
         private_class_method

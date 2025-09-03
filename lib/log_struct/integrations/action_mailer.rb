@@ -23,11 +23,11 @@ module LogStruct
       extend IntegrationInterface
 
       # Set up ActionMailer structured logging
-      sig { override.params(config: LogStruct::Configuration).void }
+      sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return unless defined?(::ActionMailer)
-        return unless config.enabled
-        return unless config.integrations.enable_actionmailer
+        return nil unless defined?(::ActionMailer)
+        return nil unless config.enabled
+        return nil unless config.integrations.enable_actionmailer
 
         # Silence default ActionMailer logs (we use our own structured logging)
         # This is required because we replace the logging using our own callbacks
@@ -41,6 +41,8 @@ module LogStruct
         ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::EventLogging }
         ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::ErrorHandling }
         ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::Callbacks }
+
+        true
       end
     end
   end
