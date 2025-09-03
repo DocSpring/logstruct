@@ -340,7 +340,7 @@ export default function Home() {
                 Why was LogStruct built?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
-                We were already using the{' '}
+                We were using the{' '}
                 <a
                   href="https://github.com/roidrage/lograge"
                   target="_blank"
@@ -360,7 +360,7 @@ export default function Home() {
                 What about Rails Semantic Logger?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
-                Full disclosure: We didn&apos;t find out about{' '}
+                We didn&apos;t find out about{' '}
                 <a
                   href="https://github.com/reidmorrison/rails_semantic_logger"
                   target="_blank"
@@ -368,9 +368,10 @@ export default function Home() {
                 >
                   Rails Semantic Logger
                 </a>{' '}
-                until we had already built most of LogStruct. There&apos;s a lot
-                of overlap, but LogStruct does have some unique features like
-                type safety, powerful log filtering, and error handling.
+                until we had already extracted most of LogStruct. There&apos;s a
+                lot of overlap, but LogStruct has some unique features like
+                powerful log filtering, error handling, and internal type-safety
+                and correctness.
               </p>
             </div>
           </div>
