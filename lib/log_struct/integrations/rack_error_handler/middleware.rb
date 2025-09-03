@@ -126,7 +126,7 @@ module LogStruct
 
         private
 
-        sig { params(env: T.untyped).returns(T::Hash[Symbol, T.untyped]) }
+        sig { params(env: T::Hash[String, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
         def extract_request_context(env)
           request = ::ActionDispatch::Request.new(env)
           {

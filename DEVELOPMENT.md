@@ -7,6 +7,34 @@
 - You do need to `extend T::Helpers` in modules if they use other Sorbet features (e.g `requires_ancestor`)
 - Never use `LogStruct::` when you're inside the `module LogStruct` scope (same for nested modules/classes.)
 
+## Critical: Sorbet Runtime Type Checking and Return Values
+
+**NEVER use `void` return types for methods that need to return values to other code.**
+
+Sorbet runtime type checking will enforce return type signatures and can interfere with method return values. If a method has `sig { ... }.void`, Sorbet will return `T::Private::Types::Void::VOID` instead of the actual method result.
+
+This is especially critical for:
+
+- Rack middleware `call` methods (must return `[status, headers, body]`)
+- Methods used in Rails middleware chain (like `logger.tagged`)
+- Any method where the return value is used by external code
+
+**Fix:** Use `T.untyped` instead of `void` for return types when the return value matters:
+
+```ruby
+# BAD - will return VOID instead of block result
+sig { params(block: T.proc.void).void }
+def tagged(&block)
+  # ...
+end
+
+# GOOD - returns the actual block result
+sig { params(block: T.proc.returns(T.untyped)).returns(T.untyped) }
+def tagged(&block)
+  # ...
+end
+```
+
 # Core Dependencies
 
 This gem requires Rails 7.0+ and will always have access to these core Rails modules:

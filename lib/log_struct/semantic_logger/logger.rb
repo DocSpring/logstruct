@@ -89,7 +89,7 @@ module LogStruct
       end
 
       # Support for tagged logging
-      sig { params(tags: T.untyped, block: T.proc.void).void }
+      sig { params(tags: T.untyped, block: T.proc.returns(T.untyped)).returns(T.untyped) }
       def tagged(*tags, &block)
         # Convert tags to array and pass individually to avoid splat issues
         tag_array = tags.flatten
