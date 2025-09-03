@@ -20,6 +20,7 @@ require "log_struct/integrations"
 
 # SemanticLogger integration - core feature for high-performance logging
 require "log_struct/semantic_logger/formatter"
+require "log_struct/semantic_logger/color_formatter"
 require "log_struct/semantic_logger/logger"
 require "log_struct/semantic_logger/setup"
 

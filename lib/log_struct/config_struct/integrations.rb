@@ -55,6 +55,18 @@ module LogStruct
       # Enable SemanticLogger integration for high-performance logging
       # Default: true
       prop :enable_semantic_logger, T::Boolean, default: true
+
+      # Enable colored JSON output in development
+      # Default: true
+      prop :enable_color_output, T::Boolean, default: true
+
+      # Color configuration for JSON output
+      # Default: nil (uses SemanticLogger defaults)
+      prop :color_map, T.nilable(T::Hash[Symbol, Symbol]), default: nil
+
+      # Filter noisy loggers (ActionView, etc.)
+      # Default: false
+      prop :filter_noisy_loggers, T::Boolean, default: false
     end
   end
 end

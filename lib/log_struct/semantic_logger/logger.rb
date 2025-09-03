@@ -19,9 +19,9 @@ module LogStruct
       %i[debug info warn error fatal].each do |level|
         define_method(level) do |message = nil, payload = nil, &block|
           # If message is a LogStruct type, use it as payload
-          if message.is_a?(LogStruct::Log::Interfaces::CommonFields) || 
-             message.is_a?(T::Struct) || 
-             message.is_a?(Hash)
+          if message.is_a?(LogStruct::Log::Interfaces::CommonFields) ||
+              message.is_a?(T::Struct) ||
+              message.is_a?(Hash)
             payload = message
             message = nil
             super(message, payload: payload, &block)

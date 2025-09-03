@@ -3,6 +3,7 @@
 
 require "semantic_logger"
 require_relative "formatter"
+require_relative "color_formatter"
 require_relative "logger"
 
 module LogStruct
@@ -16,7 +17,7 @@ module LogStruct
         # Set SemanticLogger configuration
         ::SemanticLogger.application = Rails.application.class.module_parent_name
         ::SemanticLogger.environment = Rails.env
-        
+
         # Determine log level from Rails config
         log_level = determine_log_level(app)
         ::SemanticLogger.default_level = log_level
@@ -47,15 +48,17 @@ module LogStruct
       sig { params(app: T.untyped).void }
       def self.add_appenders(app)
         config = LogStruct.config
-        
+
         # Determine output destination
         io = determine_output(app)
-        
+
         if Rails.env.development? && config.integrations.enable_color_output
-          # Use colored formatter for development
+          # Use our colorized LogStruct formatter for development
           ::SemanticLogger.add_appender(
             io: io,
-            formatter: ::SemanticLogger::Formatters::Color.new,
+            formatter: LogStruct::SemanticLogger::ColorFormatter.new(
+              color_map: config.integrations.color_map
+            ),
             filter: determine_filter
           )
         else
@@ -103,10 +106,10 @@ module LogStruct
       def self.replace_rails_logger(app)
         # Create new SemanticLogger instance
         logger = LogStruct::SemanticLogger::Logger.new("Rails")
-        
+
         # Replace Rails.logger
         Rails.logger = logger
-        
+
         # Also replace various component loggers
         ActiveRecord::Base.logger = logger if defined?(ActiveRecord::Base)
         ActionController::Base.logger = logger if defined?(ActionController::Base)
@@ -114,7 +117,7 @@ module LogStruct
         ActiveJob::Base.logger = logger if defined?(ActiveJob::Base)
         ActionView::Base.logger = logger if defined?(ActionView::Base)
         ActionCable.server.config.logger = logger if defined?(ActionCable)
-        
+
         # Store reference in app config
         app.config.logger = logger
       end

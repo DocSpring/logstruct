@@ -10,7 +10,7 @@ module LogStruct
     setup do
       @original_appenders = ::SemanticLogger.appenders.dup
       ::SemanticLogger.clear_appenders!
-      
+
       @io = StringIO.new
       # Use sync: true to make appender synchronous for testing
       ::SemanticLogger.add_appender(
@@ -18,7 +18,7 @@ module LogStruct
         formatter: LogStruct::SemanticLogger::Formatter.new,
         async: false  # Make synchronous for testing
       )
-      
+
       @logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
     end
 
@@ -30,10 +30,11 @@ module LogStruct
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush  # Flush to ensure output is written
-      
+
       output = @io.string
+
       assert_includes output, "Test message"
-      
+
       # Should be JSON formatted when using our formatter
       # For now, just verify the message is there since formatter needs fixing
       # log = JSON.parse(output.lines.last)
@@ -47,20 +48,21 @@ module LogStruct
         source: LogStruct::Source::App,
         event: LogStruct::Event::Log
       )
-      
+
       @logger.info(log_entry)
       ::SemanticLogger.flush  # Flush to ensure output is written
-      
+
       output = @io.string
+
       assert output && !output.empty?, "Expected output to be generated"
-      
+
       # Parse the JSON output
       log = JSON.parse(output.lines.first.strip)
-      
+
       # Verify the LogStruct fields are present
       assert_equal "app", log["src"]
       assert_equal "log", log["evt"]
-      
+
       # Message can be in payload
       if log["payload"]
         assert_equal "Structured log", log["payload"]["message"]
@@ -72,21 +74,23 @@ module LogStruct
     test "logs hashes with proper filtering" do
       # Set up filter parameters
       LogStruct.config.filters.filter_keys = [:password, :secret]
-      
-      @logger.info({ message: "User login", password: "secret123", user: "test" })
+
+      @logger.info({message: "User login", password: "secret123", user: "test"})
       ::SemanticLogger.flush  # Flush to ensure output is written
-      
+
       output = @io.string
+
       assert output && !output.empty?, "Expected output to be generated"
-      
+
       # Parse the first line of JSON output (last line might be empty)
       log = JSON.parse(output.lines.first.strip)
-      
+
       # Check the payload or direct fields
       data = log["payload"] || log
+
       assert_equal "User login", data["message"]
       assert_equal "test", data["user"]
-      
+
       # Password should be filtered
       if data["password"].is_a?(Hash)
         assert data["password"]["_filtered"], "Password should be filtered"
@@ -98,10 +102,11 @@ module LogStruct
         @logger.info("Processing request")
       end
       ::SemanticLogger.flush  # Flush to ensure output is written
-      
+
       output = @io.string
+
       assert_includes output, "Processing request"
-      
+
       # Tags should be included in the log
       # For now just check the message is there
       # log = JSON.parse(output.lines.last)
@@ -124,10 +129,10 @@ module LogStruct
     test "handles errors gracefully" do
       # Create an object that will raise an error when serialized
       problematic_object = Object.new
-      def problematic_object.to_s
+      problematic_object.define_singleton_method(:to_s) do
         raise "Serialization error"
       end
-      
+
       # Should not raise an error
       assert_nothing_raised do
         @logger.info(problematic_object)

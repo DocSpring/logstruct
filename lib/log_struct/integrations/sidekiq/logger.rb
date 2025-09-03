@@ -8,6 +8,14 @@ require_relative "../../enums/source"
 module LogStruct
   module Integrations
     module Sidekiq
+      extend T::Sig
+
+      # Get thread ID for Sidekiq logging
+      sig { returns(String) }
+      def self.tid
+        Thread.current["sidekiq_tid"] ||= (Thread.current.object_id ^ ::Process.pid).to_s(36)
+      end
+
       # Custom Logger for Sidekiq that creates LogStruct::Log::Sidekiq entries
       class Logger < LogStruct::SemanticLogger::Logger
         extend T::Sig
@@ -21,21 +29,13 @@ module LogStruct
               event: Event::Log,
               message: message || (block ? block.call : ""),
               process_id: ::Process.pid,
-              thread_id: tid,
+              thread_id: Sidekiq.tid,
               context: ::Sidekiq::Context.current || {}
             )
-            
+
             # Pass the struct to SemanticLogger
             super(log_struct, payload, &nil)
           end
-        end
-
-        private
-
-        # Get thread ID
-        sig { returns(String) }
-        def tid
-          Thread.current["sidekiq_tid"] ||= (Thread.current.object_id ^ ::Process.pid).to_s(36)
         end
       end
     end
