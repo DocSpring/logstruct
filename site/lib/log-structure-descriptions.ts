@@ -13,6 +13,8 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   CarrierWave: 'For CarrierWave upload events',
   Sidekiq: 'For Sidekiq job processing',
   Security: 'For security-related events',
+  GoodJob: 'For GoodJob background job lifecycle events',
+  SQL: 'For ActiveRecord SQL query events and performance metrics',
 };
 
 /**

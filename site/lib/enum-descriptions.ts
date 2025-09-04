@@ -64,6 +64,7 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
   'LogStruct::Event': {
     Log: 'Standard log message',
     Request: 'HTTP request',
+    Database: 'Database query event and metrics',
     Enqueue: 'Job added to queue',
     Schedule: 'Job scheduled for future processing',
     Start: 'Job processing started',
