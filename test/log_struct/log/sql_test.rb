@@ -91,7 +91,7 @@ module LogStruct
 
         json = JSON.parse(log.to_json)
 
-        assert_equal "SQL query executed", json["message"]
+        assert_equal "SQL query executed", json["msg"]
         assert_equal "app", json["src"]
         assert_equal "database", json["evt"]
         assert_kind_of String, json["ts"]
@@ -119,7 +119,7 @@ module LogStruct
         json = JSON.parse(log.to_json)
 
         # Required fields
-        assert_equal "SQL query executed", json["message"]
+        assert_equal "SQL query executed", json["msg"]
         assert_equal "app", json["src"]
         assert_equal "database", json["evt"]
         assert_kind_of String, json["ts"]

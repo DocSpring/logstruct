@@ -4,8 +4,8 @@
 require "digest"
 
 module LogStruct
-  # StringScrubber is a fork of logstop by @ankane: https://github.com/ankane/logstop
-  # Changes:
+  # StringScrubber is inspired by logstop by @ankane: https://github.com/ankane/logstop
+  # Enhancements:
   # - Shows which type of data was filtered
   # - Includes an SHA256 hash with filtered emails for request tracing
   # - Uses configuration options from LogStruct.config

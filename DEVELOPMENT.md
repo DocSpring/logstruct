@@ -97,10 +97,10 @@ And you always need to check for any third-party gems that are not part of Rails
 
 - Use Sorbet type annotations for all methods
 - Ensure all files have the appropriate `# typed:` annotation
-- **NEVER use `T.unsafe` calls**. Instead, properly type your code or use appropriate type assertions with `T.let` or `T.cast` when absolutely necessary.
+- Prefer precise types and `T.let`/`T.cast` over `T.unsafe`. If a Sorbet limitation requires it (e.g., splat with callbacks, serializing unknown external objects), a minimal, localized `T.unsafe` may be used with a brief comment explaining why.
 - `T.untyped` is generally ok for Hash values when they come from unknown sources.
-- When dealing with external libraries, create proper type signatures or use extension methods rather than resorting to `T.unsafe`.
-- **NEVER use `class.name`** anywhere - this is a Sorbet quirk that hides the `name` method from all base classes. Prefer just using Classes themselves as the type. `"#{class}"` will automatically call `.to_s`. Similarly, `to_json` will automatically call `.to_s` - but you can call `.to_s` manually if you really need it.
+- When dealing with external libraries, create proper type signatures or use extension methods; keep `T.unsafe` usage small and justified.
+- Avoid `class.name` where possible due to Sorbet quirks; prefer string interpolation (`"#{klass}"`) or use the class as a value.
 
 ### Testing
 

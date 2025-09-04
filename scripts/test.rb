@@ -3,56 +3,62 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "rake"
 
-# Load Rake tasks
-load File.expand_path("../Rakefile", __dir__)
-
-# Handle specific test file(s) or patterns from command line arguments
+# Determine if we are running a subset of tests (files specified)
 if ARGV.any?
-  # First, check for test name pattern
+  # Support: file paths, file:line, and -n=pattern
   name_pattern = nil
-  filtered_args = ARGV.filter_map do |arg|
+  files = []
+
+  ARGV.each do |arg|
     if arg =~ /^-n=(.*)/
-      name_pattern = $1
-      nil  # Don't include this in filtered args
+      name_pattern = Regexp.last_match(1)
     elsif arg.include?(":")
-      # Handle file:line_number format by finding the test at that line
-      file, line = arg.split(":")
-
-      # If line number is provided, locate the test method at that line
+      file, line = arg.split(":", 2)
       if line
-        file_content = File.exist?(file) ? File.read(file) : ""
-        line_num = line.to_i
-
-        # Simple approach - find the last test_* method defined before this line
-        method_matches = file_content.lines[0...line_num].join.scan(/def\s+(test_\w+)/)
-        if method_matches.any?
-          test_method = method_matches.last[0]
-          puts "Running test: #{test_method} at line #{line}"
-          name_pattern = test_method
+        # Map line to nearest preceding `def test_*`
+        if File.exist?(file)
+          content = File.read(file)
+          upto = content.lines[0...line.to_i].join
+          method_matches = upto.scan(/def\s+(test_\w+)/)
+          if method_matches.any?
+            test_method = method_matches.last[0]
+            name_pattern = test_method
+            puts "Running test method: #{test_method} (from #{file}:#{line})"
+          else
+            warn "No test method found before line #{line} in #{file}"
+          end
         else
-          puts "No test method found before line #{line} in #{file}"
+          warn "File not found: #{file}"
         end
-        file
+        files << file
       else
-        arg  # Return arg unchanged
+        files << arg
       end
     else
-      arg  # Return arg unchanged
+      files << arg
     end
   end
 
-  # Specify test name pattern
-  if name_pattern
-    # Using TESTOPTS with --name= works for both line number based lookup and explicit name
-    ENV["TESTOPTS"] = "--name=#{name_pattern}"
-    puts "Using test name pattern: #{name_pattern}"
+  # Prepare Minitest args before any test files load minitest/autorun
+  ARGV.clear
+  ARGV.concat(["-n", name_pattern]) if name_pattern
+
+  # Ensure test/lib are on the load path
+  $LOAD_PATH.unshift(File.expand_path("../test", __dir__))
+  $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+  # Require each specified test file
+  files.uniq.each do |path|
+    abs = File.expand_path(path, Dir.pwd)
+    require abs
   end
 
-  # Delegate to Rake test task with filtered arguments
-  ARGV.replace(filtered_args)
+  # When test files require "minitest/autorun" (via test_helper), Minitest will auto-run at exit
+  exit 0
+else
+  require "rake"
+  # Load Rake tasks and run the default test task
+  load File.expand_path("../Rakefile", __dir__)
+  Rake::Task[:test].invoke
 end
-
-# Run the test task
-Rake::Task[:test].invoke

@@ -53,3 +53,4 @@ TESTOPTS
 docspring
 shiki
 lightningcss
+klass

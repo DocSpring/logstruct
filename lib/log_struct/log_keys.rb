@@ -84,7 +84,19 @@ module LogStruct
 
     # CarrierWave-specific fields
     model: :model,
-    mount_point: :mount_point
+    mount_point: :mount_point,
+
+    # SQL-specific fields
+    sql: :sql,
+    name: :name,
+    row_count: :row_count,
+    connection_adapter: :connection_adapter,
+    bind_params: :bind_params,
+    database_name: :database_name,
+    connection_pool_size: :connection_pool_size,
+    active_connections: :active_connections,
+    operation_type: :operation_type,
+    table_names: :table_names
   }.freeze,
     T::Hash[Symbol, Symbol])
 end

@@ -96,7 +96,7 @@ module LogStruct
         if tag_array.empty?
           super(&block)
         else
-          super(T.unsafe(tag_array), &block)
+          super(*T.unsafe(tag_array), &block)
         end
       end
 
@@ -113,9 +113,11 @@ module LogStruct
         ::SemanticLogger.pop_tags(count) if count > 0
       end
 
-      sig { params(tags: T.untyped).void }
+      sig { params(tags: T.untyped).returns(T::Array[T.untyped]) }
       def push_tags(*tags)
-        tags.flatten.each { |tag| ::SemanticLogger.push_tags(tag) }
+        flat = tags.flatten.compact
+        flat.each { |tag| ::SemanticLogger.push_tags(tag) }
+        flat
       end
 
       sig { params(count: Integer).void }

@@ -88,10 +88,9 @@ module LogStruct
       assert_equal "User login", data["message"]
       assert_equal "test", data["user"]
 
-      # Password should be filtered
-      if data["password"].is_a?(Hash)
-        assert data["password"]["_filtered"], "Password should be filtered"
-      end
+      # Password should be filtered at top level
+      assert_kind_of Hash, data["password"], "Password should be filtered into a hash"
+      assert data["password"]["_filtered"], "Password should include _filtered summary"
     end
 
     test "supports tagged logging" do

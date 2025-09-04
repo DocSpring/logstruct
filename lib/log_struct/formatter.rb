@@ -61,9 +61,8 @@ module LogStruct
 
         # Process each key-value pair
         arg.each do |key, value|
-          # Only filter keys in nested structures (recursion_depth >= 1)
-          # Check if this key should be filtered
-          result[key] = if recursion_depth >= 1 && ParamFilters.should_filter_key?(key)
+          # Check if this key should be filtered at any depth
+          result[key] = if ParamFilters.should_filter_key?(key)
             # Filter the value
             {_filtered: ParamFilters.summarize_json_attribute(key, value)}
           else

@@ -137,8 +137,8 @@ module LogStruct
           )
         end
 
-        # Add file appender if configured
-        if app.config.paths["log"].first && !ENV["RAILS_LOG_TO_STDOUT"]
+        # Add file appender if configured and not already logging to STDOUT/StringIO
+        if app.config.paths["log"].first && io != $stdout && !io.is_a?(StringIO)
           ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,
@@ -155,6 +155,7 @@ module LogStruct
           # Use StringIO for tests to avoid cluttering test output
           StringIO.new
         else
+          # Prefer file logging when not explicitly configured for STDOUT
           $stdout
         end
       end

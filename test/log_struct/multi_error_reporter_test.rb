@@ -59,7 +59,7 @@ module LogStruct
 
       # Create a log mock to verify LogStruct.error was called correctly
       log_mock = Minitest::Mock.new
-      LogStruct.stub(:error, log_mock) do
+      LogStruct.stub(:error, ->(entry) { T.unsafe(log_mock).call(entry) }) do
         # Force Sentry to raise an error
         ::Sentry.stub(:capture_exception, ->(_exception, _options) { raise "Sentry error" }) do
           # Expect log to be called with an Exception log struct with source LogStruct
@@ -196,7 +196,7 @@ module LogStruct
         end
 
         # This is where we actually call report_error with our mock
-        LogStruct.stub(:error, log_mock) do
+        LogStruct.stub(:error, ->(entry) { T.unsafe(log_mock).call(entry) }) do
           MultiErrorReporter.report_error(@exception, @context)
         end
 
@@ -219,15 +219,6 @@ module LogStruct
           def self.capture_exception(*args)
             # Mock implementation
           end
-
-          def self.stub(method, &block)
-            # Mock stub method for minitest
-            original_method = singleton_method(method)
-            define_singleton_method(method, &block)
-            yield
-          ensure
-            define_singleton_method(method, original_method.to_proc) if original_method
-          end
         end
         Object.const_set(:Sentry, sentry_class)
       end
@@ -236,15 +227,6 @@ module LogStruct
         bugsnag_class = Class.new do
           def self.notify(*args)
             # Mock implementation
-          end
-
-          def self.stub(method, &block)
-            # Mock stub method for minitest
-            original_method = singleton_method(method)
-            define_singleton_method(method, &block)
-            yield
-          ensure
-            define_singleton_method(method, original_method.to_proc) if original_method
           end
         end
         Object.const_set(:Bugsnag, bugsnag_class)
@@ -255,15 +237,6 @@ module LogStruct
           def self.error(*args)
             # Mock implementation
           end
-
-          def self.stub(method, &block)
-            # Mock stub method for minitest
-            original_method = singleton_method(method)
-            define_singleton_method(method, &block)
-            yield
-          ensure
-            define_singleton_method(method, original_method.to_proc) if original_method
-          end
         end
         Object.const_set(:Rollbar, rollbar_class)
       end
@@ -272,15 +245,6 @@ module LogStruct
         honeybadger_class = Class.new do
           def self.notify(*args)
             # Mock implementation
-          end
-
-          def self.stub(method, &block)
-            # Mock stub method for minitest
-            original_method = singleton_method(method)
-            define_singleton_method(method, &block)
-            yield
-          ensure
-            define_singleton_method(method, original_method.to_proc) if original_method
           end
         end
         Object.const_set(:Honeybadger, honeybadger_class)

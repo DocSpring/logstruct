@@ -88,6 +88,12 @@ clean_env = {
   "RUBYOPT" => nil
 }
 
+# Remove this repository's bin directory from PATH to avoid invoking local bin/rails
+project_bin = File.join(ROOT_DIR, "bin")
+path_parts = (clean_env["PATH"] || "").split(File::PATH_SEPARATOR)
+path_parts.reject! { |p| p == project_bin }
+clean_env["PATH"] = path_parts.join(File::PATH_SEPARATOR)
+
 # Check if we should skip app creation
 skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
 
@@ -123,11 +129,27 @@ if !skip_app_creation
   puts "Creating new Rails application with version #{rails_version}..."
 
   # Try using gem's exec command with proper version specification
-  rails_new_command = "rails _#{rails_version}_ new #{RAILS_APP_DIR} --skip-git --skip-keeps --skip-action-cable " \
-         "--skip-sprockets --skip-javascript --skip-hotwire --skip-jbuilder --skip-asset-pipeline " \
-         "--skip-bootsnap --api -T"
-  puts "=> Running command: #{rails_new_command}"
-  system(clean_env, rails_new_command) || abort("Failed to create Rails application")
+  require "rbconfig"
+  rails_exec = [
+    RbConfig.ruby,
+    "-e",
+    "load Gem.bin_path('railties','rails','#{rails_version}')"
+  ]
+  rails_args = [
+    "new", RAILS_APP_DIR,
+    "--skip-git", "--skip-keeps", "--skip-action-cable",
+    "--skip-sprockets", "--skip-javascript", "--skip-hotwire",
+    "--skip-jbuilder", "--skip-asset-pipeline", "--skip-bootsnap",
+    "--api", "-T"
+  ]
+  cmd = rails_exec + rails_args
+  puts "=> Running command: #{cmd.map { |s| s.inspect }.join(" ")}"
+  require "tmpdir"
+  Dir.mktmpdir("logstruct_rails_new_") do |tmpdir|
+    Dir.chdir(tmpdir) do
+      T.unsafe(self).system(clean_env, *cmd) || abort("Failed to create Rails application")
+    end
+  end
 
   # Remove the default .rubocop.yml file since it messes up our own RuboCop
   puts "=> Deleting default .rubocop.yml"

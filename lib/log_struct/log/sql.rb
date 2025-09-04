@@ -105,19 +105,19 @@ module LogStruct
         hash = serialize_common(strict)
         merge_additional_data_fields(hash)
 
-        # Add SQL-specific fields
-        hash[:message] = message
-        hash[:sql] = sql
-        hash[:name] = name
-        hash[:duration] = duration
-        hash[:row_count] = row_count
-        hash[:connection_adapter] = connection_adapter
-        hash[:bind_params] = bind_params
-        hash[:database_name] = database_name
-        hash[:connection_pool_size] = connection_pool_size
-        hash[:active_connections] = active_connections
-        hash[:operation_type] = operation_type
-        hash[:table_names] = table_names
+        # Add SQL-specific fields using LOG_KEYS mapping for consistency
+        hash[LOG_KEYS.fetch(:message)] = message
+        hash[LOG_KEYS.fetch(:sql)] = sql
+        hash[LOG_KEYS.fetch(:name)] = name
+        hash[LOG_KEYS.fetch(:duration)] = duration
+        hash[LOG_KEYS.fetch(:row_count)] = row_count
+        hash[LOG_KEYS.fetch(:connection_adapter)] = connection_adapter
+        hash[LOG_KEYS.fetch(:bind_params)] = bind_params
+        hash[LOG_KEYS.fetch(:database_name)] = database_name
+        hash[LOG_KEYS.fetch(:connection_pool_size)] = connection_pool_size
+        hash[LOG_KEYS.fetch(:active_connections)] = active_connections
+        hash[LOG_KEYS.fetch(:operation_type)] = operation_type
+        hash[LOG_KEYS.fetch(:table_names)] = table_names
 
         hash
       end
