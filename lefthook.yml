@@ -1,0 +1,83 @@
+colors: true
+skip_output:
+  - summary
+
+pre-commit:
+  parallel: true
+
+  jobs:
+    # Checks group - runs in parallel
+    - group:
+        parallel: true
+        jobs:
+          - name: sorbet
+            glob: '*.{rb,rbi}'
+            run: scripts/typecheck.sh
+
+          - name: typescript
+            glob: 'site/**/*.{ts,tsx,js,jsx}'
+            run: cd site && pnpm exec tsc --noEmit
+
+          - name: typescript-export
+            glob: 'lib/**/*.rb'
+            run: scripts/export_typescript_types.rb
+
+          - name: cspell
+            glob: '*.{rb,md,yml,yaml,txt,ts,tsx,js,jsx}'
+            run: scripts/spellcheck.sh
+
+          - name: eslint
+            glob: 'site/**/*.{ts,tsx,js,jsx}'
+            run: cd site && pnpm run lint
+
+          - name: typescript-tests
+            glob: 'site/**/*.{ts,tsx}'
+            run: cd site && pnpm test
+
+          - name: ruby-tests
+            glob: '{lib,test}/**/*.rb'
+            run: scripts/test.rb
+
+    # Fixes group - runs sequentially to avoid git conflicts
+    - group:
+        parallel: false
+        jobs:
+          - name: fix-whitespace
+            run: |
+              for file in {staged_files}; do
+                if [[ -f "$file" ]]; then
+                  # Remove trailing whitespace (portable sed usage)
+                  if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' 's/[[:space:]]*$//' "$file"
+                  else
+                    sed -i 's/[[:space:]]*$//' "$file"
+                  fi
+                  # Ensure file ends with newline
+                  if [[ -s "$file" ]] && [[ $(tail -c1 "$file" | wc -l) -eq 0 ]]; then
+                    echo >> "$file"
+                  fi
+                fi
+              done
+            file_types:
+              - text
+            exclude: '**/.*'
+            stage_fixed: true
+
+          - name: prettier
+            glob: '*.{js,jsx,ts,tsx,json,yml,yaml,md}'
+            run: scripts/prettier.sh --write {staged_files}
+            stage_fixed: true
+
+          - name: rubocop
+            glob: '*.rb'
+            run: scripts/rubocop.rb -A {staged_files}
+            stage_fixed: true
+
+# Optional: Run full test suite manually with lefthook run full-tests
+full-tests:
+  parallel: false
+
+  # Run complete test suite including Rails integration tests
+  all-tests:
+    run: scripts/all_tests.sh
+    fail_text: 'Full test suite failed'

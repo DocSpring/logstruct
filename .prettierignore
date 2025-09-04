@@ -11,3 +11,5 @@ site/lib/log-generation/log-types.ts
 site/lib/log-generation/sorbet-*.json
 site/public/coverage
 site/public/yard
+
+pnpm-lock.yaml
