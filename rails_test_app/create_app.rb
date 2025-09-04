@@ -147,7 +147,27 @@ if !skip_app_creation
   require "tmpdir"
   Dir.mktmpdir("logstruct_rails_new_") do |tmpdir|
     Dir.chdir(tmpdir) do
-      T.unsafe(self).system(clean_env, *cmd) || abort("Failed to create Rails application")
+      # Call system with a statically-sized argument list to satisfy Sorbet
+      ruby_exec, dash_e, loader_code, = cmd
+      system(
+        clean_env,
+        ruby_exec,
+        dash_e,
+        loader_code,
+        "new",
+        RAILS_APP_DIR,
+        "--skip-git",
+        "--skip-keeps",
+        "--skip-action-cable",
+        "--skip-sprockets",
+        "--skip-javascript",
+        "--skip-hotwire",
+        "--skip-jbuilder",
+        "--skip-asset-pipeline",
+        "--skip-bootsnap",
+        "--api",
+        "-T"
+      ) || abort("Failed to create Rails application")
     end
   end
 
