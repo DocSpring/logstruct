@@ -47,8 +47,6 @@ jobs:
         with:
           version: latest
 
-      # Rely on actions/setup-node pnpm cache; no manual pnpm store cache needed
-
       - name: Install site dependencies
         run: |
           cd site && pnpm install --frozen-lockfile
