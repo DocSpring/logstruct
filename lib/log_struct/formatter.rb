@@ -90,7 +90,9 @@ module LogStruct
             when ActiveRecord::Base
               "#{arg.class}(##{arg.id})"
             else
-              arg
+              # For non-ActiveRecord objects that failed to_global_id, try to get a string representation
+              # If this also fails, we want to catch it and return the error placeholder
+              T.unsafe(arg).to_s
             end
           rescue => e
             LogStruct.handle_exception(e, source: Source::LogStruct)

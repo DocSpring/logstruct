@@ -17,6 +17,9 @@ module LogStruct
       @original_stdout = $stdout
       @stdout_buffer = StringIO.new
       $stdout = @stdout_buffer
+
+      # Define mock constants for error reporting services if they don't exist
+      setup_mock_constants
     end
 
     def teardown
@@ -204,6 +207,83 @@ module LogStruct
         original_constants.each do |const, value|
           Object.const_set(const, value) if value
         end
+      end
+    end
+
+    private
+
+    def setup_mock_constants
+      # Define mock constants for error reporting services if they don't exist
+      unless defined?(::Sentry)
+        sentry_class = Class.new do
+          def self.capture_exception(*args)
+            # Mock implementation
+          end
+
+          def self.stub(method, &block)
+            # Mock stub method for minitest
+            original_method = singleton_method(method)
+            define_singleton_method(method, &block)
+            yield
+          ensure
+            define_singleton_method(method, original_method.to_proc) if original_method
+          end
+        end
+        Object.const_set(:Sentry, sentry_class)
+      end
+
+      unless defined?(::Bugsnag)
+        bugsnag_class = Class.new do
+          def self.notify(*args)
+            # Mock implementation
+          end
+
+          def self.stub(method, &block)
+            # Mock stub method for minitest
+            original_method = singleton_method(method)
+            define_singleton_method(method, &block)
+            yield
+          ensure
+            define_singleton_method(method, original_method.to_proc) if original_method
+          end
+        end
+        Object.const_set(:Bugsnag, bugsnag_class)
+      end
+
+      unless defined?(::Rollbar)
+        rollbar_class = Class.new do
+          def self.error(*args)
+            # Mock implementation
+          end
+
+          def self.stub(method, &block)
+            # Mock stub method for minitest
+            original_method = singleton_method(method)
+            define_singleton_method(method, &block)
+            yield
+          ensure
+            define_singleton_method(method, original_method.to_proc) if original_method
+          end
+        end
+        Object.const_set(:Rollbar, rollbar_class)
+      end
+
+      unless defined?(::Honeybadger)
+        honeybadger_class = Class.new do
+          def self.notify(*args)
+            # Mock implementation
+          end
+
+          def self.stub(method, &block)
+            # Mock stub method for minitest
+            original_method = singleton_method(method)
+            define_singleton_method(method, &block)
+            yield
+          ensure
+            define_singleton_method(method, original_method.to_proc) if original_method
+          end
+        end
+        Object.const_set(:Honeybadger, honeybadger_class)
       end
     end
   end

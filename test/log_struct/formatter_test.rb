@@ -82,6 +82,15 @@ module LogStruct
         def to_global_id
           raise StandardError, "Can't serialize"
         end
+
+        # In Rails 8.0+, ensure any fallback methods also raise to trigger error path
+        def inspect
+          raise StandardError, "Can't inspect"
+        end
+
+        def to_s
+          raise StandardError, "Can't stringify"
+        end
       end
 
       # Create an instance of it

@@ -68,6 +68,9 @@ class TestApp < Rails::Application
     [:password, :token, :secret, :key, :access, :auth, :credentials],
     T::Array[Symbol]
   )
+
+  # Fix Rails 8.1 deprecation warning for to_time timezone preservation
+  config.active_support.to_time_preserves_timezone = :zone
 end
 
 # Initialize the application

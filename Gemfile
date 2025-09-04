@@ -13,10 +13,11 @@ end
 
 gem "rails", "~> #{ENV["RAILS_VERSION"] || "7.2.2.1"}", require: false
 
-# Add these gems to silence Ruby 3.4 warnings
+# Add these gems to silence Ruby 3.4+ warnings
 gem "bigdecimal"
 gem "drb"  # For ActiveSupport::TestCase
 gem "mutex_m"
+gem "ostruct"  # For Ruby 3.5+ compatibility
 
 # Sorbet is needed for development
 gem "sorbet", "~> 0.5"

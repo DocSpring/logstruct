@@ -428,6 +428,7 @@ DEPENDENCIES
   minitest (~> 5.20)
   minitest-reporters (~> 1.6)
   mutex_m
+  ostruct
   rails (~> 7.2.2.1)
   redcarpet
   rollbar (~> 3.4)
