@@ -163,7 +163,7 @@ jobs:
 
       # Coverage: /coverage
       - name: Run tests
-        run: scripts/test.rb
+        run: bundle exec scripts/test.rb
 
       # Coverage: /coverage_rails
       - name: Run Rails integration tests
