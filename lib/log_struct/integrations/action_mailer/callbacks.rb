@@ -16,7 +16,12 @@ module LogStruct
         # This will be handled by ActiveSupport::Concern at runtime
         included do
           include ::ActiveSupport::Callbacks
-          define_callbacks :deliver, skip_after_callbacks_if_terminated: true
+          # Rails < 7.1 does not support skip_after_callbacks_if_terminated option
+          if defined?(::ActiveSupport) && ::ActiveSupport.gem_version >= Gem::Version.new("7.1.0")
+            define_callbacks :deliver, skip_after_callbacks_if_terminated: true
+          else
+            define_callbacks :deliver
+          end
         end
 
         # Define class methods in a separate module
