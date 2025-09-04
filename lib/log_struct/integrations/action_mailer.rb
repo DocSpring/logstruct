@@ -41,6 +41,7 @@ module LogStruct
         ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::EventLogging }
         ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::ErrorHandling }
         ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::Callbacks }
+        ActiveSupport.on_load(:action_mailer) { LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery }
 
         true
       end

@@ -16,11 +16,22 @@ module LogStruct
         # This will be handled by ActiveSupport::Concern at runtime
         included do
           include ::ActiveSupport::Callbacks
-          # Rails < 7.1 does not support skip_after_callbacks_if_terminated option
           if defined?(::ActiveSupport) && ::ActiveSupport.gem_version >= Gem::Version.new("7.1.0")
             define_callbacks :deliver, skip_after_callbacks_if_terminated: true
           else
             define_callbacks :deliver
+          end
+        end
+
+        # When this module is prepended (our integration uses prepend), ensure callbacks are defined
+        if respond_to?(:prepended)
+          prepended do
+            include ::ActiveSupport::Callbacks
+            if defined?(::ActiveSupport) && ::ActiveSupport.gem_version >= Gem::Version.new("7.1.0")
+              define_callbacks :deliver, skip_after_callbacks_if_terminated: true
+            else
+              define_callbacks :deliver
+            end
           end
         end
 
