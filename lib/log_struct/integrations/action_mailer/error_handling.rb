@@ -5,17 +5,41 @@ module LogStruct
   module Integrations
     module ActionMailer
       # Handles error handling for ActionMailer
+      #
+      # IMPORTANT LIMITATIONS:
+      # 1. This module must be included BEFORE users define rescue_from handlers
+      #    to ensure proper handler precedence (user handlers are checked first)
+      # 2. Rails rescue_from handlers don't bubble to parent class handlers after reraise
+      # 3. Handler order matters: Rails checks rescue_from handlers in reverse declaration order
       module ErrorHandling
         extend T::Sig
         extend ActiveSupport::Concern
 
-        # NOTE: rescue_from handlers are checked in reverse order.
-        # If you add any custom handlers to your own ApplicationMailer,
-        # they will be checked first. (Put the most specific error classes at the end.)
+        # NOTE: rescue_from handlers are checked in reverse order of declaration.
+        # We want LogStruct handlers to be checked AFTER user handlers (lower priority),
+        # so we need to add them BEFORE user handlers are declared.
+
+        # This will be called when the module is included/prepended
+        sig { params(base: T.untyped).void }
+        def self.install_handler(base)
+          # Only add the handler once per class
+          return if base.instance_variable_get(:@_logstruct_handler_installed)
+
+          # Add our handler FIRST so it has lower priority than user handlers
+          base.rescue_from StandardError, with: :log_and_reraise_error
+
+          # Mark as installed to prevent duplicates
+          base.instance_variable_set(:@_logstruct_handler_installed, true)
+        end
 
         included do
-          # Log and reraise by default. These errors are retried.
-          rescue_from StandardError, with: :log_and_reraise_error
+          LogStruct::Integrations::ActionMailer::ErrorHandling.install_handler(self)
+        end
+
+        # Also support prepended (used by tests and manual setup)
+        sig { params(base: T.untyped).void }
+        def self.prepended(base)
+          install_handler(base)
         end
 
         protected

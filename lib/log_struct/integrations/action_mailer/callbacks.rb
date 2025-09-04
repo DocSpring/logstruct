@@ -51,28 +51,17 @@ module LogStruct
         module MessageDeliveryCallbacks
           extend T::Sig
 
-          sig { params(block: T.proc.void).returns(T.untyped) }
-          def handle_errors(&block)
-            processed_mailer.handle_errors do
-              yield
-            end
-          end
-
           sig { returns(T.untyped) }
           def deliver_now
-            processed_mailer.handle_errors do
-              processed_mailer.run_callbacks(:deliver) do
-                message.deliver
-              end
+            processed_mailer.run_callbacks(:deliver) do
+              message.deliver
             end
           end
 
           sig { returns(T.untyped) }
           def deliver_now!
-            processed_mailer.handle_errors do
-              processed_mailer.run_callbacks(:deliver) do
-                message.deliver!
-              end
+            processed_mailer.run_callbacks(:deliver) do
+              message.deliver!
             end
           end
         end
@@ -82,10 +71,8 @@ module LogStruct
           # Return early if we've already patched
           return true if @patched_message_delivery
 
-          # Only prepend our module if handle_errors method doesn't exist
-          unless ::ActionMailer::MessageDelivery.method_defined?(:handle_errors)
-            ::ActionMailer::MessageDelivery.prepend(MessageDeliveryCallbacks)
-          end
+          # Prepend our module to add callback support to MessageDelivery
+          ::ActionMailer::MessageDelivery.prepend(MessageDeliveryCallbacks)
 
           # Mark as patched so we don't do it again
           @patched_message_delivery = true
