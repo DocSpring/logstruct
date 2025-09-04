@@ -50,3 +50,6 @@ wordlists
 xorshift
 yardoc
 TESTOPTS
+docspring
+shiki
+lightningcss

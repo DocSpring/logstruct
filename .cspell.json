@@ -19,11 +19,6 @@
       "name": "lockfile-words-root",
       "path": "./.cspell/generated-lockfile-words-root.txt",
       "addWords": false
-    },
-    {
-      "name": "lockfile-words-site",
-      "path": "./.cspell/generated-lockfile-words-site.txt",
-      "addWords": false
     }
   ],
   "dictionaries": [
