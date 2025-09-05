@@ -86,15 +86,15 @@ jobs:
           echo "Timed out waiting for CI to complete."
           exit 1
 
-  sync:
-    name: Release gem and sync provider
+  gem:
+    name: Publish RubyGem
     needs: wait_ci
     runs-on: ubuntu-latest
     env:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
       TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}
     steps:
-      - name: Checkout logstruct
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -105,15 +105,106 @@ jobs:
           ruby-version: '.ruby-version'
           bundler-cache: true
 
-      - name: Setup Node (for pnpm cache if needed)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Determine version and validate tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${TAG_NAME:-}"
+          if [[ -z "$TAG" ]]; then
+            echo "No tag resolved; using release event tag." >&2
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+              TAG="v0.0.0-dryrun"
+              echo "DRY-RUN: Using placeholder tag $TAG" >&2
+            else
+              echo "Error: Could not determine tag name from event." >&2
+              exit 1
+            fi
+          fi
+          VERSION_FROM_TAG="${TAG#v}"
+          VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version_tag=$VERSION_FROM_TAG" >> $GITHUB_OUTPUT
+          echo "version_rb=$VERSION_RB" >> $GITHUB_OUTPUT
+          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
+          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
+            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
+            exit 1
+          fi
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Build gem
+        run: |
+          gem build logstruct.gemspec
+          ls -la *.gem
+
+      - name: Publish gem to RubyGems
+        if: env.DRY_RUN != 'true'
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          if [[ -z "$RUBYGEMS_API_KEY" ]]; then
+            echo '::error::RUBYGEMS_API_KEY secret is missing.'
+            exit 1
+          fi
+          mkdir -p ~/.gem
+          umask 077
+          cat > ~/.gem/credentials <<EOF
+          ---
+          :rubygems_api_key: $RUBYGEMS_API_KEY
+          EOF
+          VERSION="${{ steps.ver.outputs.version_tag }}"
+          GEM_FILE="logstruct-${VERSION}.gem"
+          ALT_VERSION="${VERSION/-/.pre.}"
+          ALT_GEM_FILE="logstruct-${ALT_VERSION}.gem"
+          if [[ -f "$GEM_FILE" ]]; then
+            echo "Using gem file: $GEM_FILE"
+          elif [[ -f "$ALT_GEM_FILE" ]]; then
+            echo "Using gem file: $ALT_GEM_FILE (RubyGems prerelease normalization)"
+            GEM_FILE="$ALT_GEM_FILE"
+          else
+            CANDIDATE=$(ls -1t logstruct-*.gem 2>/dev/null | head -n1 || true)
+            if [[ -n "$CANDIDATE" ]]; then
+              echo "Falling back to: $CANDIDATE"
+              GEM_FILE="$CANDIDATE"
+            else
+              echo "::error::Expected gem file for version $VERSION not found."
+              ls -la *.gem || true
+              exit 1
+            fi
+          fi
+          gem push "$GEM_FILE"
+
+      - name: Gem publish (dry-run)
+        if: env.DRY_RUN == 'true'
+        run: |
+          VERSION="${{ steps.ver.outputs.version_tag }}"
+          ALT_VERSION="${VERSION/-/.pre.}"
+          CANDIDATE="logstruct-${VERSION}.gem"
+          if [[ ! -f "$CANDIDATE" && -f "logstruct-${ALT_VERSION}.gem" ]]; then
+            CANDIDATE="logstruct-${ALT_VERSION}.gem"
+          fi
+          echo "[DRY-RUN] Would push gem $CANDIDATE to RubyGems"
+
+  provider:
+    name: Sync + Tag Provider
+    needs: wait_ci
+    runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
+      TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          version: latest
+          fetch-depth: 0
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '.ruby-version'
+          bundler-cache: true
 
       - name: Determine version and validate tag
         id: ver
@@ -145,62 +236,7 @@ jobs:
           fi
 
       - name: Generate site exports (enums/structs/keys)
-        run: |
-          ruby scripts/export_typescript_types.rb
-
-      - name: Build gem
-        run: |
-          gem build logstruct.gemspec
-          ls -la *.gem
-
-      - name: Publish gem to RubyGems
-        if: env.DRY_RUN != 'true'
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-        run: |
-          if [[ -z "$RUBYGEMS_API_KEY" ]]; then
-            echo '::error::RUBYGEMS_API_KEY secret is missing.'
-            exit 1
-          fi
-          mkdir -p ~/.gem
-          umask 077
-          cat > ~/.gem/credentials <<EOF
-          ---
-          :rubygems_api_key: $RUBYGEMS_API_KEY
-          EOF
-          VERSION="${{ steps.ver.outputs.version_tag }}"
-          GEM_FILE="logstruct-${VERSION}.gem"
-          ALT_VERSION="${VERSION/-/.pre.}"
-          ALT_GEM_FILE="logstruct-${ALT_VERSION}.gem"
-          if [[ -f "$GEM_FILE" ]]; then
-            echo "Using gem file: $GEM_FILE"
-          elif [[ -f "$ALT_GEM_FILE" ]]; then
-            echo "Using gem file: $ALT_GEM_FILE (Bundler prerelease normalization)"
-            GEM_FILE="$ALT_GEM_FILE"
-          else
-            # Fallback: pick the most recent built gem that matches the version prefix
-            CANDIDATE=$(ls -1t logstruct-*.gem 2>/dev/null | head -n1 || true)
-            if [[ -n "$CANDIDATE" ]]; then
-              echo "Falling back to: $CANDIDATE"
-              GEM_FILE="$CANDIDATE"
-            else
-              echo "::error::Expected gem file for version $VERSION not found."
-              ls -la *.gem || true
-              exit 1
-            fi
-          fi
-          gem push "$GEM_FILE"
-
-      - name: Gem publish (dry-run)
-        if: env.DRY_RUN == 'true'
-        run: |
-          VERSION="${{ steps.ver.outputs.version_tag }}"
-          ALT_VERSION="${VERSION/-/.pre.}"
-          CANDIDATE="logstruct-${VERSION}.gem"
-          if [[ ! -f "$CANDIDATE" && -f "logstruct-${ALT_VERSION}.gem" ]]; then
-            CANDIDATE="logstruct-${ALT_VERSION}.gem"
-          fi
-          echo "[DRY-RUN] Would push gem $CANDIDATE to RubyGems"
+        run: ruby scripts/export_typescript_types.rb
 
       - name: Clone terraform-provider-logstruct repository
         env:
@@ -212,13 +248,13 @@ jobs:
           git clone https://x-access-token:${PUSH_TOKEN}@github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
 
       - name: Export provider catalog (embedded Go data)
-        run: |
-          ruby scripts/export_provider_catalog.rb
+        run: ruby scripts/export_provider_catalog.rb
 
       - name: Build provider to validate catalog
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+
       - name: Compile
         run: |
           cd terraform-provider-logstruct
