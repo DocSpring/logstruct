@@ -1,1 +1,1 @@
-{ "Modules": [{ "Key": "", "Source": "", "Dir": "." }] }
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"email_delivered_metric","Source":"../terraform-aws-logstruct/modules/metric-filter","Dir":"../terraform-aws-logstruct/modules/metric-filter"}]}

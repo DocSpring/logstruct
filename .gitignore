@@ -23,3 +23,4 @@ rails_test_app/logstruct_test_app/
 
 terraform-provider-logstruct/
 terraform-aws-logstruct/
+terraform-example/.terraform/
