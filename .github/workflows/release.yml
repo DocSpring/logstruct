@@ -19,8 +19,76 @@ permissions:
   contents: read
 
 jobs:
+  wait_ci:
+    name: Wait for CI success on tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine tag and SHA
+        id: ref
+        shell: bash
+        run: |
+          TAG="${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}"
+          if [[ -z "$TAG" ]]; then
+            echo "No tag from event; using placeholder for dry-run if applicable" >&2
+            TAG="v0.0.0-dryrun"
+          fi
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            SHA="${{ github.sha }}"
+          else
+            SHA=$(git rev-list -n1 "$TAG" || true)
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Wait for CI workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          # Skip wait for manual dry-run
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "Dry-run dispatch: skipping CI wait."
+            exit 0
+          fi
+          SHA="${{ steps.ref.outputs.sha }}"
+          if [[ -z "$SHA" ]]; then
+            echo "No SHA resolved; skipping CI wait."
+            exit 0
+          fi
+          echo "Waiting for CI to succeed for $SHA ..."
+          ATTEMPTS=120
+          SLEEP=10
+          for i in $(seq 1 $ATTEMPTS); do
+            RESP=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=50&head_sha=$SHA")
+            STATUS=$(echo "$RESP" | jq -r '.workflow_runs[] | select(.name=="CI") | .status' | head -n1)
+            CONCLUSION=$(echo "$RESP" | jq -r '.workflow_runs[] | select(.name=="CI") | .conclusion' | head -n1)
+            if [[ "$STATUS" == "completed" ]]; then
+              if [[ "$CONCLUSION" == "success" ]]; then
+                echo "CI succeeded."
+                exit 0
+              else
+                echo "CI completed with conclusion: $CONCLUSION"
+                exit 1
+              fi
+            fi
+            echo "CI status: ${STATUS:-not found}; waiting... ($i/$ATTEMPTS)"
+            sleep $SLEEP
+          done
+          echo "Timed out waiting for CI to complete."
+          exit 1
+
   sync:
     name: Release gem and sync provider
+    needs: wait_ci
     runs-on: ubuntu-latest
     env:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
@@ -100,18 +168,39 @@ jobs:
           ---
           :rubygems_api_key: $RUBYGEMS_API_KEY
           EOF
-          GEM_FILE="logstruct-${{ steps.ver.outputs.version_tag }}.gem"
-          if [[ ! -f "$GEM_FILE" ]]; then
-            echo "::error::Expected gem file $GEM_FILE not found."
-            ls -la *.gem || true
-            exit 1
+          VERSION="${{ steps.ver.outputs.version_tag }}"
+          GEM_FILE="logstruct-${VERSION}.gem"
+          ALT_VERSION="${VERSION/-/.pre.}"
+          ALT_GEM_FILE="logstruct-${ALT_VERSION}.gem"
+          if [[ -f "$GEM_FILE" ]]; then
+            echo "Using gem file: $GEM_FILE"
+          elif [[ -f "$ALT_GEM_FILE" ]]; then
+            echo "Using gem file: $ALT_GEM_FILE (Bundler prerelease normalization)"
+            GEM_FILE="$ALT_GEM_FILE"
+          else
+            # Fallback: pick the most recent built gem that matches the version prefix
+            CANDIDATE=$(ls -1t logstruct-*.gem 2>/dev/null | head -n1 || true)
+            if [[ -n "$CANDIDATE" ]]; then
+              echo "Falling back to: $CANDIDATE"
+              GEM_FILE="$CANDIDATE"
+            else
+              echo "::error::Expected gem file for version $VERSION not found."
+              ls -la *.gem || true
+              exit 1
+            fi
           fi
           gem push "$GEM_FILE"
 
       - name: Gem publish (dry-run)
         if: env.DRY_RUN == 'true'
         run: |
-          echo "[DRY-RUN] Would push gem logstruct-${{ steps.ver.outputs.version_tag }}.gem to RubyGems"
+          VERSION="${{ steps.ver.outputs.version_tag }}"
+          ALT_VERSION="${VERSION/-/.pre.}"
+          CANDIDATE="logstruct-${VERSION}.gem"
+          if [[ ! -f "$CANDIDATE" && -f "logstruct-${ALT_VERSION}.gem" ]]; then
+            CANDIDATE="logstruct-${ALT_VERSION}.gem"
+          fi
+          echo "[DRY-RUN] Would push gem $CANDIDATE to RubyGems"
 
       - name: Clone terraform-provider-logstruct repository
         env:
