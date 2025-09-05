@@ -57,8 +57,13 @@ jobs:
             TAG="${{ github.event.release.tag_name }}"
           fi
           if [[ -z "$TAG" ]]; then
-            echo "Error: Could not determine tag name from event." >&2
-            exit 1
+            if [[ "$DRY_RUN" == "true" ]]; then
+              TAG="v0.0.0-dryrun"
+              echo "DRY-RUN: Using placeholder tag $TAG" >&2
+            else
+              echo "Error: Could not determine tag name from event." >&2
+              exit 1
+            fi
           fi
           VERSION_FROM_TAG="${TAG#v}"
           VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
