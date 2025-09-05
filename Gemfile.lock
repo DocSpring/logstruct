@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    logstruct (0.0.2.pre.rc1)
+    logstruct (0.0.2.pre.rc2)
       lograge (>= 0.11)
       rails (>= 7.0)
       semantic_logger (~> 4.15)
