@@ -1,6 +1,4 @@
 colors: true
-skip_output:
-  - summary
 
 pre-commit:
   parallel: true
