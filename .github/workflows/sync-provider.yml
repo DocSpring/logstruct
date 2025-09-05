@@ -1,0 +1,85 @@
+name: Sync Terraform Provider Catalog
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync provider on release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout logstruct
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '.ruby-version'
+          bundler-cache: true
+
+      - name: Setup Node (for pnpm cache if needed)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Generate site exports (enums/structs/keys)
+        run: |
+          ruby scripts/export_typescript_types.rb
+
+      - name: Clone terraform-provider-logstruct repository
+        env:
+          PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          rm -rf terraform-provider-logstruct
+          git clone https://x-access-token:${PUSH_TOKEN}@github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
+
+      - name: Export provider catalog (embedded Go data)
+        run: |
+          ruby scripts/export_provider_catalog.rb
+
+      - name: Build provider to validate catalog
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Compile
+        run: |
+          cd terraform-provider-logstruct
+          go mod tidy
+          go build ./...
+
+      - name: Commit and push provider changes
+        env:
+          PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
+        run: |
+          cd terraform-provider-logstruct
+          if ! git diff --quiet; then
+            git add pkg/data/catalog_gen.go pkg/data/catalog.json go.mod go.sum || true
+            git commit -m "Sync catalog from logstruct ${{ github.event.release.tag_name }}"
+            git push origin HEAD:main
+          fi
+
+      - name: Tag provider with release version
+        env:
+          PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
+        run: |
+          cd terraform-provider-logstruct
+          TAG="${{ github.event.release.tag_name }}"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists; skipping."
+            exit 0
+          fi
+          git tag -a "$TAG" -m "Release $TAG (logstruct sync)"
+          git push origin "$TAG"
