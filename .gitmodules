@@ -1,3 +1,0 @@
-[submodule "terraform-provider-logstruct"]
-	path = terraform-provider-logstruct
-	url = git@github.com:DocSpring/terraform-provider-logstruct.git
