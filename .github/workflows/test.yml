@@ -53,6 +53,9 @@ jobs:
       - name: CSpell (Spellcheck)
         run: scripts/spellcheck.sh
 
+      - name: Changelog has entry for current version
+        run: ruby scripts/check_changelog_version.rb
+
       - name: Prettier (Formatting)
         run: scripts/prettier.sh --check
 

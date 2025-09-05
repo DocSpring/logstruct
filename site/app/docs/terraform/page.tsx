@@ -36,6 +36,42 @@ export default function TerraformDocsPage() {
   }
 }`;
 
+  const sqlCount = `data "logstruct_cloudwatch_filter" "sql_queries" {
+  struct = "SQL"
+  event  = "database"
+}
+
+resource "aws_cloudwatch_log_metric_filter" "sql_count" {
+  name           = "SQL Query Count"
+  log_group_name = var.log_group.app
+  pattern        = data.logstruct_cloudwatch_filter.sql_queries.pattern
+
+  metric_transformation {
+    name      = "app_sql_query_count"
+    namespace = var.namespace.logs
+    value     = "1"
+    unit      = "Count"
+  }
+}`;
+
+  const mailDeliveryAttempt = `data "logstruct_cloudwatch_filter" "email_delivery_attempt" {
+  struct = "ActionMailer"
+  event  = "delivery"
+}
+
+resource "aws_cloudwatch_log_metric_filter" "email_delivery_attempt_count" {
+  name           = "Email Delivery Attempt Count"
+  log_group_name = var.log_group.app
+  pattern        = data.logstruct_cloudwatch_filter.email_delivery_attempt.pattern
+
+  metric_transformation {
+    name      = "app_email_delivery_attempt_count"
+    namespace = var.namespace.logs
+    value     = "1"
+    unit      = "Count"
+  }
+}`;
+
   return (
     <div className="space-y-10">
       <h1 className="text-3xl font-bold mb-2">Terraform Provider</h1>
@@ -154,8 +190,20 @@ resource "aws_cloudwatch_log_metric_filter" "goodjob_finish_count" {
 }`}
           </CodeBlock>
         </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <CodeBlock language="hcl" title="Count All SQL Queries">
+            {sqlCount}
+          </CodeBlock>
+          <CodeBlock language="hcl" title="Count Email Delivery Attempts">
+            {mailDeliveryAttempt}
+          </CodeBlock>
+        </div>
         <p className="text-neutral-600 dark:text-neutral-400">
-          See the provider README for more examples and details.
+          For delivery failures, use metric math to compare attempts vs.
+          delivered counts. CloudWatch filter patterns do not support numeric
+          comparisons, so slow-query thresholds are usually handled downstream
+          (for example, count + percentiles in metrics/dashboards). See the
+          provider README for more examples and details.
         </p>
       </section>
 
