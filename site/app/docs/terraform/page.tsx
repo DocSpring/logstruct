@@ -1,5 +1,5 @@
 import { CodeBlock } from '@/components/code-block';
-import EditPageLink from '@/components/edit-page-link';
+import { EditPageLink } from '@/components/edit-page-link';
 
 export const metadata = {
   title: 'Terraform Provider',

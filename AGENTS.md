@@ -1,1 +1,1 @@
-Read CLAUDE.md
+Read CLAUDE.md for instructions
