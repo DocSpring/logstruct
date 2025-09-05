@@ -22,4 +22,4 @@
 rails_test_app/logstruct_test_app/
 
 terraform-provider-logstruct/
-terraform-module-aws-logstruct/
+terraform-aws-logstruct/
