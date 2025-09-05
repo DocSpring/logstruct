@@ -1,0 +1,27 @@
+name: Terraform Example
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+      - name: Terraform Init (example)
+        run: terraform -chdir=terraform-example init -backend=false
+      - name: Terraform Validate (example)
+        run: terraform -chdir=terraform-example validate
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+      - name: TFLint (core rules only)
+        run: |
+          tflint --init || true
+          tflint -c terraform-example/.tflint.hcl terraform-example
