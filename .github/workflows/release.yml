@@ -117,8 +117,8 @@ jobs:
         env:
           PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "DocSpring Bot"
+          git config --global user.email "docspring-bot@docspring.com"
           rm -rf terraform-provider-logstruct
           git clone https://x-access-token:${PUSH_TOKEN}@github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
 
