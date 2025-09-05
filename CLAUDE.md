@@ -55,7 +55,7 @@
 
 ## Automated releases (gem + provider)
 
-- Workflow: `.github/workflows/sync-provider.yml` ("Release Gem + Sync Terraform Provider").
+- Workflow: `.github/workflows/release.yml` ("Release Gem + Sync Terraform Provider").
 - Triggers:
   - Push tag matching `v*` (e.g., `v0.0.1-rc1`, `v0.2.0`).
   - GitHub Release published.
