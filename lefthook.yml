@@ -40,6 +40,16 @@ pre-commit:
     - group:
         parallel: false
         jobs:
+          - name: bundle-install
+            glob: '{Gemfile,Gemfile.lock,lib/log_struct/version.rb}'
+            run: |
+              echo "Detected Gemfile/version change; running bundle install..."
+              bundle install
+              if [[ -f Gemfile.lock ]]; then
+                git add Gemfile.lock
+              fi
+            stage_fixed: true
+
           - name: fix-whitespace
             run: |
               for file in {staged_files}; do
