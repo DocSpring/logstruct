@@ -54,3 +54,4 @@ docspring
 shiki
 lightningcss
 klass
+RUBYGEMS

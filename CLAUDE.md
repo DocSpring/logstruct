@@ -128,3 +128,4 @@ THERE IS NO RUSH. There is NEVER any need to hurry through a feature or a fix. T
 ## TODO LIST
 
 Your main todo list can be found in `tmp/TODO.md`. Always read this file and regularly update it.
+\n<!-- hook test -->
