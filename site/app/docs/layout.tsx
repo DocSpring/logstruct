@@ -198,6 +198,11 @@ export default function DocsLayout({
                     title="Code Coverage"
                     active={false}
                   />
+                  <DocNavItem
+                    href="/docs/terraform"
+                    title="Terraform Provider"
+                    active={pathname.startsWith('/docs/terraform')}
+                  />
                 </nav>
               </div>
             </div>

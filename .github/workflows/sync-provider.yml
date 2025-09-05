@@ -1,16 +1,30 @@
-name: Sync Terraform Provider Catalog
+name: Release Gem + Sync Terraform Provider
 
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no pushes/tags/uploads)'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
 
 permissions:
   contents: read
 
 jobs:
   sync:
-    name: Sync provider on release
+    name: Release gem and sync provider
     runs-on: ubuntu-latest
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
+      TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}
     steps:
       - name: Checkout logstruct
         uses: actions/checkout@v4
@@ -33,9 +47,66 @@ jobs:
         with:
           version: latest
 
+      - name: Determine version and validate tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="${TAG_NAME:-}"
+          if [[ -z "$TAG" ]]; then
+            echo "No tag resolved; using release event tag." >&2
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            echo "Error: Could not determine tag name from event." >&2
+            exit 1
+          fi
+          VERSION_FROM_TAG="${TAG#v}"
+          VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version_tag=$VERSION_FROM_TAG" >> $GITHUB_OUTPUT
+          echo "version_rb=$VERSION_RB" >> $GITHUB_OUTPUT
+          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
+          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
+            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
+            exit 1
+          fi
+
       - name: Generate site exports (enums/structs/keys)
         run: |
           ruby scripts/export_typescript_types.rb
+
+      - name: Build gem
+        run: |
+          gem build logstruct.gemspec
+          ls -la *.gem
+
+      - name: Publish gem to RubyGems
+        if: env.DRY_RUN != 'true'
+        env:
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: |
+          if [[ -z "$RUBYGEMS_API_KEY" ]]; then
+            echo '::error::RUBYGEMS_API_KEY secret is missing.'
+            exit 1
+          fi
+          mkdir -p ~/.gem
+          umask 077
+          cat > ~/.gem/credentials <<EOF
+          ---
+          :rubygems_api_key: $RUBYGEMS_API_KEY
+          EOF
+          GEM_FILE="logstruct-${{ steps.ver.outputs.version_tag }}.gem"
+          if [[ ! -f "$GEM_FILE" ]]; then
+            echo "::error::Expected gem file $GEM_FILE not found."
+            ls -la *.gem || true
+            exit 1
+          fi
+          gem push "$GEM_FILE"
+
+      - name: Gem publish (dry-run)
+        if: env.DRY_RUN == 'true'
+        run: |
+          echo "[DRY-RUN] Would push gem logstruct-${{ steps.ver.outputs.version_tag }}.gem to RubyGems"
 
       - name: Clone terraform-provider-logstruct repository
         env:
@@ -65,9 +136,17 @@ jobs:
           PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
         run: |
           cd terraform-provider-logstruct
-          if ! git diff --quiet; then
-            git add pkg/data/catalog_gen.go pkg/data/catalog.json go.mod go.sum || true
-            git commit -m "Sync catalog from logstruct ${{ github.event.release.tag_name }}"
+          if git diff --quiet; then
+            echo "No provider changes to commit."
+            exit 0
+          fi
+          git add pkg/data/catalog_gen.go pkg/data/catalog.json go.mod go.sum || true
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "[DRY-RUN] Would commit and push provider catalog changes with message:"
+            echo "Sync catalog from logstruct ${{ steps.ver.outputs.tag }}"
+            git --no-pager diff --staged || true
+          else
+            git commit -m "Sync catalog from logstruct ${{ steps.ver.outputs.tag }}"
             git push origin HEAD:main
           fi
 
@@ -76,10 +155,14 @@ jobs:
           PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
         run: |
           cd terraform-provider-logstruct
-          TAG="${{ github.event.release.tag_name }}"
+          TAG="${{ steps.ver.outputs.tag }}"
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "Tag $TAG already exists; skipping."
             exit 0
           fi
-          git tag -a "$TAG" -m "Release $TAG (logstruct sync)"
-          git push origin "$TAG"
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "[DRY-RUN] Would create and push tag $TAG"
+          else
+            git tag -a "$TAG" -m "Release $TAG (logstruct sync)"
+            git push origin "$TAG"
+          fi
