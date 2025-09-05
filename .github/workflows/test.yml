@@ -163,6 +163,9 @@ jobs:
       - name: Merge coverage reports
         run: scripts/merge_coverage.sh
 
+      - name: Enforce coverage threshold (>= 80%)
+        run: ruby scripts/check_coverage_threshold.rb
+
       # Save merged coverage data as an artifact for deploy workflow
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4

@@ -108,6 +108,72 @@ export default function TerraformDocsPage() {
         </ul>
       </section>
 
+      <section id="recipes" className="space-y-4">
+        <h2 className="text-2xl font-semibold">Recipes</h2>
+        <p className="text-neutral-600 dark:text-neutral-400">
+          A few helpful patterns you can copy and adapt:
+        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <CodeBlock language="hcl" title="Count Email Deliveries">
+            {`data "logstruct_cloudwatch_filter" "email_delivered" {
+  struct = "ActionMailer"
+  event  = "delivered"
+}
+
+resource "aws_cloudwatch_log_metric_filter" "email_delivered_count" {
+  name           = "Email Delivered Count"
+  log_group_name = var.log_group.app
+  pattern        = data.logstruct_cloudwatch_filter.email_delivered.pattern
+
+  metric_transformation {
+    name          = "app_email_delivered_count"
+    namespace     = var.namespace.logs
+    value         = "1"
+    unit          = "Count"
+  }
+}`}
+          </CodeBlock>
+
+          <CodeBlock language="hcl" title="Count Successful GoodJob Runs">
+            {`data "logstruct_cloudwatch_filter" "goodjob_finish" {
+  struct = "GoodJob"
+  event  = "finish"
+}
+
+resource "aws_cloudwatch_log_metric_filter" "goodjob_finish_count" {
+  name           = "GoodJob Finish Count"
+  log_group_name = var.log_group.app
+  pattern        = data.logstruct_cloudwatch_filter.goodjob_finish.pattern
+
+  metric_transformation {
+    name      = "app_goodjob_finish_count"
+    namespace = var.namespace.logs
+    value     = "1"
+    unit      = "Count"
+  }
+}`}
+          </CodeBlock>
+        </div>
+        <p className="text-neutral-600 dark:text-neutral-400">
+          See the provider README for more examples and details.
+        </p>
+      </section>
+
+      <section id="links" className="space-y-2">
+        <h2 className="text-2xl font-semibold">Links</h2>
+        <ul className="list-disc pl-6">
+          <li>
+            <a
+              href="https://github.com/DocSpring/terraform-provider-logstruct"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Provider README (GitHub)
+            </a>
+          </li>
+        </ul>
+      </section>
+
       <EditPageLink path="app/docs/terraform/page.tsx" />
     </div>
   );

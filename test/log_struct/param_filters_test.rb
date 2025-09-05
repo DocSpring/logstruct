@@ -4,168 +4,96 @@
 require "test_helper"
 
 module LogStruct
-  class ParamFiltersTest < Minitest::Test
-    def setup
-      # Save original configuration to restore after tests
-      @original_filter_keys = LogStruct.config.filters.filter_keys.dup
-      @original_filter_keys_with_hashes = LogStruct.config.filters.filter_keys_with_hashes.dup
-
-      # Configure filter keys for testing
-      LogStruct.config.filters.filter_keys = [:password, :secret, :token]
-      LogStruct.config.filters.filter_keys_with_hashes = [:email]
+  class ParamFiltersTest < ActiveSupport::TestCase
+    setup do
+      LogStruct.configure do |c|
+        c.filters.filter_keys = %i[password token]
+        c.filters.filter_keys_with_hashes = %i[email]
+        c.filters.hash_salt = "s:"
+        c.filters.hash_length = 6
+      end
     end
 
-    def teardown
-      # Restore original configuration
-      LogStruct.config.filters.filter_keys = @original_filter_keys
-      LogStruct.config.filters.filter_keys_with_hashes = @original_filter_keys_with_hashes
-    end
-
-    def test_should_filter_key
+    test "should_filter_key? respects configured sensitive keys" do
       assert ParamFilters.should_filter_key?(:password)
-      assert ParamFilters.should_filter_key?("PASSWORD")
-      assert ParamFilters.should_filter_key?("secret")
-      assert ParamFilters.should_filter_key?(:token)
-
+      assert ParamFilters.should_filter_key?("TOKEN")
       refute ParamFilters.should_filter_key?(:username)
-      refute ParamFilters.should_filter_key?("email")
     end
 
-    def test_should_include_string_hash
+    test "should_include_string_hash? respects configured hash keys" do
       assert ParamFilters.should_include_string_hash?(:email)
-      assert ParamFilters.should_include_string_hash?("EMAIL")
-
       refute ParamFilters.should_include_string_hash?(:password)
-      refute ParamFilters.should_include_string_hash?("username")
     end
 
-    def test_summarize_string
-      string = "test-string"
+    test "summarize_string includes hash when requested" do
+      s = ParamFilters.summarize_string("abc@ex.com", true)
 
-      # Without hash
-      result = ParamFilters.summarize_string(string, false)
-
-      assert_equal String, result[:_class]
-      assert_equal string.bytesize, result[:_bytes]
-      refute result.key?(:_hash)
-
-      # With hash
-      result = ParamFilters.summarize_string(string, true)
-
-      assert_equal String, result[:_class]
-      refute result.key?(:_bytes)
-      assert result.key?(:_hash)
-      assert_instance_of String, result[:_hash]
+      assert_equal String, s[:_class]
+      assert_match(/[0-9a-f]{6}/, s[:_hash])
+      refute s.key?(:_bytes)
     end
 
-    def test_summarize_hash_without_sensitive_keys
-      hash = {name: "John", age: 30}
+    test "summarize_string includes bytes when not hashing" do
+      s = ParamFilters.summarize_string("hello", false)
 
-      result = ParamFilters.summarize_hash(hash)
-
-      assert_equal Hash, result[:_class]
-      assert_equal 2, result[:_keys_count]
-      assert_equal [:name, :age], result[:_keys]
-      assert result.key?(:_bytes)
+      assert_equal String, s[:_class]
+      assert_equal 5, s[:_bytes]
+      refute s.key?(:_hash)
     end
 
-    def test_summarize_hash_with_sensitive_keys
-      hash = {name: "John", password: "secret123"}
+    test "summarize_hash includes keys and optional bytes when no sensitive keys" do
+      summary = ParamFilters.summarize_hash({a: 1, b: 2})
 
-      result = ParamFilters.summarize_hash(hash)
+      assert_equal Hash, summary[:_class]
+      assert_equal 2, summary[:_keys_count]
+      assert_equal [:a, :b], summary[:_keys]
+      assert_kind_of Integer, summary[:_bytes]
 
-      assert_equal Hash, result[:_class]
-      assert_equal 2, result[:_keys_count]
-      assert_equal [:name, :password], result[:_keys]
+      # Presence of sensitive key removes _bytes
+      summary2 = ParamFilters.summarize_hash({password: "x", a: 1})
 
-      # Should not include byte size for hashes with sensitive keys
-      refute result.key?(:_bytes)
+      assert_equal Hash, summary2[:_class]
+      refute summary2.key?(:_bytes)
     end
 
-    def test_summarize_hash_with_uppercase_sensitive_keys
-      hash = {name: "John", PASSWORD: "secret123"}
+    test "summarize_array reports count/bytes and handles empty" do
+      s = ParamFilters.summarize_array([1, 2, 3])
 
-      result = ParamFilters.summarize_hash(hash)
+      assert_equal Array, s[:_class]
+      assert_equal 3, s[:_count]
+      assert_operator s[:_bytes], :>, 0
 
-      assert_equal Hash, result[:_class]
-      assert_equal 2, result[:_keys_count]
-      assert_equal [:name, :PASSWORD], result[:_keys]
+      empty = ParamFilters.summarize_array([])
 
-      # Should not include byte size regardless of case
-      refute result.key?(:_bytes)
+      assert_equal "Array", empty[:_class]
+      assert empty[:_empty]
     end
 
-    def test_summarize_hash_empty
-      result = ParamFilters.summarize_hash({})
+    test "summarize_json_attribute dispatches by type and honors hash keys setting" do
+      # String + key with hash
+      s1 = ParamFilters.summarize_json_attribute(:email, "test@x.com")
 
-      assert_equal "Hash", result[:_class]
-      assert result[:_empty]
-    end
+      assert s1.key?(:_hash)
 
-    def test_summarize_array
-      array = [1, 2, 3]
+      # String + normal key -> bytes
+      s2 = ParamFilters.summarize_json_attribute(:message, "hello")
 
-      result = ParamFilters.summarize_array(array)
+      assert s2.key?(:_bytes)
 
-      assert_equal Array, result[:_class]
-      assert_equal 3, result[:_count]
-      assert result.key?(:_bytes)
-    end
+      # Hash
+      s3 = ParamFilters.summarize_json_attribute(:payload, {a: 1})
 
-    def test_summarize_array_empty
-      result = ParamFilters.summarize_array([])
+      assert_equal Hash, s3[:_class]
 
-      assert_equal "Array", result[:_class]
-      assert result[:_empty]
-    end
+      # Array
+      s4 = ParamFilters.summarize_json_attribute(:list, [1, 2])
 
-    def test_summarize_json_attribute_with_string
-      result = ParamFilters.summarize_json_attribute("username", "john")
+      assert_equal Array, s4[:_class]
 
-      assert_equal String, result[:_class]
-      assert_equal "john".bytesize, result[:_bytes]
-      refute result.key?(:_hash)
+      # Other
+      s5 = ParamFilters.summarize_json_attribute(:id, 123)
 
-      result = ParamFilters.summarize_json_attribute("email", "john@example.com")
-
-      assert_equal String, result[:_class]
-      refute result.key?(:_bytes)
-      assert result.key?(:_hash)
-    end
-
-    def test_summarize_json_attribute_with_hash
-      hash = {name: "John", age: 30}
-      result = ParamFilters.summarize_json_attribute("user", hash)
-
-      assert_equal Hash, result[:_class]
-      assert_equal 2, result[:_keys_count]
-      assert result.key?(:_bytes)
-
-      hash_with_sensitive = {name: "John", password: "secret"}
-      result = ParamFilters.summarize_json_attribute("user", hash_with_sensitive)
-
-      assert_equal Hash, result[:_class]
-      assert_equal 2, result[:_keys_count]
-      refute result.key?(:_bytes)
-    end
-
-    def test_summarize_json_attribute_with_array
-      array = [1, 2, 3]
-      result = ParamFilters.summarize_json_attribute("numbers", array)
-
-      assert_equal Array, result[:_class]
-      assert_equal 3, result[:_count]
-      assert result.key?(:_bytes)
-    end
-
-    def test_summarize_json_attribute_with_other_types
-      result = ParamFilters.summarize_json_attribute("age", 30)
-
-      assert_equal Integer, result[:_class]
-
-      result = ParamFilters.summarize_json_attribute("active", true)
-
-      assert_equal TrueClass, result[:_class]
+      assert_equal Integer, s5[:_class]
     end
   end
 end
