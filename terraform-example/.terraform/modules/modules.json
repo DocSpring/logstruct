@@ -1,1 +1,0 @@
-{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"email_delivered_metric","Source":"registry.terraform.io/DocSpring/logstruct/aws//modules/metric-filter","Version":"0.0.7","Dir":".terraform/modules/email_delivered_metric/modules/metric-filter"}]}
