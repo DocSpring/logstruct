@@ -3,7 +3,7 @@ terraform {
   required_providers {
     logstruct = {
       source  = "DocSpring/logstruct"
-      version = ">= 0.1.0"
+      version = ">= 0.0.1"
     }
   }
 }
