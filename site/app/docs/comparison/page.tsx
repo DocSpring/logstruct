@@ -1,3 +1,4 @@
+import React from 'react';
 import { Check, X, Minus } from 'lucide-react';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { EditPageLink } from '@/components/edit-page-link';
@@ -137,6 +138,14 @@ function ComparisonTable() {
           logcraft: false,
         },
         {
+          name: 'GoodJob integration',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: false,
+          logstasher: false,
+          logcraft: false,
+        },
+        {
           name: 'ActionMailer integration',
           logstruct: true,
           lograge: false,
@@ -157,6 +166,17 @@ function ComparisonTable() {
           logstruct: true,
           lograge: false,
           railsSemanticLogger: false,
+          logstasher: false,
+          logcraft: false,
+        },
+        {
+          name: 'ActiveRecord SQL logging',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: {
+            partial: true,
+            tooltip: 'Less structured and limited filtering',
+          },
           logstasher: false,
           logcraft: false,
         },
@@ -268,11 +288,8 @@ function ComparisonTable() {
         </thead>
         <tbody>
           {features.map((category) => (
-            <>
-              <tr
-                key={category.category}
-                className="bg-neutral-50 dark:bg-neutral-900"
-              >
+            <React.Fragment key={category.category}>
+              <tr className="bg-neutral-50 dark:bg-neutral-900">
                 <td
                   colSpan={6}
                   className="py-2 px-3 font-semibold text-xs uppercase tracking-wide text-neutral-600 dark:text-neutral-400"
@@ -303,7 +320,7 @@ function ComparisonTable() {
                   </td>
                 </tr>
               ))}
-            </>
+            </React.Fragment>
           ))}
         </tbody>
       </table>

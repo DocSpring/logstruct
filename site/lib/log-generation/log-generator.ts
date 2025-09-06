@@ -19,6 +19,8 @@ import {
   CarrierWaveLog,
   GoodJobLog,
   SQLLog,
+  ActiveModelSerializersLog,
+  AhoyLog,
   // Import the event type arrays for each log type
   SecurityEvents,
   ActiveJobEvents,
@@ -105,6 +107,10 @@ export class LogGenerator extends RandomDataGenerator {
         return Event.LOG; // GoodJob uses generic log events
       case LogType.SQL:
         return Event.DATABASE;
+      case LogType.ACTIVEMODELSERIALIZERS:
+        return Event.LOG;
+      case LogType.AHOY:
+        return Event.LOG;
       default:
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
@@ -135,6 +141,10 @@ export class LogGenerator extends RandomDataGenerator {
       case LogType.GOODJOB:
         return Source.JOB;
       case LogType.SQL:
+        return Source.APP;
+      case LogType.ACTIVEMODELSERIALIZERS:
+        return Source.RAILS;
+      case LogType.AHOY:
         return Source.APP;
       case LogType.PLAIN:
       case LogType.ERROR:
@@ -197,6 +207,12 @@ export class LogGenerator extends RandomDataGenerator {
         return this.generateGoodJobLog(log as Partial<GoodJobLog>);
       case LogType.SQL:
         return this.generateSQLLog(log as Partial<SQLLog>);
+      case LogType.ACTIVEMODELSERIALIZERS:
+        return this.generateActiveModelSerializersLog(
+          log as Partial<ActiveModelSerializersLog>,
+        );
+      case LogType.AHOY:
+        return this.generateAhoyLog(log as Partial<AhoyLog>);
       default:
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
@@ -477,6 +493,33 @@ export class LogGenerator extends RandomDataGenerator {
     log.operation_type = operation;
     log.table_names = [table];
 
+    return log;
+  }
+
+  private generateActiveModelSerializersLog(
+    log: Partial<ActiveModelSerializersLog>,
+  ): Partial<ActiveModelSerializersLog> {
+    log.message = 'ams.render';
+    log.serializer = this.sample([
+      'UserSerializer',
+      'ProjectSerializer',
+      'OrderSerializer',
+    ]);
+    log.adapter = this.sample(['json', 'json_api']);
+    log.resource_class = this.sample(['User', 'Project', 'Order']);
+    log.duration_ms = this.randomFloat(0.2, 30.0);
+    log.additional_data = {};
+    return log;
+  }
+
+  private generateAhoyLog(log: Partial<AhoyLog>): Partial<AhoyLog> {
+    log.message = 'ahoy.track';
+    log.ahoy_event = this.sample(['signup', 'purchase', 'visited_page']);
+    log.properties = {
+      plan: this.sample(['free', 'pro', 'enterprise']),
+      referrer: this.sample(['homepage', 'ad', 'email']),
+    };
+    log.additional_data = {};
     return log;
   }
 

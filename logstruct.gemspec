@@ -47,6 +47,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "shrine", "~> 3.5"
   spec.add_development_dependency "sidekiq", "~> 7.2"
   spec.add_development_dependency "sorbet", "~> 0.5"
+  spec.add_development_dependency "ahoy_matey", "~> 5.2"
+  spec.add_development_dependency "active_model_serializers", "~> 0.10.13"
 
   spec.metadata["rubygems_mfa_required"] = "true"
 end

@@ -134,12 +134,14 @@ module LogStruct
         # ----------------------------------------------------------
         LogStruct.configure do |config|
           # Enable/disable specific integrations
-          config.integrations.enable_lograge = true
           config.integrations.enable_actionmailer = true
+          config.integrations.enable_active_model_serializers = true
           config.integrations.enable_activejob = true
           config.integrations.enable_activestorage = true
+          config.integrations.enable_ahoy = true
           config.integrations.enable_carrierwave = true
           config.integrations.enable_host_authorization = true
+          config.integrations.enable_lograge = true
           config.integrations.enable_rack_error_handler = true
           config.integrations.enable_shrine = true
           config.integrations.enable_sidekiq = true
@@ -175,12 +177,12 @@ module LogStruct
         end
 
         # Verify integration configurations are applied
-        assert LogStruct.configuration.integrations.enable_lograge
         assert LogStruct.configuration.integrations.enable_actionmailer
         assert LogStruct.configuration.integrations.enable_activejob
         assert LogStruct.configuration.integrations.enable_activestorage
         assert LogStruct.configuration.integrations.enable_carrierwave
         assert LogStruct.configuration.integrations.enable_host_authorization
+        assert LogStruct.configuration.integrations.enable_lograge
         assert LogStruct.configuration.integrations.enable_rack_error_handler
         assert LogStruct.configuration.integrations.enable_shrine
         assert LogStruct.configuration.integrations.enable_sidekiq
@@ -207,13 +209,13 @@ module LogStruct
           ]
 
           # Configure sensitive data filtering for all strings
-          config.filters.email_addresses = true      # Filter email addresses
-          config.filters.url_passwords = true        # Filter passwords in URLs
           config.filters.credit_card_numbers = true  # Filter credit card numbers
-          config.filters.phone_numbers = true        # Filter phone numbers
-          config.filters.ssns = true                 # Filter social security numbers
+          config.filters.email_addresses = true      # Filter email addresses
           config.filters.ip_addresses = false        # Filter IP addresses (off by default)
           config.filters.mac_addresses = false       # Filter MAC addresses (off by default)
+          config.filters.phone_numbers = true        # Filter phone numbers
+          config.filters.ssns = true                 # Filter social security numbers
+          config.filters.url_passwords = true        # Filter passwords in URLs
 
           # Configure the salt used for hashing filtered email addresses
           config.filters.hash_salt = ENV.fetch("EMAIL_HASH_SALT", "test_salt")
@@ -228,11 +230,11 @@ module LogStruct
         # Verify filter configurations are applied
         assert_includes LogStruct.configuration.filters.filter_keys, :password
         assert_includes LogStruct.configuration.filters.filter_keys_with_hashes, :email
-        assert LogStruct.configuration.filters.email_addresses
-        assert LogStruct.configuration.filters.url_passwords
         assert LogStruct.configuration.filters.credit_card_numbers
+        assert LogStruct.configuration.filters.email_addresses
         assert LogStruct.configuration.filters.phone_numbers
         assert LogStruct.configuration.filters.ssns
+        assert LogStruct.configuration.filters.url_passwords
         refute LogStruct.configuration.filters.ip_addresses
         refute LogStruct.configuration.filters.mac_addresses
         assert_equal LogStruct.configuration.filters.hash_salt, LogStruct.configuration.filters.hash_salt

@@ -341,7 +341,7 @@ export default function Home() {
                 Why was LogStruct built?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
-                We were using the{' '}
+                DocSpring was originally using the{' '}
                 <a
                   href="https://github.com/roidrage/lograge"
                   target="_blank"
@@ -349,30 +349,59 @@ export default function Home() {
                 >
                   <code>lograge</code>
                 </a>{' '}
-                gem to format our request logs as JSON, but we realized that our
-                logs contained a lot of other information that would be useful
-                for CloudWatch metrics and dashboards. We wrote most of this
-                code in our own Rails app before deciding to extract it and
-                release it as a gem.
+                gem to format our request logs as JSON. We realized that we had
+                a lot of other plain text logs that would be useful for
+                CloudWatch metrics and dashboards. We wrote much of this code in
+                our own app before deciding to extract it and release it as a
+                gem. (It was also a great opportunity to learn more about
+                Sorbet.)
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
               <h3 className="mb-4 text-xl font-semibold">
-                What about Rails Semantic Logger?
+                What about other logging gems?
               </h3>
               <p className="text-neutral-600 dark:text-neutral-400">
-                We didn&apos;t find out about{' '}
+                Several other gems provide structured logging for Rails apps,
+                including{' '}
                 <a
                   href="https://github.com/reidmorrison/rails_semantic_logger"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   Rails Semantic Logger
-                </a>{' '}
-                until we had already extracted most of LogStruct. There&apos;s a
-                lot of overlap, but LogStruct has some unique features like
-                powerful log filtering, error handling, and internal type-safety
-                and correctness.
+                </a>
+                ,{' '}
+                <a
+                  href="https://github.com/roidrage/lograge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Lograge
+                </a>
+                ,{' '}
+                <a
+                  href="https://github.com/shadabahmed/logstasher"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Logstasher
+                </a>
+                , and{' '}
+                <a
+                  href="https://github.com/zormandi/logcraft"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Logcraft
+                </a>
+                . LogStruct focuses on powerful filtering and scrubbing,
+                structured error handling, and type‑safety across integrations.
+                See the{' '}
+                <Link href="/docs/comparison" className="underline">
+                  comparison page
+                </Link>{' '}
+                for a detailed breakdown.
               </p>
             </div>
           </div>

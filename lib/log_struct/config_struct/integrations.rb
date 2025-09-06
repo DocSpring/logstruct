@@ -84,6 +84,14 @@ module LogStruct
       # Include bind parameters in SQL logs (disable in production for security)
       # Default: true in development/test, false in production
       prop :sql_log_bind_params, T::Boolean, factory: -> { !defined?(::Rails) || !::Rails.respond_to?(:env) || !::Rails.env.production? }
+
+      # Enable Ahoy (analytics events) integration
+      # Default: true (safe no-op unless Ahoy is defined)
+      prop :enable_ahoy, T::Boolean, default: true
+
+      # Enable ActiveModelSerializers integration
+      # Default: true (safe no-op unless ActiveModelSerializers is defined)
+      prop :enable_active_model_serializers, T::Boolean, default: true
     end
   end
 end

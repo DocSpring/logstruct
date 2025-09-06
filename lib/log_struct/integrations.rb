@@ -14,6 +14,8 @@ require_relative "integrations/good_job"
 require_relative "integrations/active_storage"
 require_relative "integrations/carrierwave"
 require_relative "integrations/sorbet"
+require_relative "integrations/ahoy"
+require_relative "integrations/active_model_serializers"
 
 module LogStruct
   module Integrations
@@ -30,6 +32,8 @@ module LogStruct
       Integrations::ActiveRecord.setup(config) if config.integrations.enable_sql_logging
       Integrations::Sidekiq.setup(config) if config.integrations.enable_sidekiq
       Integrations::GoodJob.setup(config) if config.integrations.enable_goodjob
+      Integrations::Ahoy.setup(config) if config.integrations.enable_ahoy
+      Integrations::ActiveModelSerializers.setup(config) if config.integrations.enable_active_model_serializers
       Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization
       Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
       Integrations::Shrine.setup(config) if config.integrations.enable_shrine

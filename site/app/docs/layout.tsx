@@ -34,6 +34,20 @@ export default function DocsLayout({
 }) {
   const pathname = usePathname();
 
+  // Build Integrations subheadings from log types (plus Sorbet special case)
+  const integrationHeadings = [
+    // Dynamic entries from all log types
+    ...(AllLogTypes.map((logType) => {
+      const info = getLogTypeInfo(logType);
+      if (!info) return null;
+      const { title } = info;
+      const id = getTitleId(title);
+      return { id, title };
+    }).filter(Boolean) as Array<{ id: string; title: string }>),
+    // Sorbet Integration (special case section on the page)
+    { id: 'sorbet-integration', title: 'Sorbet Integration' },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col">
       <div className="container mx-auto flex-1 px-4 py-8 md:py-12">
@@ -98,24 +112,7 @@ export default function DocsLayout({
                     href="/docs/integrations"
                     title="Integrations"
                     active={pathname.startsWith('/docs/integrations')}
-                    subHeadings={[
-                      // Dynamic entries from all log types
-                      ...(AllLogTypes.map((logType) => {
-                        const info = getLogTypeInfo(logType);
-                        if (!info) return null;
-
-                        const { title } = info;
-                        // Use the shared ID generation function
-                        const id = getTitleId(title);
-
-                        return { id, title };
-                      }).filter(Boolean) as Array<{
-                        id: string;
-                        title: string;
-                      }>),
-                      // Manually add Sorbet integration (special case in the page)
-                      { id: 'sorbet-integration', title: 'Sorbet Integration' },
-                    ]}
+                    subHeadings={integrationHeadings}
                   />
                   <NestedDocNavItem
                     href="/docs/filtering-sensitive-data"
