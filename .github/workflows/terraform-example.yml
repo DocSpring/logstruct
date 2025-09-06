@@ -23,5 +23,6 @@ jobs:
         uses: terraform-linters/setup-tflint@v4
       - name: TFLint (core rules only)
         run: |
-          tflint --init || true
-          tflint -c terraform-example/.tflint.hcl terraform-example
+          # TFLint >= 0.47 removed positional directory args; use --chdir
+          tflint --chdir terraform-example --init || true
+          tflint --chdir terraform-example -c .tflint.hcl
