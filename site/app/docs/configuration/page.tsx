@@ -82,6 +82,15 @@ export default function ConfigurationPage() {
 
       <RubyCodeExample name="environment_configuration" />
 
+      <Callout type="info">
+        We enable LogStruct in <code>test</code> as well as production by
+        default. Keeping test and production behavior as close as possible helps
+        catch logging issues early (for example, unexpected serialization
+        errors, missing fields, or broken integrations) before they reach prod.
+        If you prefer to disable it in test, remove <code>:test</code> from{' '}
+        <code>config.enabled_environments</code>.
+      </Callout>
+
       <HeadingWithAnchor id="integration-configuration">
         Integration Configuration
       </HeadingWithAnchor>

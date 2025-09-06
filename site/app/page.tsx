@@ -110,7 +110,7 @@ export default function Home() {
           <h2 className="mb-8 text-3xl font-bold">Installation</h2>
 
           <p className="my-6 text-lg text-neutral-600 dark:text-neutral-400">
-            Enable JSON structured logging for test and production environments:
+            Enable JSON structured logging for your application:
           </p>
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
