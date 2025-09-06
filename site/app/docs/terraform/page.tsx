@@ -77,15 +77,13 @@ data "logstruct_pattern" "email_delivered" {
           Module-first: create an AWS metric filter for a known LogStruct
           source/event combo. Invalid combinations fail at plan time.
         </p>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <CodeBlock language="hcl" title="Module: Metric Filter">
-            {moduleMetricFilter}
-          </CodeBlock>
-          <CodeBlock language="hcl" title="Variables">
-            {`variable "log_group_name" { type = string }
+        <CodeBlock language="hcl" title="Module: Metric Filter">
+          {moduleMetricFilter}
+        </CodeBlock>
+        <CodeBlock language="hcl" title="Variables">
+          {`variable "log_group_name" { type = string }
 variable "namespace" { type = string }`}
-          </CodeBlock>
-        </div>
+        </CodeBlock>
       </section>
 
       <section id="validation" className="space-y-4">
@@ -121,22 +119,18 @@ variable "namespace" { type = string }`}
         <p className="text-neutral-600 dark:text-neutral-400">
           A few helpful patterns you can copy and adapt:
         </p>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <CodeBlock language="hcl" title="Count Email Deliveries">
-            {moduleMetricFilter}
-          </CodeBlock>
-          <CodeBlock language="hcl" title="Count Successful GoodJob Runs">
-            {moduleGoodJobFinish}
-          </CodeBlock>
-        </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <CodeBlock language="hcl" title="Count All SQL Queries">
-            {moduleSqlCount}
-          </CodeBlock>
-          <CodeBlock language="hcl" title="Provider Reference: Compile Pattern">
-            {providerPattern}
-          </CodeBlock>
-        </div>
+        <CodeBlock language="hcl" title="Count Email Deliveries">
+          {moduleMetricFilter}
+        </CodeBlock>
+        <CodeBlock language="hcl" title="Count Successful GoodJob Runs">
+          {moduleGoodJobFinish}
+        </CodeBlock>
+        <CodeBlock language="hcl" title="Count All SQL Queries">
+          {moduleSqlCount}
+        </CodeBlock>
+        <CodeBlock language="hcl" title="Provider Reference: Compile Pattern">
+          {providerPattern}
+        </CodeBlock>
         <p className="text-neutral-600 dark:text-neutral-400">
           For delivery failures, use metric math to compare attempts vs.
           delivered counts. CloudWatch filter patterns do not support numeric
