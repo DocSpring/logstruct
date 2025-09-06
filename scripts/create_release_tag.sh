@@ -22,7 +22,7 @@ Options:
 Examples:
   bash scripts/create_release_tag.sh                # uses version.rb
   bash scripts/create_release_tag.sh --push         # create + push
-  bash scripts/create_release_tag.sh --version 0.0.2-rc1 --push
+  bash scripts/create_release_tag.sh --version 0.1.0 --push
 USAGE
 }
 

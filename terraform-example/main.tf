@@ -3,7 +3,7 @@ terraform {
   required_providers {
     logstruct = {
       source  = "DocSpring/logstruct"
-      version = ">= 0.0.4"
+      version = ">= 0.1.0"
     }
   }
 }
@@ -23,7 +23,7 @@ data "logstruct_pattern" "email" {
 # Example module usage: metric filter (Registry)
 module "email_delivered_metric" {
   source  = "DocSpring/logstruct/aws//modules/metric-filter"
-  version = ">= 0.0.4"
+  version = ">= 0.1.0"
 
   name           = "Email Delivered Count"
   log_group_name = var.log_group_name

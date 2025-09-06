@@ -11,7 +11,7 @@ export default function TerraformDocsPage() {
   // Module-first examples
   const moduleMetricFilter = `module "email_delivered_metric" {
   source  = "DocSpring/logstruct/aws//modules/metric-filter"
-  version = ">= 0.0.4"
+  version = ">= 0.1.0"
 
   name           = "Email Delivered Count"
   log_group_name = var.log_group_name
@@ -22,7 +22,7 @@ export default function TerraformDocsPage() {
 
   const moduleSqlCount = `module "sql_query_count" {
   source  = "DocSpring/logstruct/aws//modules/metric-filter"
-  version = ">= 0.0.4"
+  version = ">= 0.1.0"
 
   name           = "SQL Query Count"
   log_group_name = var.log_group_name
@@ -33,7 +33,7 @@ export default function TerraformDocsPage() {
 
   const moduleGoodJobFinish = `module "goodjob_finish_count" {
   source  = "DocSpring/logstruct/aws//modules/metric-filter"
-  version = ">= 0.0.4"
+  version = ">= 0.1.0"
 
   name           = "GoodJob Finish Count"
   log_group_name = var.log_group_name
