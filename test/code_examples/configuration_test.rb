@@ -83,7 +83,7 @@ module LogStruct
         )
 
         # Log the typed struct
-        Rails.logger.info(log)
+        LogStruct.info(log)
         # ----------------------------------------------------------
         # END CODE EXAMPLE: typed_logging
         # ----------------------------------------------------------
