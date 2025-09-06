@@ -3,7 +3,6 @@
 
 require_relative "../../log_keys"
 require_relative "../interfaces/additional_data_field"
-require_relative "serialize_common"
 
 module LogStruct
   module Log
@@ -11,8 +10,6 @@ module LogStruct
     module MergeAdditionalDataFields
       extend T::Sig
       extend T::Helpers
-
-      include SerializeCommon
 
       requires_ancestor { T::Struct }
       requires_ancestor { Interfaces::AdditionalDataField }

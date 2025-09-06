@@ -51,33 +51,55 @@ module LogStruct
       # ----------------------------------------------------------
       # BEGIN CODE EXAMPLE: custom_log_class
       # ----------------------------------------------------------
-      # Define a custom log structure
+      # Define a custom typed log using LogStruct interfaces
       module TestApp
-        class Source < T::Enum
-          enums do
-            Payments = new
-            App = new
-          end
-        end
-
-        class Event < T::Enum
-          enums do
-            Processed = new
-            Failed = new
-          end
-        end
-
         module Log
-          class PaymentProcessed < T::Struct
-            prop :source, Source
-            prop :event, Event
-            prop :timestamp, Time, factory: -> { Time.now }
+          class Payments < T::Struct
+            extend T::Sig
 
-            prop :payment_id, String
-            prop :amount, Float
-            prop :currency, String
-            prop :status, String
-            prop :user_id, T.nilable(Integer)
+            include ::LogStruct::Log::Interfaces::PublicCommonFields
+            include ::LogStruct::Log::Interfaces::AdditionalDataField
+            include ::LogStruct::Log::SerializeCommonPublic
+            include ::LogStruct::Log::MergeAdditionalDataFields
+
+            # Event restricted to a specific set for type safety (T::Enum)
+            class Event < T::Enum
+              enums do
+                Processed = new(:processed)
+                Failed = new(:failed)
+                Refunded = new(:refunded)
+              end
+            end
+
+            # Fixed source: not overridable by callers
+            sig { returns(String) }
+            def source = "payments"
+
+            const :event, Event
+            const :level, ::LogStruct::Level, default: T.let(::LogStruct::Level::Info, ::LogStruct::Level)
+            const :timestamp, Time, factory: -> { Time.now }
+
+            # Domain fields
+            const :payment_id, String
+            const :amount_cents, Integer
+            const :currency, String
+            const :status, String
+            const :user_id, T.nilable(Integer), default: nil
+
+            # Optional extra data merged at top-level
+            const :additional_data, T::Hash[Symbol, T.untyped], default: {}
+
+            sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+            def serialize(strict = true)
+              h = serialize_common_public(strict)
+              merge_additional_data_fields(h)
+              h[:payment_id] = payment_id
+              h[:amount_cents] = amount_cents
+              h[:currency] = currency
+              h[:status] = status
+              h[:user_id] = user_id if user_id
+              h
+            end
           end
         end
       end
@@ -88,12 +110,10 @@ module LogStruct
 
       def test_custom_log_class
         # Create a payment log using the class defined above
-        payment_log = TestApp::Log::PaymentProcessed.new(
-          source: TestApp::Source::Payments,
-          event: TestApp::Event::Processed,
-          timestamp: Time.now,
+        payment_log = TestApp::Log::Payments.new(
+          event: TestApp::Log::Payments::Event::Processed,
           payment_id: "pay_123456",
-          amount: 99.99,
+          amount_cents: 9999,
           currency: "USD",
           status: "succeeded",
           user_id: 123
@@ -103,14 +123,16 @@ module LogStruct
         Rails.logger.info(payment_log)
 
         # Verify the custom log structure works correctly
-        assert_equal "payments", payment_log.source.serialize
-        assert_equal "processed", payment_log.event.serialize
-        assert_kind_of Time, payment_log.timestamp
-        assert_equal "pay_123456", payment_log.payment_id
-        assert_in_delta(99.99, payment_log.amount)
-        assert_equal "USD", payment_log.currency
-        assert_equal "succeeded", payment_log.status
-        assert_equal 123, payment_log.user_id
+        json = payment_log.as_json
+
+        assert_equal "payments", json["src"]
+        # Enum serializes to string via SerializeCommonPublic
+        assert_equal "processed", json["evt"]
+        assert_equal "pay_123456", json["payment_id"]
+        assert_equal 9999, json["amount_cents"]
+        assert_equal "USD", json["currency"]
+        assert_equal "succeeded", json["status"]
+        assert_equal 123, json["user_id"]
       end
 
       def test_disable_sorbet_error_handler

@@ -62,6 +62,16 @@ Once initialized, the gem automatically includes its modules into the appropriat
 
 Please see the [documentation](https://logstruct.com/docs) for more details. (All code examples are type-checked and tested, and it's harder to keep a README up to date.)
 
+### Custom Typed Logs
+
+In addition to the built‑in, strictly typed log structures (Request, Error, SQL, etc.), you can define your own app‑specific typed logs while still using the public `LogStruct.info/error/...` methods.
+
+- Compose the public interfaces: include `LogStruct::Log::Interfaces::PublicCommonFields` and the helpers `SerializeCommonPublic` + `MergeAdditionalDataFields` in your `T::Struct`.
+- Fix your `source` to a constant (e.g., return the string `"payments"`), and restrict `event` with a `T::Enum` (e.g., `processed|failed|refunded`).
+- The `LogStruct.info` signature accepts either the internal `CommonFields` (for built‑ins) or your public custom type, so you keep type safety at the call site.
+
+See the docs page for a complete example: [Sorbet Types → Custom Typed Logs](https://logstruct.com/docs/sorbet-types#custom-log-classes).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

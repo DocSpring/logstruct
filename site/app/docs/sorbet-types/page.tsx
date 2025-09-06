@@ -87,21 +87,25 @@ bundle exec srb init`}
       <RubyCodeExample name="test_disable_sorbet_error_handler" />
 
       <HeadingWithAnchor id="custom-log-classes">
-        Custom Log Classes
+        Custom Typed Logs
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        You can create your own typed log classes by inheriting from
-        Sorbet&apos;s <code>T::Struct</code> class.
+        Define your own typed logs by composing LogStruct interfaces and
+        helpers. Include <code>LogStruct::Log::Interfaces::CommonFields</code>,{' '}
+        <code>LogStruct::Log::Interfaces::AdditionalDataField</code>, and the
+        serialization helpers <code>SerializeCommon</code> +{' '}
+        <code>MergeAdditionalDataFields</code> to get consistent JSON keys and
+        behavior. Use the existing <code>LogStruct::Source</code> and{' '}
+        <code>LogStruct::Event</code> enums in your struct.
       </p>
 
       <RubyCodeExample name="custom_log_class" />
 
       <Callout type="info">
-        It is not currently possible to extend LogStruct&apos;s internal logging
-        classes or enums with additional values. We use exhaustiveness checks
-        throughout our code, and we also use them to ensure that our
-        documentation is accurate and up-to-date. You will need to create your
-        own <code>T::Struct</code> subclasses and use <code>Rails.logger</code>.
+        Custom types are for your application logs and won&apos;t be exported to
+        the Terraform provider catalog or docs generator. Use the built-in
+        LogStruct types when you need provider support (patterns/validation),
+        and use custom types for app-specific events.
       </Callout>
 
       <HeadingWithAnchor id="builtin-log-classes" level={1}>

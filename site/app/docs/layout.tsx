@@ -158,7 +158,7 @@ export default function DocsLayout({
                       },
                       {
                         id: 'custom-log-classes',
-                        title: 'Custom Log Classes',
+                        title: 'Custom Typed Logs',
                       },
                       {
                         id: 'builtin-log-classes',

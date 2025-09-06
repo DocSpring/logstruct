@@ -20,6 +20,7 @@ module LogStruct
       include Interfaces::CommonFields
       include Interfaces::AdditionalDataField
       include Interfaces::MessageField
+      include SerializeCommon
       include MergeAdditionalDataFields
 
       ErrorEvent = T.type_alias {
