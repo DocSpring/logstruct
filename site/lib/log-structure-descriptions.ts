@@ -15,6 +15,9 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   Security: 'For security-related events',
   GoodJob: 'For GoodJob background job lifecycle events',
   SQL: 'For ActiveRecord SQL query events and performance metrics',
+  ActiveModelSerializers:
+    'For render events produced by ActiveModelSerializers (serializer, adapter, resource, duration)',
+  Ahoy: 'For analytics tracking events emitted by Ahoy (event name and properties)',
 };
 
 /**

@@ -8,68 +8,48 @@ export const metadata = {
 };
 
 export default function TerraformDocsPage() {
-  const requiredProviders = `terraform {
-  required_providers {
-    logstruct = {
-      source  = "DocSpring/logstruct"
-      version = "~> 0.2" # matches LogStruct tag
-    }
-  }
-}`;
+  // Module-first examples
+  const moduleMetricFilter = `module "email_delivered_metric" {
+  source  = "DocSpring/logstruct/aws//modules/metric-filter"
+  version = ">= 0.0.4"
 
-  const cwFilterDataSource = `data "logstruct_cloudwatch_filter" "email_delivered" {
-  struct = "ActionMailer"
-  event  = "delivered"
-}`;
-
-  const cwMetricFilter = `resource "aws_cloudwatch_log_metric_filter" "email_delivered_count" {
   name           = "Email Delivered Count"
-  log_group_name = var.log_group.docspring
-  pattern        = data.logstruct_cloudwatch_filter.email_delivered.pattern
-
-  metric_transformation {
-    name          = "docspring_email_delivered_count"
-    namespace     = var.namespace.logs
-    value         = "1"
-    default_value = "0"
-    unit          = "Count"
-  }
+  log_group_name = var.log_group_name
+  log_source     = "mailer"
+  log_event      = "delivered"
+  namespace      = var.namespace
 }`;
 
-  const sqlCount = `data "logstruct_cloudwatch_filter" "sql_queries" {
-  struct = "SQL"
-  event  = "database"
-}
+  const moduleSqlCount = `module "sql_query_count" {
+  source  = "DocSpring/logstruct/aws//modules/metric-filter"
+  version = ">= 0.0.4"
 
-resource "aws_cloudwatch_log_metric_filter" "sql_count" {
   name           = "SQL Query Count"
-  log_group_name = var.log_group.app
-  pattern        = data.logstruct_cloudwatch_filter.sql_queries.pattern
-
-  metric_transformation {
-    name      = "app_sql_query_count"
-    namespace = var.namespace.logs
-    value     = "1"
-    unit      = "Count"
-  }
+  log_group_name = var.log_group_name
+  log_source     = "app"
+  log_event      = "database"
+  namespace      = var.namespace
 }`;
 
-  const mailDeliveryAttempt = `data "logstruct_cloudwatch_filter" "email_delivery_attempt" {
-  struct = "ActionMailer"
-  event  = "delivery"
+  const moduleGoodJobFinish = `module "goodjob_finish_count" {
+  source  = "DocSpring/logstruct/aws//modules/metric-filter"
+  version = ">= 0.0.4"
+
+  name           = "GoodJob Finish Count"
+  log_group_name = var.log_group_name
+  log_source     = "job"
+  log_event      = "finish"
+  namespace      = var.namespace
+}`;
+
+  // Provider reference (for advanced usage)
+  const providerPattern = `data "logstruct_source" "mailer" {
+  name = "mailer"
 }
 
-resource "aws_cloudwatch_log_metric_filter" "email_delivery_attempt_count" {
-  name           = "Email Delivery Attempt Count"
-  log_group_name = var.log_group.app
-  pattern        = data.logstruct_cloudwatch_filter.email_delivery_attempt.pattern
-
-  metric_transformation {
-    name      = "app_email_delivery_attempt_count"
-    namespace = var.namespace.logs
-    value     = "1"
-    unit      = "Count"
-  }
+data "logstruct_pattern" "email_delivered" {
+  source = data.logstruct_source.mailer.canonical
+  event  = "delivered"
 }`;
 
   return (
@@ -84,12 +64,9 @@ resource "aws_cloudwatch_log_metric_filter" "email_delivery_attempt_count" {
       <section id="installation" className="space-y-4">
         <h2 className="text-2xl font-semibold">Installation</h2>
         <p>
-          Add the provider to your Terraform configuration. The provider version
-          tracks LogStruct releases and uses the same tag.
+          Use the AWS module wrappers for common patterns. They resolve the
+          provider internally and compile patterns safely.
         </p>
-        <CodeBlock language="hcl" title="Required Providers">
-          {requiredProviders}
-        </CodeBlock>
       </section>
 
       <section id="example" className="space-y-4">
@@ -97,23 +74,18 @@ resource "aws_cloudwatch_log_metric_filter" "email_delivery_attempt_count" {
           CloudWatch Metric Filter Example
         </h2>
         <p>
-          Compile a CloudWatch JSON filter for a known struct/event and wire it
-          into an AWS metric filter. Invalid combinations produce Terraform
-          diagnostics during validate/plan.
+          Module-first: create an AWS metric filter for a known LogStruct
+          source/event combo. Invalid combinations fail at plan time.
         </p>
-        <div className="grid gap-6 md:grid-cols-2">
-          <CodeBlock language="hcl" title="Data Source">
-            {cwFilterDataSource}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <CodeBlock language="hcl" title="Module: Metric Filter">
+            {moduleMetricFilter}
           </CodeBlock>
-          <CodeBlock language="hcl" title="AWS Metric Filter">
-            {cwMetricFilter}
+          <CodeBlock language="hcl" title="Variables">
+            {`variable "log_group_name" { type = string }
+variable "namespace" { type = string }`}
           </CodeBlock>
         </div>
-        <p className="text-neutral-600 dark:text-neutral-400">
-          The compiled pattern looks like:{' '}
-          <code>{`{ $.src = "mailer" && $.evt = "delivered" ... }`}</code>
-          and includes canonical key names with any fixed source constraints.
-        </p>
       </section>
 
       <section id="validation" className="space-y-4">
@@ -149,53 +121,20 @@ resource "aws_cloudwatch_log_metric_filter" "email_delivery_attempt_count" {
         <p className="text-neutral-600 dark:text-neutral-400">
           A few helpful patterns you can copy and adapt:
         </p>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <CodeBlock language="hcl" title="Count Email Deliveries">
-            {`data "logstruct_cloudwatch_filter" "email_delivered" {
-  struct = "ActionMailer"
-  event  = "delivered"
-}
-
-resource "aws_cloudwatch_log_metric_filter" "email_delivered_count" {
-  name           = "Email Delivered Count"
-  log_group_name = var.log_group.app
-  pattern        = data.logstruct_cloudwatch_filter.email_delivered.pattern
-
-  metric_transformation {
-    name          = "app_email_delivered_count"
-    namespace     = var.namespace.logs
-    value         = "1"
-    unit          = "Count"
-  }
-}`}
+            {moduleMetricFilter}
           </CodeBlock>
-
           <CodeBlock language="hcl" title="Count Successful GoodJob Runs">
-            {`data "logstruct_cloudwatch_filter" "goodjob_finish" {
-  struct = "GoodJob"
-  event  = "finish"
-}
-
-resource "aws_cloudwatch_log_metric_filter" "goodjob_finish_count" {
-  name           = "GoodJob Finish Count"
-  log_group_name = var.log_group.app
-  pattern        = data.logstruct_cloudwatch_filter.goodjob_finish.pattern
-
-  metric_transformation {
-    name      = "app_goodjob_finish_count"
-    namespace = var.namespace.logs
-    value     = "1"
-    unit      = "Count"
-  }
-}`}
+            {moduleGoodJobFinish}
           </CodeBlock>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <CodeBlock language="hcl" title="Count All SQL Queries">
-            {sqlCount}
+            {moduleSqlCount}
           </CodeBlock>
-          <CodeBlock language="hcl" title="Count Email Delivery Attempts">
-            {mailDeliveryAttempt}
+          <CodeBlock language="hcl" title="Provider Reference: Compile Pattern">
+            {providerPattern}
           </CodeBlock>
         </div>
         <p className="text-neutral-600 dark:text-neutral-400">
@@ -217,6 +156,15 @@ resource "aws_cloudwatch_log_metric_filter" "goodjob_finish_count" {
               rel="noopener noreferrer"
             >
               Provider README (GitHub)
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://registry.terraform.io/modules/DocSpring/logstruct/aws"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              AWS Module (Terraform Registry)
             </a>
           </li>
         </ul>
