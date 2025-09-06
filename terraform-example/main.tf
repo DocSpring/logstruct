@@ -12,18 +12,10 @@ terraform {
   }
 }
 
-# Validate allowed events for a canonical source
-data "logstruct_source" "mailer" {
-  source = "mailer"
-}
-
 variable "event" {
-  type = string
-  default = "delivered"
-  validation {
-    condition     = contains(keys(data.logstruct_source.mailer.events), var.event)
-    error_message = "Invalid event for source=mailer"
-  }
+  type        = string
+  default     = "delivered"
+  description = "LogStruct event for source=mailer (e.g., delivered)"
 }
 
 # Compile exact CloudWatch pattern (optional; module also compiles internally)
@@ -32,11 +24,10 @@ data "logstruct_pattern" "email" {
   event  = var.event
 }
 
-# Example module usage: metric filter
+# Example module usage: metric filter (Registry)
 module "email_delivered_metric" {
-  # Use local relative path for CI/demo; switch to Registry in real usage:
-  # source = "DocSpring/logstruct/aws//modules/metric-filter"
-  source         = "../terraform-aws-logstruct/modules/metric-filter"
+  source  = "DocSpring/logstruct/aws//modules/metric-filter"
+  version = ">= 0.0.4"
 
   name           = "Email Delivered Count"
   log_group_name = var.log_group_name
@@ -45,9 +36,17 @@ module "email_delivered_metric" {
   namespace      = var.namespace
 }
 
-variable "log_group_name" { type = string }
-variable "namespace" { type = string }
+variable "log_group_name" {
+  type        = string
+  description = "CloudWatch Logs group name"
+}
+
+variable "namespace" {
+  type        = string
+  description = "CloudWatch Metrics namespace"
+}
 
 output "compiled_pattern" {
-  value = data.logstruct_pattern.email.pattern
+  value       = data.logstruct_pattern.email.pattern
+  description = "Compiled CloudWatch filter pattern from source+event"
 }

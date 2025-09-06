@@ -22,5 +22,10 @@
 rails_test_app/logstruct_test_app/
 
 terraform-provider-logstruct/
+
+# Terraform local artifacts
+**/.terraform/
+**/.terraform.lock.hcl
+**/.tflint.hcl.local
 terraform-aws-logstruct/
 terraform-example/.terraform/
