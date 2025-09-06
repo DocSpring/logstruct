@@ -5,10 +5,6 @@ terraform {
       source  = "DocSpring/logstruct"
       version = ">= 0.0.4"
     }
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.0"
-    }
   }
 }
 
