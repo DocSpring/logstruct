@@ -109,7 +109,7 @@ export function MainNav() {
                   <li>
                     <NavigationMenuLink asChild>
                       <a
-                        href="/docs/type-safety"
+                        href="/docs/sorbet-types"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
                         <div className="text-sm font-medium leading-none">
@@ -208,7 +208,7 @@ export function MainNav() {
                   Integrations
                 </Link>
                 <Link
-                  href="/docs/type-safety"
+                  href="/docs/sorbet-types"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Type Safety

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "node scripts/generate-favicons.js && next build",
+    "postbuild": "node scripts/check-internal-links.js",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

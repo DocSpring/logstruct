@@ -83,7 +83,7 @@ export default function GettingStartedPage() {
           integrations with popular gems
         </li>
         <li>
-          <a href="/docs/type-safety">Type Safety</a> - Advanced logging with
+          <a href="/docs/sorbet-types">Type Safety</a> - Advanced logging with
           Sorbet type checking
         </li>
       </ul>
