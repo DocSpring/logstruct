@@ -2,9 +2,14 @@ name: Terraform Example
 
 on:
   push:
-    branches: [main]
+    paths:
+      - '.github/workflows/terraform-example.yml'
+      - 'terraform-example/**'
   pull_request:
-    branches: [main]
+    paths:
+      - '.github/workflows/terraform-example.yml'
+      - 'terraform-example/**'
+  workflow_dispatch:
 
 jobs:
   validate:
