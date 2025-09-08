@@ -7,6 +7,10 @@ module LogStruct
   module Log
     module Interfaces
       # Public interface for custom app log types.
+      # NOTE: This interface is intended for applications using the gem to
+      # define their own typed logs (with custom string/symbol sources/events).
+      # Internally, LogStruct uses the sealed CommonFields interface based on
+      # enums (see interfaces/common_fields.rb).
       # Allows String/Symbol for source and event so apps can define their own domains.
       module PublicCommonFields
         extend T::Sig

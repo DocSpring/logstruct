@@ -2,9 +2,6 @@
 
 # Configure LogStruct
 LogStruct.configure do |config|
-  # Enable LogStruct in all environments for testing
-  config.enabled = true
-
   # Specify which environments to enable in
   config.enabled_environments = [:development, :test, :production]
 

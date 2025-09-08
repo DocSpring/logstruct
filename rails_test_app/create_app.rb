@@ -30,9 +30,21 @@ if rails_version.count(".") < 2
 end
 
 def install_rails_if_missing(version)
-  rails_gems = `gem list rails -l`
-  installed_versions = rails_gems.scan(/rails \(([^)]+)\)/).flatten.first&.split(", ") || []
-  return puts("Rails #{version} already installed") if installed_versions.include?(version)
+  # Robust detection using RubyGems API
+  begin
+    if Gem::Specification.find_all_by_name("rails", version).any?
+      puts "Rails #{version} already installed"
+      return
+    end
+  rescue => e
+    warn "Warning: gem spec check failed (#{e}). Falling back to shell check."
+    check_cmd = "gem list -i rails -v '#{version}'"
+    already = system(check_cmd)
+    if already
+      puts "Rails #{version} already installed"
+      return
+    end
+  end
 
   puts "Rails #{version} not found. Installing..."
   pre_flag = /[a-zA-Z]/.match?(version) ? " --pre" : ""
@@ -57,8 +69,10 @@ if rails_version.start_with?("7.0")
   end
 
   # Always make sure 1.3.4 is installed
-  puts "Installing concurrent-ruby 1.3.4 for Rails 7.0 compatibility..."
-  system("gem install concurrent-ruby -v '1.3.4' --no-document")
+  unless gem_list_output.include?("1.3.4")
+    puts "Installing concurrent-ruby 1.3.4 for Rails 7.0 compatibility..."
+    system("gem install concurrent-ruby -v '1.3.4' --no-document")
+  end
 
   # Update GEM_PATH so the gem is available to this script
   ENV["GEM_PATH"] = `gem env gempath`.strip
@@ -193,6 +207,7 @@ if !skip_app_creation
     gem "mutex_m"
     gem "drb"
     gem "benchmark"
+    gem "dotenv-rails"
 
     # Test gems
     group :test do
@@ -233,6 +248,12 @@ if !skip_app_creation
     gemfile_content << managed_block
   end
 
+  # Normalize deprecated Windows platform declarations to silence bundler warnings
+  # Replace any occurrence of :mingw, :mswin, :x64_mingw with :windows
+  gemfile_content.gsub!(%r{platforms:\s*%i\[\s*mingw\s+mswin\s+x64_mingw\s+jruby\s*\]}, "platforms: %i[ windows jruby ]")
+  # e.g., %i[ mri mingw x64_mingw ] -> %i[ mri windows ]
+  gemfile_content.gsub!(%r{%i\[\s*mri\s+mingw\s+x64_mingw\s*\]}, "%i[ mri windows ]")
+
   # Have to pin concurrent-ruby to 1.3.4 for Rails 7.0 compatibility
   if rails_version.start_with?("7.0")
     gemfile_content += <<~GEMS
@@ -247,9 +268,9 @@ end
 
 # Copy all template files before bundling and installing ActiveStorage
 puts "Copying template files..."
-Dir.glob(File.join(TEMPLATE_DIR, "*")).each do |file|
-  relative_path = File.basename(file)
-  copy_template(relative_path)
+# Use Dir.children to include dotfiles but exclude . and ..
+Dir.children(TEMPLATE_DIR).each do |entry|
+  copy_template(entry)
 end
 
 # Run bundle install now that templates (and Gemfile edits) are in place

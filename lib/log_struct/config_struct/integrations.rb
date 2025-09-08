@@ -98,6 +98,10 @@ module LogStruct
       # Enable ActiveModelSerializers integration
       # Default: true (safe no-op unless ActiveModelSerializers is defined)
       prop :enable_active_model_serializers, T::Boolean, default: true
+
+      # Enable dotenv-rails integration (convert to structured logs)
+      # Default: true
+      prop :enable_dotenv, T::Boolean, default: true
     end
   end
 end

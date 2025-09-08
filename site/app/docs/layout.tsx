@@ -170,11 +170,6 @@ export default function DocsLayout({
                       },
                     ]}
                   />
-                  <DocNavItem
-                    href="/docs/api-design"
-                    title="API Design"
-                    active={pathname.startsWith('/docs/api-design')}
-                  />
 
                   <DocNavItem
                     href="/docs/comparison"

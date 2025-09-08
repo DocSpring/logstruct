@@ -62,7 +62,7 @@ module LogStruct
       sig { params(log: ::SemanticLogger::Log, logger: T.untyped).returns(String) }
       def call(log, logger)
         # Handle LogStruct types specially - they get wrapped in payload hash by SemanticLogger
-        if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(LogStruct::Log::Interfaces::CommonFields)
+        json = if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(LogStruct::Log::Interfaces::CommonFields)
           # Use our formatter to process LogStruct types
           @logstruct_formatter.call(log.level, log.time, log.name, log.payload[:payload])
         elsif log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
@@ -83,6 +83,8 @@ module LogStruct
           )
           @logstruct_formatter.call(log.level, log.time, log.name, plain_log)
         end
+        # SemanticLogger appenders typically add their own newline. Avoid double newlines by stripping ours.
+        json.end_with?("\n") ? json.chomp : json
       end
 
       private

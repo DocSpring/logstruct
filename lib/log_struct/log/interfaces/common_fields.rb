@@ -8,7 +8,10 @@ require_relative "../../enums/level"
 module LogStruct
   module Log
     module Interfaces
-      # Common interface that all log entry types must implement
+      # Common interface that all log entry types must implement.
+      # NOTE: This is the internal interface used by LogStruct for its built-in
+      # log classes. It uses sealed enums for source and event. For applications
+      # that need custom sources/events, use PublicCommonFields instead.
       module CommonFields
         extend T::Sig
         extend T::Helpers

@@ -26,7 +26,7 @@ module LogStruct
           when Source::Security
             config.error_handling_modes.security_errors
           when Source::Rails, Source::App, Source::Job, Source::Storage, Source::Mailer,
-               Source::Shrine, Source::CarrierWave, Source::Sidekiq
+               Source::Shrine, Source::CarrierWave, Source::Sidekiq, Source::Dotenv
             config.error_handling_modes.standard_errors
           else
             # Ensures the case statement is exhaustive

@@ -18,6 +18,8 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   ActiveModelSerializers:
     'For render events produced by ActiveModelSerializers (serializer, adapter, resource, duration)',
   Ahoy: 'For analytics tracking events emitted by Ahoy (event name and properties)',
+  Dotenv:
+    'For dotenv-rails configuration events during boot (load/update/save/restore of env files and variables)',
 };
 
 /**

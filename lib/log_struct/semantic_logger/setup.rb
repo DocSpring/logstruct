@@ -164,13 +164,14 @@ module LogStruct
 
       sig { params(app: T.untyped).returns(T.any(IO, StringIO)) }
       def self.determine_output(app)
-        if ENV["RAILS_LOG_TO_STDOUT"].present?
-          $stdout
-        elsif Rails.env.test?
-          # Use StringIO for tests to avoid cluttering test output
+        # Always honor explicit STDOUT directive, even in test, or when LogStruct is enabled via env
+        return $stdout if ENV["RAILS_LOG_TO_STDOUT"].present? || ENV["LOGSTRUCT_ENABLED"].to_s.strip.downcase == "true"
+
+        if Rails.env.test?
+          # Default to StringIO to keep test output clean unless STDOUT is requested
           StringIO.new
         else
-          # Prefer file logging when not explicitly configured for STDOUT
+          # Default to STDOUT for app logs
           $stdout
         end
       end

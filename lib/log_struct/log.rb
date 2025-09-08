@@ -23,6 +23,7 @@ require_relative "log/sidekiq"
 require_relative "log/sql"
 require_relative "log/ahoy"
 require_relative "log/active_model_serializers"
+require_relative "log/dotenv"
 
 module LogStruct
   # Type aliases for all possible log types
@@ -43,7 +44,8 @@ module LogStruct
       T.class_of(LogStruct::Log::Sidekiq),
       T.class_of(LogStruct::Log::SQL),
       T.class_of(LogStruct::Log::Ahoy),
-      T.class_of(LogStruct::Log::ActiveModelSerializers)
+      T.class_of(LogStruct::Log::ActiveModelSerializers),
+      T.class_of(LogStruct::Log::Dotenv)
     )
   end
 end

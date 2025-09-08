@@ -55,6 +55,21 @@ export class RandomDataGenerator {
   }
 
   /**
+   * Pick n unique random items from an array
+   */
+  sampleSize<T>(arr: T[], n: number): T[] {
+    if (n <= 0) return [];
+    if (n >= arr.length) return [...arr];
+    // Fisher–Yates shuffle on a copy, then slice
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(this.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
+  }
+
+  /**
    * Generate a random integer in a range
    */
   randomInt(min: number, max: number): number {

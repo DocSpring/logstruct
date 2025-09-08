@@ -26,5 +26,12 @@ module LogstructTestApp
 
     # Use test adapter for ActiveJob in all environments for testing
     config.active_job.queue_adapter = :test
+
+    # Force all environments to log to STDOUT so development behaves like test/production
+    # This mirrors how many platforms and 12-factor apps expect logs to be emitted.
+    config.log_level = :debug
+    stdout_logger = ActiveSupport::Logger.new($stdout)
+    stdout_logger.formatter = config.log_formatter
+    config.logger = ActiveSupport::TaggedLogging.new(stdout_logger)
   end
 end

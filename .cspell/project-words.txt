@@ -11,6 +11,8 @@ carrierwave
 creds
 dalli
 docspring
+dotenv
+Dotenv
 Fanout
 favicons
 gettime
@@ -19,6 +21,7 @@ Healthcheck
 Honeybadger
 hotwire
 hrefs
+instrumenter
 kamal
 klass
 kwargs
@@ -28,6 +31,7 @@ logdev
 Logstop
 LogStruct
 metaprogramming
+mswin
 nilable
 optparse
 parseable

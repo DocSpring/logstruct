@@ -41,16 +41,16 @@ module LogStruct
         def set_enabled_from_rails_env!
           # Set enabled based on current Rails environment and the LOGSTRUCT_ENABLED env var.
           # Precedence:
-          # 1. Check if LOGSTRUCT_ENABLED env var is defined
-          #    - Sets enabled=true only when value is "true"
-          #    - Sets enabled=false when value is "false" (or any non-"true")
+          # 1. Check if LOGSTRUCT_ENABLED env var is defined (not an empty string)
+          #    - Sets enabled=true only when value is "true", "yes", "1", etc.
+          #    - Sets enabled=false when value is any other value
           # 2. Otherwise, check if current Rails environment is in enabled_environments
           # 3. Otherwise, leave as config.enabled (defaults to true)
 
           # Then check if LOGSTRUCT_ENABLED env var is set
           config.enabled = if ENV["LOGSTRUCT_ENABLED"]
             # Override to true only if env var is "true"
-            ENV["LOGSTRUCT_ENABLED"] == "true"
+            %w[true t yes y 1].include?(ENV["LOGSTRUCT_ENABLED"]&.strip&.downcase)
           else
             config.enabled_environments.include?(::Rails.env.to_sym)
           end

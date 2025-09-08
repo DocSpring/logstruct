@@ -16,10 +16,26 @@ require_relative "integrations/carrierwave"
 require_relative "integrations/sorbet"
 require_relative "integrations/ahoy"
 require_relative "integrations/active_model_serializers"
+require_relative "integrations/dotenv"
 
 module LogStruct
   module Integrations
     extend T::Sig
+
+    # Register generic initializers on the Railtie to keep integration
+    # wiring centralized (boot replay interception and resolution).
+    sig { params(railtie: T.untyped).void }
+    def self.setup_initializers(railtie)
+      # Intercept any boot-time replays (e.g., dotenv) before those railties run
+      railtie.initializer "logstruct.intercept_boot_replays", before: "dotenv" do
+        LogStruct::Integrations::Dotenv.intercept_logger_setter!
+      end
+
+      # Decide which set of boot logs to emit after user initializers
+      railtie.initializer "logstruct.resolve_boot_logs", after: :load_config_initializers do
+        LogStruct::Integrations::Dotenv.resolve_boot_logs!
+      end
+    end
 
     sig { void }
     def self.setup_integrations

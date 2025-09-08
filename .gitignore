@@ -13,6 +13,9 @@
 /plans
 /log
 
+# Source code references
+/reference
+
 # Next.js site ignore rules are in ./site/.gitignore
 
 # CSpell generated wordlists (from package lockfiles)

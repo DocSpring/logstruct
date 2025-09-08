@@ -22,6 +22,7 @@ module LogStruct
       Shrine = new(:shrine)
       CarrierWave = new(:carrierwave)
       Sidekiq = new(:sidekiq)
+      Dotenv = new(:dotenv)
     end
   end
 end

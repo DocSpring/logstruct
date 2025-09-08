@@ -30,6 +30,12 @@ module LogStruct
       Delivery = new(:delivery)
       Delivered = new(:delivered)
 
+      # Configuration / boot events
+      Load = new(:load)
+      Update = new(:update)
+      Save = new(:save)
+      Restore = new(:restore)
+
       # Security events
       IPSpoof = new(:ip_spoof)
       CSRFViolation = new(:csrf_violation)

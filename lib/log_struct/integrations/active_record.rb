@@ -40,11 +40,32 @@ module LogStruct
       extend T::Sig
       extend IntegrationInterface
 
+      # Track subscription state keyed to the current Notifications.notifier instance
+      State = ::Struct.new(:subscribed, :notifier_id)
+      STATE = T.let(State.new(false, nil), State)
+
       # Set up SQL query logging integration
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
         return nil unless config.integrations.enable_sql_logging
         return nil unless defined?(::ActiveRecord::Base)
+
+        # Detach Rails' default ActiveRecord log subscriber to prevent
+        # duplicate/unstructured SQL debug output when LogStruct SQL logging
+        # is enabled. We still receive notifications via ActiveSupport.
+        if defined?(::ActiveRecord::LogSubscriber)
+          begin
+            ::ActiveRecord::LogSubscriber.detach_from(:active_record)
+          rescue => e
+            LogStruct.handle_exception(e, source: LogStruct::Source::Internal)
+          end
+        end
+
+        # Disable verbose query logs ("↳ caller") since LogStruct provides
+        # structured context and these lines are noisy/unstructured.
+        if ::ActiveRecord::Base.respond_to?(:verbose_query_logs=)
+          T.unsafe(::ActiveRecord::Base).verbose_query_logs = false
+        end
 
         subscribe_to_sql_notifications
         true
@@ -55,11 +76,20 @@ module LogStruct
       # Subscribe to ActiveRecord's sql.active_record notifications
       sig { void }
       def self.subscribe_to_sql_notifications
+        # Avoid duplicate subscriptions; re-subscribe if the notifier was reset
+        notifier = ::ActiveSupport::Notifications.notifier
+        current_id = notifier&.object_id
+        if STATE.subscribed && STATE.notifier_id == current_id
+          return
+        end
+
         ::ActiveSupport::Notifications.subscribe("sql.active_record") do |name, start, finish, id, payload|
           handle_sql_event(name, start, finish, id, payload)
         rescue => error
           LogStruct.handle_exception(error, source: LogStruct::Source::Internal)
         end
+        STATE.subscribed = true
+        STATE.notifier_id = current_id
       end
 
       # Process SQL notification event and create structured log

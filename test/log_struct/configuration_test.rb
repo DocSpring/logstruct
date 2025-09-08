@@ -71,18 +71,18 @@ module LogStruct
       end
     end
 
-    def test_set_enabled_from_env_var_not_true
+    def test_set_enabled_from_env_var_when_no
       # Set up test conditions
       LogStruct.config.enabled = true
       LogStruct.config.enabled_environments = [] # No environments enabled
 
       # Use ClimateControl to modify ENV
-      ClimateControl.modify LOGSTRUCT_ENABLED: "yes" do
+      ClimateControl.modify LOGSTRUCT_ENABLED: "no" do
         # Stub Rails.env to not match enabled_environments
         Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
           LogStruct.set_enabled_from_rails_env!
 
-          assert_not LogStruct.config.enabled, 'LogStruct should be disabled when LOGSTRUCT_ENABLED is not "true"'
+          assert_not LogStruct.config.enabled, 'LogStruct should be disabled when LOGSTRUCT_ENABLED is "no"'
         end
       end
     end

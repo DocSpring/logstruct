@@ -41,7 +41,8 @@ export default function ConfigurationPage() {
           <strong>
             <code>LOGSTRUCT_ENABLED</code>
           </strong>{' '}
-          environment variable is set to <code>&quot;true&quot;</code>.
+          environment variable is set to <code>&quot;true&quot;</code>,
+          <code>&quot;yes&quot;</code>, <code>&quot;1&quot;</code>, etc.
         </li>
         <li>
           LogStruct will be <strong>disabled</strong> if{' '}

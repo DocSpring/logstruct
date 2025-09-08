@@ -5,6 +5,7 @@ require "rails"
 require "semantic_logger"
 require_relative "formatter"
 require_relative "semantic_logger/setup"
+require_relative "integrations"
 
 module LogStruct
   # Railtie to integrate with Rails
@@ -30,5 +31,8 @@ module LogStruct
       # Set up all integrations
       Integrations.setup_integrations
     end
+
+    # Delegate integration initializers to Integrations module
+    LogStruct::Integrations.setup_initializers(self)
   end
 end

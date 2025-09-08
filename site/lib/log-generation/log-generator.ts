@@ -21,6 +21,7 @@ import {
   SQLLog,
   ActiveModelSerializersLog,
   AhoyLog,
+  DotenvLog,
   // Import the event type arrays for each log type
   SecurityEvents,
   ActiveJobEvents,
@@ -111,6 +112,13 @@ export class LogGenerator extends RandomDataGenerator {
         return Event.LOG;
       case LogType.AHOY:
         return Event.LOG;
+      case LogType.DOTENV:
+        return this.sample([
+          Event.LOAD,
+          Event.UPDATE,
+          Event.SAVE,
+          Event.RESTORE,
+        ]);
       default:
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
@@ -146,6 +154,8 @@ export class LogGenerator extends RandomDataGenerator {
         return Source.RAILS;
       case LogType.AHOY:
         return Source.APP;
+      case LogType.DOTENV:
+        return Source.DOTENV;
       case LogType.PLAIN:
       case LogType.ERROR:
         // These can have any source
@@ -213,6 +223,8 @@ export class LogGenerator extends RandomDataGenerator {
         );
       case LogType.AHOY:
         return this.generateAhoyLog(log as Partial<AhoyLog>);
+      case LogType.DOTENV:
+        return this.generateDotenvLog(log as Partial<DotenvLog>);
       default:
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
@@ -521,6 +533,44 @@ export class LogGenerator extends RandomDataGenerator {
     };
     log.additional_data = {};
     return log;
+  }
+
+  private generateDotenvLog(log: Partial<DotenvLog>): Partial<DotenvLog> {
+    // Choose event if not pre-selected
+    // Narrow the event type specifically for dotenv
+    const allowed: Array<DotenvLog['event']> = [
+      Event.LOAD,
+      Event.UPDATE,
+      Event.SAVE,
+      Event.RESTORE,
+    ];
+    const event: DotenvLog['event'] =
+      (log.event as DotenvLog['event']) ?? this.sample(allowed);
+    const level = event === Event.UPDATE ? Level.INFO : Level.INFO;
+
+    // Typically dotenv logs either vars or file depending on event
+    const possibleVars = [
+      'REGION',
+      'BOOT_FLAG',
+      'API_KEY',
+      'SECRET_TOKEN',
+      'LOG_LEVEL',
+    ];
+    const vars = this.sampleSize(possibleVars, this.randomInt(1, 3));
+    const file = this.sample(['.env.development', '.env.test', '.env']);
+
+    const dotenvLog: Partial<DotenvLog> = {
+      ...log,
+      source: Source.DOTENV,
+      event,
+      level,
+      file: event === Event.LOAD ? file : undefined,
+      vars:
+        event === Event.UPDATE || event === Event.RESTORE ? vars : undefined,
+      additional_data: {},
+    };
+
+    return dotenvLog;
   }
 
   /**
