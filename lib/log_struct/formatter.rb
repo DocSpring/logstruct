@@ -94,7 +94,7 @@ module LogStruct
               T.unsafe(arg).to_s
             end
           rescue => e
-            LogStruct.handle_exception(e, source: Source::LogStruct)
+            LogStruct.handle_exception(e, source: Source::Internal)
             "[GLOBALID_ERROR]"
           end
         end
@@ -115,7 +115,7 @@ module LogStruct
         value_type: arg.class.name,
         recursion_depth: recursion_depth
       }
-      LogStruct.handle_exception(e, source: Source::LogStruct, context: context)
+      LogStruct.handle_exception(e, source: Source::Internal, context: context)
       arg
     end
 
@@ -166,7 +166,7 @@ module LogStruct
               object_class: log_value.class.name,
               object_inspect: log_value.inspect.truncate(100)
             }
-            LogStruct.handle_exception(e, source: Source::LogStruct, context: context)
+            LogStruct.handle_exception(e, source: Source::Internal, context: context)
 
             # Fall back to the string representation to ensure we continue processing
             log_value.to_s

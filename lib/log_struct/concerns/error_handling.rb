@@ -21,7 +21,7 @@ module LogStruct
           case source
           when Source::TypeChecking
             config.error_handling_modes.type_checking_errors
-          when Source::LogStruct
+          when Source::Internal
             config.error_handling_modes.logstruct_errors
           when Source::Security
             config.error_handling_modes.security_errors

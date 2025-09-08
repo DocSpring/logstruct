@@ -58,7 +58,7 @@ module LogStruct
         ::ActiveSupport::Notifications.subscribe("sql.active_record") do |name, start, finish, id, payload|
           handle_sql_event(name, start, finish, id, payload)
         rescue => error
-          LogStruct.handle_exception(error, source: LogStruct::Source::LogStruct)
+          LogStruct.handle_exception(error, source: LogStruct::Source::Internal)
         end
       end
 

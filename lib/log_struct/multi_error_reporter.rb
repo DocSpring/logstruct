@@ -136,7 +136,7 @@ module LogStruct
 
         # Create a proper error log entry
         error_log = Log::Error.from_exception(
-          Source::LogStruct,
+          Source::Internal,
           error,
           context
         )

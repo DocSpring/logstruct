@@ -7,8 +7,9 @@ module LogStruct
     enums do
       # Error sources
       TypeChecking = new(:type_checking) # For type checking errors (Sorbet)
-      LogStruct = new(:logstruct) # Errors from LogStruct itself
       Security = new(:security) # Security-related events
+      # Errors from LogStruct. (Cannot use LogStruct here because it confuses tapioca.)
+      Internal = new(:logstruct)
 
       # Application sources
       Rails = new(:rails) # For request-related logs/errors

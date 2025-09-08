@@ -391,7 +391,7 @@ module LogStruct
         first_exception = T.let(exceptions_logged.first, T.nilable(T::Array[T.untyped]))
 
         assert_not_nil first_exception
-        assert_equal LogStruct::Source::LogStruct, T.must(first_exception)[1]
+        assert_equal LogStruct::Source::Internal, T.must(first_exception)[1]
       end
 
       test "integration is included in automatic setup" do
