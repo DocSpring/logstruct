@@ -55,3 +55,14 @@ class ActiveSupport::TestCase
     end
   end
 end
+
+# Ensure LogStruct is enabled and emits JSON in tests across Rails versions
+begin
+  LogStruct.configure do |config|
+    config.enabled = true
+    # Prefer production-style JSON in development/test
+    config.integrations.prefer_json_in_development = true
+  end
+rescue NameError
+  # LogStruct not loaded; ignore
+end

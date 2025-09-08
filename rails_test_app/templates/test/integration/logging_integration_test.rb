@@ -3,7 +3,7 @@
 
 require "test_helper"
 
-class LogstructTest < ActionDispatch::IntegrationTest
+class LoggingIntegrationTest < ActionDispatch::IntegrationTest
   # Basic test to ensure the Rails app is working
   def test_healthcheck_works
     get "/health"

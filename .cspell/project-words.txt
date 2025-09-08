@@ -19,6 +19,7 @@ Healthcheck
 Honeybadger
 hotwire
 hrefs
+kamal
 klass
 kwargs
 lightningcss

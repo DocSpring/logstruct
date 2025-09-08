@@ -48,15 +48,28 @@ Please see the [documentation](https://logstruct.com/docs/configuration/) for co
 
 ### Important Notes on Integration
 
-Once initialized, the gem automatically includes its modules into the appropriate base classes:
+Once initialized (and enabled), the gem automatically includes its modules into the appropriate base classes:
 
-- `ActiveSupport::TaggedLogging` is patched to support both Hashes and Strings
+- `ActiveSupport::TaggedLogging` is patched to support both Hashes and Strings (only when LogStruct is enabled)
 - `ActionMailer::Base` includes error handling and event logging modules
 - We configure `Lograge` for request logging
 - A Rack middleware is inserted to catch and log errors, including security violations (IP spoofing, CSRF, blocked hosts, etc.)
 - Structured logging is set up for ActiveJob, Sidekiq, Shrine, etc.
 - Rails `config.filter_parameters` are merged into LogStruct's filters and then cleared (to avoid double filtering). Configure sensitive keys via `LogStruct.config.filters`.
 - When `RAILS_LOG_TO_STDOUT` is set, we log to STDOUT only. Otherwise, we log to STDOUT by default without adding a file appender to avoid duplicate logs.
+
+### Development behavior
+
+- Disabled by default in development. Enable explicitly via `LOGSTRUCT_ENABLED=true` or `LogStruct.configure { |c| c.enabled = true }`.
+- When enabled in development, LogStruct now defaults to production‑style JSON output so you can preview exactly what will be shipped in prod.
+- You can opt back into the colorful human formatter with:
+
+```ruby
+LogStruct.configure do |c|
+  c.integrations.prefer_json_in_development = false
+  c.integrations.enable_color_output = true
+end
+```
 
 ## Documentation
 

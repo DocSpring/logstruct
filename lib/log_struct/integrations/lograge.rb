@@ -38,21 +38,30 @@ module LogStruct
             # The struct is converted to JSON by our Formatter (after filtering, etc.)
             config.lograge.formatter = T.let(
               lambda do |data|
+                # Coerce common fields to expected types
+                status = ((s = data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
+                duration = ((d = data[:duration]) && d.respond_to?(:to_f)) ? d.to_f : d
+                view = ((v = data[:view]) && v.respond_to?(:to_f)) ? v.to_f : v
+                db = ((b = data[:db]) && b.respond_to?(:to_f)) ? b.to_f : b
+
+                params = data[:params]
+                params = params.deep_symbolize_keys if params&.respond_to?(:deep_symbolize_keys)
+
                 # Convert the data hash to a Log::Request struct
                 Log::Request.new(
                   source: Source::Rails,
                   event: Event::Request,
                   timestamp: Time.now,
-                  http_method: data[:method],
-                  path: data[:path],
-                  format: data[:format],
-                  controller: data[:controller],
-                  action: data[:action],
-                  status: data[:status],
-                  duration: data[:duration],
-                  view: data[:view],
-                  db: data[:db],
-                  params: data[:params]
+                  http_method: data[:method]&.to_s,
+                  path: data[:path]&.to_s,
+                  format: data[:format]&.to_s,
+                  controller: data[:controller]&.to_s,
+                  action: data[:action]&.to_s,
+                  status: status,
+                  duration: duration,
+                  view: view,
+                  db: db,
+                  params: params
                 )
               end,
               T.proc.params(hash: T::Hash[Symbol, T.untyped]).returns(Log::Request)

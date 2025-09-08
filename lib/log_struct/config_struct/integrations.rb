@@ -64,6 +64,12 @@ module LogStruct
       # Default: true
       prop :enable_color_output, T::Boolean, default: true
 
+      # Prefer production-style JSON output in development when LogStruct is enabled.
+      # This makes it easy to preview exactly what production logs will look like
+      # when you opt-in to LogStruct locally (via LOGSTRUCT_ENABLED=true or config).
+      # Default: true
+      prop :prefer_json_in_development, T::Boolean, default: true
+
       # Color configuration for JSON output
       # Default: nil (uses SemanticLogger defaults)
       prop :color_map, T.nilable(T::Hash[Symbol, Symbol]), default: nil

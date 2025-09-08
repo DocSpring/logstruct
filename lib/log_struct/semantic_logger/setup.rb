@@ -119,17 +119,32 @@ module LogStruct
         # Determine output destination
         io = determine_output(app)
 
-        if Rails.env.development? && config.integrations.enable_color_output
-          # Use our colorized LogStruct formatter for development
-          ::SemanticLogger.add_appender(
-            io: io,
-            formatter: LogStruct::SemanticLogger::ColorFormatter.new(
-              color_map: config.integrations.color_map
-            ),
-            filter: determine_filter
-          )
+        if Rails.env.development?
+          if config.integrations.prefer_json_in_development
+            # Default to production-style JSON in development when enabled
+            ::SemanticLogger.add_appender(
+              io: io,
+              formatter: LogStruct::SemanticLogger::Formatter.new,
+              filter: determine_filter
+            )
+          elsif config.integrations.enable_color_output
+            # Opt-in colorful human formatter in development
+            ::SemanticLogger.add_appender(
+              io: io,
+              formatter: LogStruct::SemanticLogger::ColorFormatter.new(
+                color_map: config.integrations.color_map
+              ),
+              filter: determine_filter
+            )
+          else
+            ::SemanticLogger.add_appender(
+              io: io,
+              formatter: LogStruct::SemanticLogger::Formatter.new,
+              filter: determine_filter
+            )
+          end
         else
-          # Use our custom JSON formatter
+          # Use our custom JSON formatter in non-development environments
           ::SemanticLogger.add_appender(
             io: io,
             formatter: LogStruct::SemanticLogger::Formatter.new,

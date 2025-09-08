@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/gem_tasks"
+require "rake/file_utils"
 require "rake/testtask"
 require "fileutils"
 
@@ -15,13 +16,6 @@ end
 
 # Load Sorbet tasks
 Dir.glob("tasks/*.rake").each { |r| load r }
-
-# Rails application integration tests
-desc "Run Rails integration tests"
-task :rails_tests do
-  script_path = File.expand_path("scripts/rails_tests.sh", __dir__)
-  system(script_path) || abort("Rails tests failed")
-end
 
 # Default task runs tests and type checking
 task default: [:test, "sorbet:typecheck"]

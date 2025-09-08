@@ -99,5 +99,13 @@ LogStruct.configure do |config|
   config.filters.hash_length = 12
 end
 
+# Since Rails was already initialized before requiring LogStruct,
+# explicitly set up integrations that depend on Railtie init order.
+begin
+  LogStruct::Integrations::Lograge.setup(LogStruct.config)
+rescue NameError
+  # ignore if not available
+end
+
 # Load all test support files
 Dir[File.join(File.dirname(__FILE__), "support/**/*.rb")].sort.each { |f| require f }

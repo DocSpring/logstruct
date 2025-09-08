@@ -12,10 +12,10 @@ FORCE_RECREATE="${FORCE_RECREATE:-false}"
 # Show what we're testing
 echo "Testing LogStruct with Rails ${RAILS_VERSION}"
 
-# Check if bundler is installed
+# Check if bundler is installed for current Ruby
 if ! gem list -i "^bundler$" > /dev/null 2>&1; then
   echo "Installing bundler..."
-  gem install bundler
+  gem install bundler --no-document
 fi
 
 # Check if Rails version file doesn't exist or version has changed
@@ -54,11 +54,11 @@ if [ ! -d "$TEST_APP_DIR" ]; then
   RAILS_VERSION="$RAILS_VERSION" ruby "$CREATE_APP_SCRIPT"
 else
   echo "Using existing test app at $TEST_APP_DIR"
-  
+
   # Still copy templates to ensure latest code is used
   echo "Updating template files..."
   RAILS_VERSION="$RAILS_VERSION" SKIP_APP_CREATION="true" ruby "$CREATE_APP_SCRIPT"
-  
+
   # Make sure the version file is up to date
   echo "$RAILS_VERSION" > "$VERSION_FILE"
   echo "Updated Rails version file to $RAILS_VERSION"
@@ -68,10 +68,17 @@ fi
 echo "Running integration tests in Rails test app..."
 cd "$TEST_APP_DIR"
 
+# Ensure we are not leaking the parent Bundler context into the test app
+unset BUNDLE_GEMFILE BUNDLE_PATH BUNDLE_WITH BUNDLE_WITHOUT RUBYOPT GEM_HOME GEM_PATH
+export RUBYOPT="-W0"
+
+# Install gems for the test app under the selected Ruby
+bundle install
+
 # Make sure the database is set up
-bin/rails db:migrate
+bundle exec rails db:migrate
 
 # Run the tests
-bin/rails test
+bundle exec rails test
 
 echo "All Rails integration tests completed!"

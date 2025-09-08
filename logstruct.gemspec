@@ -47,7 +47,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "shrine", "~> 3.5"
   spec.add_development_dependency "sidekiq", "~> 7.2"
   spec.add_development_dependency "sorbet", "~> 0.5"
-  spec.add_development_dependency "ahoy_matey", "~> 5.2"
+  # Optional integrations: keep as development deps so they appear on RubyGems,
+  # but use broad constraints so Bundler can resolve across Rails versions.
+  # The test app Gemfile further refines the version via a matrix when needed.
+  spec.add_development_dependency "ahoy_matey", ">= 4.1", "< 6.0"
   spec.add_development_dependency "active_model_serializers", "~> 0.10.13"
 
   spec.metadata["rubygems_mfa_required"] = "true"

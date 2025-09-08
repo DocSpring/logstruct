@@ -82,6 +82,32 @@ export default function ConfigurationPage() {
 
       <RubyCodeExample name="environment_configuration" />
 
+      <HeadingWithAnchor id="development-preview">
+        Preview Production Logs in Development
+      </HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        LogStruct is disabled by default in development. When you explicitly
+        enable it (for example, <code>LOGSTRUCT_ENABLED=true rails s</code> or
+        setting <code>config.enabled = true</code>), LogStruct uses the same
+        JSON formatter as production so you can validate structured logs
+        locally. If you prefer the colorful human formatter for day‑to‑day
+        debugging, set:
+      </p>
+
+      <CodeBlock language="ruby">
+        {`LogStruct.configure do |c|
+  c.integrations.prefer_json_in_development = false
+  c.integrations.enable_color_output = true
+end`}
+      </CodeBlock>
+
+      <Callout type="info">
+        The <code>ActiveSupport::TaggedLogging</code> compatibility patch is
+        only applied when LogStruct is enabled. This ensures third‑party gems
+        that write Hashes to <code>Rails.logger</code> (e.g., dotenv‑rails) do
+        not affect your default development logging when LogStruct is disabled.
+      </Callout>
+
       <Callout type="info">
         We enable LogStruct in <code>test</code> as well as production by
         default. Keeping test and production behavior as close as possible helps

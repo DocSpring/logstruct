@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 # Determine Rails version to use before loading bundler
+# Silence Ruby warnings early for this process
+ENV["RUBYOPT"] = "-W0"
 rails_version = ENV["RAILS_VERSION"] || "7.0"
 
 # Map major.minor versions to specific patch versions
@@ -17,6 +19,8 @@ if rails_version.count(".") < 2
     "7.2.2.1"  # Updated by update_rails_versions script
   when "8.0"
     "8.0.1"  # Updated by update_rails_versions script
+  when "8.1"
+    "8.1.0.beta1"  # Pre-release lane
   else
     raise "Unrecognized Rails version #{rails_version}"
   end
@@ -25,17 +29,17 @@ if rails_version.count(".") < 2
   rails_version = latest_version
 end
 
-# Get currently installed Rails versions
-rails_gems = `gem list rails -l`
-installed_versions = rails_gems.scan(/rails \(([^)]+)\)/).flatten.first&.split(", ") || []
+def install_rails_if_missing(version)
+  rails_gems = `gem list rails -l`
+  installed_versions = rails_gems.scan(/rails \(([^)]+)\)/).flatten.first&.split(", ") || []
+  return puts("Rails #{version} already installed") if installed_versions.include?(version)
 
-# Check if we need to install this version
-if !installed_versions.include?(rails_version)
-  puts "Rails #{rails_version} not found. Installing..."
-  system("gem install rails -v '#{rails_version}' --no-document") || abort("Failed to install Rails #{rails_version}")
-else
-  puts "Rails #{rails_version} already installed"
+  puts "Rails #{version} not found. Installing..."
+  pre_flag = /[a-zA-Z]/.match?(version) ? " --pre" : ""
+  system("gem install rails -v '#{version}'#{pre_flag} --no-document") || abort("Failed to install Rails #{version}")
 end
+
+install_rails_if_missing(rails_version)
 
 # Fix for Rails 7.0 compatibility with concurrent-ruby
 # (Have to run this before bundler/setup)
@@ -60,7 +64,8 @@ if rails_version.start_with?("7.0")
   ENV["GEM_PATH"] = `gem env gempath`.strip
 end
 
-require "bundler/setup"
+# Suppress noisy constant redefinition warnings during generator
+$VERBOSE = nil
 require "fileutils"
 require "erb"
 
@@ -85,7 +90,8 @@ clean_env = {
   "BUNDLER_SETUP" => nil,
   "GEM_HOME" => nil,
   "GEM_PATH" => nil,
-  "RUBYOPT" => nil
+  # Silence noisy warnings from duplicate gems during generator execution
+  "RUBYOPT" => "-W0"
 }
 
 # Remove this repository's bin directory from PATH to avoid invoking local bin/rails
@@ -128,46 +134,20 @@ if !skip_app_creation
   # Use rails new to create a new application
   puts "Creating new Rails application with version #{rails_version}..."
 
-  # Try using gem's exec command with proper version specification
-  require "rbconfig"
-  rails_exec = [
-    RbConfig.ruby,
-    "-e",
-    "load Gem.bin_path('railties','rails','#{rails_version}')"
-  ]
-  rails_args = [
-    "new", RAILS_APP_DIR,
+  # Use version selector underscore to pick the exact rails generator version.
+  # Run in a temporary empty dir to avoid Rails app loader picking up our repo.
+  rails_cmd = ["rails", "_#{rails_version}_", "new", RAILS_APP_DIR,
+    "--force", "--skip-bundle",
     "--skip-git", "--skip-keeps", "--skip-action-cable",
     "--skip-sprockets", "--skip-javascript", "--skip-hotwire",
     "--skip-jbuilder", "--skip-asset-pipeline", "--skip-bootsnap",
-    "--api", "-T"
-  ]
-  cmd = rails_exec + rails_args
-  puts "=> Running command: #{cmd.map { |s| s.inspect }.join(" ")}"
+    "--api", "-T"]
+  rails_cmd << "--skip-kamal" if @rails_major_minor.start_with?("8.")
   require "tmpdir"
   Dir.mktmpdir("logstruct_rails_new_") do |tmpdir|
     Dir.chdir(tmpdir) do
-      # Call system with a statically-sized argument list to satisfy Sorbet
-      ruby_exec, dash_e, loader_code, = cmd
-      system(
-        clean_env,
-        ruby_exec,
-        dash_e,
-        loader_code,
-        "new",
-        RAILS_APP_DIR,
-        "--skip-git",
-        "--skip-keeps",
-        "--skip-action-cable",
-        "--skip-sprockets",
-        "--skip-javascript",
-        "--skip-hotwire",
-        "--skip-jbuilder",
-        "--skip-asset-pipeline",
-        "--skip-bootsnap",
-        "--api",
-        "-T"
-      ) || abort("Failed to create Rails application")
+      puts "=> Running command: #{rails_cmd.join(" ")} (in #{tmpdir})"
+      system(clean_env, *rails_cmd) || abort("Failed to create Rails application")
     end
   end
 
@@ -178,6 +158,25 @@ if !skip_app_creation
   # Update Gemfile to include the local logstruct gem and test gems
   gemfile_path = File.join(RAILS_APP_DIR, "Gemfile")
   gemfile_content = File.read(gemfile_path)
+
+  # Ensure Rails gem version matches the requested rails_version
+  gemfile_content.gsub!(/^\s*gem\s+"rails".*$/, "gem \"rails\", \"~> #{rails_version}\"")
+
+  # Do not force a Ruby version in the generated app; CI matrix will pick Ruby
+
+  # Ensure sqlite3 version compatible with Rails version
+  if @rails_major_minor == "7.0"
+    if gemfile_content.match?(/^\s*gem\s+"sqlite3"/)
+      gemfile_content.gsub!(/^\s*gem\s+"sqlite3".*$/, 'gem "sqlite3", "~> 1.4"')
+    else
+      # Insert after rails line
+      gemfile_content.sub!(/^(\s*gem\s+"rails".*$)/, "\\1\n# Use sqlite3 as the database for Active Record\n gem \"sqlite3\", \"~> 1.4\"")
+    end
+  elsif gemfile_content.match?(/^\s*gem\s+"sqlite3"/)
+    gemfile_content.gsub!(/^\s*gem\s+"sqlite3".*$/, 'gem "sqlite3", ">= 2.1"')
+  else
+    gemfile_content.sub!(/^(\s*gem\s+"rails".*$)/, "\\1\n# Use sqlite3 as the database for Active Record\n gem \"sqlite3\", \">= 2.1\"")
+  end
 
   # Add LogStruct gem
   logstruct_gem_line = "# LogStruct gem from local path\ngem \"logstruct\", path: \"#{ROOT_DIR}\"\n\n"
@@ -203,6 +202,37 @@ if !skip_app_creation
     end
   GEMS
 
+  # Manage optional integration gems with version matrix
+  # We replace any previous managed block to keep things consistent when templates update
+  gemfile_content.gsub!(/\n# BEGIN LogStruct integration gems.*?# END LogStruct integration gems\n/m, "\n")
+
+  integration_gems = []
+  # Toggle with env var if needed
+  include_integrations = (ENV["INCLUDE_INTEGRATION_GEMS"] || "false").strip.downcase == "true"
+  if include_integrations
+    # Ahoy version matrix
+    ahoy_line = nil
+    case @rails_major_minor
+    when "8.0", "7.2", "7.1"
+      ahoy_line = "gem \"ahoy_matey\", \"~> 5.2\""
+    when "7.0"
+      ahoy_line = "gem \"ahoy_matey\", \"~> 4.1\""
+    end
+    integration_gems << ahoy_line if ahoy_line
+
+    # ActiveModelSerializers works across 7.x/8.x
+    integration_gems << "gem \"active_model_serializers\", \"~> 0.10.13\""
+  end
+
+  unless integration_gems.empty?
+    managed_block = [
+      "# BEGIN LogStruct integration gems\n",
+      integration_gems.join("\n"),
+      "\n# END LogStruct integration gems\n"
+    ].join
+    gemfile_content << managed_block
+  end
+
   # Have to pin concurrent-ruby to 1.3.4 for Rails 7.0 compatibility
   if rails_version.start_with?("7.0")
     gemfile_content += <<~GEMS
@@ -212,25 +242,26 @@ if !skip_app_creation
   end
   File.write(gemfile_path, gemfile_content)
 
-  # Run initial bundle install
-  puts "Running initial bundle install..."
-  Dir.chdir(RAILS_APP_DIR) do
-    system(clean_env, "bundle install") || abort("Bundle install failed")
-  end
-
-  # Set up ActiveStorage
-  puts "Setting up ActiveStorage..."
-  Dir.chdir(RAILS_APP_DIR) do
-    # Install ActiveStorage
-    system(clean_env, "bin/rails active_storage:install") || abort("ActiveStorage installation failed")
-  end
+  # Run initial bundle install later after we copy templates and adjust Gemfile
 end
 
-# Copy all template files
+# Copy all template files before bundling and installing ActiveStorage
 puts "Copying template files..."
 Dir.glob(File.join(TEMPLATE_DIR, "*")).each do |file|
   relative_path = File.basename(file)
   copy_template(relative_path)
+end
+
+# Run bundle install now that templates (and Gemfile edits) are in place
+puts "Running initial bundle install..."
+Dir.chdir(RAILS_APP_DIR) do
+  system(clean_env, "bundle install") || raise("Bundle install failed")
+end
+
+# Install ActiveStorage (after bundle and with correct load_defaults)
+puts "Setting up ActiveStorage..."
+Dir.chdir(RAILS_APP_DIR) do
+  system(clean_env, "bin/rails active_storage:install") || abort("ActiveStorage installation failed")
 end
 
 # Set up the database

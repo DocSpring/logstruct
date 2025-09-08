@@ -13,6 +13,9 @@ module LogStruct
     initializer "logstruct.configure_logger", after: :initialize_logger do |app|
       next unless LogStruct.enabled?
 
+      # Apply TaggedLogging monkey patch only when enabled
+      require_relative "monkey_patches/active_support/tagged_logging/formatter"
+
       # Use SemanticLogger for powerful logging features
       LogStruct::SemanticLogger::Setup.configure_semantic_logger(app)
     end
