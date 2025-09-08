@@ -44,7 +44,7 @@ module LogStruct
         json = log.as_json
 
         assert_equal "rails", json["src"]
-        assert_equal "log", json["evt"]
+        assert_equal "generate", json["evt"]
         assert_equal "ams.render", json["msg"]
         assert_equal "UserSerializer", json["serializer"]
         assert_equal "json", json["adapter"]

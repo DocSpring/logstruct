@@ -114,6 +114,11 @@ export default function DocsLayout({
                     active={pathname.startsWith('/docs/integrations')}
                     subHeadings={integrationHeadings}
                   />
+                  <DocNavItem
+                    href="/docs/logging"
+                    title="Logging (12‑Factor)"
+                    active={pathname.startsWith('/docs/logging')}
+                  />
                   <NestedDocNavItem
                     href="/docs/filtering-sensitive-data"
                     title="Filtering Sensitive Data"

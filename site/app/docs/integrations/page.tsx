@@ -3,9 +3,14 @@ import { EditPageLink } from '@/components/edit-page-link';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { LogGenerator } from '@/lib/log-generation';
-import { AllLogTypes } from '@/lib/log-generation/log-types';
+import { AllLogTypes, Event } from '@/lib/log-generation/log-types';
 import { getCodeExample } from '@/lib/codeExamples';
-import { getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
+import {
+  getEventsForLogType,
+  getLogTypeInfo,
+  getTitleId,
+} from '@/lib/integration-helpers';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Helper to format logs as JSON strings for display
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +39,8 @@ export default function IntegrationsPage() {
         const logTypeInfo = getLogTypeInfo(logType);
         if (!logTypeInfo) return null; // Skip plain logs, etc.
 
-        const { title, description, configuration_code } = logTypeInfo;
+        const { title, description, configuration_code, preferredEvent } =
+          logTypeInfo;
 
         return (
           <div key={logType} className="mt-10">
@@ -63,15 +69,57 @@ export default function IntegrationsPage() {
 
             {/* Generate a log example for this type */}
             <HeadingWithAnchor
-              id={`${getTitleId(title)}-example`}
+              id={`${getTitleId(title)}-examples`}
               level={2}
               className="text-xl font-semibold mt-6 mb-3"
             >
-              Example Log
+              Example Logs
             </HeadingWithAnchor>
-            <CodeBlock language="json">
-              {formatLog(logGenerator.generateLog(logType))}
-            </CodeBlock>
+            {(() => {
+              const events = getEventsForLogType(logType);
+              if (events.length <= 1) {
+                const only = events[0];
+                return (
+                  <CodeBlock language="json">
+                    {formatLog(
+                      logGenerator.generateLogWithOptions(logType, {
+                        preferredEvent: preferredEvent ?? only,
+                      }),
+                    )}
+                  </CodeBlock>
+                );
+              }
+              return (
+                <Tabs defaultValue={String(events[0])}>
+                  <TabsList className="cursor-pointer w-fit flex flex-wrap gap-2">
+                    {events.map((evt) => (
+                      <TabsTrigger
+                        key={String(evt)}
+                        value={String(evt)}
+                        className="cursor-pointer"
+                      >
+                        {String(evt)}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {events.map((evt) => (
+                    <TabsContent
+                      key={String(evt)}
+                      value={String(evt)}
+                      className="mt-0.5"
+                    >
+                      <CodeBlock language="json">
+                        {formatLog(
+                          logGenerator.generateLogWithOptions(logType, {
+                            preferredEvent: evt as Event,
+                          }),
+                        )}
+                      </CodeBlock>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              );
+            })()}
           </div>
         );
       })}

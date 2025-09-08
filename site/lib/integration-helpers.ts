@@ -1,10 +1,11 @@
-import { LogType } from '@/lib/log-generation/log-types';
+import { Event, LogType } from '@/lib/log-generation/log-types';
 
 // Generate information for each log type (extracted from integrations/page.tsx)
 export function getLogTypeInfo(logType: LogType): {
   title: string;
   description: string;
   configuration_code?: string;
+  preferredEvent?: Event;
 } | null {
   switch (logType) {
     case LogType.AHOY:
@@ -91,6 +92,14 @@ export function getLogTypeInfo(logType: LogType): {
           'Captures ActiveRecord SQL queries with duration, operation type, table names, and optional bind parameters, with smart filtering of noisy queries.',
       };
 
+    case LogType.DOTENV:
+      return {
+        title: 'Dotenv',
+        description:
+          'Converts dotenv-rails boot messages (load/update/save/restore) into structured JSON. Early boot events are buffered and emitted once configuration is loaded.',
+        preferredEvent: Event.UPDATE,
+      };
+
     case LogType.ERROR:
       return {
         title: 'Error Handling',
@@ -103,7 +112,56 @@ export function getLogTypeInfo(logType: LogType): {
       return null;
 
     default:
-      return null;
+      // Ensure we have an exhaustive switch statement
+      logType satisfies never;
+      throw new Error(`Unhandled log type: ${logType}`);
+  }
+}
+
+// Events to showcase for each log type (used for example tabs)
+export function getEventsForLogType(logType: LogType): Event[] {
+  switch (logType) {
+    case LogType.REQUEST:
+      return [Event.REQUEST];
+    case LogType.ACTIVEJOB:
+      // ActiveJob struct covers enqueue/schedule/start/finish
+      return [Event.ENQUEUE, Event.SCHEDULE, Event.START, Event.FINISH];
+    case LogType.PLAIN:
+      return [Event.LOG];
+    case LogType.ERROR:
+      return [Event.ERROR];
+    case LogType.SECURITY:
+      return [Event.BLOCKED_HOST, Event.CSRF_VIOLATION, Event.IP_SPOOF];
+    case LogType.SHRINE:
+      return [Event.UPLOAD, Event.DOWNLOAD, Event.DELETE];
+    case LogType.SIDEKIQ:
+      return [Event.LOG];
+    case LogType.ACTIVESTORAGE:
+      return [
+        Event.UPLOAD,
+        Event.DOWNLOAD,
+        Event.DELETE,
+        Event.METADATA,
+        Event.EXIST,
+        Event.URL,
+      ];
+    case LogType.ACTIONMAILER:
+      return [Event.DELIVERY, Event.DELIVERED];
+    case LogType.CARRIERWAVE:
+      return [Event.UPLOAD, Event.DELETE];
+    case LogType.GOODJOB:
+      return [Event.ENQUEUE, Event.START, Event.FINISH, Event.ERROR, Event.LOG];
+    case LogType.SQL:
+      return [Event.DATABASE];
+    case LogType.ACTIVEMODELSERIALIZERS:
+      return [Event.LOG];
+    case LogType.AHOY:
+      return [Event.LOG];
+    case LogType.DOTENV:
+      return [Event.UPDATE, Event.LOAD, Event.SAVE, Event.RESTORE];
+    default:
+      logType satisfies never;
+      return [Event.LOG];
   }
 }
 
@@ -113,29 +171,3 @@ export function getTitleId(title: string): string {
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '');
 }
-
-// Additional integrations not represented as LogType entries but supported by the gem.
-// Centralize their titles/descriptions here to keep docs consistent.
-export type ExtraIntegration = {
-  id: string; // stable anchor/id
-  title: string;
-  description: string;
-  configuration_code?: string;
-};
-
-export const AdditionalIntegrations: ExtraIntegration[] = [
-  {
-    id: 'ahoy',
-    title: 'Ahoy',
-    description:
-      'When ahoy_matey is present, LogStruct emits lightweight structured logs for analytics events tracked via Ahoy::Tracker#track. Toggle with config.integrations.enable_ahoy.',
-    configuration_code: 'integrations_configuration',
-  },
-  {
-    id: 'active-model-serializers',
-    title: 'ActiveModelSerializers',
-    description:
-      'If ActiveModelSerializers is present, LogStruct subscribes to *.active_model_serializers notifications and logs serializer name, adapter, resource class, and render duration. Toggle with config.integrations.enable_active_model_serializers.',
-    configuration_code: 'integrations_configuration',
-  },
-];

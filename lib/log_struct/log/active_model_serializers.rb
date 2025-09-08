@@ -21,11 +21,11 @@ module LogStruct
       include SerializeCommon
       include MergeAdditionalDataFields
 
-      AMSEvent = T.type_alias { Event::Log }
+      AMSEvent = T.type_alias { Event::Generate }
 
       # Common fields
       const :source, Source::Rails, default: T.let(Source::Rails, Source::Rails)
-      const :event, AMSEvent, default: T.let(Event::Log, AMSEvent)
+      const :event, AMSEvent, default: T.let(Event::Generate, AMSEvent)
       const :level, Level, default: T.let(Level::Info, Level)
       const :timestamp, Time, factory: -> { Time.now }
 

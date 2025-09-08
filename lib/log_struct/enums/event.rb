@@ -26,6 +26,9 @@ module LogStruct
       Stream = new(:stream)
       Url = new(:url)
 
+      # Data generation events
+      Generate = new(:generate)
+
       # Email events
       Delivery = new(:delivery)
       Delivered = new(:delivered)

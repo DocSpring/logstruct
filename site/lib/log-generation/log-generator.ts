@@ -2,6 +2,24 @@
 import { RandomDataGenerator } from './random-data-generator';
 import { SampleData } from './sample-data';
 import {
+  generateRequest,
+  generateActiveJob,
+  generatePlain,
+  generateError,
+  generateSecurity,
+  generateShrine,
+  generateSidekiq,
+  generateActiveStorage,
+  generateActionMailer,
+  generateCarrierWave,
+  generateGoodJob,
+  generateSQL,
+  generateAMS,
+  generateAhoy,
+  generateDotenv,
+  generateJobSequence as genJobSequence,
+} from './generators';
+import {
   LogType,
   Log,
   Level,
@@ -120,6 +138,7 @@ export class LogGenerator extends RandomDataGenerator {
           Event.RESTORE,
         ]);
       default:
+        // Ensure we have an exhaustive switch statement
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
     }
@@ -161,6 +180,7 @@ export class LogGenerator extends RandomDataGenerator {
         // These can have any source
         return this.randomEnum(Source);
       default:
+        // Ensure we have an exhaustive switch statement
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
     }
@@ -169,7 +189,7 @@ export class LogGenerator extends RandomDataGenerator {
   /**
    * Generate a typed log based on log type
    */
-  generateTypedLog(logType: LogType): Partial<Log> {
+  generateTypedLog(logType: LogType, preferredEvent?: Event): Partial<Log> {
     // Determine appropriate log level based on log type
     let level = Level.INFO; // Default to INFO for most logs
     if (logType === LogType.ERROR) {
@@ -181,7 +201,7 @@ export class LogGenerator extends RandomDataGenerator {
 
     // Get valid source and event based on log type
     const source = this.getSourceForLogType(logType);
-    const event = this.getRandomEventForLogType(logType);
+    const event = preferredEvent ?? this.getRandomEventForLogType(logType);
 
     // Create a base log with timestamp and level
     const log = {
@@ -194,38 +214,37 @@ export class LogGenerator extends RandomDataGenerator {
     // Add type-specific fields
     switch (logType) {
       case LogType.REQUEST:
-        return this.generateRequestLog(log as Partial<RequestLog>);
+        return generateRequest(this, log as Partial<RequestLog>);
       case LogType.ACTIVEJOB:
-        return this.generateActiveJobLog(log as Partial<ActiveJobLog>);
+        return generateActiveJob(this, log as Partial<ActiveJobLog>);
       case LogType.PLAIN:
-        return this.generatePlainLog(log as Partial<PlainLog>);
+        return generatePlain(this, log as Partial<PlainLog>);
       case LogType.ERROR:
-        return this.generateErrorLog(log as Partial<ErrorLog>);
+        return generateError(this, log as Partial<ErrorLog>);
       case LogType.SECURITY:
-        return this.generateSecurityLog(log as Partial<SecurityLog>);
+        return generateSecurity(this, log as Partial<SecurityLog>);
       case LogType.SHRINE:
-        return this.generateShrineLog(log as Partial<ShrineLog>);
+        return generateShrine(this, log as Partial<ShrineLog>);
       case LogType.SIDEKIQ:
-        return this.generateSidekiqLog(log as Partial<SidekiqLog>);
+        return generateSidekiq(this, log as Partial<SidekiqLog>);
       case LogType.ACTIVESTORAGE:
-        return this.generateActiveStorageLog(log as Partial<ActiveStorageLog>);
+        return generateActiveStorage(this, log as Partial<ActiveStorageLog>);
       case LogType.ACTIONMAILER:
-        return this.generateActionMailerLog(log as Partial<ActionMailerLog>);
+        return generateActionMailer(this, log as Partial<ActionMailerLog>);
       case LogType.CARRIERWAVE:
-        return this.generateCarrierWaveLog(log as Partial<CarrierWaveLog>);
+        return generateCarrierWave(this, log as Partial<CarrierWaveLog>);
       case LogType.GOODJOB:
-        return this.generateGoodJobLog(log as Partial<GoodJobLog>);
+        return generateGoodJob(this, log as Partial<GoodJobLog>);
       case LogType.SQL:
-        return this.generateSQLLog(log as Partial<SQLLog>);
+        return generateSQL(this, log as Partial<SQLLog>);
       case LogType.ACTIVEMODELSERIALIZERS:
-        return this.generateActiveModelSerializersLog(
-          log as Partial<ActiveModelSerializersLog>,
-        );
+        return generateAMS(this, log as Partial<ActiveModelSerializersLog>);
       case LogType.AHOY:
-        return this.generateAhoyLog(log as Partial<AhoyLog>);
+        return generateAhoy(this, log as Partial<AhoyLog>);
       case LogType.DOTENV:
-        return this.generateDotenvLog(log as Partial<DotenvLog>);
+        return generateDotenv(this, log as Partial<DotenvLog>);
       default:
+        // Ensure we have an exhaustive switch statement
         logType satisfies never;
         throw new Error(`Unhandled log type: ${logType}`);
     }
@@ -236,65 +255,26 @@ export class LogGenerator extends RandomDataGenerator {
    * Returns a log with field names mapped to JSON keys
    */
   generateLog(logType: LogType): Record<string, any> {
+    return this.generateLogWithOptions(logType);
+  }
+
+  /**
+   * Generate a random log with optional preferences (e.g., a preferred event)
+   */
+  generateLogWithOptions(
+    logType: LogType,
+    opts?: { preferredEvent?: Event },
+  ): Record<string, any> {
     // Generate a typed log then transform it
-    const typedLog = this.generateTypedLog(logType);
+    const typedLog = this.generateTypedLog(logType, opts?.preferredEvent);
 
     // Transform property names to JSON keys
     return this.transformLog(typedLog);
   }
 
-  private generateRequestLog(log: Partial<RequestLog>): Partial<RequestLog> {
-    log.method = this.sample(SampleData.HTTP_METHODS);
-    log.path = this.randomPath();
-    log.controller = this.sample(SampleData.CONTROLLERS);
-    log.action = this.sample(SampleData.ACTIONS);
-    log.status = this.sample(SampleData.STATUS_CODES);
-    log.duration = this.randomDuration();
-    log.view = this.randomFloat(0, 100);
-    log.db = this.randomFloat(0, 50);
-    log.format = 'json';
-    log.params = {
-      id: this.randomInt(1, 1000),
-      action: log.action,
-      controller: log.controller,
-    };
-    log.source_ip = this.randomIP(false);
-    log.user_agent = 'Mozilla/5.0';
-    log.referer = 'https://example.com';
-    log.request_id = this.randomHex(16);
+  // Individual generator implementations moved to ./generators
 
-    return log;
-  }
-
-  private generateActiveJobLog(
-    log: Partial<ActiveJobLog>,
-  ): Partial<ActiveJobLog> {
-    // Create the basic job log without duration
-    const baseJobLog: Partial<ActiveJobLog> = {
-      ...log,
-      job_id: this.randomHex(8),
-      job_class: this.sample(SampleData.JOB_CLASSES),
-      queue_name: ['default', 'critical', 'low', 'mailers'][
-        this.randomInt(0, 3)
-      ],
-      arguments: [
-        this.randomInt(1, 100),
-        { action: this.sample(['create', 'update', 'process']) },
-      ],
-      additional_data: {
-        retries: this.randomInt(0, 3),
-        scheduled_at: this.randomTimestamp(),
-      },
-    };
-
-    // Only add duration if it's a FINISH event
-    const jobLog: Partial<ActiveJobLog> =
-      log.event === Event.FINISH
-        ? { ...baseJobLog, duration: this.randomDuration() }
-        : baseJobLog;
-
-    return jobLog;
-  }
+  // ...
 
   private generatePlainLog(log: Partial<PlainLog>): Partial<PlainLog> {
     log.message = `Log message ${this.randomHex(8)}`;
@@ -546,7 +526,7 @@ export class LogGenerator extends RandomDataGenerator {
     ];
     const event: DotenvLog['event'] =
       (log.event as DotenvLog['event']) ?? this.sample(allowed);
-    const level = event === Event.UPDATE ? Level.INFO : Level.INFO;
+    const level = Level.INFO;
 
     // Typically dotenv logs either vars or file depending on event
     const possibleVars = [
@@ -556,7 +536,7 @@ export class LogGenerator extends RandomDataGenerator {
       'SECRET_TOKEN',
       'LOG_LEVEL',
     ];
-    const vars = this.sampleSize(possibleVars, this.randomInt(1, 3));
+    const vars = this.sampleSize(possibleVars, this.randomInt(2, 3));
     const file = this.sample(['.env.development', '.env.test', '.env']);
 
     const dotenvLog: Partial<DotenvLog> = {
@@ -564,9 +544,8 @@ export class LogGenerator extends RandomDataGenerator {
       source: Source.DOTENV,
       event,
       level,
-      file: event === Event.LOAD ? file : undefined,
-      vars:
-        event === Event.UPDATE || event === Event.RESTORE ? vars : undefined,
+      file,
+      vars,
       additional_data: {},
     };
 
@@ -578,66 +557,6 @@ export class LogGenerator extends RandomDataGenerator {
    * For example: job enqueue -> start -> finish
    */
   generateJobSequence(): Partial<ActiveJobLog>[] {
-    const jobId = this.randomHex(8);
-    const jobClass = this.sample(SampleData.JOB_CLASSES);
-    const queueName = ['default', 'critical', 'low', 'mailers'][
-      this.randomInt(0, 3)
-    ];
-    const args = [
-      this.randomInt(1, 100),
-      { action: this.sample(['create', 'update', 'process']) },
-    ];
-    const data = {
-      retries: this.randomInt(0, 3),
-      scheduled_at: this.randomTimestamp(),
-    };
-
-    // Enqueue event
-    const enqueueLog: Partial<ActiveJobLog> = {
-      timestamp: new Date().toISOString(),
-      level: Level.INFO,
-      source: Source.JOB,
-      event: Event.ENQUEUE,
-      job_id: jobId,
-      job_class: jobClass,
-      queue_name: queueName,
-      arguments: args,
-      additional_data: data,
-    };
-
-    // Start event (happens a little later)
-    const startTime = new Date(
-      new Date(enqueueLog.timestamp as string).getTime() +
-        this.randomInt(100, 5000),
-    );
-    const startLog: Partial<ActiveJobLog> = {
-      timestamp: startTime.toISOString(),
-      level: Level.INFO,
-      source: Source.JOB,
-      event: Event.START,
-      job_id: jobId,
-      job_class: jobClass,
-      queue_name: queueName,
-      arguments: args,
-      additional_data: data,
-    };
-
-    // Finish event (with duration)
-    const duration = this.randomFloat(50, 2000);
-    const finishTime = new Date(startTime.getTime() + duration);
-    const finishLog: Partial<ActiveJobLog> = {
-      timestamp: finishTime.toISOString(),
-      level: Level.INFO,
-      source: Source.JOB,
-      event: Event.FINISH,
-      job_id: jobId,
-      job_class: jobClass,
-      queue_name: queueName,
-      arguments: args,
-      duration: duration,
-      additional_data: data,
-    };
-
-    return [enqueueLog, startLog, finishLog];
+    return genJobSequence(this);
   }
 }
