@@ -2338,7 +2338,7 @@ end
 # source://dalli//lib/rack/session/dalli.rb#8
 module Rack
   class << self
-    # source://rack/3.1.11/lib/rack/version.rb#18
+    # source://rack/3.1.16/lib/rack/version.rb#18
     def release; end
   end
 end

@@ -199,6 +199,10 @@ jobs:
             ruby: '3.4'
             rails: '7.2.2.1'
 
+          - name: 'Ruby 3.4.5 / Rails 8.1.0.beta1'
+            ruby: '3.4.5'
+            rails: '8.1.0.beta1'
+
     env:
       RAILS_VERSION: ${{ matrix.rails }}
       RUBY_VERSION: ${{ matrix.ruby }}

@@ -432,8 +432,13 @@ end
 # source://ahoy_matey//lib/ahoy/engine.rb#2
 class Ahoy::Engine < ::Rails::Engine
   class << self
-    # source://activesupport/7.2.2.1/lib/active_support/callbacks.rb#70
-    def __callbacks; end
+    private
+
+    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    def __class_attr___callbacks; end
+
+    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    def __class_attr___callbacks=(new_value); end
   end
 end
 
@@ -446,8 +451,13 @@ class Ahoy::GeocodeV2Job < ::ActiveJob::Base
   def perform(visit_token, ip); end
 
   class << self
-    # source://activejob/7.2.2.1/lib/active_job/queue_name.rb#55
-    def queue_name; end
+    private
+
+    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    def __class_attr_queue_name; end
+
+    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    def __class_attr_queue_name=(new_value); end
   end
 end
 
