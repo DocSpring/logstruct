@@ -60,21 +60,18 @@ module LogStruct
             @app.call(env)
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             # Create a security log for IP spoofing
-            security_log = Log::Security.new(
-              event: Event::IPSpoof,
-              message: ip_spoof_error.message,
-              # Can't call .remote_ip on the request because that's what raises the error.
-              # Have to pass the client_ip and x_forwarded_for headers.
-              client_ip: env["HTTP_CLIENT_IP"],
-              x_forwarded_for: env["HTTP_X_FORWARDED_FOR"],
+            security_log = Log::Security::IPSpoof.new(
               path: env["PATH_INFO"],
               http_method: env["REQUEST_METHOD"],
               user_agent: env["HTTP_USER_AGENT"],
               referer: env["HTTP_REFERER"],
-              request_id: env["action_dispatch.request_id"]
+              request_id: env["action_dispatch.request_id"],
+              message: ip_spoof_error.message,
+              client_ip: env["HTTP_CLIENT_IP"],
+              x_forwarded_for: env["HTTP_X_FORWARDED_FOR"],
+              timestamp: Time.now
             )
 
-            # Log the structured data
             ::Rails.logger.warn(security_log)
 
             # Report the error
@@ -87,15 +84,15 @@ module LogStruct
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
             # Create a security log for CSRF error
             request = ::ActionDispatch::Request.new(env)
-            security_log = Log::Security.new(
-              event: Event::CSRFViolation,
-              message: invalid_auth_token_error.message,
+            security_log = Log::Security::CSRFViolation.new(
               path: request.path,
               http_method: request.method,
               source_ip: request.remote_ip,
               user_agent: request.user_agent,
               referer: request.referer,
-              request_id: request.request_id
+              request_id: request.request_id,
+              message: invalid_auth_token_error.message,
+              timestamp: Time.now
             )
             LogStruct.error(security_log)
 
@@ -111,11 +108,7 @@ module LogStruct
             context = extract_request_context(env)
 
             # Create and log a structured exception with request context
-            exception_log = Log::Error.from_exception(
-              Source::Rails,
-              error,
-              context
-            )
+            exception_log = Log.from_exception(Source::Rails, error, context)
             LogStruct.error(exception_log)
 
             # Re-raise any standard errors to let Rails or error reporter handle it.

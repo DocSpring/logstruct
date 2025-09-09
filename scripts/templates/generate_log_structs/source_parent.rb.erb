@@ -1,0 +1,40 @@
+# typed: strict
+# frozen_string_literal: true
+
+<%= header('source_parent.rb.erb') %>
+
+<% events.each do |evt| -%>
+require_relative "<%= source_snake %>/<%= snake_case(evt.name) %>"
+<% end -%>
+
+<% if base_fields.any? -%>
+module LogStruct
+  module Log
+    class <%= source_name %>
+      class BaseFields < T::Struct
+        extend T::Sig
+<% base_fields.each do |f| -%>
+        const :<%= f.prop_name %>, <%= nilable(f.sorbet_type, f.required) %><% if !f.required %>, default: nil<% end %>
+<% end -%>
+
+        Kwargs = T.type_alias do
+          {
+<% base_fields.each_with_index do |f, idx| -%>
+            <%= f.prop_name %>: <%= nilable(f.sorbet_type, f.required) %><%= idx == base_fields.length - 1 ? '' : ',' %>
+<% end -%>
+          }
+        end
+
+        sig { returns(Kwargs) }
+        def to_kwargs
+          {
+<% base_fields.each_with_index do |f, idx| -%>
+            <%= f.prop_name %>: <%= f.prop_name %><%= idx == base_fields.length - 1 ? '' : ',' %>
+<% end -%>
+          }
+        end
+      end
+    end
+  end
+end
+<% end -%>

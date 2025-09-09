@@ -62,7 +62,7 @@ module LogStruct
           assert_equal "job_123", log["job_id"]
           assert_equal "UserNotificationJob", log["job_class"]
           assert_equal "default", log["queue_name"]
-          assert_in_delta(0.1, log["execution_time"])
+          assert_in_delta(100.0, log["duration_ms"])
         end
 
         test "start event creates proper log entry" do
@@ -82,7 +82,7 @@ module LogStruct
           assert_equal "TestJob", log["job_class"]
           assert_equal "priority", log["queue_name"]
           assert_equal 1, log["executions"]
-          assert_in_delta(0.5, log["wait_time"])
+          assert_in_delta(500.0, log["wait_ms"])
           assert_equal Process.pid, log["pid"]
           assert log["tid"]
         end
@@ -105,7 +105,7 @@ module LogStruct
           assert_equal "job_789", log["job_id"]
           assert_equal "CompletedJob", log["job_class"]
           assert_equal 1, log["executions"]
-          assert_in_delta(2.5, log["run_time"])
+          assert_in_delta(2500.0, log["duration_ms"])
           assert log["finished_at"]
           assert_equal "success", log["result"]
         end
@@ -136,7 +136,7 @@ module LogStruct
           assert_equal "StandardError", log["err_class"]
           assert_equal "Job processing failed", log["error_message"]
           assert_equal ["file1.rb:10", "file2.rb:20", "file3.rb:30"], log["backtrace"]
-          assert_in_delta(1.2, log["run_time"])
+          assert_in_delta(1200.0, log["duration_ms"])
         end
 
         test "schedule event creates proper log entry" do
@@ -166,7 +166,7 @@ module LogStruct
           assert_equal scheduled_time.iso8601, log["scheduled_at"]
           assert_equal 10, log["priority"]
           assert_equal "daily_cleanup", log["cron_key"]
-          assert_in_delta(0.05, log["execution_time"])
+          assert_in_delta(50.0, log["duration_ms"])
         end
 
         test "handles missing job data gracefully" do
@@ -237,9 +237,15 @@ module LogStruct
         private
 
         def create_test_event(payload_data)
-          OpenStruct.new(
-            payload: payload_data,
-            duration: payload_data[:duration] || 0.0
+          start = Time.now.to_f
+          duration = payload_data[:duration] || 0.0
+          finish = start + duration
+          ActiveSupport::Notifications::Event.new(
+            "good_job.test",
+            start,
+            finish,
+            "test",
+            payload_data
           )
         end
 

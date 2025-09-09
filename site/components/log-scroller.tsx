@@ -5,7 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import useInterval from 'use-interval';
 import { LogGenerator } from '../lib/log-generation/log-generator';
-import { LogType } from '../lib/log-generation/log-types';
+import { LogType } from '../lib/log-generation/generated/log-types';
 
 // For generating random logs
 const logGenerator = new LogGenerator();

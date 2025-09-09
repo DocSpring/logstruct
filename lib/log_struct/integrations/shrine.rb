@@ -37,26 +37,51 @@ module LogStruct
           end
 
           # Create structured log data
-          log_data = Log::Shrine.new(
-            source: Source::Shrine,
-            event: event_type,
-            duration: event.duration,
-            storage: payload[:storage],
-            location: payload[:location],
-            uploader: payload[:uploader],
-            upload_options: payload[:upload_options],
-            download_options: payload[:download_options],
-            options: payload[:options],
-            # Data is flattened by the JSON formatter
-            additional_data: payload.except(
-              :storage,
-              :location,
-              :uploader,
-              :upload_options,
-              :download_options,
-              :options
+          log_data = case event_type
+          when Event::Upload
+            Log::Shrine::Upload.new(
+              storage: payload[:storage],
+              location: payload[:location],
+              uploader: payload[:uploader],
+              upload_options: payload[:upload_options],
+              options: payload[:options],
+              duration_ms: event.duration,
+              additional_data: payload.except(:storage, :location, :uploader, :upload_options, :options)
             )
-          )
+          when Event::Download
+            Log::Shrine::Download.new(
+              storage: payload[:storage],
+              location: payload[:location],
+              download_options: payload[:download_options],
+              additional_data: payload.except(:storage, :location, :download_options)
+            )
+          when Event::Delete
+            Log::Shrine::Delete.new(
+              storage: payload[:storage],
+              location: payload[:location],
+              additional_data: payload.except(:storage, :location)
+            )
+          when Event::Metadata
+            Log::Shrine::Metadata.new(
+              storage: payload[:storage],
+              location: payload[:location],
+              metadata: payload[:metadata],
+              additional_data: payload.except(:storage, :location, :metadata)
+            )
+          when Event::Exist
+            Log::Shrine::Exist.new(
+              storage: payload[:storage],
+              location: payload[:location],
+              exist: payload[:exist],
+              additional_data: payload.except(:storage, :location, :exist)
+            )
+          else
+            Log::Shrine::Metadata.new(
+              storage: payload[:storage],
+              location: payload[:location],
+              metadata: payload[:metadata]
+            )
+          end
 
           # Pass the structured hash to the logger
           # If Rails.logger has our Formatter, it will handle JSON conversion

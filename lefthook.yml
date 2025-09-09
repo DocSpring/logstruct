@@ -20,6 +20,10 @@ pre-commit:
             glob: 'lib/**/*.rb'
             run: scripts/export_typescript_types.rb
 
+          - name: codegen-sync
+            glob: '{schemas/log_sources/**/*,scripts/templates/generate_log_structs/**/*,scripts/generate_log_structs.rb}'
+            run: scripts/check_generated.sh
+
           - name: cspell
             glob: '*.{rb,md,yml,yaml,txt,ts,tsx,js,jsx}'
             run: scripts/spellcheck.sh

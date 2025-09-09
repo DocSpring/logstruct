@@ -35,9 +35,9 @@ module LogStruct
         assert_equal "Templates", log.controller
         assert_equal "index", log.action
         assert_equal 200, log.status
-        assert_in_delta 12.34, log.duration
+        assert_in_delta 12.34, log.duration_ms
         assert_in_delta 1.23, log.view
-        assert_in_delta 0.45, log.db
+        assert_in_delta 0.45, log.database
 
         # params should be symbolized deeply
         refute_nil log.params

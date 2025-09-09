@@ -40,28 +40,25 @@ module LogStruct
               lambda do |data|
                 # Coerce common fields to expected types
                 status = ((s = data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
-                duration = ((d = data[:duration]) && d.respond_to?(:to_f)) ? d.to_f : d
+                duration_ms = ((d = data[:duration]) && d.respond_to?(:to_f)) ? d.to_f : d
                 view = ((v = data[:view]) && v.respond_to?(:to_f)) ? v.to_f : v
                 db = ((b = data[:db]) && b.respond_to?(:to_f)) ? b.to_f : b
 
                 params = data[:params]
                 params = params.deep_symbolize_keys if params&.respond_to?(:deep_symbolize_keys)
 
-                # Convert the data hash to a Log::Request struct
                 Log::Request.new(
-                  source: Source::Rails,
-                  event: Event::Request,
-                  timestamp: Time.now,
                   http_method: data[:method]&.to_s,
                   path: data[:path]&.to_s,
                   format: data[:format]&.to_s,
                   controller: data[:controller]&.to_s,
                   action: data[:action]&.to_s,
                   status: status,
-                  duration: duration,
+                  duration_ms: duration_ms,
                   view: view,
-                  db: db,
-                  params: params
+                  database: db,
+                  params: params,
+                  timestamp: Time.now
                 )
               end,
               T.proc.params(hash: T::Hash[Symbol, T.untyped]).returns(Log::Request)

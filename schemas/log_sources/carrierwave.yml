@@ -1,0 +1,57 @@
+source: CarrierWave
+snake_case: carrierwave
+
+consts:
+  source: Source::CarrierWave
+
+additional_data: true
+
+base:
+  default_required: false
+  fields:
+    Storage:
+      type: String
+      required: true
+    FileId:
+      type: String
+      required: true
+    Uploader: String
+    Model: String
+    MountPoint: String
+
+events:
+  Upload:
+    default_required: false
+    fields:
+      Filename:
+        type: String
+        required: false
+      MimeType:
+        type: String
+        required: false
+      Size:
+        type: Integer
+        required: false
+      Metadata:
+        type: 'T::Hash[String, T.untyped]'
+        required: false
+      DurationMs:
+        type: Float
+        required: false
+
+  Delete:
+    default_required: false
+    fields: {}
+
+  Download:
+    default_required: false
+    fields:
+      Filename:
+        type: String
+        required: false
+      MimeType:
+        type: String
+        required: false
+      Size:
+        type: Integer
+        required: false

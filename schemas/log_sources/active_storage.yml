@@ -1,0 +1,50 @@
+source: ActiveStorage
+
+consts:
+  source: Source::Storage
+
+base:
+  fields:
+    Storage: String
+    FileId: String
+
+events:
+  Upload:
+    default_required: false
+    fields:
+      Filename: String
+      MimeType: String
+      Size: Integer
+      Metadata: 'T::Hash[String, T.untyped]'
+      DurationMs: Float
+      Checksum: String
+
+  Download:
+    default_required: false
+    fields:
+      Filename: String
+      Range: String
+      DurationMs:
+        type: Float
+        required: false
+
+  Delete:
+
+  Metadata:
+    default_required: false
+    fields:
+      Metadata: 'T::Hash[String, T.untyped]'
+
+  Exist:
+    default_required: false
+    fields:
+      Exist: T::Boolean
+
+  Stream:
+    default_required: false
+    fields:
+      Prefix: String
+
+  Url:
+    fields:
+      Url: String

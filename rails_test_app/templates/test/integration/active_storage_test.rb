@@ -67,7 +67,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     assert_equal "Disk", upload_log["storage"]
     assert_not_nil upload_log["file_id"]
     assert_not_nil upload_log["checksum"]
-    assert_not_nil upload_log["duration"]
+    assert_not_nil upload_log["duration_ms"]
   end
 
   test "logs are created when downloading a file" do
@@ -98,7 +98,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     assert_equal "download", download_log["evt"]
     assert_equal "Disk", download_log["storage"]
     assert_not_nil download_log["file_id"]
-    assert_not_nil download_log["duration"]
+    assert_not_nil download_log["duration_ms"]
   end
 
   test "logs are created when checking if a file exists" do
@@ -203,6 +203,6 @@ class ActiveStorageTest < ActiveSupport::TestCase
     end
 
     # Check for duration which should always be present
-    assert_not_nil upload_log["duration"]
+    assert_not_nil upload_log["duration_ms"]
   end
 end

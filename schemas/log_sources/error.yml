@@ -1,0 +1,16 @@
+source: Error
+
+consts:
+  # Can be any source
+  source: Source
+
+additional_data: true
+
+events:
+  Error:
+    fields:
+      ErrClass: 'T.class_of(StandardError)'
+      Message: String
+      Backtrace:
+        type: 'T::Array[String]'
+        required: false

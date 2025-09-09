@@ -19,12 +19,12 @@ module LogStruct
         log = create_sql_log(
           sql: "SELECT * FROM users WHERE id = ?",
           name: "User Load",
-          duration: 2.5
+          duration_ms: 2500.0
         )
 
         assert_equal "SELECT * FROM users WHERE id = ?", log.sql
         assert_equal "User Load", log.name
-        assert_in_delta(2.5, log.duration)
+        assert_in_delta(2500.0, log.duration_ms)
         assert_equal LogStruct::Source::App, log.source
         assert_equal LogStruct::Event::Database, log.event
         assert_equal "SQL query executed", log.message
@@ -33,7 +33,7 @@ module LogStruct
       test "creates log with optional fields" do
         log = create_sql_log(
           row_count: 5,
-          connection_adapter: "PostgreSQLAdapter",
+          adapter: "PostgreSQLAdapter",
           bind_params: [123, "test@example.com"],
           database_name: "app_production",
           connection_pool_size: 10,
@@ -43,7 +43,7 @@ module LogStruct
         )
 
         assert_equal 5, log.row_count
-        assert_equal "PostgreSQLAdapter", log.connection_adapter
+        assert_equal "PostgreSQLAdapter", log.adapter
         assert_equal [123, "test@example.com"], log.bind_params
         assert_equal "app_production", log.database_name
         assert_equal 10, log.connection_pool_size
@@ -55,7 +55,7 @@ module LogStruct
       test "allows nil for optional fields" do
         log = create_sql_log(
           row_count: nil,
-          connection_adapter: nil,
+          adapter: nil,
           bind_params: nil,
           database_name: nil,
           connection_pool_size: nil,
@@ -65,7 +65,7 @@ module LogStruct
         )
 
         assert_nil log.row_count
-        assert_nil log.connection_adapter
+        assert_nil log.adapter
         assert_nil log.bind_params
         assert_nil log.database_name
         assert_nil log.connection_pool_size
@@ -78,9 +78,9 @@ module LogStruct
         log = create_sql_log(
           sql: "INSERT INTO users (email) VALUES (?)",
           name: "User Create",
-          duration: 5.2,
+          duration_ms: 5200.0,
           row_count: 1,
-          connection_adapter: "SQLiteAdapter",
+          adapter: "SQLiteAdapter",
           bind_params: ["user@example.com"],
           database_name: "app_development",
           connection_pool_size: 5,
@@ -98,14 +98,14 @@ module LogStruct
 
         assert_equal "INSERT INTO users (email) VALUES (?)", json["sql"]
         assert_equal "User Create", json["name"]
-        assert_in_delta(5.2, json["duration"])
+        assert_in_delta(5200.0, json["duration_ms"])
         assert_equal 1, json["row_count"]
-        assert_equal "SQLiteAdapter", json["connection_adapter"]
+        assert_equal "SQLiteAdapter", json["adapter"]
         assert_equal ["user@example.com"], json["bind_params"]
-        assert_equal "app_development", json["database_name"]
-        assert_equal 5, json["connection_pool_size"]
-        assert_equal 2, json["active_connections"]
-        assert_equal "INSERT", json["operation_type"]
+        assert_equal "app_development", json["db_name"]
+        assert_equal 5, json["pool_size"]
+        assert_equal 2, json["active_count"]
+        assert_equal "INSERT", json["op_type"]
         assert_equal ["users"], json["table_names"]
       end
 
@@ -113,7 +113,7 @@ module LogStruct
         log = create_sql_log(
           sql: "SELECT 1",
           name: "Test Query",
-          duration: 0.1
+          duration_ms: 100.0
         )
 
         json = JSON.parse(log.to_json)
@@ -125,7 +125,7 @@ module LogStruct
         assert_kind_of String, json["ts"]
         assert_equal "SELECT 1", json["sql"]
         assert_equal "Test Query", json["name"]
-        assert_in_delta(0.1, json["duration"])
+        assert_in_delta(100.0, json["duration_ms"])
 
         # Optional fields should be nil and excluded from JSON
         assert_nil json["row_count"]
@@ -203,14 +203,14 @@ module LogStruct
         log1 = create_sql_log(
           sql: "SELECT * FROM users",
           name: "User Load",
-          duration: 2.5,
+          duration_ms: 2500.0,
           timestamp: fixed_time
         )
 
         log3 = create_sql_log(
           sql: "SELECT * FROM posts",
           name: "Post Load",
-          duration: 1.5,
+          duration_ms: 1500.0,
           timestamp: fixed_time
         )
 
@@ -227,7 +227,7 @@ module LogStruct
         log = create_sql_log(
           sql: "",                    # Empty SQL
           name: "",                   # Empty name
-          duration: 0.0,              # Zero duration
+          duration_ms: 0.0,           # Zero duration
           row_count: 0,               # Zero rows
           bind_params: [],            # Empty array
           table_names: []             # Empty array
@@ -235,7 +235,7 @@ module LogStruct
 
         assert_equal "", log.sql
         assert_equal "", log.name
-        assert_in_delta(0.0, log.duration)
+        assert_in_delta(0.0, log.duration_ms)
         assert_equal 0, log.row_count
         assert_empty log.bind_params
         assert_empty log.table_names
@@ -247,10 +247,10 @@ module LogStruct
         default_attributes = {
           sql: "SELECT * FROM test_table",
           name: "Test Query",
-          duration: 1.0,
+          duration_ms: 1000.0,
           message: "SQL query executed",
           row_count: nil,
-          connection_adapter: nil,
+          adapter: nil,
           bind_params: nil,
           database_name: nil,
           connection_pool_size: nil,

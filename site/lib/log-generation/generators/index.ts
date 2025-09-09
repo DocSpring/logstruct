@@ -18,7 +18,7 @@ import {
   ActiveModelSerializersLog,
   AhoyLog,
   DotenvLog,
-} from '../log-types';
+} from '../generated/log-types';
 import { RandomDataGenerator } from '../random-data-generator';
 import { SampleData } from '../sample-data';
 
@@ -31,9 +31,9 @@ export function generateRequest(
   log.controller = gen.sample(SampleData.CONTROLLERS);
   log.action = gen.sample(SampleData.ACTIONS);
   log.status = gen.sample(SampleData.STATUS_CODES);
-  log.duration = gen.randomDuration();
+  log.duration_ms = gen.randomDuration();
   log.view = gen.randomFloat(0, 100);
-  log.db = gen.randomFloat(0, 50);
+  log.database = gen.randomFloat(0, 50);
   log.format = 'json';
   log.params = {
     id: gen.randomInt(1, 1000),
@@ -60,39 +60,30 @@ export function generateActiveJob(
       gen.randomInt(1, 100),
       { action: gen.sample(['create', 'update', 'process']) },
     ],
-    additional_data: {},
   };
   switch (log.event) {
     case Event.ENQUEUE:
       return {
         ...base,
-        additional_data: {
-          retries: gen.randomInt(0, 3),
-          scheduled_at: gen.randomTimestamp(),
-        },
+        retries: gen.randomInt(0, 3),
+        scheduled_at: gen.randomTimestamp(),
       };
     case Event.SCHEDULE:
       return {
         ...base,
-        additional_data: {
-          scheduled_at: gen.randomTimestamp(),
-        },
+        scheduled_at: gen.randomTimestamp(),
       };
     case Event.START:
       return {
         ...base,
-        additional_data: {
-          started_at: new Date().toISOString(),
-          attempt: gen.randomInt(1, 3),
-        },
+        started_at: new Date().toISOString(),
+        attempt: gen.randomInt(1, 3),
       };
     case Event.FINISH:
       return {
         ...base,
-        duration: gen.randomDuration(),
-        additional_data: {
-          finished_at: new Date().toISOString(),
-        },
+        duration_ms: gen.randomDuration(),
+        finished_at: new Date().toISOString(),
       };
     default:
       return base;
@@ -145,7 +136,6 @@ export function generateShrine(
   log: Partial<ShrineLog>,
 ): Partial<ShrineLog> {
   const ops = ['upload', 'download', 'delete', 'metadata', 'exist', 'url'];
-  const operation = gen.sample(ops);
   return {
     ...log,
     storage: gen.sample(SampleData.STORAGE_SERVICES),
@@ -154,7 +144,7 @@ export function generateShrine(
     download_options: { disposition: 'inline' },
     options: { retries: gen.randomInt(0, 2) },
     uploader: 'ImageUploader',
-    duration: gen.randomDuration(),
+    duration_ms: gen.randomDuration(),
     additional_data: {},
   };
 }
@@ -183,18 +173,16 @@ export function generateActiveStorage(
     'stream',
     'url',
   ];
-  const operation = gen.sample(ops);
   return {
     ...log,
     event: log.event!,
-    operation,
     storage: gen.sample(SampleData.STORAGE_SERVICES),
     file_id: gen.randomHex(10),
     filename: gen.sample(SampleData.FILE_NAMES),
     mime_type: gen.sample(SampleData.FILE_TYPES),
     size: gen.randomInt(1000, 1000000),
     metadata: { width: 800, height: 600 },
-    duration: gen.randomDuration(),
+    duration_ms: gen.randomDuration(),
     checksum: gen.randomHex(32),
     exist: true,
     url: `https://storage.example.com/${gen.randomHex(8)}`,
@@ -227,14 +215,13 @@ export function generateCarrierWave(
 ): Partial<CarrierWaveLog> {
   return {
     ...log,
-    operation: 'upload',
     storage: gen.sample(SampleData.STORAGE_SERVICES),
     file_id: gen.randomHex(10),
     filename: gen.sample(SampleData.FILE_NAMES),
     mime_type: gen.sample(SampleData.FILE_TYPES),
     size: gen.randomInt(1000, 1000000),
     metadata: { width: 800, height: 600 },
-    duration: gen.randomDuration(),
+    duration_ms: gen.randomDuration(),
     uploader: 'AvatarUploader',
     model: 'User',
     mount_point: 'avatar',
@@ -256,11 +243,8 @@ export function generateGoodJob(
     executions: gen.randomInt(0, 3),
     exception_executions: 0,
     scheduled_at: new Date().toISOString(),
-    execution_time: gen.randomFloat(0.1, 10.0),
     thread_id: `thread-${gen.randomHex(4)}`,
     process_id: gen.randomInt(1000, 99999),
-    batch_id: `batch-${gen.randomHex(6)}`,
-    job_label: `${log.job_class}#perform`,
   };
 }
 
@@ -276,16 +260,15 @@ export function generateSQL(
     ...log,
     sql: `${operation} * FROM ${table} WHERE id = ?`,
     name: `${table.charAt(0).toUpperCase() + table.slice(1).slice(0, -1)} Load`,
-    duration: gen.randomFloat(0.1, 100.0),
+    duration_ms: gen.randomFloat(0.1, 100.0),
     row_count: operation === 'SELECT' ? gen.randomInt(0, 100) : 1,
-    connection_adapter: 'PostgreSQLAdapter',
+    adapter: 'PostgreSQLAdapter',
     bind_params: [gen.randomInt(1, 1000)],
     database_name: 'production',
     connection_pool_size: 5,
     active_connections: gen.randomInt(1, 5),
     operation_type: operation,
     table_names: [table],
-    additional_data: {},
   };
 }
 
@@ -302,7 +285,6 @@ export function generateAMS(
   log.adapter = gen.sample(['json', 'json_api']);
   log.resource_class = gen.sample(['User', 'Project', 'Order']);
   log.duration_ms = gen.randomFloat(0.2, 30.0);
-  log.additional_data = {};
   return log;
 }
 
@@ -348,7 +330,8 @@ export function generateJobSequence(
     job_class: jobClass,
     queue_name: queueName,
     arguments: args,
-    additional_data: data,
+    retries: data.retries as number,
+    scheduled_at: data.scheduled_at as string,
   };
 
   const startTime = new Date(
@@ -364,7 +347,8 @@ export function generateJobSequence(
     job_class: jobClass,
     queue_name: queueName,
     arguments: args,
-    additional_data: data,
+    started_at: startTime.toISOString(),
+    attempt: gen.randomInt(1, 3),
   };
 
   const duration = gen.randomFloat(50, 2000);
@@ -378,8 +362,8 @@ export function generateJobSequence(
     job_class: jobClass,
     queue_name: queueName,
     arguments: args,
-    duration: duration,
-    additional_data: data,
+    duration_ms: duration,
+    finished_at: finishTime.toISOString(),
   };
 
   return [enqueueLog, startLog, finishLog];

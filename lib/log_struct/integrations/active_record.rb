@@ -98,12 +98,12 @@ module LogStruct
         # Skip schema queries and Rails internal queries
         return if skip_query?(payload)
 
-        duration = ((finish - start) * 1000.0).round(2)
+        duration_ms = ((finish - start) * 1000.0).round(2)
 
         # Skip fast queries if threshold is configured
         config = LogStruct.config
         if config.integrations.sql_slow_query_threshold&.positive?
-          return if duration < config.integrations.sql_slow_query_threshold
+          return if duration_ms < config.integrations.sql_slow_query_threshold
         end
 
         sql_log = Log::SQL.new(
@@ -112,9 +112,9 @@ module LogStruct
           event: Event::Database,
           sql: payload[:sql]&.strip || "",
           name: payload[:name] || "SQL Query",
-          duration: duration,
+          duration_ms: duration_ms,
           row_count: extract_row_count(payload),
-          connection_adapter: extract_adapter_name(payload),
+          adapter: extract_adapter_name(payload),
           bind_params: extract_and_filter_binds(payload),
           database_name: extract_database_name(payload),
           connection_pool_size: extract_pool_size(payload),

@@ -38,11 +38,7 @@ module LogStruct
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def log_error(error, source:, context: nil)
           # Create structured log entry
-          error_log = Log::Error.from_exception(
-            source,
-            error,
-            context || {}
-          )
+          error_log = Log.from_exception(source, error, context || {})
           LogStruct.error(error_log)
         end
 

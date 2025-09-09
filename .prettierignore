@@ -6,7 +6,7 @@ site/.next
 site/out
 
 site/lib/log-generation/sample-data.ts
-site/lib/log-generation/log-keys.json
+site/lib/log-generation/log-fields.json
 site/lib/log-generation/log-types.ts
 site/lib/log-generation/sorbet-*.json
 site/public/coverage

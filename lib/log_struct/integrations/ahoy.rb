@@ -27,7 +27,8 @@ module LogStruct
                 data[:properties] = properties if properties
                 LogStruct.info(
                   LogStruct::Log::Ahoy.new(
-                    ahoy_event: T.let(name, T.nilable(String)),
+                    message: "ahoy.track",
+                    ahoy_event: T.must(T.let(name, T.nilable(String))),
                     properties: T.let(
                       properties && properties.transform_keys { |k| k.to_sym },
                       T.nilable(T::Hash[Symbol, T.untyped])

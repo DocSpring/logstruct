@@ -1,0 +1,53 @@
+source: Shrine
+
+consts:
+  source: Source::Shrine
+
+additional_data: true
+
+events:
+  Upload:
+    fields:
+      Storage: String
+      Location: String
+      UploadOptions:
+        type: 'T::Hash[Symbol, T.untyped]'
+        required: false
+      Options:
+        type: 'T::Hash[Symbol, T.untyped]'
+        required: false
+      Uploader:
+        type: String
+        required: false
+      DurationMs:
+        type: Float
+        required: false
+
+  Download:
+    fields:
+      Storage: String
+      Location: String
+      DownloadOptions:
+        type: 'T::Hash[Symbol, T.untyped]'
+        required: false
+
+  Delete:
+    fields:
+      Storage: String
+      Location: String
+
+  Metadata:
+    fields:
+      Storage: String
+      Location: String
+      Metadata:
+        type: 'T::Hash[String, T.untyped]'
+        required: false
+
+  Exist:
+    fields:
+      Storage: String
+      Location: String
+      Exist:
+        type: T::Boolean
+        required: false

@@ -72,7 +72,7 @@ class LoggingController < ApplicationController
       http_method: "GET",
       path: "/api/users",
       status: 200,
-      duration: 15.5,
+      duration_ms: 15.5,
       source_ip: "127.0.0.1"
     )
     Rails.logger.info(request_log)

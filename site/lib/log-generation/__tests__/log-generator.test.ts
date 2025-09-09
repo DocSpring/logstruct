@@ -84,10 +84,10 @@ describe('LogGenerator', () => {
     expect(sequence[1].level).toBe(Level.INFO);
     expect(sequence[2].level).toBe(Level.INFO);
 
-    // Only the finish event should have a duration
-    expect(sequence[0]).not.toHaveProperty('duration');
-    expect(sequence[1]).not.toHaveProperty('duration');
-    expect(sequence[2]).toHaveProperty('duration');
+    // Only the finish event should have a duration (ms)
+    expect(sequence[0]).not.toHaveProperty('duration_ms');
+    expect(sequence[1]).not.toHaveProperty('duration_ms');
+    expect(sequence[2]).toHaveProperty('duration_ms');
 
     // Timestamps should be in chronological order
     const time1 = new Date(sequence[0].timestamp as string).getTime();

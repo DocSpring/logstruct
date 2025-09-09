@@ -21,27 +21,21 @@ module LogStruct
         pattern = /\.active_model_serializers\z/
 
         ::ActiveSupport::Notifications.subscribe(pattern) do |_name, started, finished, _unique_id, payload|
-          duration_ms = ((finished - started) * 1000.0)
-
-          data = {
-            duration_ms: duration_ms
-          }
+          # started/finished are Time; convert to ms
+          duration_ms = ((finished - started) * 1000.0).round(3)
 
           serializer = payload[:serializer] || payload[:serializer_class]
           adapter = payload[:adapter]
           resource = payload[:resource] || payload[:object]
 
-          data[:serializer] = serializer.to_s if serializer
-          data[:adapter] = adapter.to_s if adapter
-          data[:resource_class] = resource.class.name if resource
-
           LogStruct.info(
             LogStruct::Log::ActiveModelSerializers.new(
-              serializer: data[:serializer]&.to_s,
-              adapter: data[:adapter]&.to_s,
-              resource_class: data[:resource_class]&.to_s,
-              duration_ms: T.cast(data[:duration_ms], T.nilable(Float)),
-              additional_data: {}
+              message: "ams.render",
+              serializer: serializer&.to_s,
+              adapter: adapter&.to_s,
+              resource_class: resource&.class&.name,
+              duration_ms: duration_ms,
+              timestamp: started
             )
           )
         rescue => e

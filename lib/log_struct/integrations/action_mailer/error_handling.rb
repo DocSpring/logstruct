@@ -75,11 +75,7 @@ module LogStruct
           }
 
           # Create the structured exception log
-          exception_data = Log::Error.from_exception(
-            Source::Mailer,
-            error,
-            context
-          )
+          exception_data = Log.from_exception(Source::Mailer, error, context)
 
           # Log the structured error
           LogStruct.error(exception_data)
@@ -123,11 +119,7 @@ module LogStruct
             }
 
             # Create an exception log for structured logging
-            exception_data = Log::Error.from_exception(
-              Source::Mailer,
-              error,
-              context
-            )
+            exception_data = Log.from_exception(Source::Mailer, error, context)
 
             # Log the exception with structured data
             LogStruct.error(exception_data)
@@ -144,7 +136,7 @@ module LogStruct
         sig { params(error: StandardError).void }
         def log_notification_event(error)
           # Create an error log data object
-          exception_data = Log::Error.from_exception(
+          exception_data = Log.from_exception(
             Source::Mailer,
             error,
             {

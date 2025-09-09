@@ -38,7 +38,7 @@ module LogStruct
         # Extract key information from the event
         event_name = event.name.sub(/\.active_storage$/, "")
         service_name = event.payload[:service]
-        duration = event.duration
+        duration_ms = event.duration
 
         # Map service events to log event types
         event_type = case event_name
@@ -65,26 +65,65 @@ module LogStruct
         end
 
         # Map the event name to an operation
-        operation = event_name.sub(/^service_/, "").to_sym
+        event_name.sub(/^service_/, "").to_sym
 
-        # Create structured log event specific to ActiveStorage
-        log_data = Log::ActiveStorage.new(
-          event: event_type,
-          operation: operation,
-          storage: service_name.to_s,
-          file_id: event.payload[:key].to_s,
-          checksum: event.payload[:checksum].to_s,
-          duration: duration,
-          # Add other fields where available
-          metadata: event.payload[:metadata],
-          exist: event.payload[:exist],
-          url: event.payload[:url],
-          filename: event.payload[:filename],
-          mime_type: event.payload[:content_type],
-          size: event.payload[:byte_size],
-          prefix: event.payload[:prefix],
-          range: event.payload[:range]
-        )
+        # Create structured log event using generated classes
+        log_data = case event_type
+        when Event::Upload
+          Log::ActiveStorage::Upload.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            checksum: event.payload[:checksum]&.to_s,
+            duration_ms: duration_ms,
+            metadata: event.payload[:metadata],
+            filename: event.payload[:filename],
+            mime_type: event.payload[:content_type],
+            size: event.payload[:byte_size]
+          )
+        when Event::Download
+          Log::ActiveStorage::Download.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            filename: event.payload[:filename],
+            range: event.payload[:range],
+            duration_ms: duration_ms
+          )
+        when Event::Delete
+          Log::ActiveStorage::Delete.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s
+          )
+        when Event::Metadata
+          Log::ActiveStorage::Metadata.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            metadata: event.payload[:metadata]
+          )
+        when Event::Exist
+          Log::ActiveStorage::Exist.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            exist: event.payload[:exist]
+          )
+        when Event::Stream
+          Log::ActiveStorage::Stream.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            prefix: event.payload[:prefix]
+          )
+        when Event::Url
+          Log::ActiveStorage::Url.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            url: event.payload[:url]
+          )
+        else
+          Log::ActiveStorage::Metadata.new(
+            storage: service_name.to_s,
+            file_id: event.payload[:key]&.to_s,
+            metadata: event.payload[:metadata]
+          )
+        end
 
         # Log structured data
         LogStruct.info(log_data)

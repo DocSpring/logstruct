@@ -1,0 +1,11 @@
+source: Plain
+
+consts:
+  source: Source::App
+
+additional_data: true
+
+events:
+  Log:
+    fields:
+      Message: T.untyped

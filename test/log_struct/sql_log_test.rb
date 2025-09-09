@@ -10,7 +10,7 @@ module LogStruct
         message: "User load",
         sql: "SELECT * FROM users WHERE id = ?",
         name: "User Load",
-        duration: 12.3,
+        duration_ms: 12.3,
         row_count: 1
       )
 
@@ -23,8 +23,8 @@ module LogStruct
       assert_equal "SELECT * FROM users WHERE id = ?", data[:sql]
       assert data.key?(:name), "expected :name key"
       assert_equal "User Load", data[:name]
-      assert data.key?(:duration), "expected :duration key"
-      assert_in_delta 12.3, data[:duration]
+      assert data.key?(:duration_ms), "expected :duration_ms key"
+      assert_in_delta 12.3, data[:duration_ms]
       assert_equal 1, data[:row_count]
     end
   end

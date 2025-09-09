@@ -1,5 +1,8 @@
 {
   "rubyLsp.formatter": "rubocop",
   "rubocop.safeAutocorrect": false,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "yaml.schemas": {
+    "./schemas/meta/log-source-schema.json": ["schemas/log_sources/*.yml"]
+  }
 }

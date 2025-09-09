@@ -1,0 +1,41 @@
+source: ActiveJob
+
+consts:
+  source: Source::Job
+
+base:
+  default_required: false
+  fields:
+    JobId:
+      type: String
+      required: true
+    JobClass:
+      type: String
+      required: true
+    QueueName: String
+    Arguments: 'T::Array[T.untyped]'
+    Executions: Integer
+    ProviderJobId: String
+
+events:
+  Enqueue:
+    fields:
+      Retries:
+        type: Integer
+        required: false
+
+  Schedule:
+    fields:
+      ScheduledAt: Time
+
+  Start:
+    fields:
+      StartedAt: Time
+      Attempt:
+        type: Integer
+        required: false
+
+  Finish:
+    fields:
+      DurationMs: Float
+      FinishedAt: Time

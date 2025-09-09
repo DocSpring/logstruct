@@ -1,0 +1,19 @@
+source: Request
+
+consts:
+  source: Source::Rails
+
+add_request_fields: true
+
+events:
+  Request:
+    default_required: false
+    fields:
+      Format: String
+      Controller: String
+      Action: String
+      Status: Integer
+      DurationMs: Float
+      View: Float
+      Database: Float
+      Params: 'T::Hash[Symbol, T.untyped]'

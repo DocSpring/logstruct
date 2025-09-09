@@ -136,6 +136,7 @@ GEM
     ffi (1.17.1-x86_64-linux-musl)
     globalid (1.2.1)
       activesupport (>= 6.1)
+    hana (1.3.7)
     honeybadger (5.26.4)
       logger
       ostruct
@@ -151,6 +152,11 @@ GEM
       reline (>= 0.4.2)
     jaro_winkler (1.6.0)
     json (2.10.1)
+    json_schemer (2.4.0)
+      bigdecimal
+      hana (~> 1.3)
+      regexp_parser (~> 2.0)
+      simpleidn (~> 0.2)
     jsonapi-renderer (0.2.2)
     kramdown (2.5.1)
       rexml (>= 3.3.9)
@@ -298,6 +304,10 @@ GEM
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.38.1)
       parser (>= 3.3.1.0)
+    rubocop-inflector (1.0.0)
+      activesupport
+      rubocop
+      rubocop-rspec
     rubocop-minitest (0.37.0)
       lint_roller (~> 1.1)
       rubocop (>= 1.61, < 2.0)
@@ -305,6 +315,8 @@ GEM
     rubocop-performance (1.23.1)
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
+    rubocop-rspec (3.4.0)
+      rubocop (~> 1.61)
     rubocop-sorbet (0.8.9)
       rubocop (>= 1)
     ruby-progressbar (1.13.0)
@@ -336,6 +348,7 @@ GEM
       json
       simplecov
     simplecov_json_formatter (0.1.4)
+    simpleidn (0.2.3)
     solargraph (0.52.0)
       backport (~> 1.2)
       benchmark
@@ -440,6 +453,7 @@ DEPENDENCIES
   debug
   drb
   honeybadger (~> 5.4)
+  json_schemer
   listen
   logstruct!
   minitest (~> 5.20)
@@ -450,6 +464,7 @@ DEPENDENCIES
   redcarpet
   rollbar (~> 3.4)
   rubocop
+  rubocop-inflector
   rubocop-minitest
   rubocop-performance
   rubocop-sorbet

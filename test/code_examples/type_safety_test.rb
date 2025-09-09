@@ -15,7 +15,7 @@ module LogStruct
           http_method: "GET",
           path: "/users",
           status: 200,
-          duration: 45.2,
+          duration_ms: 45.2,
           source: LogStruct::Source::Rails
         )
 
@@ -39,7 +39,7 @@ module LogStruct
         assert_equal "GET", request_log.http_method
         assert_equal "/users", request_log.path
         assert_equal 200, request_log.status
-        assert_in_delta(45.2, request_log.duration)
+        assert_in_delta(45.2, request_log.duration_ms)
         assert_equal LogStruct::Source::Rails, request_log.source
 
         assert_equal LogStruct::Source::App, error_log.source

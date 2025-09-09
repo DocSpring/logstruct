@@ -1,0 +1,19 @@
+source: ActiveModelSerializers
+
+consts:
+  source: Source::Rails
+
+events:
+  Generate:
+    fields:
+      Message: String
+      Serializer:
+        type: String
+        required: false
+      Adapter:
+        type: String
+        required: false
+      ResourceClass:
+        type: String
+        required: false
+      DurationMs: Float

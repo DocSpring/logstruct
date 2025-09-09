@@ -1,0 +1,15 @@
+source: Ahoy
+
+consts:
+  source: Source::App
+
+additional_data: true
+
+events:
+  Log:
+    fields:
+      Message: String
+      AhoyEvent: String
+      Properties:
+        type: 'T::Hash[Symbol, T.untyped]'
+        required: false

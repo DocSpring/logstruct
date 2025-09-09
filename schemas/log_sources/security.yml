@@ -1,0 +1,28 @@
+source: Security
+
+consts:
+  source: Source::Security
+
+add_request_fields: true
+additional_data: true
+
+events:
+  IPSpoof:
+    default_required: false
+    fields:
+      Message: String
+      ClientIp: String
+      XForwardedFor: String
+
+  CSRFViolation:
+    fields:
+      Message:
+        type: String
+        required: false
+
+  BlockedHost:
+    default_required: false
+    fields:
+      Message: String
+      BlockedHost: String
+      BlockedHosts: 'T::Array[String]'

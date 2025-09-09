@@ -1,0 +1,42 @@
+source: SQL
+
+consts:
+  source: Source::App
+
+additional_data: true
+
+# TODO: add support for: required_fields, optional_fields:
+# 2 distinct top-level keys will make the schema cleaner.
+
+events:
+  Database:
+    fields:
+      Message: String
+      Sql: String
+      Name: String
+      DurationMs: Float
+
+      RowCount:
+        type: Integer
+        required: false
+      Adapter:
+        type: String
+        required: false
+      BindParams:
+        type: 'T::Array[T.untyped]'
+        required: false
+      DatabaseName:
+        type: String
+        required: false
+      ConnectionPoolSize:
+        type: Integer
+        required: false
+      ActiveConnections:
+        type: Integer
+        required: false
+      OperationType:
+        type: String
+        required: false
+      TableNames:
+        type: 'T::Array[String]'
+        required: false

@@ -1,0 +1,74 @@
+source: GoodJob
+
+consts:
+  # GoodJob logs should use the Job source
+  source: Source::Job
+
+base:
+  default_required: false
+  fields:
+    JobId: String
+    JobClass: String
+    QueueName: String
+    Arguments: 'T::Array[T.untyped]'
+    Executions: Integer
+
+additional_data: true
+
+events:
+  Log:
+    fields:
+      Message: String
+      ProcessId: Integer
+      ThreadId: String
+  Enqueue:
+    fields:
+      DurationMs: Float
+      ScheduledAt:
+        type: Time
+        required: false
+
+  Start:
+    fields:
+      ProcessId: Integer
+      ThreadId: String
+      WaitMs:
+        type: Float
+        required: false
+      ScheduledAt:
+        type: Time
+        required: false
+
+  Finish:
+    fields:
+      DurationMs: Float
+      FinishedAt: Time
+      ProcessId: Integer
+      ThreadId: String
+
+  Error:
+    fields:
+      ErrClass: String
+      ErrorMessage: String
+      DurationMs:
+        type: Float
+        required: false
+      ProcessId: Integer
+      ThreadId: String
+      ExceptionExecutions:
+        type: Integer
+        required: false
+      Backtrace:
+        type: 'T::Array[String]'
+        required: false
+
+  Schedule:
+    fields:
+      DurationMs: Float
+      ScheduledAt: Time
+      Priority:
+        type: Integer
+        required: false
+      CronKey:
+        type: String
+        required: false

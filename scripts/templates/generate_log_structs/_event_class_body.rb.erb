@@ -1,0 +1,58 @@
+extend T::Sig
+include Interfaces::CommonFields
+include SerializeCommon
+<% if add_request_fields %>
+include Interfaces::RequestFields
+include AddRequestFields
+<% end %>
+<% if additional_data %>
+include Interfaces::AdditionalDataField
+include MergeAdditionalDataFields
+<% end %>
+
+<% if source_has_default %>
+const :source, <%= source_enum %>, default: T.let(<%= source_enum %>, <%= source_enum %>)
+<% else %>
+const :source, <%= source_enum %>
+<% end %>
+
+const :event, Event::<%= event.name %>, default: T.let(Event::<%= event.name %>, Event::<%= event.name %>)
+const :timestamp, Time, factory: -> { Time.now }
+const :level, Level, default: T.let(Level::Info, Level)
+
+<%# Base/request fields as props %>
+<% base_fields.each do |bf| -%>
+const :<%= bf.prop_name %>, <%= nilable(bf.sorbet_type, bf.required) %><% if !bf.required %>, default: nil<% end %>
+<% end -%>
+<% if additional_data -%>
+const :additional_data, T::Hash[Symbol, T.untyped], default: {}
+<% end -%>
+<% event.fields.each do |f| -%>
+<% if f.required -%>
+const :<%= f.prop_name %>, <%= f.sorbet_type %>
+<% else -%>
+const :<%= f.prop_name %>, T.nilable(<%= f.sorbet_type %>), default: nil
+<% end -%>
+<% end -%>
+
+sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
+def serialize(strict = true)
+  h = serialize_common(strict)
+<% if add_request_fields -%>
+  add_request_fields(h)
+<% end -%>
+<% base_fields.each do |bf| -%>
+  h[LogField::<%= bf.enum_name %>.serialize] = <%= bf.prop_name %> if <%= bf.prop_name %>
+<% end -%>
+<% if additional_data -%>
+  merge_additional_data_fields(h)
+<% end -%>
+<% event.fields.each do |f| -%>
+<% if f.required -%>
+  h[LogField::<%= f.enum_name %>.serialize] = <%= (f.sorbet_type == 'Time') ? "#{f.prop_name}.iso8601" : f.prop_name %>
+<% else -%>
+  h[LogField::<%= f.enum_name %>.serialize] = <%= (f.sorbet_type == 'Time') ? "#{f.prop_name}&.iso8601" : f.prop_name %> if <%= f.prop_name %>
+<% end -%>
+<% end -%>
+  h
+end

@@ -47,10 +47,10 @@ import {
   ActiveStorageEvents,
   ActionMailerEvents,
   CarrierWaveEvents,
-  // Import the array of all log types
-  // AllLogTypes,
-} from './log-types';
-import logKeysMap from './log-keys.json';
+  LogField,
+  PropToLogField,
+} from './generated/log-types';
+import logFields from './generated/log-fields.json';
 
 /**
  * Utility for generating structured log data
@@ -68,6 +68,17 @@ export class LogGenerator extends RandomDataGenerator {
     const transformedLog: Record<string, any> = {};
     let additionalData: Record<string, any> | undefined;
 
+    // Precompute compact keys set for quick checks
+    const compactKeys = new Set<string>(Object.values(LogField));
+
+    // Helper to convert a prop name to PascalCase LogField name
+    const toPascal = (name: string): string =>
+      name
+        .split(/[_\-\s]+/)
+        .filter(Boolean)
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join('');
+
     // Process each field in the log
     Object.entries(log).forEach(([propertyName, value]) => {
       if (propertyName === 'additional_data' && value) {
@@ -75,15 +86,18 @@ export class LogGenerator extends RandomDataGenerator {
         additionalData = value as Record<string, any>;
         return;
       }
-
-      const jsonKey = (logKeysMap as Record<string, string>)[propertyName];
-      if (jsonKey) {
-        // Use the mapped JSON key
-        transformedLog[jsonKey] = value;
-      } else {
-        // Keep original name if no mapping exists
+      // If it's already a compact key (e.g., ts, lvl), keep it
+      if (compactKeys.has(propertyName)) {
         transformedLog[propertyName] = value;
+        return;
       }
+
+      // Use the generated property -> LogField name mapping to find compact key
+      const lfValue = (PropToLogField as Record<string, string | undefined>)[
+        propertyName
+      ];
+      const jsonKey = lfValue as string | undefined;
+      transformedLog[jsonKey ?? propertyName] = value;
     });
 
     // Merge additional_data into the root object if it exists
@@ -324,7 +338,7 @@ export class LogGenerator extends RandomDataGenerator {
     log.download_options = {};
     log.options = { metadata: true };
     log.uploader = 'ImageUploader';
-    log.duration = this.randomDuration();
+    log.duration_ms = this.randomDuration();
     log.additional_data = {
       content_type: this.sample(SampleData.FILE_TYPES),
       filename: this.sample(SampleData.FILE_NAMES),
@@ -365,36 +379,20 @@ export class LogGenerator extends RandomDataGenerator {
         Event.METADATA,
         Event.STREAM,
         Event.URL,
-        Event.UNKNOWN,
       ]);
-
-    // Set appropriate operation based on event
-    let operation = 'upload';
-    if (event === Event.DOWNLOAD || event === Event.STREAM) {
-      operation = 'download';
-    } else if (event === Event.DELETE) {
-      operation = 'delete';
-    } else if (event === Event.METADATA) {
-      operation = 'metadata';
-    } else if (event === Event.EXIST) {
-      operation = 'exists';
-    } else if (event === Event.URL) {
-      operation = 'url';
-    }
 
     // Ensure we have the right source and one of the valid events
     const storageLog: Partial<ActiveStorageLog> = {
       ...log,
       source: Source.STORAGE,
       event,
-      operation,
       storage: this.sample(SampleData.STORAGE_SERVICES),
       file_id: this.randomHex(10),
       filename: this.sample(SampleData.FILE_NAMES),
       mime_type: this.sample(SampleData.FILE_TYPES),
       size: this.randomInt(1000, 1000000),
       metadata: { width: 800, height: 600 },
-      duration: this.randomDuration(),
+      duration_ms: this.randomDuration(),
       checksum: this.randomHex(32),
       exist: true,
       url: `https://storage.example.com/${this.randomHex(8)}`,
@@ -431,14 +429,13 @@ export class LogGenerator extends RandomDataGenerator {
   private generateCarrierWaveLog(
     log: Partial<CarrierWaveLog>,
   ): Partial<CarrierWaveLog> {
-    log.operation = 'upload';
     log.storage = this.sample(SampleData.STORAGE_SERVICES);
     log.file_id = this.randomHex(10);
     log.filename = this.sample(SampleData.FILE_NAMES);
     log.mime_type = this.sample(SampleData.FILE_TYPES);
     log.size = this.randomInt(1000, 1000000);
     log.metadata = { width: 800, height: 600 };
-    log.duration = this.randomDuration();
+    log.duration_ms = this.randomDuration();
     log.uploader = 'AvatarUploader';
     log.model = 'User';
     log.mount_point = 'avatar';
@@ -458,11 +455,8 @@ export class LogGenerator extends RandomDataGenerator {
     log.executions = this.randomInt(0, 3);
     log.exception_executions = 0;
     log.scheduled_at = new Date().toISOString();
-    log.execution_time = this.randomFloat(0.1, 10.0);
     log.thread_id = `thread-${this.randomHex(4)}`;
     log.process_id = this.randomInt(1000, 99999);
-    log.batch_id = `batch-${this.randomHex(6)}`;
-    log.job_label = `${log.job_class}#perform`;
 
     return log;
   }
@@ -475,9 +469,9 @@ export class LogGenerator extends RandomDataGenerator {
 
     log.sql = `${operation} * FROM ${table} WHERE id = ?`;
     log.name = `${table.charAt(0).toUpperCase() + table.slice(1).slice(0, -1)} Load`;
-    log.duration = this.randomFloat(0.1, 100.0);
+    log.duration_ms = this.randomFloat(0.1, 100.0);
     log.row_count = operation === 'SELECT' ? this.randomInt(0, 100) : 1;
-    log.connection_adapter = 'PostgreSQLAdapter';
+    log.adapter = 'PostgreSQLAdapter';
     log.bind_params = [this.randomInt(1, 1000)];
     log.database_name = 'production';
     log.connection_pool_size = 5;
@@ -500,7 +494,6 @@ export class LogGenerator extends RandomDataGenerator {
     log.adapter = this.sample(['json', 'json_api']);
     log.resource_class = this.sample(['User', 'Project', 'Order']);
     log.duration_ms = this.randomFloat(0.2, 30.0);
-    log.additional_data = {};
     return log;
   }
 
@@ -546,7 +539,6 @@ export class LogGenerator extends RandomDataGenerator {
       level,
       file,
       vars,
-      additional_data: {},
     };
 
     return dotenvLog;

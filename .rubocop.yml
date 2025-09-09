@@ -17,6 +17,7 @@ AllCops:
     - public/**/*
     - vendor/**/*
     - tmp/**/*
+    - docspring/**/*
     - sorbet/rbi/dsl/**/*
     - sorbet/rbi/gems/**/*
     - sorbet/rbi/annotations/**/*
@@ -85,6 +86,14 @@ Sorbet/StrictSigil:
     - 'rails_test_app/**/*.rb'
     - 'scripts/**/*.rb'
   SuggestedStrictness: strict
+
+Sorbet/ForbidUntypedStructProps:
+  Exclude:
+    - 'lib/log_struct/log/plain.rb'
+
+Sorbet/ConstantsFromStrings:
+  Exclude:
+    - 'scripts/generate_log_fields_json.rb'
 
 # Require typed: true for test files
 Sorbet/TrueSigil:

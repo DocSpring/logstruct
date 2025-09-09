@@ -1,0 +1,13 @@
+source: Sidekiq
+
+consts:
+  source: Source::Sidekiq
+
+events:
+  Log:
+    default_required: false
+    fields:
+      Message: String
+      Context: 'T::Hash[Symbol, T.untyped]'
+      ProcessId: Integer
+      ThreadId: 'T.any(Integer, String)'

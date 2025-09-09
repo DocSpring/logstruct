@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../log_keys"
+# no key mapping required here
 require_relative "../interfaces/additional_data_field"
 
 module LogStruct

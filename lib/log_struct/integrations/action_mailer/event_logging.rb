@@ -36,11 +36,7 @@ module LogStruct
         private
 
         # Log a mailer event with the given event type
-        sig do
-          params(event_type: Log::ActionMailer::ActionMailerEvent,
-            level: Symbol,
-            additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped)
-        end
+        sig { params(event_type: LogStruct::Event, level: Symbol, additional_data: T::Hash[Symbol, T.untyped]).returns(T.untyped) }
         def log_mailer_event(event_type, level = :info, additional_data = {})
           # Get message (self refers to the mailer instance)
           mailer_message = message if respond_to?(:message)
@@ -62,16 +58,30 @@ module LogStruct
           from = mailer_message&.from&.first
           subject = mailer_message&.subject
 
-          # Create a structured log entry
-          log_data = Log::ActionMailer.new(
-            event: event_type,
+          base_fields = Log::ActionMailer::BaseFields.new(
             to: to,
             from: from,
-            subject: subject,
-            additional_data: data
+            subject: subject
           )
-          LogStruct.info(log_data)
-          log_data
+
+          log = case event_type
+          when Event::Delivery
+            Log::ActionMailer::Delivery.new(
+              **base_fields.to_kwargs,
+              additional_data: data,
+              timestamp: Time.now
+            )
+          when Event::Delivered
+            Log::ActionMailer::Delivered.new(
+              **base_fields.to_kwargs,
+              additional_data: data,
+              timestamp: Time.now
+            )
+          else
+            return
+          end
+          LogStruct.info(log)
+          log
         end
 
         # Extract message ID from the mailer

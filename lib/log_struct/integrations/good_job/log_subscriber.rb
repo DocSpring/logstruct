@@ -38,168 +38,118 @@ module LogStruct
         extend T::Sig
 
         # Job enqueued event
-        sig { params(event: T.untyped).void }
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def enqueue(event)
-          job_data = extract_job_data(event)
+          payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
+          job = payload[:job]
+          base_fields = build_base_fields(job, payload)
+          ts = event.time ? Time.at(event.time) : Time.now
 
-          log_entry = LogStruct::Log::GoodJob.new(
-            event: Event::Enqueue,
-            level: Level::Info,
-            job_id: job_data[:job_id],
-            job_class: job_data[:job_class],
-            queue_name: job_data[:queue_name],
-            arguments: job_data[:arguments],
-            scheduled_at: job_data[:scheduled_at],
-            priority: job_data[:priority],
-            execution_time: event.duration,
-            additional_data: {
-              enqueue_caller: job_data[:caller_location]
-            }
-          )
-
-          logger.info(log_entry)
+          logger.info(Log::GoodJob::Enqueue.new(
+            **base_fields.to_kwargs,
+            scheduled_at: (job&.scheduled_at ? Time.at(job.scheduled_at.to_i) : nil),
+            duration_ms: event.duration.to_f,
+            additional_data: {enqueue_caller: job&.enqueue_caller_location},
+            timestamp: ts
+          ))
         end
 
         # Job execution started event
-        sig { params(event: T.untyped).void }
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def start(event)
-          job_data = extract_job_data(event)
+          payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
+          job = payload[:job]
+          execution = payload[:execution] || payload[:good_job_execution]
+          base_fields = build_base_fields(job, payload)
+          ts = event.time ? Time.at(event.time) : Time.now
 
-          log_entry = LogStruct::Log::GoodJob.new(
-            event: Event::Start,
-            level: Level::Info,
-            job_id: job_data[:job_id],
-            job_class: job_data[:job_class],
-            queue_name: job_data[:queue_name],
-            arguments: job_data[:arguments],
-            executions: job_data[:executions],
-            wait_time: job_data[:wait_time],
-            scheduled_at: job_data[:scheduled_at],
+          logger.info(Log::GoodJob::Start.new(
+            **base_fields.to_kwargs,
+            wait_ms: begin
+              wt = execution&.wait_time || calculate_wait_time(execution)
+              wt ? (wt.to_f * 1000.0) : nil
+            end,
+            scheduled_at: (job&.scheduled_at ? Time.at(job.scheduled_at.to_i) : nil),
             process_id: ::Process.pid,
-            thread_id: Thread.current.object_id.to_s(36)
-          )
-
-          logger.info(log_entry)
+            thread_id: Thread.current.object_id.to_s(36),
+            timestamp: ts
+          ))
         end
 
         # Job completed successfully event
-        sig { params(event: T.untyped).void }
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def finish(event)
-          job_data = extract_job_data(event)
+          payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
+          job = payload[:job]
+          base_fields = build_base_fields(job, payload)
+          start_ts = event.time ? Time.at(event.time) : Time.now
+          end_ts = event.end ? Time.at(event.end) : Time.now
 
-          log_entry = LogStruct::Log::GoodJob.new(
-            event: Event::Finish,
-            level: Level::Info,
-            job_id: job_data[:job_id],
-            job_class: job_data[:job_class],
-            queue_name: job_data[:queue_name],
-            executions: job_data[:executions],
-            run_time: event.duration,
-            finished_at: Time.now,
+          logger.info(Log::GoodJob::Finish.new(
+            **base_fields.to_kwargs,
+            duration_ms: event.duration.to_f,
+            finished_at: end_ts,
             process_id: ::Process.pid,
             thread_id: Thread.current.object_id.to_s(36),
-            additional_data: {
-              result: job_data[:result]
-            }
-          )
-
-          logger.info(log_entry)
+            additional_data: {result: payload[:result]},
+            timestamp: start_ts
+          ))
         end
 
         # Job failed with error event
-        sig { params(event: T.untyped).void }
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def error(event)
-          job_data = extract_job_data(event)
+          payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
+          job = payload[:job]
+          execution = payload[:execution] || payload[:good_job_execution]
+          exception = payload[:exception] || payload[:error]
+          ts = event.time ? Time.at(event.time) : Time.now
+          base_fields = build_base_fields(job, payload)
 
-          log_entry = LogStruct::Log::GoodJob.new(
-            event: Event::Error,
-            level: Level::Error,
-            job_id: job_data[:job_id],
-            job_class: job_data[:job_class],
-            queue_name: job_data[:queue_name],
-            executions: job_data[:executions],
-            exception_executions: job_data[:exception_executions],
-            error_class: job_data[:error_class],
-            error_message: job_data[:error_message],
-            error_backtrace: job_data[:error_backtrace],
-            run_time: event.duration,
+          logger.error(Log::GoodJob::Error.new(
+            **base_fields.to_kwargs,
+            exception_executions: execution&.exception_executions,
+            err_class: exception&.class&.name,
+            error_message: exception&.message,
+            backtrace: exception&.backtrace&.first(20),
+            duration_ms: event.duration.to_f,
             process_id: ::Process.pid,
-            thread_id: Thread.current.object_id.to_s(36)
-          )
-
-          logger.error(log_entry)
+            thread_id: Thread.current.object_id.to_s(36),
+            timestamp: ts
+          ))
         end
 
         # Job scheduled for future execution event
-        sig { params(event: T.untyped).void }
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def schedule(event)
-          job_data = extract_job_data(event)
+          payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
+          job = payload[:job]
+          base_fields = build_base_fields(job, payload)
+          ts = event.time ? Time.at(event.time) : Time.now
 
-          log_entry = LogStruct::Log::GoodJob.new(
-            event: Event::Schedule,
-            level: Level::Info,
-            job_id: job_data[:job_id],
-            job_class: job_data[:job_class],
-            queue_name: job_data[:queue_name],
-            arguments: job_data[:arguments],
-            scheduled_at: job_data[:scheduled_at],
-            priority: job_data[:priority],
-            cron_key: job_data[:cron_key],
-            execution_time: event.duration
-          )
-
-          logger.info(log_entry)
+          logger.info(Log::GoodJob::Schedule.new(
+            **base_fields.to_kwargs,
+            scheduled_at: (job&.scheduled_at ? Time.at(job.scheduled_at.to_i) : nil),
+            priority: job&.priority,
+            cron_key: job&.cron_key,
+            duration_ms: event.duration.to_f,
+            timestamp: ts
+          ))
         end
 
         private
 
-        # Extract job data from ActiveSupport event payload
-        sig { params(event: T.untyped).returns(T::Hash[Symbol, T.untyped]) }
-        def extract_job_data(event)
-          payload = event.payload || {}
-          job = payload[:job]
+        # Build BaseFields from job + payload (execution)
+        sig { params(job: T.untyped, payload: T::Hash[Symbol, T.untyped]).returns(Log::GoodJob::BaseFields) }
+        def build_base_fields(job, payload)
           execution = payload[:execution] || payload[:good_job_execution]
-          exception = payload[:exception] || payload[:error]
-
-          data = {}
-
-          # Basic job information
-          if job
-            data[:job_id] = job.job_id if job.respond_to?(:job_id)
-            data[:job_class] = job.job_class if job.respond_to?(:job_class)
-            data[:queue_name] = job.queue_name if job.respond_to?(:queue_name)
-            data[:arguments] = job.arguments if job.respond_to?(:arguments)
-            data[:priority] = job.priority if job.respond_to?(:priority)
-            data[:scheduled_at] = job.scheduled_at if job.respond_to?(:scheduled_at)
-            data[:cron_key] = job.cron_key if job.respond_to?(:cron_key)
-            data[:caller_location] = job.enqueue_caller_location if job.respond_to?(:enqueue_caller_location)
-          end
-
-          # Execution-specific information
-          if execution
-            data[:executions] = execution.executions if execution.respond_to?(:executions)
-            data[:exception_executions] = execution.exception_executions if execution.respond_to?(:exception_executions)
-            # Use existing wait_time if available, otherwise calculate it
-            if execution.respond_to?(:wait_time) && execution.wait_time
-              data[:wait_time] = execution.wait_time
-            elsif execution.respond_to?(:created_at)
-              data[:wait_time] = calculate_wait_time(execution)
-            end
-            data[:batch_id] = execution.batch_id if execution.respond_to?(:batch_id)
-            data[:cron_key] ||= execution.cron_key if execution.respond_to?(:cron_key)
-          end
-
-          # Error information
-          if exception
-            data[:error_class] = exception.class.name
-            data[:error_message] = exception.message
-            data[:error_backtrace] = exception.backtrace&.first(20) # Limit backtrace size
-          end
-
-          # Result information
-          data[:result] = payload[:result] if payload.key?(:result)
-
-          data
+          Log::GoodJob::BaseFields.new(
+            job_id: job&.job_id,
+            job_class: job&.job_class,
+            queue_name: job&.queue_name,
+            arguments: job&.arguments,
+            executions: execution&.executions
+          )
         end
 
         # Calculate wait time from job creation to execution start

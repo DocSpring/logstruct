@@ -1,0 +1,32 @@
+# typed: strict
+# frozen_string_literal: true
+
+<%= header('event.rb.erb') %>
+
+<% base_prefix = (defined?(single_event) && single_event) ? "" : "../" %>
+<% enums_prefix = (defined?(single_event) && single_event) ? "../" : "../../" %>
+
+require_relative "<%= base_prefix %>interfaces/common_fields"
+require_relative "<%= base_prefix %>interfaces/additional_data_field"
+require_relative "<%= base_prefix %>interfaces/request_fields"
+require_relative "<%= base_prefix %>shared/serialize_common"
+require_relative "<%= base_prefix %>shared/merge_additional_data_fields"
+require_relative "<%= base_prefix %>shared/add_request_fields"
+require_relative "<%= enums_prefix %>enums/source"
+require_relative "<%= enums_prefix %>enums/event"
+require_relative "<%= enums_prefix %>enums/level"
+require_relative "<%= enums_prefix %>enums/log_field"
+
+module LogStruct
+  module Log
+    class <%= source_name %><% if single_event %> < T::Struct<% end %>
+<% if single_event %>
+<%= indent(render_partial('_event_class_body.rb.erb'), 6, all: true) %>
+<% else %>
+      class <%= event.name %> < T::Struct
+<%= indent(render_partial('_event_class_body.rb.erb'), 8, all: true) %>
+      end
+<% end %>
+    end
+  end
+end

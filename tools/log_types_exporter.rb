@@ -5,7 +5,8 @@
 # rubocop:disable Sorbet/ConstantsFromStrings
 
 # Load LogStruct type definitions
-require_relative "../lib/log_struct"
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+require "log_struct"
 
 require "json"
 require "fileutils"
@@ -16,7 +17,7 @@ module LogStruct
     class LogTypesExporter
       extend T::Sig
 
-      DEFAULT_OUTPUT_TS_FILE = "site/lib/log-generation/log-types.ts"
+      DEFAULT_OUTPUT_TS_FILE = "site/lib/log-generation/generated/log-types.ts"
 
       # Constructor with optional override for log struct classes (for testing)
       sig { params(output_ts_file: String, log_struct_classes: T.nilable(T::Array[T::Class[T::Struct]])).void }
@@ -46,18 +47,18 @@ module LogStruct
 
         puts "Exported log types to #{@output_ts_file}"
 
-        # Export LOG_KEYS mapping to JSON
+        # Export LogField mapping to JSON
         export_keys_to_json
 
         # Export enums and log structs to JSON
         export_data_to_json(data)
       end
 
-      # Export LOG_KEYS mapping to a JSON file
+      # Export LogField mapping to a JSON file
       sig { params(output_json_file: T.nilable(String)).void }
       def export_keys_to_json(output_json_file = nil)
         # Default to the same directory as the TypeScript file
-        output_json_file ||= File.join(File.dirname(@output_ts_file), "log-keys.json")
+        output_json_file ||= File.join(File.dirname(@output_ts_file), "log-fields.json")
 
         puts "Exporting LogStruct key mappings to JSON..."
         puts "Output file: #{output_json_file}"
@@ -65,15 +66,21 @@ module LogStruct
         # Create output directory if needed
         FileUtils.mkdir_p(File.dirname(output_json_file))
 
-        # Convert LOG_KEYS to a format suitable for JSON
-        # - Convert keys from symbols to strings
-        # - Convert values from symbols to strings
-        json_keys = LogStruct::LOG_KEYS.transform_keys(&:to_s).transform_values(&:to_s)
+        # Build mapping from LogField enum to serialized keys
+        json_keys = {}
+        LogStruct::LogField.values.each do |val|
+          const_name = LogStruct::LogField.constants.find { |cn| LogStruct::LogField.const_get(cn) == val }&.to_s
+          next unless const_name
+          json_keys[const_name] = val.serialize.to_s
+        end
 
         # Write to file with pretty formatting
         File.write(output_json_file, JSON.pretty_generate(json_keys))
 
         puts "Exported key mappings to #{output_json_file}"
+
+        # Also export a property-name -> LogField enum name mapping for the frontend runtime
+        export_property_to_logfield_json
       end
 
       # Export both enums and log structs to JSON files
@@ -84,6 +91,43 @@ module LogStruct
 
         # Export log structs to JSON
         export_log_structs_to_json(data[:logs])
+      end
+
+      # Export a JSON mapping from TypeScript property names to compact JSON keys
+      sig { params(output_json_file: T.nilable(String)).void }
+      def export_property_to_logfield_json(output_json_file = nil)
+        output_json_file ||= File.join(File.dirname(@output_ts_file), "prop-to-logfield.json")
+
+        # Build property -> compact key mapping by walking exported structs
+        logs = export_log_structs
+
+        # Helper to camelize to PascalCase (from snake_case)
+        camel = ->(str) { str.to_s.split("_").map { |s| s[0] ? s[0].upcase + s[1..] : s }.join }
+
+        json = {}
+        logs.each do |_type_name, info|
+          info[:fields].each do |prop_name, _field_info|
+            # Map TS property name to LogField constant name
+            lf_name = if prop_name.to_s == "method"
+              "HttpMethod"
+            else
+              camel.call(prop_name)
+            end
+
+            # Look up compact key via LogField enum when possible
+            begin
+              lf_const = LogStruct::LogField.const_get(lf_name)
+              # Store the enum constant name as string
+              json[prop_name.to_s] ||= lf_const.class.constants.find { |cn| lf_const.class.const_get(cn) == lf_const }.to_s
+            rescue NameError
+              # Ignore fields without LogField mapping (e.g., additional_data)
+            end
+          end
+        end
+
+        FileUtils.mkdir_p(File.dirname(output_json_file))
+        File.write(output_json_file, JSON.pretty_generate(json))
+        puts "Exported property to LogField mappings to #{output_json_file}"
       end
 
       # Export Sorbet enums to a JSON file
@@ -252,6 +296,34 @@ module LogStruct
         ts_content << "];"
         ts_content << ""
 
+        # Add property -> LogField mapping
+        # Build from exported logs data
+        prop_map = {}
+        data[:logs].each do |_type, info|
+          info[:fields].each_key do |prop_name|
+            lf_name = if prop_name.to_s == "method"
+              "HttpMethod"
+            else
+              prop_name.to_s.split("_").map { |s| s[0] ? s[0].upcase + s[1..] : s }.join
+            end
+            begin
+              lf_const = LogStruct::LogField.const_get(lf_name)
+              compact = lf_const.serialize.to_s
+              member = compact.upcase.gsub(/[^A-Z0-9]/, "_")
+              prop_map[prop_name.to_s] = member
+            rescue NameError
+              # skip if not a LogField
+            end
+          end
+        end
+        ts_content << "export const PropToLogField: Readonly<Record<string, LogField>> = {"
+        prop_map.keys.sort.each do |prop|
+          member = prop_map[prop]
+          ts_content << "  #{prop.inspect}: LogField.#{member},"
+        end
+        ts_content << "} as const;"
+        ts_content << ""
+
         # Add interface for each log type
         ts_content << "// Log Interfaces"
 
@@ -318,31 +390,50 @@ module LogStruct
 
       sig { returns(T::Hash[String, T::Hash[Symbol, T.untyped]]) }
       def export_log_structs
-        result = {}
+        # Group structs by top-level log type (e.g., ActiveJob, Security)
+        groups = {}
 
-        # Get all log structs using reflection
         T::Struct.subclasses
           .select { |klass| klass.name.to_s.start_with?("LogStruct::Log::") }
           .each do |log_class|
-          # Extract class name (e.g., "Request" from "LogStruct::Log::Request")
-          class_name = log_class.name.to_s.split("::").last
+            parts = log_class.name.to_s.split("::")
+            type_name = parts[2] # e.g., "Request" or "ActiveJob"
+            type_name = parts[3] if parts.length > 4 # nested event class -> parent name
 
-          # Export fields with their types
-          fields = {}
-          log_class.props.each do |field_name, prop_info|
-            # Use http_method -> method conversion for Request
-            field_key = field_name
-            field_key = :method if field_name == :http_method && class_name == "Request"
+            groups[type_name] ||= {fields: {}, events: []}
 
-            # Get type information
-            type_info = extract_type_info(prop_info)
+            # Collect field info from this concrete struct
+            fields = groups[type_name][:fields]
+            log_class.props.each do |field_name, prop_info|
+              # Normalize http_method for Request
+              field_key = field_name
+              field_key = :method if field_name == :http_method && type_name == "Request"
 
-            # Add to fields
-            fields[field_key] = type_info
+              type_info = extract_type_info(prop_info)
+
+              # Capture event enum values for union arrays
+              if field_name == :event && type_info[:type] == "enum_single" && type_info[:enum_value]
+                groups[type_name][:events] << type_info[:enum_value]
+              end
+
+              # Prefer existing definitions; only fill in missing fields
+              fields[field_key] ||= type_info
+            end
           end
 
-          # Add to result
-          result[class_name] = {fields: fields}
+        # Synthesize event union for each group that has multiple events
+        result = {}
+        groups.each do |type_name, data|
+          fields = data[:fields]
+          events = data[:events].uniq
+          if events.any?
+            fields[:event] = {
+              type: "enum_union",
+              base_enum: "Event",
+              enum_values: events
+            }
+          end
+          result[type_name] = {fields: fields}
         end
 
         result

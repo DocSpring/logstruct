@@ -81,15 +81,13 @@ module LogStruct
         # Configure error handling for thread errors if GoodJob supports it
         if goodjob_module.respond_to?(:on_thread_error=)
           goodjob_module.on_thread_error = ->(exception) do
-            # Log the error using our structured format
-            log_entry = LogStruct::Log::GoodJob.new(
-              event: Event::Error,
-              level: Level::Error,
-              error_class: exception.class.name,
+            log_entry = LogStruct::Log::GoodJob::Error.new(
+              err_class: exception.class.name,
               error_message: exception.message,
-              error_backtrace: exception.backtrace
+              backtrace: exception.backtrace,
+              process_id: ::Process.pid,
+              thread_id: Thread.current.object_id.to_s(36)
             )
-
             goodjob_module.logger.error(log_entry)
           end
         end

@@ -26,7 +26,6 @@ export function generateDotenv(
     source: Source.DOTENV,
     level: Level.INFO,
     event,
-    additional_data: {},
   };
 
   switch (event) {
@@ -39,6 +38,6 @@ export function generateDotenv(
     case Event.SAVE:
     default:
       // Include a hint for snapshot save to keep the example meaningful
-      return { ...base, additional_data: { snapshot: true } };
+      return { ...base, snapshot: true };
   }
 }

@@ -155,37 +155,28 @@ class LogStructLogTypesExporterTest < Minitest::Test
   end
 
   def test_active_storage_metadata_is_object_type
-    # Test with the actual metadata field from ActiveStorage log class
-    storage_struct = LogStruct::Log::ActiveStorage
-    metadata_prop_info = storage_struct.props[:metadata]
+    # Use exporter aggregated data instead of parent class props
+    logs = @exporter.send(:export_log_structs)
+    storage = logs["ActiveStorage"]
 
-    # Extract type info
-    type_info = @exporter.extract_type_info(metadata_prop_info)
+    refute_nil storage, "ActiveStorage group should be present"
+    type_info = storage[:fields][:metadata]
 
-    # Test that it's correctly identified as an object type
     assert_equal "object", type_info[:type], "Metadata should be identified as an object type"
-
-    # Test the resulting TypeScript type
-    ts_type = @exporter.typescript_type_for(type_info)
-
-    assert_equal "Record<string, any>", ts_type, "Metadata TypeScript type should be Record<string, any>"
 
     # Verify in the generated TypeScript file
     content = @exporter.generate_typescript_definitions
 
-    # Check for the metadata field definition in the ActiveStorageLog interface
     assert_includes content, "metadata?: Record<string, any>;", "ActiveStorageLog should have metadata as optional Record<string, any>"
   end
 
   def test_security_event_union_type
-    # Get the actual Security log struct class
-    security_struct = LogStruct::Log::Security
+    # Use exporter aggregated data to verify union of security events
+    logs = @exporter.send(:export_log_structs)
+    security = logs["Security"]
 
-    # Get the event prop info
-    event_prop_info = security_struct.props[:event]
-
-    # Extract the type info using our exporter
-    type_info = @exporter.extract_type_info(event_prop_info)
+    refute_nil security, "Security group should be present"
+    type_info = security[:fields][:event]
 
     # Test that it's correctly identified as an enum union type
     assert_equal "enum_union", type_info[:type], "Security event should be identified as an enum_union type"
@@ -228,12 +219,12 @@ class LogStructLogTypesExporterTest < Minitest::Test
   end
 
   def test_single_enum_value_restriction
-    # Test with actual field from ActiveJob class which uses a specific Source value
-    active_job_class = LogStruct::Log::ActiveJob
-    source_prop_info = active_job_class.props[:source]
+    # Use exporter aggregated data to verify specific Source value for ActiveJob
+    logs = @exporter.send(:export_log_structs)
+    active_job = logs["ActiveJob"]
 
-    # Extract the type info using our exporter
-    type_info = @exporter.extract_type_info(source_prop_info)
+    refute_nil active_job, "ActiveJob group should be present"
+    type_info = active_job[:fields][:source]
 
     # Test that it's correctly identified as an enum_single type
     assert_equal "enum_single", type_info[:type], "Should be identified as a single enum value restriction"
@@ -411,11 +402,11 @@ class LogStructLogTypesExporterTest < Minitest::Test
     # Check specific fields
     assert fields.key?("path"), "Should have path field"
     assert fields.key?("status"), "Should have status field"
-    assert fields.key?("duration"), "Should have duration field"
+    assert fields.key?("duration_ms"), "Should have duration_ms field"
 
     # Check field types
     assert_equal "string", fields["path"]["type"], "Path should be a string"
     assert_equal "integer", fields["status"]["type"], "Status should be an integer"
-    assert_equal "number", fields["duration"]["type"], "Duration should be a number"
+    assert_equal "number", fields["duration_ms"]["type"], "Duration_ms should be a number"
   end
 end

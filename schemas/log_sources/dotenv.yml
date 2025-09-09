@@ -1,0 +1,18 @@
+source: Dotenv
+
+events:
+  Load:
+    fields:
+      File: String
+
+  Update:
+    fields:
+      Vars: 'T::Array[String]'
+
+  Save:
+    fields:
+      Snapshot: T::Boolean
+
+  Restore:
+    fields:
+      Vars: 'T::Array[String]'

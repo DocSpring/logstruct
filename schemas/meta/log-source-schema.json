@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Log Source Schema",
+  "description": "Schema for declarative per-source, per-event log definitions used by codegen.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source", "events"],
+  "properties": {
+    "source": { "type": "string", "minLength": 1 },
+    "snake_case": { "type": "string", "minLength": 1 },
+    "consts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "pattern": "^(Source::)?[A-Za-z][A-Za-z0-9_]*$",
+          "description": "Optional override for the Ruby Source enum constant."
+        }
+      }
+    },
+    "base": {
+      "$ref": "#/definitions/baseDefinition"
+    },
+    "events": {
+      "type": "object",
+      "description": "Map of event name to event definition.",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9_]*$": { "$ref": "#/definitions/eventDefinition" }
+      }
+    },
+    "additional_data": {
+      "type": "boolean",
+      "description": "Include additional_data Hash and merge into serialization"
+    },
+    "add_request_fields": {
+      "type": "boolean",
+      "description": "Include request field accessors and serialize them"
+    }
+  },
+  "definitions": {
+    "typeString": {
+      "type": "string",
+      "enum": [
+        "String",
+        "Integer",
+        "T.any(Integer, String)",
+        "Float",
+        "T::Boolean",
+        "Time",
+        "T::Hash[Symbol, T.untyped]",
+        "T::Hash[String, T.untyped]",
+        "T::Array[T.untyped]",
+        "T::Array[String]",
+        "T::Array[Integer]",
+        "T::Array[Float]",
+        "T::Array[T::Boolean]",
+        "T::Array[Time]",
+        "T.class_of(StandardError)",
+        "T.untyped"
+      ]
+    },
+    "fieldObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/definitions/typeString" },
+        "required": {
+          "type": "boolean",
+          "description": "Optional; true by default when omitted."
+        },
+        "additional_data": {
+          "type": "boolean",
+          "description": "Optional; mark field to live under additional_data."
+        }
+      }
+    },
+    "fieldShorthand": {
+      "oneOf": [
+        { "$ref": "#/definitions/typeString" },
+        { "$ref": "#/definitions/fieldObject" }
+      ]
+    },
+    "fieldsMap": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/definitions/fieldShorthand" },
+      "propertyNames": { "$ref": "log-fields.json#/definitions/LogFieldName" }
+    },
+    "eventDefinition": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "fields": { "$ref": "#/definitions/fieldsMap" },
+        "default_required": {
+          "type": "boolean",
+          "description": "If true (default), event fields are required by default; use per-field required: false to make them optional."
+        }
+      }
+    },
+    "baseDefinition": {
+      "type": "object",
+      "required": ["fields"],
+      "additionalProperties": false,
+      "properties": {
+        "fields": { "$ref": "#/definitions/fieldsMap" },
+        "default_required": {
+          "type": "boolean",
+          "description": "If true (default), base fields are required by default; use per-field required: false to make them optional."
+        }
+      }
+    }
+  }
+}

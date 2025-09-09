@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../log_keys"
+require_relative "../../enums/log_field"
 require_relative "../interfaces/common_fields"
 
 module LogStruct
@@ -18,10 +18,10 @@ module LogStruct
       sig { params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def serialize_common(strict = true)
         {
-          LOG_KEYS.fetch(:source) => source.serialize.to_s,
-          LOG_KEYS.fetch(:event) => event.serialize.to_s,
-          LOG_KEYS.fetch(:level) => level.serialize.to_s,
-          LOG_KEYS.fetch(:timestamp) => timestamp.iso8601(3)
+          LogField::Source.serialize => source.serialize.to_s,
+          LogField::Event.serialize => event.serialize.to_s,
+          LogField::Level.serialize => level.serialize.to_s,
+          LogField::Timestamp.serialize => timestamp.iso8601(3)
         }
       end
 

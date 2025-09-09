@@ -1,0 +1,17 @@
+source: ActionMailer
+
+consts:
+  source: Source::Mailer
+
+additional_data: true
+
+base:
+  default_required: false
+  fields:
+    To: 'T::Array[String]'
+    From: String
+    Subject: String
+
+events:
+  Delivery:
+  Delivered:

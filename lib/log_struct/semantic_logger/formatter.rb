@@ -77,7 +77,7 @@ module LogStruct
         else
           # For plain messages, create a Plain log entry
           message_data = log.payload || log.message
-          plain_log = LogStruct::Log::Plain.new(
+          plain_log = ::LogStruct::Log::Plain.new(
             message: message_data,
             timestamp: log.time
           )

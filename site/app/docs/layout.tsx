@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { NestedDocNavItem } from '@/components/nested-doc-nav-item';
-import { AllLogTypes } from '@/lib/log-generation/log-types';
+import { AllLogTypes } from '@/lib/log-generation/generated/log-types';
 import { getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
 
 interface DocNavItemProps {

@@ -68,7 +68,6 @@
 2. Register the log type
    - In `lib/log_struct/log.rb`:
      - `require_relative "log/<name>"`
-     - Add `T.class_of(LogStruct::Log::<Name>)` to `LogClassType`.
 
 3. Add a config toggle
    - In `lib/log_struct/config_struct/integrations.rb`:
@@ -134,7 +133,6 @@
 - Don’t emit generic/plain logs for integrations that deserve a first‑class type.
 - Keep message names short and stable; avoid dumping raw payloads into `msg`.
 - Don’t raise in integration hooks; always call `handle_exception` with the correct `Source`.
-- Docs auto‑generation depends on the log type being included in `LogClassType` and the TypeScript export.
 
 **One‑Time Commands (after adding or changing log types)**
 

@@ -46,24 +46,22 @@ module LogStruct
               end
             end
 
-            # Create a GoodJob log struct with the context
-            log_struct = Log::GoodJob.new(
-              event: Event::Log,
-              level: LogStruct::Level.from_severity(level.to_s.upcase),
+            # Emit a GoodJob::Log event with context and extra fields as additional_data
+            extras = {}
+            extras[:scheduled_at] = job_context[:scheduled_at] if job_context.key?(:scheduled_at)
+            extras[:priority] = job_context[:priority] if job_context.key?(:priority)
+
+            log_struct = Log::GoodJob::Log.new(
+              message: message || (block ? block.call : ""),
               process_id: ::Process.pid,
               thread_id: Thread.current.object_id.to_s(36),
               job_id: job_context[:job_id],
               job_class: job_context[:job_class],
               queue_name: job_context[:queue_name],
               executions: job_context[:executions],
-              scheduled_at: job_context[:scheduled_at],
-              priority: job_context[:priority],
-              additional_data: {
-                message: message || (block ? block.call : "")
-              }
+              additional_data: extras
             )
 
-            # Pass the struct to SemanticLogger
             super(log_struct, payload, &nil)
           end
         end

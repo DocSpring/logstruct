@@ -49,7 +49,7 @@ module LogStruct
           assert_equal "info", log["lvl"]
 
           # Should include message in additional_data
-          assert_equal "Job started", log["message"]
+          assert_equal "Job started", log["msg"]
 
           # Should include process information
           assert_equal Process.pid, log["pid"]
@@ -64,7 +64,7 @@ module LogStruct
           log = JSON.parse(output.lines.first.strip)
 
           assert_equal "error", log["lvl"]
-          assert_equal "Job failed", log["message"]
+          assert_equal "Job failed", log["msg"]
         end
 
         test "extracts job context from thread local variables" do
@@ -109,7 +109,7 @@ module LogStruct
 
           # Should still log successfully
           assert_equal "job", log["src"]
-          assert_equal "Regular log message", log["message"]
+          assert_equal "Regular log message", log["msg"]
 
           # Job-specific fields should be absent
           refute log.key?("job_id")
@@ -165,7 +165,7 @@ module LogStruct
             log = JSON.parse(T.must(output.lines.first).strip)
 
             assert_equal level, log["lvl"]
-            assert_equal "Test #{level} message", log["message"]
+            assert_equal "Test #{level} message", log["msg"]
           end
         end
 
@@ -176,7 +176,7 @@ module LogStruct
           output = @io.string
           log = JSON.parse(output.lines.first.strip)
 
-          assert_equal "Block message", log["message"]
+          assert_equal "Block message", log["msg"]
         end
 
         test "maintains SemanticLogger functionality" do

@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../log_keys"
+require_relative "../../enums/log_field"
 require_relative "../interfaces/public_common_fields"
 
 module LogStruct
@@ -28,10 +28,10 @@ module LogStruct
         ts = timestamp.iso8601(3)
 
         {
-          LOG_KEYS.fetch(:source) => src,
-          LOG_KEYS.fetch(:event) => evt,
-          LOG_KEYS.fetch(:level) => lvl,
-          LOG_KEYS.fetch(:timestamp) => ts
+          LogField::Source.serialize => src,
+          LogField::Event.serialize => evt,
+          LogField::Level.serialize => lvl,
+          LogField::Timestamp.serialize => ts
         }
       end
 

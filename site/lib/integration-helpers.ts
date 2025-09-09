@@ -1,4 +1,4 @@
-import { Event, LogType } from '@/lib/log-generation/log-types';
+import { Event, LogType } from '@/lib/log-generation/generated/log-types';
 
 // Generate information for each log type (extracted from integrations/page.tsx)
 export function getLogTypeInfo(logType: LogType): {

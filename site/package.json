@@ -4,11 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
+    "prebuild": "node scripts/prepare-integration-fixtures.js",
     "build": "node scripts/generate-favicons.js && next build",
     "postbuild": "node scripts/check-internal-links.js",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run build && npm run test:integration && npm run e2e",
+    "test:integration": "node scripts/prepare-integration-fixtures.js && npm run build && jest -c jest.integration.config.ts",
+    "e2e": "playwright test",
     "test:watch": "jest --watch",
     "generate-favicons": "node scripts/generate-favicons.js"
   },
@@ -58,7 +63,8 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@playwright/test": "^1.48.2"
   },
   "optionalDependencies": {
     "@next/swc-linux-x64-gnu": "latest",

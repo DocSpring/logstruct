@@ -4,4 +4,6 @@
 --ignore=vendor/
 --ignore=rails_test_app/logstruct_test_app
 --ignore=reference/
+--ignore=rails_test_app/
+--ignore=test/
 --enable-experimental-requires-ancestor

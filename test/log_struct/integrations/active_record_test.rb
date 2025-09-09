@@ -209,9 +209,9 @@ module LogStruct
         assert_equal LogStruct::Event::Database, T.must(log).event
         assert_equal "SELECT * FROM users WHERE id = ?", T.must(log).sql
         assert_equal "User Load", T.must(log).name
-        assert_operator T.must(log).duration, :>, 0.0
+        assert_operator T.must(log).duration_ms, :>, 0.0
         assert_equal 1, T.must(log).row_count
-        assert_equal "MockAdapter", T.must(log).connection_adapter
+        assert_equal "MockAdapter", T.must(log).adapter
         assert_equal [123], T.must(log).bind_params
         assert_equal "test_db", T.must(log).database_name
         assert_equal 5, T.must(log).connection_pool_size
@@ -238,7 +238,7 @@ module LogStruct
         first_log = T.let(logged_events.first, T.nilable(LogStruct::Log::SQL))
 
         assert_not_nil first_log
-        assert_operator T.must(first_log).duration, :>=, 100.0
+        assert_operator T.must(first_log).duration_ms, :>=, 100.0
       end
 
       test "logs all queries when threshold is disabled" do

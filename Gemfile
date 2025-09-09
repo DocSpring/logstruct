@@ -33,6 +33,7 @@ group :test do
   gem "simplecov-json", "~> 0.2", require: false
   gem "climate_control", "~> 1.2"
   gem "thor"
+  gem "json_schemer"
 end
 
 # Development and linting tools that may have higher Ruby version requirements
@@ -50,6 +51,7 @@ group :development do
   # gem "rubocop-rails", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-sorbet", require: false
+  gem "rubocop-inflector", require: false
   gem "rubocop", require: false
   gem "solargraph", require: false
   gem "standard", ">= 1.35.1", require: false

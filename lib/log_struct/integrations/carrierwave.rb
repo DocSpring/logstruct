@@ -52,18 +52,16 @@ module LogStruct
           }
 
           # Log the store operation with structured data
-          log_data = Log::CarrierWave.new(
-            source: Source::CarrierWave,
-            event: Event::Upload,
-            duration: duration * 1000.0, # Convert to ms
-            model: model.class.name,
-            uploader: self.class.name,
+          log_data = Log::CarrierWave::Upload.new(
             storage: storage.class.name,
-            mount_point: mounted_as.to_s,
+            file_id: identifier,
             filename: file.filename,
             mime_type: file.content_type,
             size: file_size,
-            file_id: identifier,
+            duration_ms: (duration * 1000.0).to_f,
+            uploader: self.class.name,
+            model: model.class.name,
+            mount_point: mounted_as.to_s,
             additional_data: {
               version: version_name.to_s,
               store_path: store_path,
@@ -78,25 +76,24 @@ module LogStruct
         # Log file retrieve operations
         sig { params(identifier: T.untyped, args: T.untyped).returns(T.untyped) }
         def retrieve_from_store!(identifier, *args)
-          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result = super
-          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+          Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
           # Extract file information if available
           file_size = file.size if file&.respond_to?(:size)
 
           # Log the retrieve operation with structured data
-          log_data = Log::CarrierWave.new(
-            source: Source::CarrierWave,
-            event: Event::Download,
-            duration: duration * 1000.0, # Convert to ms
-            uploader: self.class.name,
+          log_data = Log::CarrierWave::Download.new(
             storage: storage.class.name,
-            mount_point: mounted_as.to_s,
             file_id: identifier,
             filename: file&.filename,
             mime_type: file&.content_type,
             size: file_size,
+            # No duration field on Download event schema
+            uploader: self.class.name,
+            model: model.class.name,
+            mount_point: mounted_as.to_s,
             additional_data: {
               version: version_name.to_s
             }
