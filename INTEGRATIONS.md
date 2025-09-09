@@ -102,7 +102,7 @@
    - The Integrations page lists all `AllLogTypes` with titles/descriptions from `site/lib/integration-helpers.ts`.
    - Add an entry to `getLogTypeInfo` for your new log type (title, concise description, optional `configuration_code: 'integrations_configuration'`).
    - Run the type export to regenerate the docs’ TypeScript assets so example logs render:
-     - `ruby scripts/export_typescript_types.rb`
+     - `ruby scripts/generate_typescript_structs.rb`
 
 8. Sorbet + CI
    - Run `scripts/typecheck.sh` (must be clean).
@@ -138,6 +138,6 @@
 
 - `bundle install`
 - `bundle exec tapioca gems`
-- `ruby scripts/export_typescript_types.rb`
+- `ruby scripts/generate_typescript_structs.rb`
 - `scripts/typecheck.sh`
 - `scripts/test.rb` and (optionally) `scripts/rails_tests.sh`

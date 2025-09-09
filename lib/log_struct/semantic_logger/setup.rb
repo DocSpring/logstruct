@@ -120,19 +120,19 @@ module LogStruct
         io = determine_output(app)
 
         if Rails.env.development?
-          if config.integrations.prefer_json_in_development
+          if config.prefer_json_in_development
             # Default to production-style JSON in development when enabled
             ::SemanticLogger.add_appender(
               io: io,
               formatter: LogStruct::SemanticLogger::Formatter.new,
               filter: determine_filter
             )
-          elsif config.integrations.enable_color_output
+          elsif config.enable_color_output
             # Opt-in colorful human formatter in development
             ::SemanticLogger.add_appender(
               io: io,
               formatter: LogStruct::SemanticLogger::ColorFormatter.new(
-                color_map: config.integrations.color_map
+                color_map: config.color_map
               ),
               filter: determine_filter
             )
@@ -180,7 +180,7 @@ module LogStruct
       def self.determine_filter
         # Filter out noisy loggers if configured
         config = LogStruct.config
-        return nil unless config.integrations.filter_noisy_loggers
+        return nil unless config.filter_noisy_loggers
 
         # Common noisy loggers to filter
         /\A(ActionView|ActionController::RoutingError|ActiveRecord::SchemaMigration)/

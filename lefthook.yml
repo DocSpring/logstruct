@@ -17,8 +17,8 @@ pre-commit:
             run: cd site && pnpm exec tsc --noEmit
 
           - name: typescript-export
-            glob: 'lib/**/*.rb'
-            run: scripts/export_typescript_types.rb
+            glob: '{schemas/log_sources/**/*,lib/log_struct/enums.rb,lib/log_struct/enums/*.rb,scripts/generate_typescript_structs.rb}'
+            run: scripts/generate_typescript_structs.rb
 
           - name: codegen-sync
             glob: '{schemas/log_sources/**/*,scripts/templates/generate_log_structs/**/*,scripts/generate_log_structs.rb}'

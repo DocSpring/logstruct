@@ -60,24 +60,6 @@ module LogStruct
       # Default: true
       prop :enable_semantic_logger, T::Boolean, default: true
 
-      # Enable colored JSON output in development
-      # Default: true
-      prop :enable_color_output, T::Boolean, default: true
-
-      # Prefer production-style JSON output in development when LogStruct is enabled.
-      # This makes it easy to preview exactly what production logs will look like
-      # when you opt-in to LogStruct locally (via LOGSTRUCT_ENABLED=true or config).
-      # Default: true
-      prop :prefer_json_in_development, T::Boolean, default: true
-
-      # Color configuration for JSON output
-      # Default: nil (uses SemanticLogger defaults)
-      prop :color_map, T.nilable(T::Hash[Symbol, Symbol]), default: nil
-
-      # Filter noisy loggers (ActionView, etc.)
-      # Default: false
-      prop :filter_noisy_loggers, T::Boolean, default: false
-
       # Enable SQL query logging through ActiveRecord instrumentation
       # Default: false (can be resource intensive)
       prop :enable_sql_logging, T::Boolean, default: false

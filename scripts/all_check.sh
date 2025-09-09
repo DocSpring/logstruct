@@ -5,8 +5,8 @@ set -e
 echo "===> Running Sorbet"
 scripts/typecheck.sh
 
-echo "===> Running LogStruct TypeScript Export"
-scripts/export_typescript_types.rb
+echo "===> Checking LogStruct TypeScript structs"
+scripts/generate_typescript_structs.rb >/dev/null
 
 echo "===> Running TypeScript"
 (cd site && npx tsc --noEmit)

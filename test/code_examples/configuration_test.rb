@@ -54,7 +54,6 @@ module LogStruct
           config.integrations.enable_activestorage = true
           config.integrations.enable_ahoy = true
           config.integrations.enable_carrierwave = true
-          config.integrations.enable_color_output = true
           config.integrations.enable_dotenv = true
           config.integrations.enable_goodjob = true
           config.integrations.enable_host_authorization = true

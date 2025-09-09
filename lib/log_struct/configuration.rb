@@ -20,6 +20,19 @@ module LogStruct
     prop :enabled, T::Boolean, default: true
     prop :enabled_environments, T::Array[Symbol], factory: -> { [:test, :production] }
     prop :local_environments, T::Array[Symbol], factory: -> { [:development, :test] }
+
+    # Prefer production-style JSON in development when LogStruct is enabled
+    prop :prefer_json_in_development, T::Boolean, default: true
+
+    # Enable colorful human formatter in development
+    prop :enable_color_output, T::Boolean, default: true
+
+    # Custom color map for the color formatter
+    prop :color_map, T.nilable(T::Hash[Symbol, Symbol]), default: nil
+
+    # Filter noisy loggers (ActionView, etc.)
+    prop :filter_noisy_loggers, T::Boolean, default: false
+
     const :integrations, ConfigStruct::Integrations, factory: -> { ConfigStruct::Integrations.new }
     const :filters, ConfigStruct::Filters, factory: -> { ConfigStruct::Filters.new }
 

@@ -66,8 +66,8 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 
 ```ruby
 LogStruct.configure do |c|
-  c.integrations.prefer_json_in_development = false
-  c.integrations.enable_color_output = true
+  c.prefer_json_in_development = false
+  c.enable_color_output = true
 end
 ```
 
