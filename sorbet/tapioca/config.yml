@@ -17,6 +17,7 @@ gem:
     - rubocop-ast
     - rubocop-performance
     - rubocop-rails
+    - rubocop-rspec
     - rubocop-sorbet
     - rubocop-minitest
     - ruby-progressbar
@@ -28,6 +29,16 @@ gem:
     - yard
     - yard-sorbet
     - zeitwerk
+    - parallel
+    - parser
+    - hana
+    - rainbow
+    - rubocop-inflector
+    - rubocop-rspec
+    - simpleidn
+    - unicode-display_width
+    - unicode-emoji
+
   # doc: true
   # workers: 5
 dsl:
