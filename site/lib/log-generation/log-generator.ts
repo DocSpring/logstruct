@@ -153,10 +153,18 @@ export class LogGenerator extends RandomDataGenerator {
       case LogType.ACTIONMAILER: {
         switch (evt ?? this.sample([Event.Delivery, Event.Delivered])) {
           case Event.Delivered:
-            return ActionMailer.ActionMailerDelivered.random(this).serialize();
+            return ActionMailer.ActionMailerDelivered.random(this, {
+              to: [this.randomEmail()],
+              from: 'no-reply@example.com',
+              subject: 'Welcome!',
+            }).serialize();
           case Event.Delivery:
           default:
-            return ActionMailer.ActionMailerDelivery.random(this).serialize();
+            return ActionMailer.ActionMailerDelivery.random(this, {
+              to: [this.randomEmail()],
+              from: 'no-reply@example.com',
+              subject: 'Welcome!',
+            }).serialize();
         }
       }
 

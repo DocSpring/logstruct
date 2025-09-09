@@ -77,32 +77,6 @@ logger.formatter = config.log_formatter
 config.logger = ActiveSupport::TaggedLogging.new(logger)`}
       </CodeBlock>
 
-      <HeadingWithAnchor id="dotenv-rails" level={2}>
-        Dotenv‑Rails and Early Boot Logs
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400">
-        Some libraries (e.g., <code>dotenv-rails</code>) log very early during
-        boot. LogStruct subscribes to those notifications immediately and
-        buffers structured logs. After your initializers run, LogStruct decides
-        which set to emit:
-      </p>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
-        <li>
-          <b>Enabled:</b> Emit structured JSON logs (for example, a dotenv{' '}
-          <em>update</em> event) and suppress original replay.
-        </li>
-        <li>
-          <b>Disabled:</b> Emit original <code>[dotenv]</code> lines and discard
-          the structured buffer.
-        </li>
-      </ul>
-      <Callout type="warning" className="mt-2">
-        When you run a <code>rails runner</code> inside your test suite, it
-        inherits <code>RAILS_ENV=test</code>. Dotenv may have already loaded{' '}
-        <code>.env.test</code>, so nested runs might only show a single “Loaded
-        …” line (no “Set …” update).
-      </Callout>
-
       <HeadingWithAnchor id="production-recommendations" level={2}>
         Production Recommendations
       </HeadingWithAnchor>
@@ -120,19 +94,6 @@ config.logger = ActiveSupport::TaggedLogging.new(logger)`}
           Datadog) as line‑delimited JSON.
         </li>
       </ul>
-
-      <HeadingWithAnchor id="quick-diagnostics" level={2}>
-        Quick Diagnostics
-      </HeadingWithAnchor>
-      <CodeBlock language="bash">
-        {`# Verify structured boot logs (dotenv) in test env
-LOGSTRUCT_ENABLED=true RAILS_LOG_TO_STDOUT=1 DISABLE_SPRING=1 RAILS_ENV=test \
-  rails runner 'puts LogStruct.enabled?'
-
-# Verify original dotenv lines when disabled
-LOGSTRUCT_ENABLED=false RAILS_LOG_TO_STDOUT=1 DISABLE_SPRING=1 RAILS_ENV=development \
-  rails runner 'puts LogStruct.enabled?'`}
-      </CodeBlock>
 
       <EditPageLink />
     </div>

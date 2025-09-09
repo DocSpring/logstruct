@@ -343,10 +343,9 @@ module TSGen
       if ts_source_const == "Source"
         lines << "      source: (gen.sample(Object.values(Source) as unknown as Source[])),"
       end
-      # Required fields get random defaults with precedence:
+      # Populate defaults for all fields with precedence:
       # schema sample_type > SampleByLogField > base type fallback
       (payload.base_fields + event_only).each do |f|
-        next unless f.required
         ts = ts_type(f.sorbet_type)
         base = case ts
         when "string" then "'sample'"
