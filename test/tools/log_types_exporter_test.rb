@@ -16,50 +16,21 @@ class LogStructLogTypesExporterTest < Minitest::Test
     FileUtils.rm_rf(@temp_dir)
   end
 
-  def test_generates_typescript_types
+  def test_export_generates_json_artifacts
     @exporter.export
 
-    # Verify file exists
-    assert_path_exists @output_ts_file, "TypeScript file should have been created"
-
-    # Read the content
-    content = File.read(@output_ts_file)
-
-    # Test that TS content has necessary components
-    assert_includes content, "export enum Level", "Should export Level enum"
-    assert_includes content, "export enum Source", "Should export Source enum"
-    assert_includes content, "export enum Event", "Should export Event enum"
-    assert_includes content, "export enum LogType", "Should export LogType enum"
-
-    # Test that it includes log type interfaces
-    assert_includes content, "export interface RequestLog", "Should export RequestLog interface"
-    assert_includes content, "export interface ErrorLog", "Should export ErrorLog interface"
-
-    # Test that backtrace is an array of strings in the ErrorLog
-    assert_includes content, "backtrace: string[];", "ErrorLog should have backtrace as string array"
-
-    # Test that it includes the union type
-    assert_includes content, "export type Log =", "Should export Log union type"
-
-    # Check if the enums JSON file was created
-    enums_json_file = File.join(File.dirname(@output_ts_file), "sorbet-enums.json")
+    dir = File.dirname(@output_ts_file)
+    enums_json_file = File.join(dir, "sorbet-enums.json")
+    structs_json_file = File.join(dir, "sorbet-log-structs.json")
 
     assert_path_exists enums_json_file, "Enums JSON file should have been created"
-
-    # Check if the log structs JSON file was created
-    structs_json_file = File.join(File.dirname(@output_ts_file), "sorbet-log-structs.json")
-
     assert_path_exists structs_json_file, "Log structs JSON file should have been created"
-  end
 
-  def test_generate_typescript_definitions
-    # Test that we can generate TypeScript definitions without writing to a file
-    content = @exporter.generate_typescript_definitions
+    enums = JSON.parse(File.read(enums_json_file))
+    structs = JSON.parse(File.read(structs_json_file))
 
-    # Verify basic structure
-    assert_kind_of String, content
-    assert_includes content, "export enum Level"
-    assert_includes content, "export enum LogType"
+    assert enums.key?("LogStruct::Level"), "Level enum should be included"
+    assert_kind_of Hash, structs, "Structs JSON should be a hash"
   end
 
   def test_export_enums_includes_all_enum_classes
@@ -155,8 +126,7 @@ class LogStructLogTypesExporterTest < Minitest::Test
   end
 
   def test_active_storage_metadata_is_object_type
-    # Use exporter aggregated data instead of parent class props
-    logs = @exporter.send(:export_log_structs)
+    logs = @exporter.export_log_structs
     storage = logs["ActiveStorage"]
 
     refute_nil storage, "ActiveStorage group should be present"
@@ -164,15 +134,11 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     assert_equal "object", type_info[:type], "Metadata should be identified as an object type"
 
-    # Verify in the generated TypeScript file
-    content = @exporter.generate_typescript_definitions
-
-    assert_includes content, "metadata?: Record<string, any>;", "ActiveStorageLog should have metadata as optional Record<string, any>"
+    assert_equal "object", type_info[:type]
   end
 
   def test_security_event_union_type
-    # Use exporter aggregated data to verify union of security events
-    logs = @exporter.send(:export_log_structs)
+    logs = @exporter.export_log_structs
     security = logs["Security"]
 
     refute_nil security, "Security group should be present"
@@ -188,39 +154,15 @@ class LogStructLogTypesExporterTest < Minitest::Test
 
     assert_equal expected_values, extracted_values, "Should extract the correct enum values"
 
-    # Test the resulting TypeScript type
-    ts_type = @exporter.typescript_type_for(type_info)
-
-    # Order doesn't matter for union types, but we need to ensure all parts are present
-    # These should match how the enum values are declared in the TypeScript output
-    ["Event.IP_SPOOF", "Event.CSRF_VIOLATION", "Event.BLOCKED_HOST"].each do |part|
-      assert_includes ts_type, part, "TypeScript type should include #{part}"
-    end
-    # Verify it's a union with pipe separators
-    assert_equal 2, ts_type.count("|"), "TypeScript type should have 2 union operators"
-
-    # Verify it appears correctly in the generated TypeScript
-    content = @exporter.generate_typescript_definitions
-
-    # Check that the SecurityLog interface has the event field with a union type
-    # We don't check the exact string since the order may vary
-    security_log_section = content.match(/export interface SecurityLog \{.*?\}/m)
-
-    assert security_log_section, "Should find SecurityLog interface in the generated TypeScript"
-
-    event_line = security_log_section[0].lines.find { |line| line.strip.start_with?("event:") }
-
-    assert event_line, "SecurityLog interface should have an event field"
-
-    # Verify that the event line contains all three enum values and union operators
-    ["Event.IP_SPOOF", "Event.CSRF_VIOLATION", "Event.BLOCKED_HOST", "|"].each do |part|
-      assert_includes event_line, part, "event field should include #{part} in its type"
-    end
+    # Verify union presence via aggregated data only
+    assert_equal "enum_union", type_info[:type]
+    assert_equal "Event", type_info[:base_enum]
+    assert_equal ["IPSpoof", "CSRFViolation", "BlockedHost"].sort, type_info[:enum_values].sort
   end
 
   def test_single_enum_value_restriction
     # Use exporter aggregated data to verify specific Source value for ActiveJob
-    logs = @exporter.send(:export_log_structs)
+    logs = @exporter.export_log_structs
     active_job = logs["ActiveJob"]
 
     refute_nil active_job, "ActiveJob group should be present"
@@ -231,98 +173,13 @@ class LogStructLogTypesExporterTest < Minitest::Test
     assert_equal "Source", type_info[:base_enum], "Should use Source as base enum"
     assert_equal "Job", type_info[:enum_value], "Should extract the specific enum value 'Job'"
 
-    # Test the resulting TypeScript type
-    ts_type = @exporter.typescript_type_for(type_info)
-
-    assert_equal "Source.JOB", ts_type, "TypeScript type should be the specific enum value"
-
-    # Now check that the full TypeScript generation includes this restricted type
-    content = @exporter.generate_typescript_definitions
-
-    # Find the ActiveJobLog interface section
-    job_log_section = content.match(/export interface ActiveJobLog \{.*?\}/m)
-
-    assert job_log_section, "Should find ActiveJobLog interface in the generated TypeScript"
-
-    # Extract the source line and check if it has the specific enum value
-    source_line = job_log_section[0].lines.find { |line| line.strip.start_with?("source:") }
-
-    assert source_line, "ActiveJobLog interface should have a source field"
-
-    # The source field should be a specific enum value, not a generic Source enum
-    assert_equal "source: Source.JOB;",
-      source_line.strip,
-      "source field should be Source.JOB specifically, not just Source"
-    refute_includes source_line, "Source;", "source field should not be the general Source enum"
+    # No TS generation; ensure enum_single info is present as expected
+    assert_equal "enum_single", type_info[:type]
+    assert_equal "Source", type_info[:base_enum]
+    assert_equal "Job", type_info[:enum_value]
   end
 
-  def test_exports_event_type_arrays
-    # Test that we export valid event type arrays for each log type
-    content = @exporter.generate_typescript_definitions
-
-    # Check Security log events array
-    security_array_match = content.match(/export const SecurityEvents: Array<(.*?)> = \[(.*?)\]/m)
-
-    assert security_array_match, "Should export a SecurityEvents array"
-
-    # Check the union type for the array
-    security_type = security_array_match[1]
-
-    ["Event.BLOCKED_HOST", "Event.CSRF_VIOLATION", "Event.IP_SPOOF"].each do |event|
-      assert_includes security_type, event, "SecurityEvents type should contain #{event}"
-    end
-
-    # Check the array content
-    security_array_content = security_array_match[2]
-
-    ["Event.BLOCKED_HOST", "Event.CSRF_VIOLATION", "Event.IP_SPOOF"].each do |event|
-      assert_includes security_array_content, event, "SecurityEvents array should contain #{event}"
-    end
-
-    # Check ActiveJob log events array
-    activejob_array_match = content.match(/export const ActiveJobEvents: Array<(.*?)> = \[(.*?)\]/m)
-
-    assert activejob_array_match, "Should export an ActiveJobEvents array"
-
-    # Check the array content
-    activejob_array_content = activejob_array_match[2]
-
-    ["Event.ENQUEUE", "Event.START", "Event.FINISH", "Event.SCHEDULE"].each do |event|
-      assert_includes activejob_array_content, event, "ActiveJobEvents array should contain #{event}"
-    end
-
-    # Check ActiveStorage log events array
-    storage_array_match = content.match(/export const ActiveStorageEvents: Array<(.*?)> = \[(.*?)\]/m)
-
-    assert storage_array_match, "Should export an ActiveStorageEvents array"
-
-    # Check the array content
-    storage_array_content = storage_array_match[2]
-
-    ["Event.UPLOAD", "Event.DOWNLOAD", "Event.DELETE", "Event.STREAM"].each do |event|
-      assert_includes storage_array_content, event, "ActiveStorageEvents array should contain #{event}"
-    end
-  end
-
-  def test_exports_all_log_types_array
-    # Test that we export the array of all log types
-    content = @exporter.generate_typescript_definitions
-
-    # Check for the AllLogTypes array
-    all_types_match = content.match(/export const AllLogTypes: Array<LogType> = \[(.*?)\]/m)
-
-    assert all_types_match, "Should export an AllLogTypes array"
-
-    # Check the array content
-    all_types_content = all_types_match[1]
-
-    # Check that all log types are included in the array
-    ["LogType.SIDEKIQ", "LogType.SHRINE", "LogType.SECURITY", "LogType.REQUEST",
-      "LogType.PLAIN", "LogType.ERROR", "LogType.ACTIVEJOB", "LogType.ACTIVESTORAGE",
-      "LogType.ACTIONMAILER", "LogType.CARRIERWAVE"].each do |log_type|
-      assert_includes all_types_content, log_type, "AllLogTypes array should contain #{log_type}"
-    end
-  end
+  # Removed TS-array export tests: exporter is JSON-only now
 
   def test_exports_enums_to_json
     # Get the temp directory for output

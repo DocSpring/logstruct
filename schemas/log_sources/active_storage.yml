@@ -16,7 +16,8 @@ events:
       MimeType: String
       Size: Integer
       Metadata: 'T::Hash[String, T.untyped]'
-      DurationMs: Float
+      DurationMs:
+        type: Float
       Checksum: String
 
   Download:

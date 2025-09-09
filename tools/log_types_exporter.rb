@@ -17,7 +17,7 @@ module LogStruct
     class LogTypesExporter
       extend T::Sig
 
-      DEFAULT_OUTPUT_TS_FILE = "site/lib/log-generation/generated/log-types.ts"
+      DEFAULT_OUTPUT_TS_FILE = "site/generated/logstruct/log-types.ts"
 
       # Constructor with optional override for log struct classes (for testing)
       sig { params(output_ts_file: String, log_struct_classes: T.nilable(T::Array[T::Class[T::Struct]])).void }
@@ -26,62 +26,17 @@ module LogStruct
         @log_struct_classes = log_struct_classes
       end
 
-      # Public method to export TypeScript definitions and JSON key mappings to files
+      # Public method to export JSON key mappings to files
       sig { void }
       def export
         # Get the data once and reuse for all exports
         data = generate_data
 
-        # Export TypeScript definitions
-        puts "Exporting LogStruct types to TypeScript..."
-        puts "Output file: #{@output_ts_file}"
-
-        # Create output directory if needed
-        FileUtils.mkdir_p(File.dirname(@output_ts_file))
-
-        # Generate the TypeScript content
-        content = generate_typescript(data)
-
-        # Write to file
-        File.write(@output_ts_file, content)
-
-        puts "Exported log types to #{@output_ts_file}"
-
-        # Export LogField mapping to JSON
-        export_keys_to_json
-
-        # Export enums and log structs to JSON
+        # Export enums and log structs to JSON only
         export_data_to_json(data)
       end
 
-      # Export LogField mapping to a JSON file
-      sig { params(output_json_file: T.nilable(String)).void }
-      def export_keys_to_json(output_json_file = nil)
-        # Default to the same directory as the TypeScript file
-        output_json_file ||= File.join(File.dirname(@output_ts_file), "log-fields.json")
-
-        puts "Exporting LogStruct key mappings to JSON..."
-        puts "Output file: #{output_json_file}"
-
-        # Create output directory if needed
-        FileUtils.mkdir_p(File.dirname(output_json_file))
-
-        # Build mapping from LogField enum to serialized keys
-        json_keys = {}
-        LogStruct::LogField.values.each do |val|
-          const_name = LogStruct::LogField.constants.find { |cn| LogStruct::LogField.const_get(cn) == val }&.to_s
-          next unless const_name
-          json_keys[const_name] = val.serialize.to_s
-        end
-
-        # Write to file with pretty formatting
-        File.write(output_json_file, JSON.pretty_generate(json_keys))
-
-        puts "Exported key mappings to #{output_json_file}"
-
-        # Also export a property-name -> LogField enum name mapping for the frontend runtime
-        export_property_to_logfield_json
-      end
+      # No longer export LogField mapping as JSON; the TS file includes the enum + PropToLogField.
 
       # Export both enums and log structs to JSON files
       sig { params(data: T::Hash[Symbol, T.untyped]).void }
@@ -213,16 +168,7 @@ module LogStruct
         puts "Exported LogStruct log structs to #{output_json_file}"
       end
 
-      # Public method to generate TypeScript definitions as a string
-      # This is the method we can test easily without file I/O
-      sig { returns(String) }
-      def generate_typescript_definitions
-        # Get the data
-        data = generate_data
-
-        # Transform data to TypeScript
-        generate_typescript(data)
-      end
+      # No longer generate TypeScript output; JSON only
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
       def generate_data
@@ -256,137 +202,6 @@ module LogStruct
         enum_hash
       end
       private :generate_data
-
-      sig { params(data: T::Hash[Symbol, T.untyped]).returns(String) }
-      def generate_typescript(data)
-        ts_content = []
-
-        # Add file header (We need 'any' for a lot of unstructured Hashes and Arrays)
-        ts_content << "/* eslint-disable @typescript-eslint/no-explicit-any */"
-        ts_content << "// Auto-generated TypeScript definitions for LogStruct"
-        ts_content << "// Generated on #{Time.now.strftime("%Y-%m-%d %H:%M:%S")}"
-        ts_content << ""
-
-        # Add enum definitions
-        ts_content << "// Enum types"
-        data[:enums].each do |enum_name, enum_values|
-          ts_content << "export enum #{enum_name} {"
-          enum_values.sort.each do |value|
-            ts_content << "  #{value.upcase} = \"#{value}\","
-          end
-          ts_content << "}"
-          ts_content << ""
-        end
-
-        # Add LogType enum
-        ts_content << "// Log Types"
-        ts_content << "export enum LogType {"
-        data[:logs].keys.sort.each do |log_type|
-          ts_content << "  #{log_type.upcase} = \"#{log_type}\","
-        end
-        ts_content << "}"
-        ts_content << ""
-
-        # Add array of all log types for iteration
-        ts_content << "// Array of all log types for iteration"
-        ts_content << "export const AllLogTypes: Array<LogType> = ["
-        data[:logs].keys.sort.each do |log_type|
-          ts_content << "  LogType.#{log_type.upcase},"
-        end
-        ts_content << "];"
-        ts_content << ""
-
-        # Add property -> LogField mapping
-        # Build from exported logs data
-        prop_map = {}
-        data[:logs].each do |_type, info|
-          info[:fields].each_key do |prop_name|
-            lf_name = if prop_name.to_s == "method"
-              "HttpMethod"
-            else
-              prop_name.to_s.split("_").map { |s| s[0] ? s[0].upcase + s[1..] : s }.join
-            end
-            begin
-              lf_const = LogStruct::LogField.const_get(lf_name)
-              compact = lf_const.serialize.to_s
-              member = compact.upcase.gsub(/[^A-Z0-9]/, "_")
-              prop_map[prop_name.to_s] = member
-            rescue NameError
-              # skip if not a LogField
-            end
-          end
-        end
-        ts_content << "export const PropToLogField: Readonly<Record<string, LogField>> = {"
-        prop_map.keys.sort.each do |prop|
-          member = prop_map[prop]
-          ts_content << "  #{prop.inspect}: LogField.#{member},"
-        end
-        ts_content << "} as const;"
-        ts_content << ""
-
-        # Add interface for each log type
-        ts_content << "// Log Interfaces"
-
-        # Collect all event union types to generate arrays later
-        event_arrays = {}
-
-        data[:logs].each do |log_type, log_info|
-          ts_content << "export interface #{log_type}Log {"
-
-          # Collect valid event types if this log has an enum_union for events
-          event_field_info = log_info[:fields][:event]
-          if event_field_info &&
-              event_field_info[:type] == "enum_union" &&
-              event_field_info[:base_enum] == "Event" &&
-              event_field_info[:enum_values]&.any?
-
-            event_arrays[log_type] = event_field_info[:enum_values].map do |value|
-              # Map Ruby enum names to TypeScript enum values (e.g., "IPSpoof" -> "Event.IP_SPOOF")
-              case value
-              when "IPSpoof" then "Event.IP_SPOOF"
-              when "CSRFViolation" then "Event.CSRF_VIOLATION"
-              else
-                # Default conversion of StudlyCaps to SCREAMING_SNAKE_CASE
-                "Event.#{value.gsub(/([a-z])([A-Z])/, '\1_\2').upcase}"
-              end
-            end
-          end
-
-          # Output all fields with types
-          log_info[:fields].each do |field_name, field_info|
-            type_str = typescript_type_for(field_info)
-            optional = field_info[:optional] ? "?" : ""
-            ts_content << "  #{field_name}#{optional}: #{type_str};"
-          end
-          ts_content << "}"
-          ts_content << ""
-        end
-
-        # Add union type for all logs
-        ts_content << "// Union type for all logs"
-        ts_content << "export type Log ="
-        log_types = data[:logs].keys.sort.map { |type| "  | #{type}Log" }
-        ts_content << log_types.join("\n")
-        ts_content << ";"
-        ts_content << ""
-
-        # Add event arrays for each log type that has an enum_union
-        ts_content << "// Event type arrays for log types"
-        event_arrays.each do |log_type, event_values|
-          # Create a type-safe array with a specific union type for each log type's events
-          union_type = event_values.join(" | ")
-          ts_content << "export const #{log_type}Events: Array<#{union_type}> = ["
-          event_values.each do |event|
-            ts_content << "  #{event},"
-          end
-          ts_content << "];"
-          ts_content << ""
-        end
-
-        # Return the TypeScript content as a string
-        ts_content.join("\n")
-      end
-      private :generate_typescript
 
       sig { returns(T::Hash[String, T::Hash[Symbol, T.untyped]]) }
       def export_log_structs

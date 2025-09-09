@@ -13,9 +13,7 @@ interface LogStructsData {
 const getLogStructsData = cache(async (): Promise<LogStructsData> => {
   try {
     // Use dynamic import to load the JSON file
-    const data = await import(
-      '@/lib/log-generation/generated/sorbet-log-structs.json'
-    );
+    const data = await import('@/generated/logstruct/sorbet-log-structs.json');
     return data.default as LogStructsData;
   } catch (error) {
     console.error('Error loading log structures data:', error);

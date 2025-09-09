@@ -1,6 +1,6 @@
 import { RandomDataGenerator } from '../random-data-generator';
 import { SampleData } from '../sample-data';
-import { Level, Source, Event } from '../log-types';
+import { Level, Source, Event } from '@/generated/logstruct';
 
 describe('RandomDataGenerator', () => {
   let generator: RandomDataGenerator;

@@ -3,7 +3,7 @@ import { EditPageLink } from '@/components/edit-page-link';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { LogGenerator } from '@/lib/log-generation';
-import { AllLogTypes, Event } from '@/lib/log-generation/generated/log-types';
+import { AllLogTypes, Event } from '@/generated/logstruct';
 import { getCodeExample } from '@/lib/codeExamples';
 import {
   getEventsForLogType,

@@ -17,9 +17,7 @@ interface EnumData {
 const getEnumsData = cache(async (): Promise<EnumData> => {
   try {
     // Use dynamic import to load the JSON file
-    const data = await import(
-      '@/lib/log-generation/generated/sorbet-enums.json'
-    );
+    const data = await import('@/generated/logstruct/sorbet-enums.json');
     return data.default as EnumData;
   } catch (error) {
     console.error('Error loading enums data:', error);

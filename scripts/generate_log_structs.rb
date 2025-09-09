@@ -26,6 +26,7 @@ class FieldSpec < T::Struct
   const :type, String
   const :sorbet_type, String
   const :required, T::Boolean
+  const :sample_type, T.nilable(String)
 end
 
 class EventSpec < T::Struct
@@ -98,13 +99,15 @@ def normalize_fields(fields_hash, default_required)
     if spec.is_a?(String)
       type = spec
       required = default_required
+      sample_type = nil
     else
       type = spec.fetch(:type)
       required = spec.key?(:required) ? T.cast(spec[:required], T::Boolean) : default_required
+      sample_type = T.let(spec[:sample_type]&.to_s, T.nilable(String))
     end
     enum_name = /\A[A-Z]/.match?(key) ? key : camelize(key)
     prop_name = snake_case(enum_name)
-    fields << FieldSpec.new(enum_name: enum_name, prop_name: prop_name, type: type, sorbet_type: type_to_sorbet(type), required: T.let(required, T::Boolean))
+    fields << FieldSpec.new(enum_name: enum_name, prop_name: prop_name, type: type, sorbet_type: type_to_sorbet(type), required: T.let(required, T::Boolean), sample_type: sample_type)
   end
   fields
 end

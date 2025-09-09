@@ -1,5 +1,5 @@
 import { LogGenerator } from '../log-generator';
-import { LogType, Level, Source, Event } from '../log-types';
+import { LogType, Level, Source, Event } from '@/generated/logstruct';
 
 describe('LogGenerator', () => {
   let generator: LogGenerator;
@@ -70,19 +70,19 @@ describe('LogGenerator', () => {
     expect(sequence[2].job_id).toBe(jobId);
 
     // Should have the right event types
-    expect(sequence[0].event).toBe(Event.ENQUEUE);
-    expect(sequence[1].event).toBe(Event.START);
-    expect(sequence[2].event).toBe(Event.FINISH);
+    expect(sequence[0].event).toBe(Event.Enqueue);
+    expect(sequence[1].event).toBe(Event.Start);
+    expect(sequence[2].event).toBe(Event.Finish);
 
     // All should have the correct source
-    expect(sequence[0].source).toBe(Source.JOB);
-    expect(sequence[1].source).toBe(Source.JOB);
-    expect(sequence[2].source).toBe(Source.JOB);
+    expect(sequence[0].source).toBe(Source.Job);
+    expect(sequence[1].source).toBe(Source.Job);
+    expect(sequence[2].source).toBe(Source.Job);
 
     // All should have the info log level
-    expect(sequence[0].level).toBe(Level.INFO);
-    expect(sequence[1].level).toBe(Level.INFO);
-    expect(sequence[2].level).toBe(Level.INFO);
+    expect(sequence[0].level).toBe(Level.Info);
+    expect(sequence[1].level).toBe(Level.Info);
+    expect(sequence[2].level).toBe(Level.Info);
 
     // Only the finish event should have a duration (ms)
     expect(sequence[0]).not.toHaveProperty('duration_ms');
