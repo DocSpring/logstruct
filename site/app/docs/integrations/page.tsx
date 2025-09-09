@@ -3,8 +3,7 @@ import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
-import { LogGenerator } from '@/lib/log-generation';
-import { AllLogTypes, Event } from '@/generated/logstruct';
+import { AllLogTypes } from '@/generated/logstruct';
 import { getCodeExample } from '@/lib/codeExamples';
 import {
   getEventsForLogType,
@@ -14,15 +13,6 @@ import {
 // Tabs are now handled inside IntegrationExamples
 import { IntegrationExamples } from '@/components/integration-examples';
 import { FilteringProvider } from '@/components/filtering-context';
-
-// Helper to format logs as JSON strings for display
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatLog(log: Record<string, any>): string {
-  return JSON.stringify(log, null, 2);
-}
-
-// Create a single log generator with a fixed seed for consistent examples (kept for code samples above, not used for examples)
-const logGenerator = new LogGenerator(12345);
 
 export default function IntegrationsPage() {
   return (

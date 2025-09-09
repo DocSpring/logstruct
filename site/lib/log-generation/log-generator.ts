@@ -345,7 +345,6 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   // Build realistic request params with sensitive fields to demonstrate filtering
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private getRandomRequestParams(): Record<string, any> {
     const scenario = this.sample([
       'login',
