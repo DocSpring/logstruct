@@ -82,7 +82,7 @@ export default function Home() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    View on GitHub
+                    GitHub
                   </Link>
                 </Button>
                 <Button variant="secondary" size="lg" asChild>
