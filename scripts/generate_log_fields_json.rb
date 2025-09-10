@@ -39,7 +39,7 @@ module Generator
       }
     }
 
-    File.write(OUT_FILE, JSON.pretty_generate(data))
+    File.write(OUT_FILE, JSON.pretty_generate(data) + "\n")
     puts "Generated: #{OUT_FILE} (#{names.size} fields)"
   end
 end
