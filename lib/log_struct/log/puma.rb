@@ -6,8 +6,6 @@
 # Schemas dir: schemas/log_sources/
 # Template: scripts/templates/generate_log_structs/source_parent.rb.erb
 
-require_relative "shrine/upload"
-require_relative "shrine/download"
-require_relative "shrine/delete"
-require_relative "shrine/metadata"
-require_relative "shrine/exist"
+require_relative "puma/boot"
+require_relative "puma/started"
+require_relative "puma/shutdown"

@@ -39,6 +39,14 @@ module LogStruct
       Save = new(:save)
       Restore = new(:restore)
 
+      # Server lifecycle (e.g., Puma)
+      Boot = new(:boot)
+      Started = new(:started)
+      Listening = new(:listening)
+      Shutdown = new(:shutdown)
+      Goodbye = new(:goodbye)
+      Exiting = new(:exiting)
+
       # Security events
       IPSpoof = new(:ip_spoof)
       CSRFViolation = new(:csrf_violation)

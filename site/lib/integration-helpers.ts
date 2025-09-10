@@ -8,6 +8,13 @@ export function getLogTypeInfo(logType: LogType): {
   preferredEvent?: Event;
 } | null {
   switch (logType) {
+    case LogType.PUMA:
+      return {
+        title: 'Puma (Server)',
+        description:
+          'Converts Puma server lifecycle output into structured JSON (boot, started with details, and graceful shutdown).',
+        preferredEvent: Event.Started,
+      };
     case LogType.AHOY:
       return {
         title: 'Ahoy',
@@ -121,6 +128,8 @@ export function getLogTypeInfo(logType: LogType): {
 // Events to showcase for each log type (used for example tabs)
 export function getEventsForLogType(logType: LogType): Event[] {
   switch (logType) {
+    case LogType.PUMA:
+      return [Event.Boot, Event.Started, Event.Shutdown];
     case LogType.REQUEST:
       return [Event.Request];
     case LogType.ACTIVEJOB:

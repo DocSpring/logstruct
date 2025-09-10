@@ -1,0 +1,28 @@
+source: Puma
+
+snake_case: puma
+
+additional_data: true
+
+events:
+  Boot:
+    fields:
+      ProcessId: Integer
+
+  Started:
+    default_required: false
+    fields:
+      Mode: String
+      PumaVersion: String
+      PumaCodename: String
+      RubyVersion: String
+      MinThreads: Integer
+      MaxThreads: Integer
+      Environment: String
+      ProcessId: Integer
+      ListeningAddresses: 'T::Array[String]'
+
+  Shutdown:
+    default_required: false
+    fields:
+      ProcessId: Integer

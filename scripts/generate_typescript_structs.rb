@@ -18,8 +18,8 @@ ROOT = T.let(File.expand_path("..", __dir__), String)
 SCHEMAS_DIR = T.let(File.join(ROOT, "schemas", "log_sources"), String)
 OUT_DIR = T.let(File.join(ROOT, "site", "generated", "logstruct"), String)
 
-# Reuse schema loader from generate_log_structs.rb
-require_relative "generate_log_structs"
+# Reuse schema loader helpers from Sorbet generator
+require_relative "generate_sorbet_log_structs"
 
 module TSGen
   extend T::Sig
@@ -58,7 +58,6 @@ module TSGen
     FileUtils.mkdir_p(OUT_DIR)
 
     generate_enums
-    generate_shared
 
     schemas = Dir[File.join(SCHEMAS_DIR, "*.{yml,yaml}")].sort
     schemas.each do |path|
@@ -128,134 +127,6 @@ module TSGen
     File.write(out, lines.join("\n") + "\n")
   end
 
-  sig { void }
-  def self.generate_shared
-    out = File.join(OUT_DIR, "shared.ts")
-    lines = []
-    lines << "import { LogField, Event, Source, Level } from './enums'"
-    lines << "export type AdditionalData = Record<string, unknown>"
-    lines << "export function isoNow(): string { return new Date().toISOString() }"
-    lines << ""
-    lines << "export interface RandomGen {"
-    lines << "  randomInt(min: number, max: number): number"
-    lines << "  randomFloat(min: number, max: number, decimals?: number): number"
-    lines << "  randomHex(length: number): string"
-    lines << "  sample<T>(arr: T[]): T"
-    lines << "}"
-    lines << ""
-    lines << "export const SampleHelpers = {"
-    lines << "  duration: (gen: RandomGen) => gen.randomFloat(1, 2000),"
-    lines << "  hex8: (gen: RandomGen) => gen.randomHex(8),"
-    lines << "  httpMethod: (gen: RandomGen) => gen.sample(['GET','POST','PUT','DELETE']),"
-    lines << "  path: (gen: RandomGen) => `/api/${gen.randomInt(1, 100)}`,"
-    lines << "  status: (gen: RandomGen) => gen.randomInt(200, 599),"
-    lines << "  queue: (gen: RandomGen) => gen.sample(['default','mailers','critical','low']),"
-    lines << "  email: (gen: RandomGen) => `user${gen.randomInt(1,999)}@example.com`,"
-    lines << "  emailArray: (gen: RandomGen) => [(`user${gen.randomInt(1,999)}@example.com`)],"
-    lines << "  filename: (gen: RandomGen) => gen.sample(['file.txt','image.png','data.json']),"
-    lines << "  mime: (gen: RandomGen) => gen.sample(['text/plain','image/png','application/json']),"
-    lines << "  url: (_gen: RandomGen) => 'https://example.com/file',"
-    lines << "  ip: (gen: RandomGen) => gen.sample(['127.0.0.1','10.0.0.1','192.168.1.1']),"
-    lines << "  threadId: (gen: RandomGen) => `thread-${gen.randomHex(4)}`,"
-    lines << "  processId: (gen: RandomGen) => gen.randomInt(1000, 99999),"
-    lines << "  errClass: (gen: RandomGen) => gen.sample(['RuntimeError','ArgumentError','TimeoutError']),"
-    lines << "  name: (gen: RandomGen) => gen.sample(['User Load','Project Load','Order Load']),"
-    lines << "  sql: (_gen: RandomGen) => 'SELECT 1',"
-    lines << "} as const"
-    lines << ""
-    lines << "export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => any>> = {"
-    lines << "  [LogField.Path]: SampleHelpers.path,"
-    lines << "  [LogField.Range]: (_gen: RandomGen) => '0-100',"
-    lines << '  [LogField.Backtrace]: (_gen: RandomGen) => ["app/models/user.rb:1:in find", "app/controllers/home_controller.rb:10:in show"],'
-    lines << "  [LogField.Location]: (_gen: RandomGen) => 'store/file.txt',"
-    lines << "  [LogField.Storage]: (_gen: RandomGen) => 'store',"
-    lines << "  [LogField.Timestamp]: (_gen: RandomGen) => new Date().toISOString(),"
-    lines << "  [LogField.Source]: (_gen: RandomGen) => 'app',"
-    lines << "  [LogField.Message]: (_gen: RandomGen) => 'Example message',"
-    lines << "  [LogField.HttpMethod]: SampleHelpers.httpMethod,"
-    lines << "  [LogField.SourceIp]: SampleHelpers.ip,"
-    lines << "  [LogField.UserAgent]: (_gen: RandomGen) => 'Mozilla/5.0',"
-    lines << "  [LogField.Referer]: (_gen: RandomGen) => 'https://example.com',"
-    lines << "  [LogField.RequestId]: SampleHelpers.hex8,"
-    lines << "  [LogField.Controller]: (_gen: RandomGen) => 'HomeController',"
-    lines << "  [LogField.Action]: (_gen: RandomGen) => 'index',"
-    lines << "  [LogField.View]: (gen: RandomGen) => gen.randomFloat(0, 200),"
-    lines << "  [LogField.Params]: (_gen: RandomGen) => ({}),"
-    lines << "  [LogField.BlockedHosts]: (_gen: RandomGen) => ['malicious.example.com'],"
-    lines << "  [LogField.ClientIp]: SampleHelpers.ip,"
-    lines << "  [LogField.XForwardedFor]: (_gen: RandomGen) => '203.0.113.1, 70.41.3.18',"
-    lines << "  [LogField.To]: SampleHelpers.emailArray,"
-    lines << "  [LogField.From]: SampleHelpers.email,"
-    lines << "  [LogField.Subject]: (_gen: RandomGen) => 'Hello',"
-    lines << "  [LogField.ErrClass]: SampleHelpers.errClass,"
-    lines << "  [LogField.JobId]: SampleHelpers.hex8,"
-    lines << "  [LogField.JobClass]: (_gen: RandomGen) => 'HardJob',"
-    lines << "  [LogField.QueueName]: SampleHelpers.queue,"
-    lines << "  [LogField.Arguments]: (_gen: RandomGen) => [1],"
-    lines << "  [LogField.RetryCount]: (gen: RandomGen) => gen.randomInt(0, 5),"
-    lines << "  [LogField.Retries]: (gen: RandomGen) => gen.randomInt(0, 5),"
-    lines << "  [LogField.Attempt]: (gen: RandomGen) => gen.randomInt(1, 3),"
-    lines << "  [LogField.Executions]: (gen: RandomGen) => gen.randomInt(0, 5),"
-    lines << "  [LogField.ExceptionExecutions]: (gen: RandomGen) => gen.randomInt(0, 3),"
-    lines << "  [LogField.ProviderJobId]: SampleHelpers.hex8,"
-    lines << "  [LogField.ScheduledAt]: (_gen: RandomGen) => new Date().toISOString(),"
-    lines << "  [LogField.StartedAt]: (_gen: RandomGen) => new Date().toISOString(),"
-    lines << "  [LogField.FinishedAt]: (_gen: RandomGen) => new Date().toISOString(),"
-    lines << "  [LogField.DurationMs]: SampleHelpers.duration,"
-    lines << "  [LogField.WaitMs]: SampleHelpers.duration,"
-    lines << "  [LogField.ExecutionTime]: SampleHelpers.duration,"
-    lines << "  [LogField.WaitTime]: SampleHelpers.duration,"
-    lines << "  [LogField.RunTime]: SampleHelpers.duration,"
-    lines << "  [LogField.Level]: (_gen: RandomGen) => 'info',"
-    lines << "  [LogField.Event]: (_gen: RandomGen) => 'log',"
-    lines << "  [LogField.CronKey]: (_gen: RandomGen) => 'daily',"
-    lines << "  [LogField.Priority]: (gen: RandomGen) => gen.randomInt(0, 100),"
-    lines << "  [LogField.Vars]: (_gen: RandomGen) => ['API_KEY'],"
-    lines << "  [LogField.ErrorMessage]: (_gen: RandomGen) => 'Something failed',"
-    lines << "  [LogField.ProcessId]: SampleHelpers.processId,"
-    lines << "  [LogField.Snapshot]: (_gen: RandomGen) => true,"
-    lines << "  [LogField.Context]: (_gen: RandomGen) => ({ ctx: 'demo' }),"
-    lines << "  [LogField.ThreadId]: SampleHelpers.threadId,"
-    lines << "  [LogField.Prefix]: (_gen: RandomGen) => 'logstruct',"
-    lines << "  [LogField.Checksum]: SampleHelpers.hex8,"
-    lines << "  [LogField.FileId]: SampleHelpers.hex8,"
-    lines << "  [LogField.Operation]: (_gen: RandomGen) => 'upload',"
-    lines << "  [LogField.File]: (_gen: RandomGen) => 'file.txt',"
-    lines << "  [LogField.UploadOptions]: (_gen: RandomGen) => ({ acl: 'public' }),"
-    lines << "  [LogField.MimeType]: SampleHelpers.mime,"
-    lines << "  [LogField.Uploader]: (_gen: RandomGen) => 'AvatarUploader',"
-    lines << "  [LogField.Model]: (_gen: RandomGen) => 'User',"
-    lines << "  [LogField.MountPoint]: (_gen: RandomGen) => 'avatar',"
-    lines << "  [LogField.Sql]: SampleHelpers.sql,"
-    lines << "  [LogField.Name]: SampleHelpers.name,"
-    lines << "  [LogField.RowCount]: (gen: RandomGen) => gen.randomInt(0, 100),"
-    lines << "  [LogField.BindParams]: (_gen: RandomGen) => [1],"
-    lines << "  [LogField.DatabaseName]: (_gen: RandomGen) => 'production',"
-    lines << "  [LogField.ConnectionPoolSize]: (gen: RandomGen) => gen.randomInt(1, 20),"
-    lines << "  [LogField.ActiveConnections]: (gen: RandomGen) => gen.randomInt(1, 20),"
-    lines << "  [LogField.OperationType]: (_gen: RandomGen) => 'SELECT',"
-    lines << "  [LogField.TableNames]: (_gen: RandomGen) => ['users'],"
-    lines << "  [LogField.Serializer]: (_gen: RandomGen) => 'UserSerializer',"
-    lines << "  [LogField.Adapter]: (_gen: RandomGen) => 'attributes',"
-    lines << "  [LogField.ResourceClass]: (_gen: RandomGen) => 'User',"
-    lines << "  [LogField.AhoyEvent]: (_gen: RandomGen) => 'signup',"
-    lines << "  [LogField.Filename]: SampleHelpers.filename,"
-    lines << "  [LogField.Properties]: (_gen: RandomGen) => ({ plan: 'pro' }),"
-    lines << "  [LogField.Data]: (_gen: RandomGen) => ({}),"
-    lines << "  [LogField.DownloadOptions]: (_gen: RandomGen) => ({ filename: 'file.txt' }),"
-    lines << "  [LogField.Size]: (gen: RandomGen) => gen.randomInt(1000, 1000000),"
-    lines << "  [LogField.Options]: (_gen: RandomGen) => ({}),"
-    lines << "  [LogField.Metadata]: (_gen: RandomGen) => ({ width: 100, height: 100 }),"
-    lines << "  [LogField.Exist]: (_gen: RandomGen) => true,"
-    lines << "  [LogField.Url]: SampleHelpers.url,"
-    lines << "  [LogField.Status]: SampleHelpers.status,"
-    lines << "  [LogField.Database]: (_gen: RandomGen) => 'primary',"
-    lines << "  [LogField.BlockedHost]: (_gen: RandomGen) => 'malicious.example.com',"
-    lines << "  [LogField.Format]: (_gen: RandomGen) => 'html',"
-    lines << "} as const"
-    File.write(out, lines.join("\n") + "\n")
-  end
-
   sig { params(payload: SourcePayload).void }
   def self.generate_source_ts(payload)
     src_snake = payload.source_snake
@@ -268,7 +139,7 @@ module TSGen
       out = File.join(dir, "#{snake(evt.name)}.ts")
       lines = []
       lines << "import { Event, Level, LogField, Source } from '../../enums'"
-      lines << "import { AdditionalData, isoNow, RandomGen, SampleByLogField, SampleHelpers } from '../../shared'"
+      lines << "import { AdditionalData, isoNow, RandomGen, SampleByLogField, SampleHelpers } from '../../../lib/log_generation/sample-data'"
       lines << ""
       # Constructor interface
       lines << "export interface #{payload.source_name}#{evt.name}Ctor {"
@@ -407,7 +278,7 @@ module TSGen
     roots = Dir[File.join(OUT_DIR, "sources", "*")].map { |p| File.basename(p) }
     lines = []
     lines << "export * from './enums'"
-    lines << "export * from './shared'"
+    lines << "export * from '../../lib/log_generation/sample-data'"
     roots.each do |sn|
       lines << "export * as #{sn.split("_").map(&:capitalize).join} from './sources/#{sn}'"
     end

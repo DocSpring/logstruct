@@ -84,6 +84,10 @@ module LogStruct
       # Enable dotenv-rails integration (convert to structured logs)
       # Default: true
       prop :enable_dotenv, T::Boolean, default: true
+
+      # Enable Puma integration (convert server lifecycle logs)
+      # Default: true
+      prop :enable_puma, T::Boolean, default: true
     end
   end
 end

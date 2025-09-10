@@ -21,7 +21,7 @@ pre-commit:
             run: scripts/generate_typescript_structs.rb
 
           - name: codegen-sync
-            glob: '{schemas/log_sources/**/*,scripts/templates/generate_log_structs/**/*,scripts/generate_log_structs.rb}'
+            glob: '{schemas/log_sources/**/*,scripts/templates/generate_log_structs/**/*,scripts/generate_sorbet_log_structs.rb}'
             run: scripts/check_generated.sh
 
           - name: cspell

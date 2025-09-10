@@ -7,7 +7,7 @@ This folder contains YAML schemas that declaratively define each log source and 
 - **Inputs:** YAML files in `schemas/log_sources/*.yml` and the meta JSON Schemas in `schemas/meta/*`.
 - **Enums:** Human-friendly field names are defined in `lib/log_struct/enums/log_field.rb` (e.g., `Database`, `DurationMs`). Each enum value serializes to a compact JSON key (e.g., `:db`, `:duration_ms`).
 - **Validation:** The meta schema `schemas/meta/log-source-schema.json` validates every source schema. It imports `schemas/meta/log-fields.json`, an auto-generated enum of allowed `LogField` names for field keys.
-- **Codegen:** Run `ruby scripts/generate_log_structs.rb` to:
+- **Codegen:** Run `ruby scripts/generate_sorbet_log_structs.rb` to:
   - Generate Ruby structs for every source/event
   - Rebuild `schemas/meta/log-fields.json` from `LogField` so schema validation stays in sync
 
@@ -16,7 +16,7 @@ This folder contains YAML schemas that declaratively define each log source and 
 - **schemas/log_sources/\*.yml:** One file per source. Declares base fields and events.
 - **schemas/meta/log-source-schema.json:** JSON Schema for validating the shape and field names of all source YAMLs.
 - **schemas/meta/log-fields.json:** Generated from `LogField`; lists the only allowed field key names.
-- **scripts/generate_log_structs.rb:** Main codegen entry; also regenerates log-fields.
+- **scripts/generate_sorbet_log_structs.rb:** Main codegen entry; also regenerates log-fields.
 - **scripts/generate_log_fields_json.rb:** Generates `schemas/meta/log-fields.json` from the `LogField` enum.
 
 ## Schema Format
@@ -105,7 +105,7 @@ AhoyEvent:
 ## Validating and Generating
 
 - **Validate schemas:** `bundle exec ruby -Itest test/schemas/schema_validation_test.rb`
-- **Generate structs + log-fields:** `ruby scripts/generate_log_structs.rb`
+- **Generate structs + log-fields:** `ruby scripts/generate_sorbet_log_structs.rb`
 
 ## Common Pitfalls
 

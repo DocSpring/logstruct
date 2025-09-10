@@ -62,6 +62,7 @@ module LogStruct
           config.integrations.enable_semantic_logger = true
           config.integrations.enable_shrine = true
           config.integrations.enable_sidekiq = true
+          config.integrations.enable_puma = true
           config.integrations.enable_sorbet_error_handlers = true
           config.integrations.enable_sql_logging = true
 

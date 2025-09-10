@@ -17,6 +17,7 @@ require_relative "integrations/sorbet"
 require_relative "integrations/ahoy"
 require_relative "integrations/active_model_serializers"
 require_relative "integrations/dotenv"
+require_relative "integrations/puma"
 
 module LogStruct
   module Integrations
@@ -56,6 +57,7 @@ module LogStruct
       Integrations::ActiveStorage.setup(config) if config.integrations.enable_activestorage
       Integrations::CarrierWave.setup(config) if config.integrations.enable_carrierwave
       Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handlers
+      Integrations::Puma.setup(config) if config.integrations.enable_puma
     end
   end
 end

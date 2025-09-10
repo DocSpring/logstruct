@@ -138,6 +138,17 @@ module LogStruct
       # Ahoy-specific fields
       AhoyEvent = new(:ahoy_event)
       Properties = new(:properties)
+
+      # Puma / server lifecycle fields
+      Mode = new(:mode)
+      PumaVersion = new(:puma_version)
+      PumaCodename = new(:puma_codename)
+      RubyVersion = new(:ruby_version)
+      MinThreads = new(:min_threads)
+      MaxThreads = new(:max_threads)
+      Environment = new(:environment)
+      ListeningAddresses = new(:listening_addresses)
+      Address = new(:addr)
     end
   end
 end

@@ -23,6 +23,7 @@ module LogStruct
       CarrierWave = new(:carrierwave)
       Sidekiq = new(:sidekiq)
       Dotenv = new(:dotenv)
+      Puma = new(:puma)
     end
   end
 end

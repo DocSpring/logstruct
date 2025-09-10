@@ -172,3 +172,146 @@ export const SampleData = {
     "app/services/search_service.rb:112:in `execute_query'",
   ],
 };
+
+import { LogField, Event, Source, Level } from '@/generated/logstruct/enums';
+export type AdditionalData = Record<string, unknown>;
+export function isoNow(): string {
+  return new Date().toISOString();
+}
+
+export interface RandomGen {
+  randomInt(min: number, max: number): number;
+  randomFloat(min: number, max: number, decimals?: number): number;
+  randomHex(length: number): string;
+  sample<T>(arr: T[]): T;
+}
+
+export const SampleHelpers = {
+  duration: (gen: RandomGen) => gen.randomFloat(1, 2000),
+  hex8: (gen: RandomGen) => gen.randomHex(8),
+  httpMethod: (gen: RandomGen) => gen.sample(['GET', 'POST', 'PUT', 'DELETE']),
+  path: (gen: RandomGen) => `/api/${gen.randomInt(1, 100)}`,
+  status: (gen: RandomGen) => gen.randomInt(200, 599),
+  queue: (gen: RandomGen) =>
+    gen.sample(['default', 'mailers', 'critical', 'low']),
+  email: (gen: RandomGen) => `user${gen.randomInt(1, 999)}@example.com`,
+  emailArray: (gen: RandomGen) => [`user${gen.randomInt(1, 999)}@example.com`],
+  filename: (gen: RandomGen) =>
+    gen.sample(['file.txt', 'image.png', 'data.json']),
+  mime: (gen: RandomGen) =>
+    gen.sample(['text/plain', 'image/png', 'application/json']),
+  url: (_gen: RandomGen) => 'https://example.com/file',
+  ip: (gen: RandomGen) => gen.sample(['127.0.0.1', '10.0.0.1', '192.168.1.1']),
+  threadId: (gen: RandomGen) => `thread-${gen.randomHex(4)}`,
+  processId: (gen: RandomGen) => gen.randomInt(1000, 99999),
+  errClass: (gen: RandomGen) =>
+    gen.sample(['RuntimeError', 'ArgumentError', 'TimeoutError']),
+  name: (gen: RandomGen) =>
+    gen.sample(['User Load', 'Project Load', 'Order Load']),
+  sql: (_gen: RandomGen) => 'SELECT 1',
+} as const;
+
+export const SampleByLogField: Readonly<
+  Record<LogField, (gen: RandomGen) => any>
+> = {
+  [LogField.Path]: SampleHelpers.path,
+  [LogField.Range]: (_gen: RandomGen) => '0-100',
+  [LogField.Backtrace]: (_gen: RandomGen) => [
+    'app/models/user.rb:1:in find',
+    'app/controllers/home_controller.rb:10:in show',
+  ],
+  [LogField.Location]: (_gen: RandomGen) => 'store/file.txt',
+  [LogField.Storage]: (_gen: RandomGen) => 'store',
+  [LogField.Timestamp]: (_gen: RandomGen) => new Date().toISOString(),
+  [LogField.Source]: (_gen: RandomGen) => 'app',
+  [LogField.Message]: (_gen: RandomGen) => 'Example message',
+  [LogField.HttpMethod]: SampleHelpers.httpMethod,
+  [LogField.SourceIp]: SampleHelpers.ip,
+  [LogField.UserAgent]: (_gen: RandomGen) => 'Mozilla/5.0',
+  [LogField.Referer]: (_gen: RandomGen) => 'https://example.com',
+  [LogField.RequestId]: SampleHelpers.hex8,
+  [LogField.Controller]: (_gen: RandomGen) => 'HomeController',
+  [LogField.Action]: (_gen: RandomGen) => 'index',
+  [LogField.View]: (gen: RandomGen) => gen.randomFloat(0, 200),
+  [LogField.Params]: (_gen: RandomGen) => ({}),
+  [LogField.BlockedHosts]: (_gen: RandomGen) => ['malicious.example.com'],
+  [LogField.ClientIp]: SampleHelpers.ip,
+  [LogField.XForwardedFor]: (_gen: RandomGen) => '203.0.113.1, 70.41.3.18',
+  [LogField.To]: SampleHelpers.emailArray,
+  [LogField.From]: SampleHelpers.email,
+  [LogField.Subject]: (_gen: RandomGen) => 'Hello',
+  [LogField.ErrClass]: SampleHelpers.errClass,
+  [LogField.JobId]: SampleHelpers.hex8,
+  [LogField.JobClass]: (_gen: RandomGen) => 'HardJob',
+  [LogField.QueueName]: SampleHelpers.queue,
+  [LogField.Arguments]: (_gen: RandomGen) => [1],
+  [LogField.RetryCount]: (gen: RandomGen) => gen.randomInt(0, 5),
+  [LogField.Retries]: (gen: RandomGen) => gen.randomInt(0, 5),
+  [LogField.Attempt]: (gen: RandomGen) => gen.randomInt(1, 3),
+  [LogField.Executions]: (gen: RandomGen) => gen.randomInt(0, 5),
+  [LogField.ExceptionExecutions]: (gen: RandomGen) => gen.randomInt(0, 3),
+  [LogField.ProviderJobId]: SampleHelpers.hex8,
+  [LogField.ScheduledAt]: (_gen: RandomGen) => new Date().toISOString(),
+  [LogField.StartedAt]: (_gen: RandomGen) => new Date().toISOString(),
+  [LogField.FinishedAt]: (_gen: RandomGen) => new Date().toISOString(),
+  [LogField.DurationMs]: SampleHelpers.duration,
+  [LogField.WaitMs]: SampleHelpers.duration,
+  [LogField.ExecutionTime]: SampleHelpers.duration,
+  [LogField.WaitTime]: SampleHelpers.duration,
+  [LogField.RunTime]: SampleHelpers.duration,
+  [LogField.Level]: (_gen: RandomGen) => 'info',
+  [LogField.Event]: (_gen: RandomGen) => 'log',
+  [LogField.CronKey]: (_gen: RandomGen) => 'daily',
+  [LogField.Priority]: (gen: RandomGen) => gen.randomInt(0, 100),
+  [LogField.Vars]: (_gen: RandomGen) => ['API_KEY'],
+  [LogField.ErrorMessage]: (_gen: RandomGen) => 'Something failed',
+  [LogField.ProcessId]: SampleHelpers.processId,
+  [LogField.Snapshot]: (_gen: RandomGen) => true,
+  [LogField.Context]: (_gen: RandomGen) => ({ ctx: 'demo' }),
+  [LogField.ThreadId]: SampleHelpers.threadId,
+  [LogField.Prefix]: (_gen: RandomGen) => 'logstruct',
+  [LogField.Checksum]: SampleHelpers.hex8,
+  [LogField.FileId]: SampleHelpers.hex8,
+  [LogField.Operation]: (_gen: RandomGen) => 'upload',
+  [LogField.File]: (_gen: RandomGen) => 'file.txt',
+  [LogField.UploadOptions]: (_gen: RandomGen) => ({ acl: 'public' }),
+  [LogField.MimeType]: SampleHelpers.mime,
+  [LogField.Uploader]: (_gen: RandomGen) => 'AvatarUploader',
+  [LogField.Model]: (_gen: RandomGen) => 'User',
+  [LogField.MountPoint]: (_gen: RandomGen) => 'avatar',
+  [LogField.Sql]: SampleHelpers.sql,
+  [LogField.Name]: SampleHelpers.name,
+  [LogField.RowCount]: (gen: RandomGen) => gen.randomInt(0, 100),
+  [LogField.BindParams]: (_gen: RandomGen) => [1],
+  [LogField.DatabaseName]: (_gen: RandomGen) => 'production',
+  [LogField.ConnectionPoolSize]: (gen: RandomGen) => gen.randomInt(1, 20),
+  [LogField.ActiveConnections]: (gen: RandomGen) => gen.randomInt(1, 20),
+  [LogField.OperationType]: (_gen: RandomGen) => 'SELECT',
+  [LogField.TableNames]: (_gen: RandomGen) => ['users'],
+  [LogField.Serializer]: (_gen: RandomGen) => 'UserSerializer',
+  [LogField.Adapter]: (_gen: RandomGen) => 'attributes',
+  [LogField.ResourceClass]: (_gen: RandomGen) => 'User',
+  [LogField.AhoyEvent]: (_gen: RandomGen) => 'signup',
+  [LogField.Filename]: SampleHelpers.filename,
+  [LogField.Properties]: (_gen: RandomGen) => ({ plan: 'pro' }),
+  [LogField.Data]: (_gen: RandomGen) => ({}),
+  [LogField.DownloadOptions]: (_gen: RandomGen) => ({ filename: 'file.txt' }),
+  [LogField.Size]: (gen: RandomGen) => gen.randomInt(1000, 1000000),
+  [LogField.Options]: (_gen: RandomGen) => ({}),
+  [LogField.Metadata]: (_gen: RandomGen) => ({ width: 100, height: 100 }),
+  [LogField.Exist]: (_gen: RandomGen) => true,
+  [LogField.Url]: SampleHelpers.url,
+  [LogField.Status]: SampleHelpers.status,
+  [LogField.Database]: (_gen: RandomGen) => 'primary',
+  [LogField.BlockedHost]: (_gen: RandomGen) => 'malicious.example.com',
+  [LogField.Format]: (_gen: RandomGen) => 'html',
+  [LogField.Mode]: (_gen: RandomGen) => 'single',
+  [LogField.PumaVersion]: (_gen: RandomGen) => '6.6.0',
+  [LogField.PumaCodename]: (_gen: RandomGen) => 'Return to Forever',
+  [LogField.RubyVersion]: (_gen: RandomGen) => 'ruby 3.4.4 (2025-05-14) +YJIT',
+  [LogField.MinThreads]: (gen: RandomGen) => gen.randomInt(1, 8),
+  [LogField.MaxThreads]: (gen: RandomGen) => gen.randomInt(1, 8),
+  [LogField.Environment]: (_gen: RandomGen) => 'development',
+  [LogField.ListeningAddresses]: (_gen: RandomGen) => ['http://127.0.0.1:3000'],
+  [LogField.Address]: (_gen: RandomGen) => 'http://127.0.0.1:3000',
+} as const;

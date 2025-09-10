@@ -19,45 +19,29 @@ require_relative "../../enums/log_field"
 
 module LogStruct
   module Log
-    class Security
-      class CSRFViolation < T::Struct
+    class Puma
+      class Shutdown < T::Struct
         extend T::Sig
         include Interfaces::CommonFields
         include SerializeCommon
 
-        include Interfaces::RequestFields
-        include AddRequestFields
-
         include Interfaces::AdditionalDataField
         include MergeAdditionalDataFields
 
-        const :source, Source::Security, default: T.let(Source::Security, Source::Security)
+        const :source, Source::Puma, default: T.let(Source::Puma, Source::Puma)
 
-        const :event, Event::CSRFViolation, default: T.let(Event::CSRFViolation, Event::CSRFViolation)
+        const :event, Event::Shutdown, default: T.let(Event::Shutdown, Event::Shutdown)
         const :timestamp, Time, factory: -> { Time.now }
         const :level, Level, default: T.let(Level::Info, Level)
 
-        const :path, T.nilable(String), default: nil
-        const :http_method, T.nilable(String), default: nil
-        const :source_ip, T.nilable(String), default: nil
-        const :user_agent, T.nilable(String), default: nil
-        const :referer, T.nilable(String), default: nil
-        const :request_id, T.nilable(String), default: nil
         const :additional_data, T::Hash[Symbol, T.untyped], default: {}
-        const :message, T.nilable(String), default: nil
+        const :process_id, T.nilable(Integer), default: nil
 
         sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
         def serialize(strict = true)
           h = serialize_common(strict)
-          add_request_fields(h)
-          h[LogField::Path.serialize] = path if path
-          h[LogField::HttpMethod.serialize] = http_method if http_method
-          h[LogField::SourceIp.serialize] = source_ip if source_ip
-          h[LogField::UserAgent.serialize] = user_agent if user_agent
-          h[LogField::Referer.serialize] = referer if referer
-          h[LogField::RequestId.serialize] = request_id if request_id
           merge_additional_data_fields(h)
-          h[LogField::Message.serialize] = message if message
+          h[LogField::ProcessId.serialize] = process_id if process_id
           h
         end
       end
