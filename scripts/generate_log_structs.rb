@@ -2,6 +2,11 @@
 # typed: strict
 # frozen_string_literal: true
 
+# Ensure RubyGems and Bundler are set up so gem requires work in CI
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
+require "rubygems"
+require "bundler/setup"
+
 # Usage: ruby scripts/generate_log_structs.rb
 # Reads schemas/log_sources/*.yml and generates Ruby T::Struct variants
 # under lib/log_struct/log/generated/<source_snake>.rb

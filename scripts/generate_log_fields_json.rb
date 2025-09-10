@@ -3,6 +3,11 @@
 # typed: strict
 # frozen_string_literal: true
 
+# Ensure RubyGems and Bundler are set up so gem requires work in CI
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
+require "rubygems"
+require "bundler/setup"
+
 require "json"
 require "sorbet-runtime"
 
