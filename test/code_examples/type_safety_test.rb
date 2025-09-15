@@ -60,7 +60,7 @@ module LogStruct
             include ::LogStruct::Log::Interfaces::PublicCommonFields
             include ::LogStruct::Log::Interfaces::AdditionalDataField
             include ::LogStruct::Log::SerializeCommonPublic
-            include ::LogStruct::Log::MergeAdditionalDataFields
+            include ::LogStruct::Log::Shared::MergeAdditionalDataFields
 
             # Event restricted to a specific set for type safety (T::Enum)
             class Event < T::Enum

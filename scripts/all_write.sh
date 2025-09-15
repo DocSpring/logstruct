@@ -2,11 +2,11 @@
 
 set -e
 
+echo "===> Generating LogStruct TypeScript + Ruby structs"
+scripts/generate_structs.rb
+
 echo "===> Running Sorbet"
 scripts/typecheck.sh
-
-echo "===> Generating LogStruct TypeScript structs"
-scripts/generate_typescript_structs.rb
 
 echo "===> Running TypeScript"
 (cd site && npx tsc --noEmit)

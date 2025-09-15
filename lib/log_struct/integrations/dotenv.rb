@@ -25,11 +25,8 @@ module LogStruct
 
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        # Only set up if dotenv-rails is available
-        return nil unless Object.const_defined?(:Dotenv)
-
-        # Detachment is handled in Railtie after replay to preserve boot messages
-
+        # Subscribe regardless of dotenv gem presence so instrumentation via
+        # ActiveSupport::Notifications can be captured during tests and runtime.
         subscribe!
         true
       end
@@ -188,6 +185,8 @@ module LogStruct
       sig { void }
       def self.intercept_logger_setter!
         return unless Object.const_defined?(:Dotenv)
+        # Do not intercept when LogStruct is disabled; allow original dotenv replay
+        return unless LogStruct.enabled?
         dotenv_mod = T.unsafe(Object.const_get(:Dotenv))
         return unless dotenv_mod.const_defined?(:Rails)
         klass = T.unsafe(dotenv_mod.const_get(:Rails))
@@ -215,6 +214,8 @@ module LogStruct
       # Decide which boot logs to emit after user initializers
       sig { void }
       def self.resolve_boot_logs!
+        # If LogStruct is disabled, do not alter dotenv behavior at all
+        return unless LogStruct.enabled?
         dotenv_mod = Object.const_defined?(:Dotenv) ? T.unsafe(Object.const_get(:Dotenv)) : nil
         klass = dotenv_mod&.const_defined?(:Rails) ? T.unsafe(dotenv_mod.const_get(:Rails)) : nil
 

@@ -26,7 +26,11 @@ class PumaIntegrationTest < ActiveSupport::TestCase
         end
 
         # Send TERM to trigger graceful shutdown
-        Process.kill("TERM", wait_thr.pid)
+        begin
+          Process.kill("TERM", wait_thr.pid)
+        rescue Errno::ESRCH
+          # Process already exited
+        end
 
         # Collect shutdown output
         Timeout.timeout(10) do
@@ -39,34 +43,59 @@ class PumaIntegrationTest < ActiveSupport::TestCase
       ensure
         begin
           Process.kill("TERM", wait_thr.pid)
-        rescue
+        rescue Errno::ESRCH
           # already dead
         end
       end
 
       output = lines.join("\n")
-      json_logs = lines.filter_map { |l|
+      lines.filter_map { |l|
         begin
           JSON.parse(l)
         rescue
           nil
         end
       }
-      puma_logs = json_logs.select { |h| h["src"] == "puma" }
+      # Consider only logs after the first JSON line
+      first_json_index = lines.find_index { |l|
+        l.strip.start_with?("{") && begin
+          JSON.parse(l)
+        rescue
+          nil
+        end
+      }
 
-      # Expect at least boot + started + shutdown
-      assert puma_logs.any? { |h| h["evt"] == "boot" }, "Expected a puma boot event. Output: #{output}\nSTDERR: #{stderr.read}"
-      starting = puma_logs.find { |h| h["evt"] == "started" }
+      assert first_json_index, "Did not find any JSON log lines. Output: #{output}\nSTDERR: #{stderr.read}"
+      after_lines = lines[first_json_index..]
+      after_json = after_lines.filter_map do |l|
+        JSON.parse(l)
+      rescue JSON::ParserError
+        nil
+      end
+      puma_logs = after_json.select { |h| h["src"] == "puma" }
 
-      assert starting, "Expected a puma starting event. Output: #{output}"
-      assert starting["pid"], "Expected starting event to include pid"
-      assert_kind_of Array, starting["listening_addresses"], "Expected listening addresses array"
-      exit_events = ["shutdown"]
-      has_exit_json = puma_logs.any? { |h| exit_events.include?(h["evt"]) }
-      has_raw_exit = lines.any? { |l| l.strip == "Exiting" || l.include?("puma shutdown") }
+      # Expect exactly 2 structured logs: started, shutdown
+      assert_equal 2, puma_logs.length, "Expected exactly 2 Puma logs. Output: #{output}\nSTDERR: #{stderr.read}"
 
-      assert has_exit_json || has_raw_exit,
-        "Expected an exit/shutdown/goodbye event. Output: #{output}"
+      events = puma_logs.map { |h| h["evt"] }
+
+      assert_equal ["started", "shutdown"], events, "Expected Puma events in order: started, shutdown"
+
+      started = puma_logs[0]
+
+      assert_equal "puma", started["src"]
+      assert_equal "info", started["lvl"]
+      assert_equal "single", started["mode"]
+      assert_equal "test", started["environment"]
+      assert_kind_of Integer, started["pid"]
+      assert_kind_of Array, started["listening_addresses"]
+      assert started["listening_addresses"].any? { |a| a.include?(":#{port}") }, "Expected listening address to include :#{port}"
+
+      shutdown = puma_logs[1]
+
+      assert_equal "puma", shutdown["src"]
+      assert_equal "info", shutdown["lvl"]
+      assert_kind_of Integer, shutdown["pid"]
     end
   end
 end

@@ -12,11 +12,11 @@ fi
 echo "Checking generated log structs are up to date..."
 
 # Run the generator
-ruby scripts/generate_sorbet_log_structs.rb >/dev/null
+ruby scripts/generate_structs.rb >/dev/null
 
 # Detect changes
 if ! git diff --quiet --exit-code lib/log_struct/log/; then
-  echo "ERROR: Generated files are out of date. Run: ruby scripts/generate_sorbet_log_structs.rb" >&2
+  echo "ERROR: Generated files are out of date. Run: ruby scripts/generate_structs.rb" >&2
   echo "Changed files:" >&2
   git diff --name-only lib/log_struct/log/ >&2
   exit 1

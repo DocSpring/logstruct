@@ -106,7 +106,7 @@ module LogStruct
         elsif Rails.env.production?
           :info
         elsif Rails.env.test?
-          :warn
+          :debug
         else
           :debug
         end
@@ -162,7 +162,7 @@ module LogStruct
         end
       end
 
-      sig { params(app: T.untyped).returns(T.any(IO, StringIO)) }
+      sig { params(app: T.untyped).returns(T.untyped) }
       def self.determine_output(app)
         # Always honor explicit STDOUT directive, even in test, or when LogStruct is enabled via env
         return $stdout if ENV["RAILS_LOG_TO_STDOUT"].present? || ENV["LOGSTRUCT_ENABLED"].to_s.strip.downcase == "true"

@@ -42,7 +42,7 @@
 
 - Generate Sorbet RBI files: `scripts/tapioca.rb`
 - Generate spellcheck dictionary: `scripts/generate_lockfile_words.sh`
-- Generate TypeScript structs from YAML schemas: `scripts/generate_typescript_structs.rb`
+- Generate TypeScript + Ruby structs from YAML schemas: `scripts/generate_structs.rb`
 
 ## Terraform Provider repo in this workspace
 
@@ -72,7 +72,7 @@
   - The workflow builds the gem and provider, shows diffs, and skips pushes/tags/uploads.
 - Local dry-run for the GitHub Actions workflow isn’t practical without a runner like `act`. You can still sanity-check pieces locally:
   - `gem build logstruct.gemspec`
-  - `ruby scripts/generate_typescript_structs.rb`
+  - `ruby scripts/generate_structs.rb`
   - `ruby scripts/export_provider_catalog.rb`
   - `cd terraform-provider-logstruct && go build ./...`
 

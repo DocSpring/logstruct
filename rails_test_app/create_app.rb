@@ -273,6 +273,25 @@ Dir.children(TEMPLATE_DIR).each do |entry|
   copy_template(entry)
 end
 
+# Ensure HostAuthorization does not block example test hosts
+test_env_path = File.join(RAILS_APP_DIR, "config", "environments", "test.rb")
+if File.exist?(test_env_path)
+  content = File.read(test_env_path)
+  # Remove previous blanket clearing if present
+  content.gsub!(/^\s*config\.hosts\.clear\s*\n/, "")
+  insert = <<~RUBY
+    # Allow test hostnames for integration tests
+    config.hosts << "www.example.com"
+    config.hosts << "127.0.0.1"
+    config.hosts << "localhost"
+    config.hosts << /.*\z/
+  RUBY
+  unless content.include?("config.hosts << \"www.example.com\"")
+    content.sub!("Rails.application.configure do", "Rails.application.configure do\n#{insert}")
+  end
+  File.write(test_env_path, content)
+end
+
 # Run bundle install now that templates (and Gemfile edits) are in place
 puts "Running initial bundle install..."
 Dir.chdir(RAILS_APP_DIR) do

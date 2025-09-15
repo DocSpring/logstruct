@@ -1,0 +1,91 @@
+# typed: strict
+# frozen_string_literal: true
+
+extend T::Sig
+
+<%# No nested BaseFields; base fields are top-level props on the struct -%>
+
+      extend T::Sig
+
+      # Shared/common fields
+      <% if source_has_default -%>
+      const :source, <%= source_enum %>, default: <%= source_enum %>
+      <% else -%>
+      const :source, Source
+      <% end -%>
+      const :event, Event, default: Event::<%= event.name %>
+      const :timestamp, Time, factory: -> { Time.now }
+      const :level, Level, default: Level::Info
+
+<% base_fields.each do |f| -%>
+      const :<%= f.prop_name %>, <%= nilable(f.sorbet_type, f.required) %><% if !f.required %>, default: nil<% end %>
+<% end -%>
+
+      # Event-specific fields
+<% event_only(event).each do |f| -%>
+      const :<%= f.prop_name %>, <%= nilable(f.sorbet_type, f.required) %><% if !f.required %>, default: nil<% end %>
+<% end -%>
+
+      # Additional data
+<% if additional_data -%>
+      include LogStruct::Log::Interfaces::AdditionalDataField
+      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+      include LogStruct::Log::Shared::MergeAdditionalDataFields
+<% end -%>
+
+      # Request fields (optional)
+<% if add_request_fields -%>
+      include LogStruct::Log::Interfaces::RequestFields
+<% end -%>
+
+      # Serialize shared fields
+      include LogStruct::Log::Interfaces::CommonFields
+      include LogStruct::Log::Shared::SerializeCommon
+<% if add_request_fields -%>
+      include LogStruct::Log::Shared::AddRequestFields
+<% end -%>
+
+<%# Base hash helper assembles base LogField entries from arguments -%>
+<% if base_fields.any? -%>
+      sig { params(<%= base_fields.map { |f| "#{f.prop_name}: T.untyped" }.join(",\n          ") %>).returns(T::Hash[LogStruct::LogField, T.untyped]) }
+      def self.base_hash(<%= base_fields.map { |f| "#{f.prop_name}: nil" }.join(",\n          ") %>)
+<% else -%>
+      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+      def self.base_hash
+<% end -%>
+        h = {}
+<% base_fields.each do |f| -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %> unless <%= f.prop_name %>.nil?
+<% end -%>
+        h
+      end
+
+      sig { params(<%= builder_method_types(event) %>).returns(T::Hash[LogStruct::LogField, T.untyped]) }
+      def self.build(<%= builder_method_params(event) %>)
+        h = base_hash(<%= base_fields_params %>)
+<% event_only(event).each do |f| -%>
+<% if f.required -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %>
+<% else -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %> unless <%= f.prop_name %>.nil?
+<% end -%>
+<% end -%>
+<%# Additional data merged during final serialization in app code; skip here -%>
+        h
+      end
+
+      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+      def to_h
+        self.class.build(
+<% base_fields.each do |f| -%>
+          <%= f.prop_name %>: <%= f.prop_name %>,
+<% end -%>
+<% event_only(event).each do |f| -%>
+          <%= f.prop_name %>: <%= f.prop_name %>,
+<% end -%>
+<% if additional_data -%>
+          additional_data: additional_data,
+<% end -%>
+          timestamp: timestamp,
+        )
+      end

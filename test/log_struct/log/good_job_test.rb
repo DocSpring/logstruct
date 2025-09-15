@@ -206,8 +206,8 @@ module LogStruct
 
         assert_includes klass.included_modules, Interfaces::CommonFields
         assert_includes klass.included_modules, Interfaces::AdditionalDataField
-        assert_includes klass.included_modules, SerializeCommon
-        assert_includes klass.included_modules, MergeAdditionalDataFields
+        assert_includes klass.included_modules, Shared::SerializeCommon
+        assert_includes klass.included_modules, Shared::MergeAdditionalDataFields
       end
     end
   end

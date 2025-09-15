@@ -1,45 +1,4 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../enums/source"
-require_relative "../../enums/event"
-require_relative "../../enums/level"
-
-module LogStruct
-  module Log
-    module Interfaces
-      # Common interface that all log entry types must implement.
-      # NOTE: This is the internal interface used by LogStruct for its built-in
-      # log classes. It uses sealed enums for source and event. For applications
-      # that need custom sources/events, use PublicCommonFields instead.
-      module CommonFields
-        extend T::Sig
-        extend T::Helpers
-
-        interface!
-
-        # The source of the log entry (JSON property: src)
-        sig { abstract.returns(Source) }
-        def source; end
-
-        # The event type of the log entry (JSON property: evt)
-        sig { abstract.returns(Event) }
-        def event; end
-
-        # The log level (JSON property: lvl)
-        sig { abstract.returns(Level) }
-        def level; end
-
-        # The timestamp of the log entry (JSON property: ts)
-        sig { abstract.returns(Time) }
-        def timestamp; end
-
-        # All logs must define a custom serialize method
-        # If the class is a T::Struct that responds to serialize then we can be sure
-        # we're getting symbols as keys and don't need to call #serialize.deep_symbolize_keys
-        sig { abstract.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-        def serialize(strict = true); end
-      end
-    end
-  end
-end
+require "log_struct/shared/interfaces/common_fields"

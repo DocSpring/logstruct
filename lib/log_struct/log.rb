@@ -24,7 +24,7 @@ module LogStruct
       params(
         source: Source,
         ex: StandardError,
-        additional_data: T::Hash[Symbol, T.untyped],
+        additional_data: T::Hash[T.any(String, Symbol), T.untyped],
         timestamp: Time
       ).returns(LogStruct::Log::Error)
     end

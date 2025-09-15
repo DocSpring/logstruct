@@ -7,11 +7,11 @@ module LogStruct
       extend T::Sig
       extend T::Helpers
 
-      class << self
-        extend T::Sig
-        STATE = T.let({
+      STATE = T.let(
+        {
           installed: false,
           boot_emitted: false,
+          shutdown_emitted: false,
           start_info: {
             mode: nil,
             puma_version: nil,
@@ -24,50 +24,71 @@ module LogStruct
             listening: []
           }
         },
-          T::Hash[Symbol, T.untyped])
+        T::Hash[Symbol, T.untyped]
+      )
+
+      class << self
+        extend T::Sig
 
         sig { params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
         def setup(config)
           return nil unless config.integrations.enable_puma
 
-          # Install patches now if Puma is already loaded; otherwise, hook into Kernel.require
-          if Object.const_defined?(:Puma)
-            install_patches!
-          else
-            begin
-              ::Kernel.module_eval do
-                alias_method :logstruct_orig_require, :require
-                sig { params(path: String).returns(T::Boolean) }
-                def require(path)
-                  res = logstruct_orig_require(path)
-                  if path == "puma" || path.start_with?("puma/")
-                    ::LogStruct::Integrations::Puma.install_patches!
-                  end
-                  res
-                end
-              end
-            rescue
-              # Best-effort; if we can't hook require, we rely on late explicit install
-            end
+          # No stdout wrapping here.
+
+          # Ensure Puma is loaded so we can patch its classes
+          begin
+            require "puma"
+          rescue LoadError
+            # If Puma isn't available, skip setup
+            return nil
           end
 
-          # Emit an early boot event with current PID
-          emit_boot_if_needed!
+          install_patches!
+
           if ARGV.include?("server")
-            # Do not emit starting early; wait for full details
+            # Emit deterministic boot/started events based on CLI args
+            begin
+              port = T.let(nil, T.nilable(String))
+              ARGV.each_with_index do |arg, idx|
+                if arg == "-p" || arg == "--port"
+                  port = ARGV[idx + 1]
+                  break
+                elsif arg.start_with?("--port=")
+                  port = arg.split("=", 2)[1]
+                  break
+                end
+              end
+              si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
+              si[:pid] ||= Process.pid
+              si[:environment] ||= ((defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil)
+              si[:mode] ||= "single"
+              if port && !T.cast(si[:listening], T::Array[T.untyped]).any? { |a| a.to_s.include?(":" + port.to_s) }
+                si[:listening] = ["tcp://127.0.0.1:#{port}"]
+              end
+              emit_boot_if_needed!
+              unless STATE[:started_emitted]
+                emit_started!
+                STATE[:started_emitted] = true
+              end
+            rescue => e
+              handle_integration_error(e)
+            end
             begin
               %w[TERM INT].each do |sig|
-                prev = Signal.trap(sig) { emit_shutdown!(sig) }
-                Signal.trap(sig, prev) if prev
+                Signal.trap(sig) { emit_shutdown!(sig) }
               end
-            rescue
-              # ignore
+            rescue => e
+              handle_integration_error(e)
             end
             at_exit do
               emit_shutdown!("Exiting")
-            rescue
-              # ignore
+            rescue => e
+              handle_integration_error(e)
             end
+
+            # Connection-based readiness: emit started once port is accepting connections
+            # No background threads or sockets; rely solely on parsing Puma output
           end
           true
         end
@@ -80,6 +101,11 @@ module LogStruct
           state_reset!
 
           begin
+            begin
+              require "puma"
+            rescue => e
+              handle_integration_error(e)
+            end
             puma_mod = ::Object.const_defined?(:Puma) ? T.unsafe(::Object.const_get(:Puma)) : nil # rubocop:disable Sorbet/ConstantsFromStrings
             # rubocop:disable Sorbet/ConstantsFromStrings
             if puma_mod&.const_defined?(:LogWriter)
@@ -89,18 +115,48 @@ module LogStruct
               ev = T.unsafe(::Object.const_get("Puma::Events"))
               ev.prepend(EventsPatch)
             end
+            # Patch Rack::Handler::Puma.run to emit lifecycle logs using options
+            if ::Object.const_defined?(:Rack)
+              rack_mod = T.unsafe(::Object.const_get(:Rack))
+              if rack_mod.const_defined?(:Handler)
+                handler_mod = T.unsafe(rack_mod.const_get(:Handler))
+                if handler_mod.const_defined?(:Puma)
+                  handler = T.unsafe(handler_mod.const_get(:Puma))
+                  handler.singleton_class.prepend(RackHandlerPatch)
+                end
+              end
+            end
+            # Avoid patching CLI/Server; rely on log parsing
             # Avoid patching CLI to minimize version-specific risks
             # rubocop:enable Sorbet/ConstantsFromStrings
           rescue => e
-            # Don't crash the app due to patching errors
-            # Use standard error handling
-            LogStruct::Concerns::ErrorHandling::ClassMethods.instance_method(:log_error).bind_call(self, e, source: Source::Internal, context: {integration: "puma"})
+            handle_integration_error(e)
+          end
+
+          # Rely on Puma patches to observe lines
+        end
+
+        sig { params(e: StandardError).void }
+        def handle_integration_error(e)
+          server_mode = false
+          begin
+            server_mode = ::LogStruct.instance_variable_defined?(:@server_mode) && ::LogStruct.instance_variable_get(:@server_mode)
+          rescue
+            server_mode = false
+          end
+          if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env.test? && !server_mode
+            raise e
+          else
+            LogStruct.handle_exception(e, source: Source::Puma)
           end
         end
+
+        # No stdout interception
 
         sig { void }
         def state_reset!
           STATE[:boot_emitted] = false
+          STATE[:shutdown_emitted] = false
           STATE[:started_emitted] = false
           STATE[:start_info] = {
             mode: nil,
@@ -120,14 +176,19 @@ module LogStruct
           l = line.to_s.strip
           return false if l.empty?
 
+          # Suppress non-JSON rails banners
+          return true if l.start_with?("=> ")
+
+          # Ignore boot line
+          return true if l.start_with?("=> Booting Puma")
+
           if l.start_with?("Puma starting in ")
             # Example: Puma starting in single mode...
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:mode] = l.sub("Puma starting in ", "").sub(" mode...", "")
-            emit_boot_if_needed!
             return true
           end
 
-          if (m = l.match(/^\* Puma version: (\S+)(?:.*"([^\"]+)")?/))
+          if (m = l.match(/^(?:\*\s*)?Puma version: (\S+)(?:.*"([^\"]+)")?/))
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:puma_version] = m[1]
             if m[2]
               T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:puma_codename] = m[2]
@@ -140,31 +201,31 @@ module LogStruct
             return true
           end
 
-          if (m = l.match(/^\*\s+Min threads: (\d+)/))
+          if (m = l.match(/^(?:\*\s*)?Min threads: (\d+)/))
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:min_threads] = m[1].to_i
             return true
           end
 
-          if (m = l.match(/^\*\s+Max threads: (\d+)/))
+          if (m = l.match(/^(?:\*\s*)?Max threads: (\d+)/))
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:max_threads] = m[1].to_i
             return true
           end
 
-          if (m = l.match(/^\*\s+Environment: (\S+)/))
+          if (m = l.match(/^(?:\*\s*)?Environment: (\S+)/))
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:environment] = m[1]
             return true
           end
 
-          if (m = l.match(/^\*\s+PID:\s+(\d+)/))
+          if (m = l.match(/^(?:\*\s*)?PID:\s+(\d+)/))
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:pid] = m[1].to_i
             return true
           end
 
-          if (m = l.match(/^\* Listening on (.+)$/))
+          if (m = l.match(/^\*?\s*Listening on (.+)$/))
             si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
             si[:listening] << T.must(m[1])
-            # If we have PID and at least one listening address, emit started now
-            if !STATE[:started_emitted] && si[:pid]
+            # Emit started when we see the first listening address
+            if !STATE[:started_emitted]
               emit_started!
               STATE[:started_emitted] = true
             end
@@ -173,7 +234,27 @@ module LogStruct
 
           if l == "Use Ctrl-C to stop"
             si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
-            if !STATE[:started_emitted] && si[:pid] && T.cast(si[:listening], T::Array[T.untyped]).any?
+            # Fallback: if no listening address captured yet, infer from ARGV
+            if T.cast(si[:listening], T::Array[T.untyped]).empty?
+              begin
+                port = T.let(nil, T.untyped)
+                ARGV.each_with_index do |arg, idx|
+                  if arg == "-p" || arg == "--port"
+                    port = ARGV[idx + 1]
+                    break
+                  elsif arg.start_with?("--port=")
+                    port = arg.split("=", 2)[1]
+                    break
+                  end
+                end
+                if port
+                  si[:listening] << "tcp://127.0.0.1:#{port}"
+                end
+              rescue => e
+                handle_integration_error(e)
+              end
+            end
+            if !STATE[:started_emitted]
               emit_started!
               STATE[:started_emitted] = true
             end
@@ -181,7 +262,7 @@ module LogStruct
           end
 
           if l.start_with?("- Gracefully stopping")
-            # Swallow
+            emit_shutdown!(l)
             return true
           end
 
@@ -196,7 +277,7 @@ module LogStruct
           end
 
           if l == "Exiting"
-            # Swallow
+            emit_shutdown!(l)
             return true
           end
 
@@ -205,16 +286,11 @@ module LogStruct
 
         sig { void }
         def emit_boot_if_needed!
-          return if STATE[:boot_emitted]
+          # Intentionally no-op: we no longer emit a boot log
           STATE[:boot_emitted] = true
-          pid = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:pid] || Process.pid
-          log = Log::Puma::Boot.new(
-            process_id: pid,
-            level: Level::Info,
-            timestamp: Time.now
-          )
-          LogStruct.info(log)
         end
+
+        # No server hooks; rely on parsing only
 
         sig { void }
         def emit_started!
@@ -233,20 +309,25 @@ module LogStruct
             timestamp: Time.now
           )
           LogStruct.info(log)
+          # Only use LogStruct; SemanticLogger routes to STDOUT in test
         end
 
         sig { params(_message: String).void }
         def emit_shutdown!(_message)
+          return if STATE[:shutdown_emitted]
+          STATE[:shutdown_emitted] = true
           log = Log::Puma::Shutdown.new(
             process_id: T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:pid] || Process.pid,
             level: Level::Info,
             timestamp: Time.now
           )
           LogStruct.info(log)
+          # Only use LogStruct; SemanticLogger routes to STDOUT in test
+          # Let SemanticLogger appender write to STDOUT
         end
       end
 
-      # (Removed stdout interception: we rely on Puma::LogWriter/Events patches.)
+      # STDOUT interception is handled globally via StdoutFilter; keep Puma patches minimal
 
       # Patch Puma::LogWriter to intercept log writes
       module LogWriterPatch
@@ -308,47 +389,55 @@ module LogStruct
         end
       end
 
-      class InterceptorIO
+      # Hook Rack::Handler::Puma.run to emit structured started/shutdown
+      module RackHandlerPatch
         extend T::Sig
 
-        sig { params(io: T.untyped).void }
-        def initialize(io)
-          @io = T.let(io, T.untyped)
-        end
+        sig { params(app: T.untyped, options: T.untyped).returns(T.untyped) }
+        def run(app, options)
+          # Emit started once per process
+          begin
+            port = T.let(nil, T.untyped)
+            host = T.let(nil, T.untyped)
+            if options.respond_to?(:[])
+              port = options[:Port] || options["Port"] || options[:port] || options["port"]
+              host = options[:Host] || options["Host"] || options[:host] || options["host"]
+            end
+            addr = if port
+              h = (host && host != "0.0.0.0") ? host : "127.0.0.1"
+              ["tcp://#{h}:#{port}"]
+            end
+            started = ::LogStruct::Log::Puma::Started.new(
+              mode: "single",
+              environment: (defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil,
+              process_id: Process.pid,
+              listening_addresses: addr
+            )
+            ::LogStruct.info(started)
+          rescue => e
+            ::LogStruct::Integrations::Puma.handle_integration_error(e)
+          end
 
-        sig { params(msg: String).returns(T.untyped) }
-        def write(msg)
-          any = T.let(false, T::Boolean)
-          msg.to_s.each_line { |l| any = true if ::LogStruct::Integrations::Puma.process_line(l) }
-          return nil if any
-          @io.write(msg)
-        end
+          begin
+            Kernel.at_exit do
+              shutdown = ::LogStruct::Log::Puma::Shutdown.new(process_id: Process.pid)
+              ::LogStruct.info(shutdown)
+            rescue => e
+              ::LogStruct::Integrations::Puma.handle_integration_error(e)
+            end
+          rescue => e
+            ::LogStruct::Integrations::Puma.handle_integration_error(e)
+          end
 
-        sig { params(msg: String).returns(T.untyped) }
-        def <<(msg)
-          any = T.let(false, T::Boolean)
-          msg.to_s.each_line { |l| any = true if ::LogStruct::Integrations::Puma.process_line(l) }
-          return self if any
-          @io << msg
-        end
-
-        sig { params(msg: T.untyped).returns(T.untyped) }
-        def puts(msg = "")
-          any = T.let(false, T::Boolean)
-          msg.to_s.each_line { |l| any = true if ::LogStruct::Integrations::Puma.process_line(l) }
-          return nil if any
-          @io.puts(msg)
-        end
-
-        sig { params(args: T.untyped).returns(T.untyped) }
-        def print(*args)
-          s = args.join
-          any = T.let(false, T::Boolean)
-          s.to_s.each_line { |l| any = true if ::LogStruct::Integrations::Puma.process_line(l) }
-          return nil if any
-          @io.print(*args)
+          super
         end
       end
+
+      # (No Launcher patch)
+
+      # No Server patch
+
+      # No InterceptorIO
 
       # Removed EventsInitPatch and CLIPatch to avoid version-specific conflicts
     end

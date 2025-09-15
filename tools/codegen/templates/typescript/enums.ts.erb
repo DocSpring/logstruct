@@ -1,0 +1,35 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Auto-generated from YAML schemas
+
+export enum LogField {
+<% LogStruct::LogField.constants.each do |cn|
+     val = LogStruct::LogField.const_get(cn)
+     next unless val.is_a?(LogStruct::LogField)
+-%>
+  <%= cn %> = "<%= val.serialize %>",
+<% end -%>
+}
+
+export enum Source {
+<% LogStruct::Source.values.each do |v|
+     ser = v.serialize.to_s
+-%>
+  <%= source_display_name(ser) %> = "<%= ser %>",
+<% end -%>
+}
+
+export enum Level {
+<% LogStruct::Level.values.each do |v|
+     ser = v.serialize.to_s
+-%>
+  <%= pascal_case(ser) %> = "<%= ser %>",
+<% end -%>
+}
+
+export enum Event {
+<% LogStruct::Event.values.each do |v|
+     ser = v.serialize.to_s
+-%>
+  <%= event_display_name(ser) %> = "<%= ser %>",
+<% end -%>
+}

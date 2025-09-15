@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
+# Runs all linters and all tests
+
 set -e
+
+echo "===> Generating LogStruct TypeScript and Ruby structs"
+scripts/generate_structs.rb >/dev/null
 
 echo "===> Running Sorbet"
 scripts/typecheck.sh
-
-echo "===> Checking LogStruct TypeScript structs"
-scripts/generate_typescript_structs.rb >/dev/null
 
 echo "===> Running TypeScript"
 (cd site && npx tsc --noEmit)

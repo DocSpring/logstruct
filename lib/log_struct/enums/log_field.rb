@@ -5,7 +5,7 @@
 # - This enum defines human‑readable field names (constants) that map to compact
 #   JSON key symbols via `serialize` (e.g., Database => :db).
 # - The enum constant names are code‑generated into
-#   `schemas/meta/log-fields.json` by `scripts/generate_log_fields_json.rb` and
+#   `schemas/meta/log-fields.json` by `scripts/generate_structs.rb` and
 #   referenced from `schemas/meta/log-source-schema.json` to strictly validate
 #   field keys in `schemas/log_sources/*`.
 # - When adding or renaming fields here, run the generator so schema validation

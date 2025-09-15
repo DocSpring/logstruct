@@ -57,6 +57,9 @@ module LogStruct
       Integrations::ActiveStorage.setup(config) if config.integrations.enable_activestorage
       Integrations::CarrierWave.setup(config) if config.integrations.enable_carrierwave
       Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handlers
+      if config.enabled && config.integrations.enable_dotenv
+        Integrations::Dotenv.setup(config)
+      end
       Integrations::Puma.setup(config) if config.integrations.enable_puma
     end
   end

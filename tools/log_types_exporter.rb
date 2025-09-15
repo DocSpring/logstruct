@@ -226,9 +226,16 @@ module LogStruct
 
               type_info = extract_type_info(prop_info)
 
-              # Capture event enum values for union arrays
-              if field_name == :event && type_info[:type] == "enum_single" && type_info[:enum_value]
-                groups[type_name][:events] << type_info[:enum_value]
+              # Capture event enum values for union arrays.
+              # Prefer explicit single-enum detection, otherwise use the default enum value.
+              if field_name == :event
+                if type_info[:type] == "enum_single" && type_info[:enum_value]
+                  groups[type_name][:events] << T.cast(type_info[:enum_value], String)
+                elsif prop_info[:default].is_a?(LogStruct::Event)
+                  enum_val = T.cast(prop_info[:default], LogStruct::Event)
+                  enum_name = enum_val.class.constants.find { |cn| enum_val.class.const_get(cn) == enum_val }&.to_s
+                  groups[type_name][:events] << enum_name if enum_name
+                end
               end
 
               # Prefer existing definitions; only fill in missing fields

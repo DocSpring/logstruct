@@ -11,8 +11,8 @@ module LogStruct
 
         assert_includes log.class.included_modules, Interfaces::CommonFields
         assert_includes log.class.included_modules, Interfaces::AdditionalDataField
-        assert_includes log.class.included_modules, SerializeCommon
-        assert_includes log.class.included_modules, MergeAdditionalDataFields
+        assert_includes log.class.included_modules, Shared::SerializeCommon
+        assert_includes log.class.included_modules, Shared::MergeAdditionalDataFields
       end
 
       test "creates log with required fields" do

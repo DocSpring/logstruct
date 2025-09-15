@@ -212,7 +212,7 @@ export const SampleHelpers = {
 } as const;
 
 export const SampleByLogField: Readonly<
-  Record<LogField, (gen: RandomGen) => any>
+  Record<LogField, (gen: RandomGen) => unknown>
 > = {
   [LogField.Path]: SampleHelpers.path,
   [LogField.Range]: (_gen: RandomGen) => '0-100',
