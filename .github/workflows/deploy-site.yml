@@ -75,7 +75,7 @@ jobs:
 
       - name: Export TypeScript types
         run: |
-          scripts/generate_typescript_structs.rb
+          scripts/generate_structs.rb
 
       - name: Build with Next.js
         run: cd site && pnpm run build

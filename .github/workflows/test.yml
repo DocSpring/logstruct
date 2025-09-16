@@ -123,7 +123,7 @@ jobs:
 
       - name: Export TypeScript types from LogStruct
         run: |
-          scripts/generate_typescript_structs.rb
+          scripts/generate_structs.rb
 
       - name: TypeScript type checking
         run: |
