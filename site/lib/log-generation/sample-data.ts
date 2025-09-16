@@ -173,7 +173,7 @@ export const SampleData = {
   ],
 };
 
-import { LogField, Event, Source, Level } from '@/generated/logstruct/enums';
+import { LogField } from '@/generated/logstruct/enums';
 export type AdditionalData = Record<string, unknown>;
 export function isoNow(): string {
   return new Date().toISOString();

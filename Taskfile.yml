@@ -1,0 +1,67 @@
+version: '3'
+
+includes:
+  ruby: ./Taskfile.ruby.yml
+  site: ./Taskfile.site.yml
+  prettier: ./Taskfile.prettier.yml
+  rails: ./Taskfile.rails.yml
+
+tasks:
+  generate:
+    desc: Regenerate LogStruct Ruby and TypeScript structs
+    cmds:
+      - task: ruby:generate
+
+  typecheck:
+    desc: Run Sorbet and TypeScript type checking
+    cmds:
+      - task: ruby:typecheck
+      - task: site:typecheck
+
+  lint:
+    desc: Run Ruby and frontend linters
+    cmds:
+      - task: ruby:lint
+      - task: prettier:check
+      - task: site:lint
+
+  lint:fix:
+    desc: Auto-fix Ruby and frontend lint issues
+    cmds:
+      - task: ruby:lint:fix
+      - task: prettier:write
+      - task: site:lint:fix
+
+  spellcheck:
+    desc: Run repository spellcheck
+    deps: [prettier:deps]
+    cmds:
+      - scripts/spellcheck.sh
+
+  test:
+    desc: Run Ruby unit tests, Rails integration tests, and merge coverage
+    cmds:
+      - task: ruby:check-generated
+      - task: ruby:test
+      - task: rails:test
+      - task: ruby:coverage:merge
+
+  all:
+    desc: Run the full validation workflow (replaces scripts/all_check.sh)
+    cmds:
+      - task: generate
+      - task: typecheck
+      - task: lint
+      - task: spellcheck
+      - task: site:test
+      - task: test
+
+  fix:
+    desc: Auto-fix lint issues then run the full validation workflow (replaces scripts/all_write.sh)
+    cmds:
+      - task: generate
+      - task: typecheck
+      - task: lint:fix
+      - task: spellcheck
+      - task: site:test
+      - task: test

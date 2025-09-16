@@ -1,0 +1,37 @@
+version: '3'
+
+tasks:
+  generate:
+    desc: Generate Sorbet structs and TypeScript artifacts
+    cmds:
+      - bundle exec ruby scripts/generate_structs.rb
+
+  typecheck:
+    desc: Run Sorbet type checking
+    cmds:
+      - scripts/typecheck.sh
+
+  lint:
+    desc: Run RuboCop
+    cmds:
+      - bundle exec ruby scripts/rubocop.rb
+
+  lint:fix:
+    desc: Auto-correct RuboCop offenses
+    cmds:
+      - bundle exec ruby scripts/rubocop.rb -A
+
+  check-generated:
+    desc: Ensure generated Ruby structs are up to date (CI safe)
+    cmds:
+      - scripts/check_generated.sh
+
+  test:
+    desc: Run Ruby unit tests
+    cmds:
+      - bundle exec ruby scripts/test.rb
+
+  coverage:merge:
+    desc: Merge Ruby and Rails coverage reports
+    cmds:
+      - scripts/merge_coverage.sh

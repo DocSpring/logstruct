@@ -1,0 +1,20 @@
+version: '3'
+
+tasks:
+  deps:
+    desc: Install repository tooling dependencies (pnpm)
+    run: once
+    cmds:
+      - pnpm install --frozen-lockfile
+
+  check:
+    desc: Check formatting with Prettier
+    deps: [deps]
+    cmds:
+      - scripts/prettier.sh --check
+
+  write:
+    desc: Format files with Prettier
+    deps: [deps]
+    cmds:
+      - scripts/prettier.sh --write

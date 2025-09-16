@@ -2,8 +2,8 @@
 
 ## 🚨 CRITICAL RULES - MUST ALWAYS BE FOLLOWED 🚨
 
-1. **NEVER mark a feature as done until `./scripts/all_check.sh` is passing**
-2. **ALWAYS run `./scripts/all_check.sh` before claiming completion**
+1. **NEVER mark a feature as done until `task all` is passing**
+2. **ALWAYS run `task all` before claiming completion**
 3. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
 4. **This rule must ALWAYS be followed no matter what**
 
@@ -12,8 +12,8 @@
 ### Core Commands
 
 - Setup: `scripts/setup.sh`
-- Run all checks: `scripts/all_check.sh` (runs typecheck, export, lint, test, etc.)
-- Run all checks with auto-fix: `scripts/all_write.sh`
+- Run all checks: `task all` (runs typecheck, export, lint, test, etc.)
+- Run all checks with auto-fix: `task fix`
 - Interactive console: `scripts/console.rb`
 
 ### Testing Commands

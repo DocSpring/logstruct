@@ -8,7 +8,7 @@
     "build": "node scripts/generate-favicons.js && next build",
     "postbuild": "node scripts/check-internal-links.js",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings=0",
     "test": "jest",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check": "npm run typecheck && npm run lint && npm run build && npm run test:integration && npm run e2e",

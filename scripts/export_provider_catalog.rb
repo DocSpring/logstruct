@@ -12,7 +12,7 @@ structs_path = File.join(site_gen, "sorbet-log-structs.json")
 keys_path = File.join(site_gen, "log-fields.json")
 
 unless File.exist?(enums_path) && File.exist?(structs_path) && File.exist?(keys_path)
-  abort "Missing generated files in #{site_gen}. Run scripts/all_check.sh first."
+  abort "Missing generated files in #{site_gen}. Run `task generate` first."
 end
 
 enums = JSON.parse(File.read(enums_path))
