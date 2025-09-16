@@ -68,3 +68,4 @@ xorshift
 yardoc
 hostnames
 ESRCH
+demodulize

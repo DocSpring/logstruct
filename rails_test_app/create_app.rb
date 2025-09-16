@@ -192,6 +192,27 @@ if !skip_app_creation
     gemfile_content.sub!(/^(\s*gem\s+"rails".*$)/, "\\1\n# Use sqlite3 as the database for Active Record\n gem \"sqlite3\", \">= 2.1\"")
   end
 
+  # Pin Puma version to exercise both legacy and modern releases across the matrix
+  puma_requirement = if @rails_major_minor == "7.0"
+    "~> 6.4"
+  else
+    "~> 7.0"
+  end
+
+  if gemfile_content.match?(/^(\s*# Use the Puma web server.*\n)(\s*gem\s+"puma".*$)/)
+    gemfile_content.gsub!(
+      /(\s*# Use the Puma web server.*\n)\s*gem\s+"puma".*$/,
+      "\\1 gem \"puma\", \"#{puma_requirement}\""
+    )
+  elsif gemfile_content.match?(/^\s*gem\s+"puma"/)
+    gemfile_content.gsub!(/^\s*gem\s+"puma".*$/, "gem \"puma\", \"#{puma_requirement}\"")
+  else
+    gemfile_content.sub!(
+      /^(\s*gem\s+"rails".*$)/,
+      "\\1\n# Use the Puma web server\n gem \"puma\", \"#{puma_requirement}\""
+    )
+  end
+
   # Add LogStruct gem
   logstruct_gem_line = "# LogStruct gem from local path\ngem \"logstruct\", path: \"#{ROOT_DIR}\"\n\n"
   if gemfile_content.include?("logstruct")

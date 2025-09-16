@@ -12,6 +12,7 @@ module LogStruct
           installed: false,
           boot_emitted: false,
           shutdown_emitted: false,
+          handler_pending_started: false,
           start_info: {
             mode: nil,
             puma_version: nil,
@@ -158,6 +159,7 @@ module LogStruct
           STATE[:boot_emitted] = false
           STATE[:shutdown_emitted] = false
           STATE[:started_emitted] = false
+          STATE[:handler_pending_started] = false
           STATE[:start_info] = {
             mode: nil,
             puma_version: nil,
@@ -223,7 +225,9 @@ module LogStruct
 
           if (m = l.match(/^\*?\s*Listening on (.+)$/))
             si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
-            si[:listening] << T.must(m[1])
+            list = T.cast(si[:listening], T::Array[T.untyped])
+            address = T.must(m[1])
+            list << address unless list.include?(address)
             # Emit started when we see the first listening address
             if !STATE[:started_emitted]
               emit_started!
@@ -258,7 +262,7 @@ module LogStruct
               emit_started!
               STATE[:started_emitted] = true
             end
-            return true
+            return false
           end
 
           if l.start_with?("- Gracefully stopping")
@@ -309,6 +313,7 @@ module LogStruct
             timestamp: Time.now
           )
           LogStruct.info(log)
+          STATE[:handler_pending_started] = false
           # Only use LogStruct; SemanticLogger routes to STDOUT in test
         end
 
@@ -393,35 +398,51 @@ module LogStruct
       module RackHandlerPatch
         extend T::Sig
 
-        sig { params(app: T.untyped, options: T.untyped).returns(T.untyped) }
-        def run(app, options)
-          # Emit started once per process
+        sig do
+          params(
+            app: T.untyped,
+            args: T.untyped,
+            block: T.nilable(T.proc.returns(T.untyped))
+          ).returns(T.untyped)
+        end
+        def run(app, *args, &block)
+          rest = args
+          options = T.let({}, T::Hash[T.untyped, T.untyped])
+          rest.each do |value|
+            next unless value.is_a?(Hash)
+            options.merge!(value)
+          end
+
           begin
+            si = T.cast(::LogStruct::Integrations::Puma::STATE[:start_info], T::Hash[Symbol, T.untyped])
+            si[:mode] ||= "single"
+            si[:environment] ||= ((defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil)
+            si[:pid] ||= Process.pid
+            si[:listening] ||= []
             port = T.let(nil, T.untyped)
             host = T.let(nil, T.untyped)
             if options.respond_to?(:[])
               port = options[:Port] || options["Port"] || options[:port] || options["port"]
               host = options[:Host] || options["Host"] || options[:host] || options["host"]
             end
-            addr = if port
+            if port
+              list = T.cast(si[:listening], T::Array[T.untyped])
+              list.clear
               h = (host && host != "0.0.0.0") ? host : "127.0.0.1"
-              ["tcp://#{h}:#{port}"]
+              list << "tcp://#{h}:#{port}"
             end
-            started = ::LogStruct::Log::Puma::Started.new(
-              mode: "single",
-              environment: (defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil,
-              process_id: Process.pid,
-              listening_addresses: addr
-            )
-            ::LogStruct.info(started)
+            state = ::LogStruct::Integrations::Puma::STATE
+            state[:handler_pending_started] = true unless state[:started_emitted]
           rescue => e
             ::LogStruct::Integrations::Puma.handle_integration_error(e)
           end
 
           begin
             Kernel.at_exit do
-              shutdown = ::LogStruct::Log::Puma::Shutdown.new(process_id: Process.pid)
-              ::LogStruct.info(shutdown)
+              unless ::LogStruct::Integrations::Puma::STATE[:shutdown_emitted]
+                ::LogStruct::Integrations::Puma.emit_shutdown!("Exiting")
+                ::LogStruct::Integrations::Puma::STATE[:shutdown_emitted] = true
+              end
             rescue => e
               ::LogStruct::Integrations::Puma.handle_integration_error(e)
             end
@@ -429,7 +450,23 @@ module LogStruct
             ::LogStruct::Integrations::Puma.handle_integration_error(e)
           end
 
-          super
+          begin
+            result = super(app, **options, &block)
+          ensure
+            state = ::LogStruct::Integrations::Puma::STATE
+            if state[:handler_pending_started] && !state[:started_emitted]
+              begin
+                ::LogStruct::Integrations::Puma.emit_started!
+                state[:started_emitted] = true
+              rescue => e
+                ::LogStruct::Integrations::Puma.handle_integration_error(e)
+              ensure
+                state[:handler_pending_started] = false
+              end
+            end
+          end
+
+          result
         end
       end
 
