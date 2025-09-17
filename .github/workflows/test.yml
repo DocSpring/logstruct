@@ -162,6 +162,16 @@ jobs:
       - name: Run Rails integration tests
         run: scripts/rails_tests.sh
 
+      - name: Upload raw coverage directories
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: raw-coverage-ruby3.4-rails8.0
+          path: |
+            coverage
+            coverage_rails
+          retention-days: 5
+
       # Merges /coverage and /coverage_rails into /site/public/coverage/
       - name: Merge coverage reports
         run: scripts/merge_coverage.sh
