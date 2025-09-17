@@ -1,5 +1,7 @@
 # typed: strict
 
+require "log_struct"
+
 # Configure LogStruct
 LogStruct.configure do |config|
   # Specify which environments to enable in

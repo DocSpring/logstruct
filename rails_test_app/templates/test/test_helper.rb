@@ -1,32 +1,33 @@
 # typed: true
 
-require "simplecov"
+require "simplecov" unless defined?(SimpleCov)
 require "simplecov-json"
 require "sorbet-runtime"
 require "debug"
 
-# Configure SimpleCov for Rails integration tests
-SimpleCov.formatters = [
-  SimpleCov::Formatter::HTMLFormatter,
-  SimpleCov::Formatter::JSONFormatter
-]
+unless SimpleCov.running
+  SimpleCov.formatters = [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::JSONFormatter
+  ]
 
-# We need to configure SimpleCov before loading any application code
-SimpleCov.start do
-  T.bind(self, T.all(SimpleCov::Configuration, Kernel))
+  SimpleCov.start do
+    T.bind(self, T.all(SimpleCov::Configuration, Kernel))
 
-  gem_path = File.expand_path("../../../../", __FILE__)
-  SimpleCov.root(gem_path)
+    gem_path = File.expand_path("../../../../", __FILE__)
+    SimpleCov.root(gem_path)
 
-  add_filter "rails_test_app"
+    add_filter "rails_test_app"
 
-  # Coverage is stored in a directory relative to the Rails app
-  coverage_dir "coverage_rails"
-  # command_name "test:integration"
+    coverage_dir "coverage_rails"
 
-  # Enable branch coverage
-  enable_coverage :branch
-  primary_coverage :branch
+    enable_coverage :branch
+    primary_coverage :branch
+  end
+
+  SimpleCov.at_exit do
+    SimpleCov.result
+  end
 end
 
 # Require logstruct after starting SimpleCov

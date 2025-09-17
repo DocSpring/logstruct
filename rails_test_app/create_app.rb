@@ -294,6 +294,39 @@ Dir.children(TEMPLATE_DIR).each do |entry|
   copy_template(entry)
 end
 
+boot_path = File.join(RAILS_APP_DIR, "config", "boot.rb")
+unless File.read(boot_path).include?("LOGSTRUCT_SIMPLECOV_BOOT")
+  simplecov_boot = <<~RUBY
+
+    if ENV.fetch('RAILS_ENV', 'test') == 'test' && ENV['LOGSTRUCT_SIMPLECOV_BOOT'] != '1'
+      ENV['LOGSTRUCT_SIMPLECOV_BOOT'] = '1'
+      begin
+        require 'simplecov'
+        require 'simplecov-json'
+        SimpleCov.formatters = [
+          SimpleCov::Formatter::HTMLFormatter,
+          SimpleCov::Formatter::JSONFormatter
+        ]
+        SimpleCov.start do
+          root_path = File.expand_path('../../..', __dir__)
+          coverage_dir File.join(root_path, 'coverage_rails')
+          add_filter '/rails_test_app/'
+          enable_coverage :branch
+          primary_coverage :branch
+        end
+        SimpleCov.at_exit do
+          SimpleCov.result
+        end
+      rescue LoadError
+        # SimpleCov not available; skip instrumentation
+      end
+    end
+
+  RUBY
+
+  File.write(boot_path, File.read(boot_path) + simplecov_boot)
+end
+
 # Ensure HostAuthorization does not block example test hosts
 test_env_path = File.join(RAILS_APP_DIR, "config", "environments", "test.rb")
 if File.exist?(test_env_path)

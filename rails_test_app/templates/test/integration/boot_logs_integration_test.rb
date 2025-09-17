@@ -20,6 +20,9 @@ class BootLogsIntegrationTest < ActiveSupport::TestCase
     refute_empty output, "Expected some output from rails runner"
 
     lines = output.split("\n").map(&:strip).reject(&:empty?)
+    lines.reject! do |line|
+      line.start_with?("Coverage report generated", "Line Coverage:", "Branch Coverage:")
+    end
     # Ensure the last non-empty line is 'true'
     last_line = lines.last
 
@@ -59,6 +62,9 @@ class BootLogsIntegrationTest < ActiveSupport::TestCase
     refute_empty output, "Expected some output from rails runner"
 
     lines = output.split("\n").map(&:strip).reject(&:empty?)
+    lines.reject! do |line|
+      line.start_with?("Coverage report generated", "Line Coverage:", "Branch Coverage:")
+    end
     last_line = lines.last
 
     assert_equal "false", last_line, "Expected final line to be 'false'"
