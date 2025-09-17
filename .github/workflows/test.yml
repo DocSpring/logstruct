@@ -171,6 +171,7 @@ jobs:
             coverage
             coverage_rails
           retention-days: 5
+          include-hidden-files: true
 
       # Merges /coverage and /coverage_rails into /site/public/coverage/
       - name: Merge coverage reports
