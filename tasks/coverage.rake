@@ -6,7 +6,15 @@ namespace :coverage do
     require "simplecov"
     require "simplecov-json"
 
-    SimpleCov.collate Dir["coverage*/.resultset.json"] do
+    resultsets = Dir["coverage*/.resultset.json"]
+    puts "Found #{resultsets.count} resultset files"
+    puts resultsets.map { |resultset| "- #{resultset}" }.join("\n")
+
+    if resultsets.count != 2
+      raise "Expected exactly 2 resultset files, got #{resultsets.count}"
+    end
+
+    SimpleCov.collate resultsets do
       formatter SimpleCov::Formatter::MultiFormatter.new([
         SimpleCov::Formatter::HTMLFormatter,
         SimpleCov::Formatter::JSONFormatter
