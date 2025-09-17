@@ -82,14 +82,5 @@ pre-commit:
 
           - name: rubocop
             glob: '*.rb'
-            run: scripts/rubocop.rb -A {staged_files}
+            run: bin/rubocop -A {staged_files}
             stage_fixed: true
-
-# Optional: Run full test suite manually with lefthook run full-tests
-full-tests:
-  parallel: false
-
-  # Run complete test suite including Rails integration tests
-  all-tests:
-    run: scripts/all_tests.sh
-    fail_text: 'Full test suite failed'

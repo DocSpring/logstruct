@@ -32,8 +32,8 @@
 
 - Ruby typecheck: `scripts/typecheck.sh`
 - Next.js typecheck: `cd site && pnpm exec tsc --noEmit`
-- Lint Ruby: `scripts/rubocop.rb`
-- Format Ruby: `scripts/rubocop.rb -A`
+- Lint Ruby: `bin/rubocop`
+- Format Ruby: `bin/rubocop -A`
 - Format JS/TS/JSON: `scripts/prettier.sh --write`
 - Lint JS/TS/JSON: `scripts/prettier.sh --check`
 - Spellcheck: `scripts/spellcheck.sh`

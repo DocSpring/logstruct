@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# typed: true
 # frozen_string_literal: true
 
 #
@@ -23,5 +24,22 @@ end
 
 require "rubygems"
 require "bundler/setup"
+
+# In restricted environments, RuboCop cache writes may fail. Disable or redirect cache.
+begin
+  cache_root = File.expand_path("../tmp/rubocop_cache", __dir__)
+  Dir.mkdir(File.expand_path("../tmp", __dir__)) unless Dir.exist?(File.expand_path("../tmp", __dir__))
+  Dir.mkdir(cache_root) unless Dir.exist?(cache_root)
+rescue
+  cache_root = nil
+end
+
+unless ARGV.any? { |a| a == "--no-cache" || a.start_with?("--cache") }
+  if cache_root
+    ARGV.unshift("--cache-root", cache_root)
+  else
+    ARGV.unshift("--no-cache")
+  end
+end
 
 load Gem.bin_path("rubocop", "rubocop")

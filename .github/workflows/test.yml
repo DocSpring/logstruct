@@ -84,7 +84,7 @@ jobs:
           fi
 
       - name: RuboCop (Linting/Formatting)
-        run: scripts/rubocop.rb
+        run: bin/rubocop
 
       - name: Sorbet (Typecheck)
         run: scripts/typecheck.sh

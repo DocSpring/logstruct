@@ -14,12 +14,12 @@ tasks:
   lint:
     desc: Run RuboCop
     cmds:
-      - bundle exec ruby scripts/rubocop.rb
+      - bundle exec ruby bin/rubocop
 
   lint:fix:
     desc: Auto-correct RuboCop offenses
     cmds:
-      - bundle exec ruby scripts/rubocop.rb -A
+      - bundle exec ruby bin/rubocop -A
 
   check-generated:
     desc: Ensure generated Ruby structs are up to date (CI safe)

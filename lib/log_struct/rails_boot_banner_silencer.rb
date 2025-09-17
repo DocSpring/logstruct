@@ -18,14 +18,14 @@ module LogStruct
       patch!
     end
 
-    sig { void }
+    sig { returns(T::Boolean) }
     def self.patch!
       begin
         require "rails/command"
         require "rails/commands/server/server_command"
       rescue LoadError
         # Best-effort – if Rails isn't available yet we'll try again later
-        return
+        return false
       end
 
       server_command = T.let(nil, T.untyped)
@@ -36,9 +36,10 @@ module LogStruct
         server_command = nil
       end
       # rubocop:enable Sorbet/ConstantsFromStrings
-      return unless server_command
+      return false unless server_command
 
       patch_server_command(server_command)
+      true
     end
 
     sig { params(server_command: T.untyped).void }
