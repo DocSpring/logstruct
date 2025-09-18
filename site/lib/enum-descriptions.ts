@@ -21,7 +21,10 @@ export const ENUM_DESCRIPTIONS: Record<string, string> = {
 export function getEnumDescription(enumName: string): string {
   const description = ENUM_DESCRIPTIONS[enumName];
   if (!description) {
-    throw new Error(`No description found for enum: ${enumName}`);
+    throw new Error(
+      `No description found for enum: ${enumName}. ` +
+        'Add it to lib/enum-descriptions.ts',
+    );
   }
   return description;
 }
@@ -53,6 +56,7 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
     Sidekiq: 'Sidekiq background job logs and errors',
     Dotenv:
       'Dotenv-rails configuration events (env file load/update/save/restore)',
+    Puma: 'Puma server lifecycle events',
   },
   'LogStruct::ErrorHandlingMode': {
     Ignore: 'Completely ignore errors',
@@ -64,13 +68,14 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
     Raise: 'Always raise the error (reported by tracking service)',
   },
   'LogStruct::Event': {
+    Shutdown: 'Server shutting down',
     Log: 'Standard log message',
     Request: 'HTTP request',
     Database: 'Database query event and metrics',
     Generate: 'Serialization/render event (ActiveModelSerializers)',
     Enqueue: 'Job added to queue',
     Schedule: 'Job scheduled for future processing',
-    Start: 'Job processing started',
+    Start: 'Job processing started, or server started',
     Finish: 'Job processing completed',
     Load: 'Configuration load operation (e.g., dotenv file loaded)',
     Update: 'Configuration update operation (e.g., env var set)',
@@ -112,7 +117,8 @@ export function getEnumValueDescription(
   const description = enumValues[valueName];
   if (!description) {
     throw new Error(
-      `No description found for enum value: ${enumName}::${valueName}`,
+      `No description found for enum value: ${enumName}::${valueName}. ` +
+        'Add it to lib/enum-descriptions.ts',
     );
   }
 

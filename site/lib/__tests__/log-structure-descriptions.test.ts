@@ -40,7 +40,8 @@ describe('Log Structure Descriptions', () => {
   it('getLogStructureDescription throws an error for unknown structures', () => {
     // Test with an unknown structure
     expect(() => getLogStructureDescription('NonExistentStructure')).toThrow(
-      'No description found for log structure: NonExistentStructure',
+      'No description found for log structure: NonExistentStructure. ' +
+        'Add it to lib/log-structure-descriptions.ts',
     );
   });
 });

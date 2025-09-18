@@ -73,7 +73,7 @@ module LogStruct
             break
           end
         end
-        started = LogStruct::Log::Puma::Started.new(
+        started = LogStruct::Log::Puma::Start.new(
           mode: "single",
           environment: (defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil,
           process_id: Process.pid,

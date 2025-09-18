@@ -5,11 +5,7 @@ snake_case: puma
 additional_data: true
 
 events:
-  Boot:
-    fields:
-      ProcessId: Integer
-
-  Started:
+  Start:
     default_required: false
     fields:
       Mode: String

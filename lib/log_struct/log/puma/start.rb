@@ -20,7 +20,7 @@ require_relative "../../enums/log_field"
 module LogStruct
   module Log
     class Puma
-      class Started < T::Struct
+      class Start < T::Struct
         # typed: strict
         # frozen_string_literal: true
 
@@ -30,7 +30,7 @@ module LogStruct
 
         # Shared/common fields
         const :source, Source::Puma, default: Source::Puma
-        const :event, Event, default: Event::Started
+        const :event, Event, default: Event::Start
         const :timestamp, Time, factory: -> { Time.now }
         const :level, Level, default: Level::Info
 

@@ -6,6 +6,5 @@
 # Schemas dir: schemas/log_sources/
 # Template: tools/codegen/templates/sorbet/source_parent.rb.erb
 
-require_relative "puma/boot"
-require_relative "puma/started"
+require_relative "puma/start"
 require_relative "puma/shutdown"

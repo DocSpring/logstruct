@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { useFiltering } from '@/components/filtering-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CodeBlock } from '@/components/code-block';
@@ -21,9 +21,11 @@ export function IntegrationExamples({
 }) {
   const { filtering, setFiltering } = useFiltering();
   const gen = new LogGenerator(12345, filtering);
+  const baseFilteringId = useId();
 
   if (events.length <= 1) {
     const only = events[0];
+    const inputId = `${baseFilteringId}-filter`;
     return (
       <div className="relative">
         <CodeBlock language="json">
@@ -35,11 +37,14 @@ export function IntegrationExamples({
           )}
         </CodeBlock>
         <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
-          <label className="cursor-pointer select-none">Apply filtering</label>
+          <label className="cursor-pointer select-none" htmlFor={inputId}>
+            Apply filtering
+          </label>
           <input
             aria-label="Apply filtering"
             type="checkbox"
             className="cursor-pointer"
+            id={inputId}
             checked={filtering}
             onChange={(e) => setFiltering(e.target.checked)}
           />
@@ -62,32 +67,43 @@ export function IntegrationExamples({
             </TabsTrigger>
           ))}
         </TabsList>
-        {events.map((evt) => (
-          <TabsContent key={String(evt)} value={String(evt)} className="mt-0.5">
-            <div className="relative">
-              <CodeBlock language="json">
-                {formatLog(
-                  gen.generateLogWithOptions(logType, {
-                    preferredEvent: evt,
-                    filtering,
-                  }),
-                )}
-              </CodeBlock>
-              <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
-                <label className="cursor-pointer select-none">
-                  Apply filtering
-                </label>
-                <input
-                  aria-label="Apply filtering"
-                  type="checkbox"
-                  className="cursor-pointer"
-                  checked={filtering}
-                  onChange={(e) => setFiltering(e.target.checked)}
-                />
+        {events.map((evt) => {
+          const inputId = `${baseFilteringId}-${String(evt)}`;
+          return (
+            <TabsContent
+              key={String(evt)}
+              value={String(evt)}
+              className="mt-0.5"
+            >
+              <div className="relative">
+                <CodeBlock language="json">
+                  {formatLog(
+                    gen.generateLogWithOptions(logType, {
+                      preferredEvent: evt,
+                      filtering,
+                    }),
+                  )}
+                </CodeBlock>
+                <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
+                  <label
+                    className="cursor-pointer select-none"
+                    htmlFor={inputId}
+                  >
+                    Apply filtering
+                  </label>
+                  <input
+                    aria-label="Apply filtering"
+                    type="checkbox"
+                    className="cursor-pointer"
+                    id={inputId}
+                    checked={filtering}
+                    onChange={(e) => setFiltering(e.target.checked)}
+                  />
+                </div>
               </div>
-            </div>
-          </TabsContent>
-        ))}
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </div>
   );

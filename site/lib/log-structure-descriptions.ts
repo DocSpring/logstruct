@@ -20,6 +20,7 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   Ahoy: 'For analytics tracking events emitted by Ahoy (event name and properties)',
   Dotenv:
     'For dotenv-rails configuration events during boot (load/update/save/restore of env files and variables)',
+  Puma: 'For Puma server lifecycle events',
 };
 
 /**
@@ -31,7 +32,10 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
 export function getLogStructureDescription(structName: string): string {
   const description = LOG_STRUCTURE_DESCRIPTIONS[structName];
   if (!description) {
-    throw new Error(`No description found for log structure: ${structName}`);
+    throw new Error(
+      `No description found for log structure: ${structName}. ` +
+        'Add it to lib/log-structure-descriptions.ts',
+    );
   }
   return description;
 }

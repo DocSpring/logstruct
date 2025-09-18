@@ -21,6 +21,7 @@ import {
   ActiveModelSerializers,
   Ahoy,
   Dotenv,
+  Puma,
 } from '@/generated/logstruct';
 
 type JsonRecord = Record<string, any>;
@@ -242,6 +243,27 @@ export class LogGenerator extends RandomDataGenerator {
             case Event.Update:
             default:
               return Dotenv.DotenvUpdate.random(this).serialize();
+          }
+        }
+
+        case LogType.PUMA: {
+          switch (evt ?? this.sample([Event.Start, Event.Shutdown])) {
+            case Event.Shutdown:
+              return Puma.PumaShutdown.random(this).serialize();
+            case Event.Start:
+            default:
+              return Puma.PumaStart.random(this, {
+                listening_addresses: [
+                  `tcp://127.0.0.1:${this.randomInt(3000, 3999)}`,
+                ],
+                min_threads: this.randomInt(0, 4),
+                max_threads: this.randomInt(5, 16),
+                environment: this.sample(['development', 'test', 'production']),
+                mode: this.sample(['cluster', 'single']) as string,
+                puma_version: '6.6.1',
+                puma_codename: 'Return to Forever',
+                ruby_version: 'ruby 3.4.5 (revision)',
+              }).serialize();
           }
         }
 

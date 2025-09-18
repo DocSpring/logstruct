@@ -23,7 +23,7 @@ class PumaIntegrationUnitTest < Minitest::Test
       feed_boot_lines
     end
 
-    started = started_logs.find { |log| log.is_a?(LogStruct::Log::Puma::Started) }
+    started = started_logs.find { |log| log.is_a?(LogStruct::Log::Puma::Start) }
 
     refute_nil started, "expected a started log"
     assert_equal "single", started.mode
@@ -41,7 +41,7 @@ class PumaIntegrationUnitTest < Minitest::Test
       PUMA.process_line("Use Ctrl-C to stop")
     end
 
-    started = started_logs.find { |log| log.is_a?(LogStruct::Log::Puma::Started) }
+    started = started_logs.find { |log| log.is_a?(LogStruct::Log::Puma::Start) }
 
     refute_nil started
     assert_includes started.listening_addresses, "tcp://127.0.0.1:4000"

@@ -74,22 +74,22 @@ class PumaIntegrationTest < ActiveSupport::TestCase
       end
       puma_logs = after_json.select { |h| h["src"] == "puma" }
 
-      # Expect exactly 2 structured logs: started, shutdown
+      # Expect exactly 2 structured logs: start, shutdown
       assert_equal 2, puma_logs.length, "Expected exactly 2 Puma logs. Output: #{output}\nSTDERR: #{stderr.read}"
 
       events = puma_logs.map { |h| h["evt"] }
 
-      assert_equal ["started", "shutdown"], events, "Expected Puma events in order: started, shutdown"
+      assert_equal ["start", "shutdown"], events, "Expected Puma events in order: start, shutdown"
 
-      started = puma_logs[0]
+      start = puma_logs[0]
 
-      assert_equal "puma", started["src"]
-      assert_equal "info", started["lvl"]
-      assert_equal "single", started["mode"]
-      assert_equal "test", started["environment"]
-      assert_kind_of Integer, started["pid"]
-      assert_kind_of Array, started["listening_addresses"]
-      assert started["listening_addresses"].any? { |a| a.include?(":#{port}") }, "Expected listening address to include :#{port}"
+      assert_equal "puma", start["src"]
+      assert_equal "info", start["lvl"]
+      assert_equal "single", start["mode"]
+      assert_equal "test", start["environment"]
+      assert_kind_of Integer, start["pid"]
+      assert_kind_of Array, start["listening_addresses"]
+      assert start["listening_addresses"].any? { |a| a.include?(":#{port}") }, "Expected listening address to include :#{port}"
 
       shutdown = puma_logs[1]
 

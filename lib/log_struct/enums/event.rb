@@ -40,12 +40,8 @@ module LogStruct
       Restore = new(:restore)
 
       # Server lifecycle (e.g., Puma)
-      Boot = new(:boot)
-      Started = new(:started)
-      Listening = new(:listening)
+      # Start already defined above
       Shutdown = new(:shutdown)
-      Goodbye = new(:goodbye)
-      Exiting = new(:exiting)
 
       # Security events
       IPSpoof = new(:ip_spoof)

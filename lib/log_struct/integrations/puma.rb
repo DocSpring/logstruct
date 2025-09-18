@@ -299,7 +299,7 @@ module LogStruct
         sig { void }
         def emit_started!
           si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
-          log = Log::Puma::Started.new(
+          log = Log::Puma::Start.new(
             mode: T.cast(si[:mode], T.nilable(String)),
             puma_version: T.cast(si[:puma_version], T.nilable(String)),
             puma_codename: T.cast(si[:puma_codename], T.nilable(String)),
