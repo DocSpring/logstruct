@@ -175,6 +175,47 @@ module LogStruct
       assert_equal "... and 10 more items", result.last
     end
 
+    def test_process_values_does_not_process_beyond_limit_for_large_arrays
+      exploding_class = Class.new do
+        attr_reader :index
+
+        def initialize(index, raise_on_touch)
+          @index = index
+          @raise_on_touch = raise_on_touch
+        end
+
+        def touch!
+          raise "Should not touch index #{@index}" if @raise_on_touch
+        end
+      end
+
+      counting_formatter = Class.new(Formatter) do
+        attr_reader :touched_indices
+
+        def initialize
+          super
+          @touched_indices = []
+        end
+
+        def process_values(value, recursion_depth: 0)
+          if value.respond_to?(:touch!)
+            value.touch!
+            @touched_indices << value.index if value.respond_to?(:index)
+          end
+
+          super
+        end
+      end.new
+
+      values = (0...10).map { |i| exploding_class.new(i, false) } +
+        (10...20).map { |i| exploding_class.new(i, true) }
+
+      result = counting_formatter.process_values(values)
+
+      assert_equal 11, result.length
+      assert_equal((0...10).to_a, counting_formatter.touched_indices)
+    end
+
     def test_process_values_handles_recursive_structures
       hash1 = {a: 1}
       hash2 = {b: 2, hash1: hash1}

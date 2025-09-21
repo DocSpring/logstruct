@@ -3,6 +3,7 @@
 
 require_relative "../../enums/log_field"
 require_relative "../interfaces/common_fields"
+require_relative "../../log/shared/merge_additional_data_fields"
 
 module LogStruct
   module Log
@@ -19,17 +20,19 @@ module LogStruct
           out = serialize_common(strict)
 
           # Merge event/base fields from the struct-specific hash
-          field_hash = T.unsafe(self).to_h
+          kernel_self = T.cast(self, Kernel)
+          field_hash = T.cast(kernel_self.public_send(:to_h), T::Hash[LogStruct::LogField, T.untyped])
           field_hash.each do |log_field, value|
             next if value.nil?
-            key = T.cast(log_field, LogStruct::LogField).serialize
+            key = log_field.serialize
             out[key] = value.is_a?(::Time) ? value.iso8601 : value
           end
 
           # Merge any additional_data at top level if available
-          if T.unsafe(self).respond_to?(:merge_additional_data_fields)
+          if kernel_self.respond_to?(:merge_additional_data_fields)
             # merge_additional_data_fields expects symbol keys
-            T.unsafe(self).merge_additional_data_fields(out)
+            merge_target = T.cast(self, LogStruct::Log::Shared::MergeAdditionalDataFields)
+            merge_target.merge_additional_data_fields(out)
           end
 
           out

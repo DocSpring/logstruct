@@ -73,13 +73,7 @@ module LogStruct
 
         result
       when Array
-        result = arg.map { |value| process_values(value, recursion_depth: recursion_depth + 1) }
-
-        # Filter large arrays, but don't truncate backtraces (arrays of strings that look like file:line)
-        if result.size > 10 && !looks_like_backtrace?(result)
-          result = result.take(10) + ["... and #{result.size - 10} more items"]
-        end
-        result
+        process_array(arg, recursion_depth: recursion_depth)
       when GlobalID::Identification
         begin
           arg.to_global_id
@@ -91,7 +85,7 @@ module LogStruct
             else
               # For non-ActiveRecord objects that failed to_global_id, try to get a string representation
               # If this also fails, we want to catch it and return the error placeholder
-              T.unsafe(arg).to_s
+              String(T.cast(arg, Object))
             end
           rescue => e
             LogStruct.handle_exception(e, source: Source::Internal)
@@ -207,17 +201,35 @@ module LogStruct
       "#{data.to_json}\n"
     end
 
+    sig { params(array: T::Array[T.untyped], recursion_depth: Integer).returns(T::Array[T.untyped]) }
+    def process_array(array, recursion_depth:)
+      return [] if array.empty?
+
+      if looks_like_backtrace_array?(array)
+        array.map { |value| process_values(value, recursion_depth: recursion_depth + 1) }
+      else
+        processed = []
+        array.each_with_index do |value, index|
+          break if index >= 10
+
+          processed << process_values(value, recursion_depth: recursion_depth + 1)
+        end
+
+        if array.size > 10
+          processed << "... and #{array.size - 10} more items"
+        end
+
+        processed
+      end
+    end
+
     # Check if an array looks like a backtrace (array of strings with file:line pattern)
     sig { params(array: T::Array[T.untyped]).returns(T::Boolean) }
-    def looks_like_backtrace?(array)
-      return false if array.empty?
-
-      # Check if most elements look like backtrace lines (file.rb:123 or similar patterns)
+    def looks_like_backtrace_array?(array)
       backtrace_like_count = array.first(5).count do |element|
         element.is_a?(String) && element.match?(/\A[^:\s]+:\d+/)
       end
 
-      # If at least 3 out of the first 5 elements look like backtrace lines, treat as backtrace
       backtrace_like_count >= 3
     end
   end

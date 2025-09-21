@@ -20,10 +20,10 @@ module LogStruct
           raise ArgumentError, "Public log struct must define #source and #event"
         end
 
-        src_val = T.unsafe(self).source
-        evt_val = T.unsafe(self).event
-        src = src_val.respond_to?(:serialize) ? T.unsafe(src_val).serialize.to_s : src_val.to_s
-        evt = evt_val.respond_to?(:serialize) ? T.unsafe(evt_val).serialize.to_s : evt_val.to_s
+        src_val = public_send(:source)
+        evt_val = public_send(:event)
+        src = src_val.respond_to?(:serialize) ? src_val.public_send(:serialize).to_s : src_val.to_s
+        evt = evt_val.respond_to?(:serialize) ? evt_val.public_send(:serialize).to_s : evt_val.to_s
         lvl = level.serialize.to_s
         ts = timestamp.iso8601(3)
 

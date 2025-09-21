@@ -11,7 +11,7 @@ module LogStruct
       @context = {user_id: 123, action: "test"}
 
       # Reset the reporter before each test
-      MultiErrorReporter.instance_variable_set(:@reporter, nil)
+      MultiErrorReporter.instance_variable_set(:@reporter_impl, nil)
 
       # Stub stdout to capture output
       @original_stdout = $stdout
@@ -208,6 +208,55 @@ module LogStruct
           Object.const_set(const, value) if value
         end
       end
+    end
+
+    def test_reporter_accepts_callable
+      calls = []
+      custom_reporter = lambda do |error, context, source|
+        calls << {
+          error: error,
+          context: context,
+          source: source
+        }
+      end
+
+      MultiErrorReporter.reporter = custom_reporter
+
+      wrapper = MultiErrorReporter.reporter
+
+      assert_respond_to wrapper, :original
+      assert_same custom_reporter, wrapper.original
+
+      MultiErrorReporter.report_error(@exception, @context)
+
+      assert_equal 1, calls.size
+      payload = calls.first
+
+      assert_equal @exception, payload[:error]
+      assert_equal @context, payload[:context]
+      assert_equal Source::Internal, payload[:source]
+    end
+
+    def test_callable_reporter_supports_lower_arity
+      calls = []
+      custom = ->(error, context) { calls << [error, context] }
+
+      MultiErrorReporter.reporter = custom
+      wrapper = MultiErrorReporter.reporter
+
+      assert_kind_of Proc, wrapper.original
+
+      MultiErrorReporter.report_error(@exception, @context)
+
+      assert_equal [[@exception, @context]], calls
+    end
+
+    def test_setting_invalid_reporter_raises
+      error = assert_raises(TypeError) do
+        MultiErrorReporter.reporter = T.unsafe(Object.new)
+      end
+
+      assert_match(/Expected type/, error.message)
     end
 
     private
