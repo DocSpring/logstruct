@@ -56,6 +56,14 @@ module LogStruct
       refute summary2.key?(:_bytes)
     end
 
+    test "summarize_hash handles non symbol keys" do
+      summary = ParamFilters.summarize_hash({1 => "value"})
+
+      assert_equal Hash, summary[:_class]
+      assert_equal 1, summary[:_keys_count]
+      assert_equal ["1"], summary[:_keys]
+    end
+
     test "summarize_array reports count/bytes and handles empty" do
       s = ParamFilters.summarize_array([1, 2, 3])
 

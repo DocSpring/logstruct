@@ -159,5 +159,41 @@ module LogStruct
       # Restore original filter keys
       LogStruct.config.filters.filter_keys = original_filter_keys
     end
+
+    def test_merge_rails_filter_parameters_preserves_regex_filters
+      original_filter_keys = LogStruct.config.filters.filter_keys.dup
+      original_matchers = LogStruct.config.filters.filter_matchers.dup
+
+      regex_filter = /\Aapi_/i
+      filter_params = [regex_filter]
+
+      filter_params.define_singleton_method(:clear) do
+        replace([])
+      end
+
+      mock_config = T.unsafe(Object.new)
+      mock_config.define_singleton_method(:filter_parameters) { filter_params }
+      mock_config.define_singleton_method(:respond_to?) do |method_name, include_private = false|
+        if method_name.to_sym == :filter_parameters
+          true
+        else
+          super(method_name, include_private)
+        end
+      end
+
+      mock_app = T.unsafe(Object.new)
+      mock_app.define_singleton_method(:config) { mock_config }
+
+      LogStruct.config.filters.filter_keys = []
+
+      Rails.stub(:application, mock_app) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      assert ParamFilters.should_filter_key?("api_token"), "regex-based Rails filters should continue filtering keys"
+    ensure
+      LogStruct.config.filters.filter_keys = original_filter_keys
+      LogStruct.config.filters.filter_matchers = original_matchers
+    end
   end
 end

@@ -72,20 +72,133 @@ module LogStruct
 
           rails_filter_params = ::Rails.application.config.filter_parameters
           return unless rails_filter_params.is_a?(Array)
+          return if rails_filter_params.empty?
 
-          # Convert all Rails filter parameters to symbols and merge with our filter keys
-          converted_params = rails_filter_params.map do |param|
-            param.respond_to?(:to_sym) ? param.to_sym : param
+          symbol_filters = T.let([], T::Array[Symbol])
+          matchers = T.let([], T::Array[ConfigStruct::FilterMatcher])
+          leftovers = T.let([], T::Array[T.untyped])
+
+          rails_filter_params.each do |entry|
+            matcher = build_filter_matcher(entry)
+
+            if matcher
+              matchers << matcher
+              next
+            end
+
+            normalized_symbol = normalize_filter_symbol(entry)
+            if normalized_symbol
+              symbol_filters << normalized_symbol
+            else
+              leftovers << entry
+            end
           end
 
-          # Add Rails filter parameters to our filter keys
-          config.filters.filter_keys += converted_params
+          if symbol_filters.any?
+            config.filters.filter_keys |= symbol_filters
+          end
 
-          # Ensure no duplicates
-          config.filters.filter_keys.uniq!
+          if matchers.any?
+            matchers.each do |matcher|
+              existing = config.filters.filter_matchers.any? do |registered|
+                registered.label == matcher.label
+              end
+              config.filters.filter_matchers << matcher unless existing
+            end
+          end
 
-          # Clear Rails filter parameters since we've incorporated them
-          ::Rails.application.config.filter_parameters.clear
+          replace_filter_parameters(rails_filter_params, leftovers)
+        end
+
+        private
+
+        sig { params(filter: T.untyped).returns(T.nilable(Symbol)) }
+        def normalize_filter_symbol(filter)
+          return filter if filter.is_a?(Symbol)
+          return filter.downcase.to_sym if filter.is_a?(String)
+
+          return nil unless filter.respond_to?(:to_sym)
+
+          begin
+            sym = filter.to_sym
+            sym.is_a?(Symbol) ? sym : nil
+          rescue
+            nil
+          end
+        end
+
+        sig { params(filter: T.untyped).returns(T.nilable(ConfigStruct::FilterMatcher)) }
+        def build_filter_matcher(filter)
+          case filter
+          when ::Regexp
+            callable = Kernel.lambda do |key, _value|
+              filter.match?(key)
+            end
+            return ConfigStruct::FilterMatcher.new(callable: callable, label: filter.inspect)
+          else
+            return build_callable_filter_matcher(filter) if callable_filter?(filter)
+          end
+
+          nil
+        end
+
+        sig { params(filter: T.untyped).returns(T::Boolean) }
+        def callable_filter?(filter)
+          filter.respond_to?(:call)
+        end
+
+        sig { params(filter: T.untyped).returns(T.nilable(ConfigStruct::FilterMatcher)) }
+        def build_callable_filter_matcher(filter)
+          callable = Kernel.lambda do |key, value|
+            call_args = case arity_for_filter(filter)
+            when 0
+              []
+            when 1
+              [key]
+            else
+              [key, value]
+            end
+
+            result = filter.call(*call_args)
+            !!result
+          rescue ArgumentError
+            begin
+              !!filter.call(key)
+            rescue => e
+              handle_filter_error(e, filter, key)
+              false
+            end
+          rescue => e
+            handle_filter_error(e, filter, key)
+            false
+          end
+          ConfigStruct::FilterMatcher.new(callable: callable, label: filter.inspect)
+        end
+
+        sig { params(filter: T.untyped).returns(Integer) }
+        def arity_for_filter(filter)
+          filter.respond_to?(:arity) ? filter.arity : 2
+        end
+
+        sig { params(filter_params: T::Array[T.untyped], leftovers: T::Array[T.untyped]).void }
+        def replace_filter_parameters(filter_params, leftovers)
+          filter_params.clear
+          filter_params.concat(leftovers)
+        end
+
+        sig { params(error: StandardError, filter: T.untyped, key: String).void }
+        def handle_filter_error(error, filter, key)
+          context = {
+            filter: filter.class.name,
+            key: key,
+            filter_label: begin
+              filter.inspect
+            rescue
+              "unknown"
+            end
+          }
+
+          LogStruct.handle_exception(error, source: Source::Internal, context: context)
         end
       end
     end

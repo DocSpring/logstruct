@@ -62,7 +62,7 @@ module LogStruct
         # Process each key-value pair
         arg.each do |key, value|
           # Check if this key should be filtered at any depth
-          result[key] = if ParamFilters.should_filter_key?(key)
+          result[key] = if ParamFilters.should_filter_key?(key, value)
             # Filter the value
             {_filtered: ParamFilters.summarize_json_attribute(key, value)}
           else

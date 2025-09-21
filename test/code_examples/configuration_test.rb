@@ -136,6 +136,14 @@ module LogStruct
           config.filters.ssns = true                 # Filter social security numbers
           config.filters.url_passwords = true        # Filter passwords in URLs
 
+          # Configure additional matchers for custom filtering rules
+          config.filters.filter_matchers = [
+            LogStruct::ConfigStruct::FilterMatcher.new(
+              callable: ->(key, _value) { key.start_with?("secret_") },
+              label: "secret prefix matcher"
+            )
+          ]
+
           # Configure the salt used for hashing filtered email addresses
           config.filters.hash_salt = ENV.fetch("EMAIL_HASH_SALT", "test_salt")
 
@@ -156,6 +164,7 @@ module LogStruct
         assert LogStruct.configuration.filters.url_passwords
         refute LogStruct.configuration.filters.ip_addresses
         refute LogStruct.configuration.filters.mac_addresses
+        assert_equal 1, LogStruct.configuration.filters.filter_matchers.size
         assert_equal LogStruct.configuration.filters.hash_salt, LogStruct.configuration.filters.hash_salt
         assert_equal 12, LogStruct.configuration.filters.hash_length
       end

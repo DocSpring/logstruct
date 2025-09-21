@@ -3,6 +3,18 @@
 
 module LogStruct
   module ConfigStruct
+    class FilterMatcher < T::Struct
+      extend T::Sig
+
+      const :callable, T.proc.params(key: String, value: T.untyped).returns(T::Boolean)
+      const :label, String
+
+      sig { params(key: String, value: T.untyped).returns(T::Boolean) }
+      def matches?(key, value)
+        callable.call(key, value)
+      end
+    end
+
     class Filters < T::Struct
       include Sorbet::SerializeSymbolKeys
 
@@ -75,6 +87,12 @@ module LogStruct
       # Filter MAC addresses
       # Default: false
       prop :mac_addresses, T::Boolean, default: false
+
+      # Additional filter matchers built from Rails filter_parameters entries that aren't simple symbols.
+      # Each matcher receives the key (String) and optional value, returning true when the pair should be filtered.
+      prop :filter_matchers,
+        T::Array[FilterMatcher],
+        factory: -> { [] }
     end
   end
 end
