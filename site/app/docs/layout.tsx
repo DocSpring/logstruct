@@ -186,6 +186,11 @@ export default function DocsLayout({
                     title="Supported Versions"
                     active={pathname.startsWith('/docs/supported-versions')}
                   />
+                  <DocNavItem
+                    href="/docs/companies"
+                    title="Companies Using LogStruct"
+                    active={pathname.startsWith('/docs/companies')}
+                  />
                 </nav>
 
                 <h2 className="mt-6 mb-3 text-lg font-semibold">Reference</h2>
