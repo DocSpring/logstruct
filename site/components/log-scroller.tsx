@@ -5,13 +5,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import useInterval from 'use-interval';
 import { LogGenerator } from '../lib/log-generation/log-generator';
-import { LogType } from '@/generated/logstruct';
+import { Event, LogType } from '@/generated/logstruct';
 
 // For generating random logs
 const logGenerator = new LogGenerator();
-
-// Puma boot log template - will always be the first log
-const pumaLogTemplate = { src: 'puma', evt: 'boot', pid: 0, lvl: 'info' };
 
 export function LogScroller() {
   const [logs, setLogs] = useState<string[]>([]);
@@ -58,25 +55,24 @@ export function LogScroller() {
     return jsonStr;
   }, []);
 
-  // Generate the Puma boot log entry (always first)
-  const generatePumaBootLogEntry = useCallback(() => {
-    // Use the puma boot template
-    const log = JSON.parse(JSON.stringify(pumaLogTemplate));
-
-    // Add current timestamp
-    log.ts = new Date().toISOString();
-
-    // Add pid
-    log.pid = Math.floor(Math.random() * 60000) + 1000;
+  // Generate the Puma start log entry (always first)
+  const generatePumaStartLogEntry = useCallback(() => {
+    const log = logGenerator.generateLogWithOptions(LogType.PUMA, {
+      preferredEvent: Event.Start,
+    });
 
     return formatLogForDisplay(log);
   }, [formatLogForDisplay]);
 
   // Generate a random log entry (for logs after the Puma boot)
   const generateLogEntry = useCallback(() => {
-    // Pick a random log type
-    const logTypes = Object.values(LogType);
-    const randomLogType = logTypes[Math.floor(Math.random() * logTypes.length)];
+    // Pick a random log type, excluding Puma once the initial start log is shown
+    const logTypes = Object.values(LogType).filter(
+      (type) => type !== LogType.PUMA,
+    );
+    const randomLogType = logTypes[
+      Math.floor(Math.random() * logTypes.length)
+    ] as LogType;
 
     // Generate a random log using the LogGenerator
     const log = logGenerator.generateLog(randomLogType);
@@ -84,11 +80,11 @@ export function LogScroller() {
     return formatLogForDisplay(log);
   }, [formatLogForDisplay]);
 
-  // Initialize with the Puma boot log
+  // Initialize with the Puma start log
   useEffect(() => {
-    // Start with only the Puma boot log
-    setLogs([generatePumaBootLogEntry()]);
-  }, [generatePumaBootLogEntry]);
+    // Start with only the Puma start log
+    setLogs([generatePumaStartLogEntry()]);
+  }, [generatePumaStartLogEntry]);
 
   // Add a new log entry at an interval, but not when user is hovering (isPaused) unless maximized
   useInterval(() => {
