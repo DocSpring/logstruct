@@ -182,6 +182,11 @@ export default function DocsLayout({
                     active={pathname.startsWith('/docs/comparison')}
                   />
                   <DocNavItem
+                    href="/docs/terraform"
+                    title="Terraform Provider"
+                    active={pathname.startsWith('/docs/terraform')}
+                  />
+                  <DocNavItem
                     href="/docs/supported-versions"
                     title="Supported Versions"
                     active={pathname.startsWith('/docs/supported-versions')}
@@ -204,11 +209,6 @@ export default function DocsLayout({
                     href="/coverage/index.html"
                     title="Code Coverage"
                     active={false}
-                  />
-                  <DocNavItem
-                    href="/docs/terraform"
-                    title="Terraform Provider"
-                    active={pathname.startsWith('/docs/terraform')}
                   />
                 </nav>
               </div>
