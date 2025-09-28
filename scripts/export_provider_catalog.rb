@@ -144,21 +144,21 @@ File.write(gen_path, go)
 
 puts "Wrote provider catalog to #{catalog_path} and #{gen_path}"
 
-def assert(condition, message)
+def check(condition, message)
   raise message unless condition
 end
 
 catalog_data = JSON.parse(File.read(catalog_path))
 structs = catalog_data.fetch("structs")
 
-refute_empty(structs, "Struct catalog is empty")
-assert(structs.key?("GoodJob"), "Struct catalog missing GoodJob")
+check(structs.any?, "Struct catalog is empty")
+check(structs.key?("GoodJob"), "Struct catalog missing GoodJob")
 good_job = structs["GoodJob"]
 
-assert_includes(good_job["allowed_events"], "enqueue", "GoodJob missing enqueue event")
-assert_equal("job", good_job["fixed_source"], "GoodJob fixed source incorrect")
+check(good_job["allowed_events"].include?("enqueue"), "GoodJob missing enqueue event")
+check(good_job["fixed_source"] == "job", "GoodJob fixed source incorrect")
 
 go_contents = File.read(gen_path)
 
-assert_includes(go_contents, "\"GoodJob\": {Name: \"GoodJob\"", "catalog_gen.go missing GoodJob entry")
-assert_includes(go_contents, "AllowedEvents: []string{\"enqueue\"", "catalog_gen.go missing enqueue event")
+check(go_contents.include?("\"GoodJob\": {Name: \"GoodJob\""), "catalog_gen.go missing GoodJob entry")
+check(go_contents.include?("AllowedEvents: []string{\"enqueue\""), "catalog_gen.go missing enqueue event")
