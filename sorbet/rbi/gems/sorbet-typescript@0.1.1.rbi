@@ -5,7 +5,7 @@
 # Please instead update this file by running `bin/tapioca gem sorbet-typescript`.
 
 
-# source://sorbet-typescript//lib/sorbet/typescript/version.rb#6
+# source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#11
 module Sorbet::Typescript; end
 
 # source://sorbet-typescript//lib/sorbet/typescript/cli.rb#11
@@ -69,35 +69,48 @@ class Sorbet::Typescript::Exporter
 
   private
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#421
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#422
   sig { params(type: ::String).returns(T::Hash[::Symbol, T.untyped]) }
   def analyse_by_string(type); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#388
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#389
   sig { params(klass: ::Module).returns(T::Hash[::Symbol, T.untyped]) }
   def analyse_class(klass); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#271
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#272
   sig { params(obj: T.untyped).returns(T::Hash[::Symbol, T.untyped]) }
   def analyse_type_object(obj); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#330
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#331
   sig { params(obj: ::T::Types::Union).returns(T::Hash[::Symbol, T.untyped]) }
   def analyse_union(obj); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#321
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#322
   sig { params(array_type: ::T::Types::TypedArray).returns(T.untyped) }
   def array_inner_type(array_type); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#457
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#491
+  sig do
+    params(
+      info: T::Hash[::Symbol, T.untyped],
+      prop_info: T::Hash[::Symbol, T.untyped]
+    ).returns(T::Hash[::Symbol, T.untyped])
+  end
+  def augment_default_metadata(info, prop_info); end
+
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#458
   sig { params(info: T::Hash[::Symbol, T.untyped]).returns(T::Hash[::Symbol, T.untyped]) }
   def augment_enum_metadata(info); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#527
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#507
+  sig { params(prop_info: T::Hash[::Symbol, T.untyped]).returns(T.untyped) }
+  def default_from_prop(prop_info); end
+
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#562
   sig { params(path: ::String).void }
   def ensure_dir(path); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#513
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#548
   sig { params(enum_name: T.untyped).returns(T.nilable(T.class_of(T::Enum))) }
   def enum_class_by_name(enum_name); end
 
@@ -105,15 +118,15 @@ class Sorbet::Typescript::Exporter
   sig { returns(T::Array[T.class_of(T::Enum)]) }
   def enum_classes; end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#441
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#442
   sig { params(enum_value: T.untyped).returns(T.nilable(::String)) }
   def enum_constant_name(enum_value); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#487
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#522
   sig { params(info: T::Hash[::Symbol, T.untyped]).returns(T::Array[T::Hash[::Symbol, T.untyped]]) }
   def enum_value_details_for(info); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#449
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#450
   sig { params(enum_value: T.untyped).returns(T::Hash[::Symbol, T.untyped]) }
   def enum_value_metadata(enum_value); end
 
@@ -137,15 +150,15 @@ class Sorbet::Typescript::Exporter
   sig { params(enum_namespaces: T::Array[T.any(::Module, ::String)]).returns(T::Array[::String]) }
   def normalize_namespaces(enum_namespaces); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#308
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#309
   sig { params(inner: ::T::Types::Base).returns(T.untyped) }
   def resolve_type(inner:); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#520
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#555
   sig { params(enum_name: T.untyped).returns(T.nilable(::String)) }
   def simple_enum_name(enum_name); end
 
-  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#532
+  # source://sorbet-typescript//lib/sorbet/typescript/exporter.rb#567
   sig { params(value: T.untyped).returns(T.untyped) }
   def stringify_keys(value); end
 

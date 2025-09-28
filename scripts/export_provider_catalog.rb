@@ -6,74 +6,99 @@ require "json"
 require "fileutils"
 
 root = File.expand_path("..", __dir__)
-docs_gen = File.join(root, "docs", "lib", "log-generation")
-enums_path = File.join(docs_gen, "sorbet-enums.json")
-structs_path = File.join(docs_gen, "sorbet-log-structs.json")
-keys_path = File.join(docs_gen, "log-fields.json")
+docs_generated = File.join(root, "docs", "generated", "logstruct")
+structs_path = File.join(docs_generated, "sorbet-log-structs.json")
+enums_path = File.join(docs_generated, "sorbet-enums.json")
 
-unless File.exist?(enums_path) && File.exist?(structs_path) && File.exist?(keys_path)
-  abort "Missing generated files in #{docs_gen}. Run `task generate` first."
+unless File.exist?(structs_path) && File.exist?(enums_path)
+  abort "Missing generated files in #{docs_generated}. Run `scripts/generate_structs.rb` first."
 end
 
-enums = JSON.parse(File.read(enums_path))
 structs = JSON.parse(File.read(structs_path))
-keys = JSON.parse(File.read(keys_path))
+enums = JSON.parse(File.read(enums_path))
 
-# Build lookup maps for enum serialized values
-event_values = {}
-(enums["LogStruct::Event"] || []).each { |e| event_values[e["name"]] = e["value"] }
-source_values = {}
-(enums["LogStruct::Source"] || []).each { |e| source_values[e["name"]] = e["value"] }
+def camel_to_snake(value)
+  value
+    .gsub(/([A-Z\d]+)([A-Z][a-z])/, '\\1_\\2')
+    .gsub(/([a-z\d])([A-Z])/, '\\1_\\2')
+    .downcase
+end
 
-catalog = {"keys" => keys, "structs" => {}}
+log_field_enum = enums.fetch("LogStruct::LogField") do
+  abort "LogStruct::LogField enum missing from #{enums_path}."
+end
+
+keys = log_field_enum.fetch("values", []).each_with_object({}) do |enum_value, memo|
+  name = enum_value.fetch("name")
+  serialized = enum_value.fetch("serialized")
+  memo[camel_to_snake(name)] = serialized
+end
+
+keys = keys.sort.to_h
+
+groups = Hash.new { |h, k| h[k] = {sources: [], events: []} }
+
+def collect_serialized(field)
+  return [] unless field.is_a?(Hash)
+
+  values = []
+  values << field["default_enum_serialized"]
+  values << field["enum_value_serialized"]
+  enum_values = field["enum_values_serialized"]
+  values.concat(enum_values) if enum_values.is_a?(Array)
+
+  values.compact.map(&:to_s).uniq
+end
 
 structs.each do |fq_name, info|
-  name = info["name"] || fq_name.split("::").last
-  fields = info["fields"] || {}
-  s = {"name" => name}
+  next unless fq_name.start_with?("LogStruct::Log::")
 
-  # Fixed source if enum_single
-  if fields["source"] && fields["source"]["type"] == "enum_single" && fields["source"]["enum_value"]
-    src_name = fields["source"]["enum_value"]
-    s["fixed_source"] = source_values[src_name] || src_name.downcase
-  else
-    s["fixed_source"] = nil
-  end
+  fields = info["fields"]
+  next unless fields.is_a?(Hash)
 
-  # Allowed events (serialized)
-  allowed = []
-  if fields["event"]
-    ef = fields["event"]
-    case ef["type"]
-    when "enum_single"
-      if ef["enum_value"]
-        nm = ef["enum_value"]
-        allowed << (event_values[nm] || nm.downcase)
-      end
-    when "enum_union"
-      (ef["enum_values"] || []).each do |nm|
-        allowed << (event_values[nm] || nm.downcase)
-      end
-    end
-  end
-  s["allowed_events"] = allowed.uniq
+  event_field = fields["event"]
+  event_values = collect_serialized(event_field)
+  next if event_values.empty?
 
-  catalog["structs"][name] = s
+  log_type = fq_name.split("::")[2]
+  next unless log_type
+
+  group = groups[log_type]
+  group[:events] = (group[:events] | event_values)
+
+  source_field = fields["source"]
+  source_values = collect_serialized(source_field)
+  group[:sources] = (group[:sources] | source_values) if source_values.any?
 end
+
+catalog_structs = groups.each_with_object({}) do |(log_type, data), memo|
+  events = data[:events].uniq.sort
+  next if events.empty?
+
+  sources = data[:sources].uniq
+  fixed_source = (sources.size == 1) ? sources.first : nil
+
+  memo[log_type] = {
+    "name" => log_type,
+    "fixed_source" => fixed_source,
+    "allowed_events" => events
+  }
+end
+
+catalog_structs = catalog_structs.sort.to_h
+
+catalog = {"keys" => keys, "structs" => catalog_structs}
 
 provider_dir = File.join(root, "terraform-provider-logstruct")
 data_dir = File.join(provider_dir, "pkg", "data")
 FileUtils.mkdir_p(data_dir)
 
-# Always write JSON (useful for inspection)
 catalog_path = File.join(data_dir, "catalog.json")
 File.write(catalog_path, JSON.pretty_generate(catalog))
 
-# Also generate a Go source file with embedded types and data for zero runtime parsing
 gen_path = File.join(data_dir, "catalog_gen.go")
 
 def go_string(str)
-  # Escape backslashes and quotes for Go string literals
   str.to_s.gsub("\\", "\\\\").gsub('"', '\\"')
 end
 
@@ -83,19 +108,24 @@ go << "func ptr[T any](v T) *T { return &v }\n\n"
 go << "type StructCatalog struct {\n\tName string\n\tFixedSource *string\n\tAllowedEvents []string\n}\n\n"
 go << "type Catalog struct {\n\tKeys map[string]string\n\tStructs map[string]StructCatalog\n}\n\n"
 go << "var CatalogData = Catalog{\n\tKeys: map[string]string{\n"
-keys.each do |k, v|
-  go << "\t\t\"#{go_string(k)}\": \"#{go_string(v)}\",\n"
+keys.each do |key, value|
+  go << "\t\t\"#{go_string(key)}\": \"#{go_string(value)}\",\n"
 end
 go << "\t},\n\tStructs: map[string]StructCatalog{\n"
-catalog["structs"].each do |name, s|
-  go << "\t\t\"#{go_string(name)}\": {Name: \"#{go_string(s["name"])}\","
-  go << if s["fixed_source"]
-    " FixedSource: ptr(\"#{go_string(s["fixed_source"])}\"),"
+catalog_structs.each do |name, data|
+  go << "\t\t\"#{go_string(name)}\": {Name: \"#{go_string(data["name"])}\","
+  fixed_source = data["fixed_source"]
+  fragment = if fixed_source
+    " FixedSource: ptr(\"#{go_string(fixed_source)}\"),"
   else
     " FixedSource: nil,"
   end
+  go << fragment
   go << " AllowedEvents: []string{"
-  go << s["allowed_events"].map { |ev| "\"#{go_string(ev)}\"" }.join(", ")
+  events = data["allowed_events"]
+  if events.any?
+    go << events.map { |event| "\"#{go_string(event)}\"" }.join(", ")
+  end
   go << "}},\n"
 end
 go << "\t},\n}\n"

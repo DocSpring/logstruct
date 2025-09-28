@@ -414,7 +414,7 @@ GEM
       spoom (>= 1.2.0)
       thor (>= 1.2.0)
       yard-sorbet
-    thor (1.3.2)
+    thor (1.4.0)
     tilt (2.6.0)
     timeout (0.4.3)
     tzinfo (2.0.6)
