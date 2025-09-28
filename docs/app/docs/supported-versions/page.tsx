@@ -156,7 +156,18 @@ function getGemDescription(gemName: string): string {
     shrine: 'File attachment toolkit for Ruby applications',
     sidekiq: 'Simple, efficient background processing for Ruby',
     sorbet: 'A type checker for Ruby',
+    semantic_logger: 'A flexible logging framework for Ruby',
+    'dotenv-rails': 'Loads environment variables from `.env` files',
+    active_model_serializers: 'A library for serializing Ruby objects to JSON',
+    ahoy_matey: 'Analytics for Rails',
   };
 
-  return descriptions[gemName] || 'Integration supported by LogStruct';
+  const description = descriptions[gemName];
+  if (!description) {
+    throw new Error(
+      `No description found for gem: ${gemName}. Add it to docs/app/docs/supported-versions/page.tsx`,
+    );
+  }
+
+  return descriptions[gemName];
 }

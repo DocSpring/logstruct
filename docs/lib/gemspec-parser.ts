@@ -8,21 +8,6 @@ export interface GemDependency {
   type: 'required' | 'optional';
 }
 
-// Fallback dependencies in case of parsing errors
-const fallbackDependencies: GemDependency[] = [
-  { name: 'rails', version: '>= 7.0', type: 'required' },
-  { name: 'lograge', version: '>= 0.11', type: 'required' },
-  { name: 'sorbet-runtime', version: '>= 0.5', type: 'required' },
-  { name: 'bugsnag', version: '~> 6.26', type: 'optional' },
-  { name: 'carrierwave', version: '~> 3.0', type: 'optional' },
-  { name: 'honeybadger', version: '~> 5.4', type: 'optional' },
-  { name: 'rollbar', version: '~> 3.4', type: 'optional' },
-  { name: 'sentry-ruby', version: '~> 5.15', type: 'optional' },
-  { name: 'shrine', version: '~> 3.5', type: 'optional' },
-  { name: 'sidekiq', version: '~> 7.2', type: 'optional' },
-  { name: 'sorbet', version: '~> 0.5', type: 'optional' },
-];
-
 export function parseGemspec(): GemDependency[] {
   try {
     // Path to the gemspec file (relative to docs directory)
@@ -60,8 +45,7 @@ export function parseGemspec(): GemDependency[] {
 
     // If no dependencies were found, use fallback data
     if (dependencies.length === 0) {
-      console.warn('No dependencies found in gemspec, using fallback data');
-      return fallbackDependencies;
+      throw new Error('No dependencies could be parsed from gemspec!');
     }
 
     // Sort dependencies alphabetically, but put required dependencies first
@@ -72,8 +56,6 @@ export function parseGemspec(): GemDependency[] {
       return a.name.localeCompare(b.name);
     });
   } catch (error) {
-    console.error('Error parsing gemspec:', error);
-    // Return the fallback data in case of error
-    return fallbackDependencies;
+    throw new Error('Error parsing gemspec! ' + error);
   }
 }
