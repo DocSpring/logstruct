@@ -23,6 +23,7 @@ gem "ostruct"  # For Ruby 3.5+ compatibility
 
 # Sorbet is needed for development
 gem "sorbet", "~> 0.5"
+gem "sorbet-typescript"
 
 # Essential testing gems that don't have Ruby version restrictions
 group :test do

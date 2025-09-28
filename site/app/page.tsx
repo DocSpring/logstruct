@@ -74,7 +74,7 @@ export default function Home() {
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
                 <Button asChild size="lg">
-                  <Link href="/docs/getting-started">Get Started</Link>
+                  <Link href="/site/getting-started">Get Started</Link>
                 </Button>
                 <Button variant="secondary" size="lg" asChild>
                   <Link
@@ -318,11 +318,11 @@ export default function Home() {
                 No, you can use LogStruct even if you don&apos;t use Sorbet. You
                 can use the regular Rails logger as usual without worrying about
                 Sorbet types.{' '}
-                <a href="https://sorbet.org/docs/runtime">
+                <a href="https://sorbet.org/site/runtime">
                   <code>sorbet-runtime</code>
                 </a>{' '}
                 is a dependency, but you can even{' '}
-                <Link href="/docs/configuration/#error-handling-configuration">
+                <Link href="/site/configuration/#error-handling-configuration">
                   configure LogStruct to completely ignore type-checking errors.
                 </Link>{' '}
                 (Not recommended!)
@@ -398,7 +398,7 @@ export default function Home() {
                 . LogStruct focuses on powerful filtering and scrubbing,
                 structured error handling, and type‑safety across integrations.
                 See the{' '}
-                <Link href="/docs/comparison" className="underline">
+                <Link href="/site/comparison" className="underline">
                   comparison page
                 </Link>{' '}
                 for a detailed breakdown.

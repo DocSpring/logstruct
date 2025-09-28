@@ -141,7 +141,7 @@ end`}
       <Callout type="info">
         See the{' '}
         <Link
-          href="/docs/filtering-sensitive-data"
+          href="/site/filtering-sensitive-data"
           className="text-blue-200 hover:text-white"
         >
           Filtering Sensitive Data

@@ -64,7 +64,7 @@ export function MainNav() {
                     <NavigationMenuLink asChild>
                       <a
                         className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-neutral-900 to-neutral-700 p-6 no-underline outline-none focus:shadow-md"
-                        href="/docs/getting-started"
+                        href="/site/getting-started"
                       >
                         <div className="mt-4 mb-2 text-lg font-medium text-white">
                           Getting Started
@@ -79,7 +79,7 @@ export function MainNav() {
                   <li>
                     <NavigationMenuLink asChild>
                       <a
-                        href="/docs/configuration"
+                        href="/site/configuration"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
                         <div className="text-sm font-medium leading-none">
@@ -94,7 +94,7 @@ export function MainNav() {
                   <li>
                     <NavigationMenuLink asChild>
                       <a
-                        href="/docs/integrations"
+                        href="/site/integrations"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
                         <div className="text-sm font-medium leading-none">
@@ -109,7 +109,7 @@ export function MainNav() {
                   <li>
                     <NavigationMenuLink asChild>
                       <a
-                        href="/docs/sorbet-types"
+                        href="/site/sorbet-types"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
                         <div className="text-sm font-medium leading-none">
@@ -190,25 +190,25 @@ export function MainNav() {
                   Documentation
                 </Link>
                 <Link
-                  href="/docs/getting-started"
+                  href="/site/getting-started"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Getting Started
                 </Link>
                 <Link
-                  href="/docs/configuration"
+                  href="/site/configuration"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Configuration
                 </Link>
                 <Link
-                  href="/docs/integrations"
+                  href="/site/integrations"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Integrations
                 </Link>
                 <Link
-                  href="/docs/sorbet-types"
+                  href="/site/sorbet-types"
                   className="text-base text-neutral-600 dark:text-neutral-400"
                 >
                   Type Safety

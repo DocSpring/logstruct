@@ -14,7 +14,7 @@ export function EditPageLink({ path }: EditPageLinkProps) {
   const derivedPath =
     path ??
     // Convert the path to a GitHub file path
-    // For /docs/getting-started, the file is at site/app/docs/getting-started/page.tsx
+    // For /site/getting-started, the file is at site/app/site/getting-started/page.tsx
     // Handle special case for root paths to avoid double slashes
     (pathname === '/' ? '/site/app/page.tsx' : `/site/app${pathname}/page.tsx`);
 

@@ -164,7 +164,7 @@ variable "namespace" { type = string }`}
         </ul>
       </section>
 
-      <EditPageLink path="app/docs/terraform/page.tsx" />
+      <EditPageLink path="app/site/terraform/page.tsx" />
     </div>
   );
 }

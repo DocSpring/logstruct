@@ -61,17 +61,17 @@ export default function DocsLayout({
                   <DocNavItem
                     href="/docs"
                     title="Introduction"
-                    active={pathname === '/docs' || pathname === '/docs/'}
+                    active={pathname === '/docs' || pathname === '/site/'}
                   />
                   <DocNavItem
-                    href="/docs/getting-started"
+                    href="/site/getting-started"
                     title="Getting Started"
-                    active={pathname.startsWith('/docs/getting-started')}
+                    active={pathname.startsWith('/site/getting-started')}
                   />
                   <NestedDocNavItem
-                    href="/docs/configuration"
+                    href="/site/configuration"
                     title="Configuration"
-                    active={pathname.startsWith('/docs/configuration')}
+                    active={pathname.startsWith('/site/configuration')}
                     subHeadings={[
                       {
                         id: 'enabling-logstruct',
@@ -109,21 +109,21 @@ export default function DocsLayout({
                     ]}
                   />
                   <NestedDocNavItem
-                    href="/docs/integrations"
+                    href="/site/integrations"
                     title="Integrations"
-                    active={pathname.startsWith('/docs/integrations')}
+                    active={pathname.startsWith('/site/integrations')}
                     subHeadings={integrationHeadings}
                   />
                   <DocNavItem
-                    href="/docs/logging"
+                    href="/site/logging"
                     title="Logging (12‑Factor)"
-                    active={pathname.startsWith('/docs/logging')}
+                    active={pathname.startsWith('/site/logging')}
                   />
                   <NestedDocNavItem
-                    href="/docs/filtering-sensitive-data"
+                    href="/site/filtering-sensitive-data"
                     title="Filtering Sensitive Data"
                     active={pathname.startsWith(
-                      '/docs/filtering-sensitive-data',
+                      '/site/filtering-sensitive-data',
                     )}
                     subHeadings={[
                       {
@@ -141,9 +141,9 @@ export default function DocsLayout({
                     ]}
                   />
                   <NestedDocNavItem
-                    href="/docs/sorbet-types"
+                    href="/site/sorbet-types"
                     title="Sorbet Types"
-                    active={pathname.startsWith('/docs/sorbet-types')}
+                    active={pathname.startsWith('/site/sorbet-types')}
                     subHeadings={[
                       {
                         id: 'what-is-sorbet',
@@ -177,24 +177,24 @@ export default function DocsLayout({
                   />
 
                   <DocNavItem
-                    href="/docs/comparison"
+                    href="/site/comparison"
                     title="Comparison with Other Gems"
-                    active={pathname.startsWith('/docs/comparison')}
+                    active={pathname.startsWith('/site/comparison')}
                   />
                   <DocNavItem
-                    href="/docs/terraform"
+                    href="/site/terraform"
                     title="Terraform Provider"
-                    active={pathname.startsWith('/docs/terraform')}
+                    active={pathname.startsWith('/site/terraform')}
                   />
                   <DocNavItem
-                    href="/docs/supported-versions"
+                    href="/site/supported-versions"
                     title="Supported Versions"
-                    active={pathname.startsWith('/docs/supported-versions')}
+                    active={pathname.startsWith('/site/supported-versions')}
                   />
                   <DocNavItem
-                    href="/docs/companies"
+                    href="/site/companies"
                     title="Companies Using LogStruct"
-                    active={pathname.startsWith('/docs/companies')}
+                    active={pathname.startsWith('/site/companies')}
                   />
                 </nav>
 

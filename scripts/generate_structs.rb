@@ -37,12 +37,22 @@ module Scripts
 
     puts "Exporting Sorbet JSON..."
     begin
-      require_relative "../tools/log_types_exporter"
-      exporter = LogStruct::Tools::LogTypesExporter.new(File.join(root, "site", "generated", "logstruct", "log-types.ts"))
-      enums = exporter.export_enums
-      logs = exporter.export_log_structs
-      exporter.export_enums_to_json(enums, File.join(root, "site", "generated", "logstruct", "sorbet-enums.json"))
-      exporter.export_log_structs_to_json(logs, File.join(root, "site", "generated", "logstruct", "sorbet-log-structs.json"))
+      require "sorbet/typescript"
+
+      # Ensure the freshly generated Sorbet structs are loaded before exporting
+      require "log_struct/log"
+
+      output_dir = File.join(root, "site", "generated", "logstruct")
+
+      exporter = Sorbet::Typescript::Exporter.new(
+        enum_namespaces: ["LogStruct"],
+        struct_namespaces: ["LogStruct::Log"]
+      )
+
+      exporter.export(
+        enums_json: File.join(output_dir, "sorbet-enums.json"),
+        structs_json: File.join(output_dir, "sorbet-log-structs.json")
+      )
     rescue => e
       warn("Warning exporting Sorbet JSON: #{e}")
     end

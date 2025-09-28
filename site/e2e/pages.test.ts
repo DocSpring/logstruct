@@ -95,20 +95,20 @@ describe('Site integration pages', () => {
   });
 
   test('integrations page renders examples', async () => {
-    const html = await get('/docs/integrations');
+    const html = await get('/site/integrations');
     expect(html).toContain('Integrations');
     expect(html).toContain('Example Logs');
   });
 
   test('sorbet types page lists types', async () => {
-    const html = await get('/docs/sorbet-types');
+    const html = await get('/site/sorbet-types');
     expect(html).toContain('What is Sorbet?');
     expect(html).toContain('Built-In Log Classes');
     expect(html).toContain('Built-In Enums');
   });
 
   test('logging docs page renders custom content', async () => {
-    const html = await get('/docs/logging');
+    const html = await get('/site/logging');
     expect(html).toContain('Logging to STDOUT');
     expect(html).toContain('Rails Defaults vs. LogStruct');
   });

@@ -60,7 +60,7 @@ npm run build
 
 - `app/` - The Next.js application
   - `app/page.tsx` - The homepage
-  - `app/docs/` - Documentation pages
+  - `app/site/` - Documentation pages
 - `components/` - Reusable React components
 - `public/` - Static assets (images, etc.)
 
@@ -70,4 +70,4 @@ To add or update documentation:
 
 1. Create or edit files in the `app/docs` directory
 2. Each page should be a React component that exports a default function
-3. For new sections, update the sidebar in `app/docs/layout.tsx`
+3. For new sections, update the sidebar in `app/site/layout.tsx`

@@ -132,7 +132,7 @@ export default async function SupportedVersionsPage() {
       <p className="text-neutral-600 dark:text-neutral-400">
         To use LogStruct with any of the optional integrations, simply add the
         desired gem to your Gemfile and LogStruct will automatically detect and
-        configure it. See the <a href="/docs/integrations">Integrations</a> page
+        configure it. See the <a href="/site/integrations">Integrations</a> page
         for more details and log examples.
       </p>
 

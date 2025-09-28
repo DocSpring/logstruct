@@ -44,7 +44,7 @@ $ gem install logstruct
 
 LogStruct is designed to be highly opinionated and work out of the box with minimal configuration.
 
-Please see the [documentation](https://logstruct.com/docs/configuration/) for configuration options.
+Please see the [documentation](https://logstruct.com/site/configuration/) for configuration options.
 
 ### Important Notes on Integration
 
@@ -83,7 +83,7 @@ In addition to the built‑in, strictly typed log structures (Request, Error, SQ
 - Fix your `source` to a constant (e.g., return the string `"payments"`), and restrict `event` with a `T::Enum` (e.g., `processed|failed|refunded`).
 - The `LogStruct.info` signature accepts either the internal `CommonFields` (for built‑ins) or your public custom type, so you keep type safety at the call site.
 
-See the docs page for a complete example: [Sorbet Types → Custom Typed Logs](https://logstruct.com/docs/sorbet-types#custom-log-classes).
+See the docs page for a complete example: [Sorbet Types → Custom Typed Logs](https://logstruct.com/site/sorbet-types#custom-log-classes).
 
 ## License
 

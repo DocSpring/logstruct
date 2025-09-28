@@ -93,7 +93,7 @@ export default function DocsPage() {
 
       <div className="mt-10 flex gap-4">
         <a
-          href="/docs/getting-started"
+          href="/site/getting-started"
           className="rounded-md bg-neutral-900 px-4 py-2 font-medium text-white transition-colors hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-200"
         >
           Get Started →

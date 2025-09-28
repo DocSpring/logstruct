@@ -59,7 +59,7 @@ bundle exec srb init`}
       </CodeBlock>
 
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        See the <a href="https://sorbet.org/docs/overview">Sorbet docs</a> for
+        See the <a href="https://sorbet.org/site/overview">Sorbet docs</a> for
         more details.
       </p>
 
@@ -113,10 +113,11 @@ bundle exec srb init`}
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Log classes are{' '}
-        <a href="https://sorbet.org/docs/tstruct">
-          <code>Typed Structs</code>
-        </a>{' '}
-        under the <code>LogStruct::</code> module.
+        <a href="https://sorbet.org/site/tstruct">typed structs</a> under the{' '}
+        <code className="text-neutral-800 dark:text-neutral-100">
+          LogStruct::
+        </code>{' '}
+        module.
       </p>
       <LogStructuresList />
 
@@ -125,7 +126,7 @@ bundle exec srb init`}
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-400 mb-4">
         Common values are defined as{' '}
-        <a href="https://sorbet.org/docs/tenum">
+        <a href="https://sorbet.org/site/tenum">
           <code>Typed Enums</code>
         </a>{' '}
         under the <code>LogStruct::</code> module.

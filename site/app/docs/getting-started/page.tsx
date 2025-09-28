@@ -75,15 +75,15 @@ export default function GettingStartedPage() {
       </p>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
         <li>
-          <a href="/docs/configuration">Configuration</a> - Learn how to
+          <a href="/site/configuration">Configuration</a> - Learn how to
           customize LogStruct for your application
         </li>
         <li>
-          <a href="/docs/integrations">Integrations</a> - Explore built-in
+          <a href="/site/integrations">Integrations</a> - Explore built-in
           integrations with popular gems
         </li>
         <li>
-          <a href="/docs/sorbet-types">Type Safety</a> - Advanced logging with
+          <a href="/site/sorbet-types">Type Safety</a> - Advanced logging with
           Sorbet type checking
         </li>
       </ul>

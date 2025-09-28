@@ -2,12 +2,19 @@ import { getLogStructureDescription } from '@/lib/log-structure-descriptions';
 import { cache } from 'react';
 
 // Interface for the structure in the log structs JSON file
-interface LogStructsData {
-  [key: string]: {
-    name: string;
-    fields: Record<string, unknown>;
-  };
+interface StructField {
+  type: string;
+  optional?: boolean;
+  [key: string]: unknown;
 }
+
+interface StructEntry {
+  name: string;
+  simple_name: string;
+  fields: Record<string, StructField>;
+}
+
+type LogStructsData = Record<string, StructEntry>;
 
 // Function to get log structs data from JSON file with caching
 const getLogStructsData = cache(async (): Promise<LogStructsData> => {
@@ -29,21 +36,66 @@ export async function LogStructuresList() {
   // Get the log structs data
   const structsData = await getLogStructsData();
 
-  // Extract struct names (sorted alphabetically)
-  const structEntries = Object.entries(structsData).sort(([, a], [, b]) =>
-    a.name.localeCompare(b.name),
+  const categoryMap = new Map<
+    string,
+    Array<{
+      label: string | null;
+      description: string;
+    }>
+  >();
+
+  Object.entries(structsData).forEach(([fullName, entry]) => {
+    if (entry.simple_name === 'BaseFields') {
+      return;
+    }
+
+    const trimmed = fullName.replace(/^LogStruct::/, '');
+    const parts = trimmed.split('::');
+    if (parts[0] !== 'Log') {
+      return;
+    }
+
+    const category = parts.length > 1 ? `Log::${parts[1]}` : 'Log';
+    const variantLabel = parts.length > 2 ? parts[parts.length - 1] : null;
+
+    const description = getLogStructureDescription(entry.simple_name);
+
+    const list = categoryMap.get(category) ?? [];
+    list.push({ label: variantLabel, description });
+    categoryMap.set(category, list);
+  });
+
+  const categories = Array.from(categoryMap.entries()).sort(([a], [b]) =>
+    a.localeCompare(b),
   );
 
   return (
-    <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
-      {structEntries.map(([fullName, { name }]) => (
-        <li key={fullName}>
-          <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-            Log::{name}
-          </code>{' '}
-          - {getLogStructureDescription(name)}
-        </li>
+    <div className="space-y-6">
+      {categories.map(([category, variants]) => (
+        <section key={category} className="space-y-3">
+          <h3 className="text-xl pt-4 font-semibold text-neutral-800 dark:text-neutral-300">
+            <code>{category}</code>
+          </h3>
+          <ul className="list-disc list-inside space-y-3 text-neutral-600 dark:text-neutral-400 ml-4">
+            {variants
+              .sort((a, b) => a.label?.localeCompare(b.label ?? '') ?? 0)
+              .map(({ label, description }) => (
+                <li key={label} className="space-y-1">
+                  {label ? (
+                    <>
+                      <code className="py-0.5 text-neutral-800 dark:text-neutral-200 rounded">
+                        {label}
+                      </code>
+                      {' - '}
+                    </>
+                  ) : null}
+
+                  {description}
+                </li>
+              ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   );
 }

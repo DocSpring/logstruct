@@ -52,7 +52,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #4f4497;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -88,7 +88,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
+  --primary: #a497f6;
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -126,14 +126,14 @@
 
   /* Default link style if no other classes are defined */
   main a:not([class]) {
-    @apply text-gray-200 hover:underline;
+    @apply text-primary  hover:underline;
   }
 
   nav a:not([class]) {
-    @apply text-gray-200 hover:no-underline;
+    @apply text-gray-700 dark:text-gray-200 hover:no-underline;
   }
 
   footer a:not([class]) {
-    @apply text-gray-200 hover:underline;
+    @apply text-gray-700 dark:text-gray-200 hover:underline;
   }
 }

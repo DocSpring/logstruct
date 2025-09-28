@@ -68,7 +68,7 @@ function targetExistsForHref(href) {
   if (ALLOWED_STATIC.has(pathOnly))
     return fs.existsSync(path.join(OUT_DIR, pathOnly));
 
-  // Map route paths to HTML files: /docs -> /docs/index.html or /docs.html
+  // Map route paths to HTML files: /docs -> /site/index.html or /docs.html
   const htmlIndex = path.join(OUT_DIR, pathOnly, 'index.html');
   const htmlFlat = path.join(OUT_DIR, `${pathOnly}.html`);
   if (fs.existsSync(htmlIndex) || fs.existsSync(htmlFlat)) return true;
