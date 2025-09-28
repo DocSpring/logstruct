@@ -1,0 +1,37 @@
+version: '3'
+
+tasks:
+  deps:
+    dir: docs
+    desc: Install frontend dependencies (pnpm)
+    run: once
+    cmds:
+      - pnpm install --frozen-lockfile
+
+  typecheck:
+    dir: docs
+    desc: Run TypeScript type checking
+    deps: [deps]
+    cmds:
+      - pnpm exec tsc --noEmit
+
+  lint:
+    dir: docs
+    desc: Run ESLint
+    deps: [deps]
+    cmds:
+      - npm run lint
+
+  lint:fix:
+    dir: docs
+    desc: Run ESLint with auto-fix
+    deps: [deps]
+    cmds:
+      - npm run lint -- --fix
+
+  test:
+    dir: docs
+    desc: Run frontend tests
+    deps: [deps]
+    cmds:
+      - npm test

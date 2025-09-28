@@ -26,12 +26,12 @@
 - Debug a specific test: Add `debugger` statements (developer only)
 - Run Rails integration tests: `scripts/rails_tests.sh`
 - Merge coverage reports: `scripts/merge_coverage.sh`
-- Run Next.js TypeScript tests: `cd site && npm test`
+- Run Next.js TypeScript tests: `cd docs && npm test`
 
 ### Quality Commands
 
 - Ruby typecheck: `scripts/typecheck.sh`
-- Next.js typecheck: `cd site && pnpm exec tsc --noEmit`
+- Next.js typecheck: `cd docs && pnpm exec tsc --noEmit`
 - Lint Ruby: `bin/rubocop`
 - Format Ruby: `bin/rubocop -A`
 - Format JS/TS/JSON: `scripts/prettier.sh --write`

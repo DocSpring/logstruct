@@ -17,4 +17,4 @@ scripts/merge_coverage.sh
 
 
 echo "All tests completed!"
-echo "Coverage report available at site/public/coverage/index.html"
+echo "Coverage report available at docs/public/coverage/index.html"

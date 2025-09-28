@@ -38,13 +38,13 @@ jobs:
           cache: pnpm
           cache-dependency-path: |
             pnpm-lock.yaml
-            site/pnpm-lock.yaml
+            docs/pnpm-lock.yaml
 
       - name: Install npm packages
         run: |
-          # Install root and site pnpm dependencies
+          # Install root and docs pnpm dependencies
           pnpm install --frozen-lockfile
-          cd site && pnpm install --frozen-lockfile && cd ..
+          cd docs && pnpm install --frozen-lockfile && cd ..
 
       - name: Generate CSpell dictionaries from package lockfiles
         run: |
@@ -89,7 +89,7 @@ jobs:
       - name: Sorbet (Typecheck)
         run: scripts/typecheck.sh
 
-  site:
+  docs:
     name: 'Next.js Site Tests'
     runs-on: ubuntu-22.04
     steps:
@@ -101,7 +101,7 @@ jobs:
           ruby-version: '.ruby-version'
           bundler-cache: true
 
-      - name: Setup Node.js (site)
+      - name: Setup Node.js (docs)
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -111,15 +111,15 @@ jobs:
         with:
           version: latest
 
-      - name: Enable pnpm cache (site)
+      - name: Enable pnpm cache (docs)
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: site/pnpm-lock.yaml
+          cache-dependency-path: docs/pnpm-lock.yaml
 
-      - name: Install site dependencies
-        run: cd site && pnpm install --frozen-lockfile
+      - name: Install docs dependencies
+        run: cd docs && pnpm install --frozen-lockfile
 
       - name: Export TypeScript types from LogStruct
         run: |
@@ -127,11 +127,11 @@ jobs:
 
       - name: TypeScript type checking
         run: |
-          cd site && pnpm exec tsc --noEmit
+          cd docs && pnpm exec tsc --noEmit
 
       - name: Run TypeScript tests
         run: |
-          cd site && pnpm test
+          cd docs && pnpm test
 
   pilot:
     name: 'Pilot Test: Ruby 3.4 / Rails 8.0'
@@ -173,7 +173,7 @@ jobs:
           retention-days: 5
           include-hidden-files: true
 
-      # Merges /coverage and /coverage_rails into /site/public/coverage/
+      # Merges /coverage and /coverage_rails into /docs/public/coverage/
       - name: Merge coverage reports
         run: scripts/merge_coverage.sh
 
@@ -187,7 +187,7 @@ jobs:
         with:
           name: coverage-ruby3.4-rails8.0
           path: |
-            site/public/coverage/
+            docs/public/coverage/
           retention-days: 5
 
   matrix:

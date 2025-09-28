@@ -2,12 +2,12 @@
 sorbet/
 tasks/
 
-site/.next
-site/out
+docs/.next
+docs/out
 
-site/generated/
+docs/generated/
 
-site/public/coverage
-site/public/yard
+docs/public/coverage
+docs/public/yard
 
 pnpm-lock.yaml

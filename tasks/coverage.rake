@@ -20,7 +20,7 @@ namespace :coverage do
         SimpleCov::Formatter::JSONFormatter
       ])
 
-      coverage_dir "site/public/coverage"
+      coverage_dir "docs/public/coverage"
     end
   end
 end

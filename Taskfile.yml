@@ -2,7 +2,7 @@ version: '3'
 
 includes:
   ruby: ./Taskfile.ruby.yml
-  site: ./Taskfile.site.yml
+  docs: ./Taskfile.docs.yml
   prettier: ./Taskfile.prettier.yml
   rails: ./Taskfile.rails.yml
 
@@ -16,21 +16,21 @@ tasks:
     desc: Run Sorbet and TypeScript type checking
     cmds:
       - task: ruby:typecheck
-      - task: site:typecheck
+      - task: docs:typecheck
 
   lint:
     desc: Run Ruby and frontend linters
     cmds:
       - task: ruby:lint
       - task: prettier:check
-      - task: site:lint
+      - task: docs:lint
 
   lint:fix:
     desc: Auto-fix Ruby and frontend lint issues
     cmds:
       - task: ruby:lint:fix
       - task: prettier:write
-      - task: site:lint:fix
+      - task: docs:lint:fix
 
   spellcheck:
     desc: Run repository spellcheck
@@ -47,13 +47,14 @@ tasks:
       - task: ruby:coverage:merge
 
   all:
+    aliases: [ci]
     desc: Run the full validation workflow (replaces scripts/all_check.sh)
     cmds:
       - task: generate
       - task: typecheck
       - task: lint
       - task: spellcheck
-      - task: site:test
+      - task: docs:test
       - task: test
 
   fix:
@@ -63,5 +64,5 @@ tasks:
       - task: typecheck
       - task: lint:fix
       - task: spellcheck
-      - task: site:test
+      - task: docs:test
       - task: test

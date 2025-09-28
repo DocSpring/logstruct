@@ -7,7 +7,7 @@ require "pathname"
 require "sorbet-runtime"
 
 # Load the coverage JSON file
-coverage_file = File.join(File.dirname(__FILE__), "../site/public/coverage/coverage.json")
+coverage_file = File.join(File.dirname(__FILE__), "../docs/public/coverage/coverage.json")
 coverage_data = JSON.parse(File.read(coverage_file))
 
 # Sort files by coverage percentage

@@ -1,6 +1,6 @@
 **Purpose**
 
-- Document how to add a new first‑class integration to LogStruct so it’s consistent, type‑safe, well‑tested, and shows up automatically in the docs site with an auto‑generated example log.
+- Document how to add a new first‑class integration to LogStruct so it’s consistent, type‑safe, well‑tested, and shows up automatically in the docs docs with an auto‑generated example log.
 
 **High‑Level Flow**
 
@@ -9,7 +9,7 @@
 - Implement the integration under `lib/log_struct/integrations/…` to produce that log type.
 - Add the dev dependency for the third‑party gem and generate RBIs with Tapioca.
 - Add tests (unit + behavior) under `test/log_struct/integrations` and (if needed) `test/log_struct/log`.
-- Add a short entry in the docs metadata (`site/lib/integration-helpers.ts`). The Integrations page will render it automatically via `AllLogTypes`.
+- Add a short entry in the docs metadata (`docs/lib/integration-helpers.ts`). The Integrations page will render it automatically via `AllLogTypes`.
 - Run type export to update the docs’ TypeScript types.
 
 **Conventions**
@@ -99,7 +99,7 @@
 
 7. Docs
    - No custom sections in the Integrations page.
-   - The Integrations page lists all `AllLogTypes` with titles/descriptions from `site/lib/integration-helpers.ts`.
+   - The Integrations page lists all `AllLogTypes` with titles/descriptions from `docs/lib/integration-helpers.ts`.
    - Add an entry to `getLogTypeInfo` for your new log type (title, concise description, optional `configuration_code: 'integrations_configuration'`).
    - Run the type export to regenerate the docs’ TypeScript assets so example logs render:
      - `ruby scripts/generate_structs.rb`

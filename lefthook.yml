@@ -13,8 +13,8 @@ pre-commit:
             run: scripts/typecheck.sh
 
           - name: typescript
-            glob: 'site/**/*.{ts,tsx,js,jsx}'
-            run: cd site && pnpm exec tsc --noEmit
+            glob: 'docs/**/*.{ts,tsx,js,jsx}'
+            run: cd docs && pnpm exec tsc --noEmit
 
           - name: typescript-export
             glob: '{schemas/log_sources/**/*,lib/log_struct/enums.rb,lib/log_struct/enums/*.rb,tools/codegen/**/*.rb,scripts/generate_structs.rb}'
@@ -29,12 +29,12 @@ pre-commit:
             run: scripts/spellcheck.sh
 
           - name: eslint
-            glob: 'site/**/*.{ts,tsx,js,jsx}'
-            run: cd site && pnpm run lint
+            glob: 'docs/**/*.{ts,tsx,js,jsx}'
+            run: cd docs && pnpm run lint
 
           - name: typescript-tests
-            glob: 'site/**/*.{ts,tsx}'
-            run: cd site && pnpm test
+            glob: 'docs/**/*.{ts,tsx}'
+            run: cd docs && pnpm test
 
           - name: ruby-tests
             glob: '{lib,test}/**/*.rb'

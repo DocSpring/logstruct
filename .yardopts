@@ -4,7 +4,7 @@
 --markup-provider=redcarpet
 --readme=README.md
 --title=LogStruct API Documentation
---output-dir=site/public/api
+--output-dir=docs/public/api
 --plugin sorbet
 'lib/**/*.rb'
 - README.md

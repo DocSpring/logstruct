@@ -17,7 +17,7 @@ module LogStruct
 
       sig { params(root: String).void }
       def self.generate_all(root)
-        out_dir = File.join(root, "site", "generated", "logstruct")
+        out_dir = File.join(root, "docs", "generated", "logstruct")
         FileUtils.rm_rf(out_dir)
         FileUtils.mkdir_p(out_dir)
 

@@ -6,13 +6,13 @@ require "json"
 require "fileutils"
 
 root = File.expand_path("..", __dir__)
-site_gen = File.join(root, "site", "lib", "log-generation")
-enums_path = File.join(site_gen, "sorbet-enums.json")
-structs_path = File.join(site_gen, "sorbet-log-structs.json")
-keys_path = File.join(site_gen, "log-fields.json")
+docs_gen = File.join(root, "docs", "lib", "log-generation")
+enums_path = File.join(docs_gen, "sorbet-enums.json")
+structs_path = File.join(docs_gen, "sorbet-log-structs.json")
+keys_path = File.join(docs_gen, "log-fields.json")
 
 unless File.exist?(enums_path) && File.exist?(structs_path) && File.exist?(keys_path)
-  abort "Missing generated files in #{site_gen}. Run `task generate` first."
+  abort "Missing generated files in #{docs_gen}. Run `task generate` first."
 end
 
 enums = JSON.parse(File.read(enums_path))

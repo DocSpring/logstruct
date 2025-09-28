@@ -42,7 +42,7 @@ module Scripts
       # Ensure the freshly generated Sorbet structs are loaded before exporting
       require "log_struct/log"
 
-      output_dir = File.join(root, "site", "generated", "logstruct")
+      output_dir = File.join(root, "docs", "generated", "logstruct")
 
       exporter = Sorbet::Typescript::Exporter.new(
         enum_namespaces: ["LogStruct"],

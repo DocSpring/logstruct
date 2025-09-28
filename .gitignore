@@ -16,7 +16,7 @@
 # Source code references
 /reference
 
-# Next.js site ignore rules are in ./site/.gitignore
+# Next.js docs ignore rules are in ./docs/.gitignore
 
 # CSpell generated wordlists (from package lockfiles)
 .cspell/generated-*.txt

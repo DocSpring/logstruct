@@ -235,7 +235,7 @@ jobs:
             exit 1
           fi
 
-      - name: Generate site exports (enums/structs/keys)
+      - name: Generate docs exports (enums/structs/keys)
         run: scripts/generate_structs.rb
 
       - name: Clone terraform-provider-logstruct repository

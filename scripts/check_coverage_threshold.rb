@@ -5,7 +5,7 @@
 require "json"
 
 threshold = (ENV["COVERAGE_MIN"] || "80").to_f
-coverage_path = File.expand_path(File.join(__dir__, "..", "site/public/coverage/coverage.json"))
+coverage_path = File.expand_path(File.join(__dir__, "..", "docs/public/coverage/coverage.json"))
 
 unless File.exist?(coverage_path)
   warn "Coverage file not found at #{coverage_path}. Did you run merge_coverage.sh?"

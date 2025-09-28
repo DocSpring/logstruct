@@ -17,21 +17,21 @@ if defined?(YARD::Rake::YardocTask)
       "--markup-provider=redcarpet",
       "--readme=README.md",
       "--title=LogStruct YARD Documentation",
-      "--output-dir=site/public/yard"]
+      "--output-dir=docs/public/yard"]
     t.stats_options = ["--list-undoc"]
   end
 
   desc "Generate YARD documentation and open in browser"
   task "yard:open": :yard do
     require "launchy"
-    Launchy.open("site/public/yard/index.html")
+    Launchy.open("docs/public/yard/index.html")
   rescue LoadError
     puts "Install the 'launchy' gem to open docs automatically"
   end
 
   desc "Clean YARD documentation directory"
   task :"yard:clean" do
-    FileUtils.rm_rf("site/public/yard")
+    FileUtils.rm_rf("docs/public/yard")
   end
 
   desc "Regenerate YARD documentation"
