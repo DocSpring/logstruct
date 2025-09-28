@@ -381,7 +381,7 @@ GEM
     sorbet-static-and-runtime (0.5.11888)
       sorbet (= 0.5.11888)
       sorbet-runtime (= 0.5.11888)
-    sorbet-typescript (0.1.0)
+    sorbet-typescript (0.1.1)
       sorbet-runtime (>= 0.5)
       thor (>= 1.3)
     spoom (1.5.4)

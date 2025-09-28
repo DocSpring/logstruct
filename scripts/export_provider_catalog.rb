@@ -39,7 +39,9 @@ keys = keys.sort.to_h
 groups = Hash.new { |h, k| h[k] = {sources: [], events: []} }
 
 def collect_serialized(field)
-  return [] unless field.is_a?(Hash)
+  unless field.is_a?(Hash)
+    raise "Expected field metadata Hash but got #{field.inspect}"
+  end
 
   values = []
   values << field["default_enum_serialized"]
@@ -54,21 +56,29 @@ structs.each do |fq_name, info|
   next unless fq_name.start_with?("LogStruct::Log::")
 
   fields = info["fields"]
-  next unless fields.is_a?(Hash)
+  unless fields.is_a?(Hash)
+    raise "Struct #{fq_name} missing fields metadata"
+  end
 
   event_field = fields["event"]
+  next unless event_field
+
   event_values = collect_serialized(event_field)
   next if event_values.empty?
 
   log_type = fq_name.split("::")[2]
-  next unless log_type
+  unless log_type
+    raise "Unable to infer log type for #{fq_name}"
+  end
 
   group = groups[log_type]
   group[:events] = (group[:events] | event_values)
 
   source_field = fields["source"]
-  source_values = collect_serialized(source_field)
-  group[:sources] = (group[:sources] | source_values) if source_values.any?
+  if source_field
+    source_values = collect_serialized(source_field)
+    group[:sources] = (group[:sources] | source_values)
+  end
 end
 
 catalog_structs = groups.each_with_object({}) do |(log_type, data), memo|
@@ -133,3 +143,22 @@ go << "\t},\n}\n"
 File.write(gen_path, go)
 
 puts "Wrote provider catalog to #{catalog_path} and #{gen_path}"
+
+def assert(condition, message)
+  raise message unless condition
+end
+
+catalog_data = JSON.parse(File.read(catalog_path))
+structs = catalog_data.fetch("structs")
+
+refute_empty(structs, "Struct catalog is empty")
+assert(structs.key?("GoodJob"), "Struct catalog missing GoodJob")
+good_job = structs["GoodJob"]
+
+assert_includes(good_job["allowed_events"], "enqueue", "GoodJob missing enqueue event")
+assert_equal("job", good_job["fixed_source"], "GoodJob fixed source incorrect")
+
+go_contents = File.read(gen_path)
+
+assert_includes(go_contents, "\"GoodJob\": {Name: \"GoodJob\"", "catalog_gen.go missing GoodJob entry")
+assert_includes(go_contents, "AllowedEvents: []string{\"enqueue\"", "catalog_gen.go missing enqueue event")

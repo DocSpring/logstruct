@@ -36,6 +36,7 @@ tasks:
 
   test:
     desc: Run Ruby unit tests
+    deps: [generate]
     cmds:
       - bundle exec ruby scripts/test.rb
 
