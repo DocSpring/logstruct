@@ -2,9 +2,10 @@ version: '3'
 
 tasks:
   generate:
-    desc: Generate Sorbet structs and TypeScript artifacts
+    desc: Generate Sorbet structs, TypeScript artifacts, and provider catalog
     cmds:
       - bundle exec ruby scripts/generate_structs.rb
+      - bundle exec ruby scripts/export_provider_catalog.rb
 
   tapioca:
     desc: Run Tapioca
