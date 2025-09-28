@@ -6,6 +6,13 @@ tasks:
     cmds:
       - bundle exec ruby scripts/generate_structs.rb
 
+  tapioca:
+    desc: Run Tapioca
+    cmds:
+      - bundle exec tapioca gems
+      - bundle exec tapioca dsl
+      - bundle exec tapioca annotations
+
   typecheck:
     desc: Run Sorbet type checking
     cmds:
