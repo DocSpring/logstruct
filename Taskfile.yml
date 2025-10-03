@@ -5,6 +5,9 @@ includes:
   docs: ./Taskfile.docs.yml
   prettier: ./Taskfile.prettier.yml
   rails: ./Taskfile.rails.yml
+  sorbet: ./Taskfile.sorbet.yml
+  yard: ./Taskfile.yard.yml
+  gem: ./Taskfile.gem.yml
 
 tasks:
   generate:
@@ -33,6 +36,7 @@ tasks:
       - task: docs:lint:fix
 
   spellcheck:
+    aliases: [cspell]
     desc: Run repository spellcheck
     deps: [prettier:deps]
     cmds:

@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  generate:
+    desc: Generate YARD documentation
+    cmds:
+      - bundle exec rake yard
+
+  clean:
+    desc: Clean YARD documentation directory
+    cmds:
+      - bundle exec rake yard:clean
+
+  open:
+    desc: Generate YARD documentation and open in browser
+    cmds:
+      - bundle exec rake yard:open
+
+  regen:
+    desc: Regenerate YARD documentation (clean + generate)
+    cmds:
+      - bundle exec rake yard:regen

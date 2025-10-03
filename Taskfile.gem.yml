@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the gem into the pkg directory
+    cmds:
+      - bundle exec rake build
+
+  install:
+    desc: Build and install gem into system gems
+    cmds:
+      - bundle exec rake install
+
+  install:local:
+    desc: Build and install gem into system gems without network access
+    cmds:
+      - bundle exec rake install:local
+
+  release:
+    desc: Create tag and build and push gem to rubygems.org
+    cmds:
+      - bundle exec rake release
