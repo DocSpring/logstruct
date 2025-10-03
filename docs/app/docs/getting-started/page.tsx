@@ -28,8 +28,8 @@ export default function GettingStartedPage() {
       </p>
       <CodeBlock language="bash">bundle install</CodeBlock>
 
-      <p className="text-neutral-600 dark:text-neutral-400 mt-6">
-        {`LogStruct is now installed and will automatically enable JSON structured logging in the test and production environments.`}
+      <p className="text-neutral-600 dark:text-neutral-300 mt-6">
+        {`LogStruct is now installed and will automatically enable JSON structured logging for server processes in the test and production environments, and for CI test runs. Console, local tests, and other Rake tasks will use human-readable logs by default.`}
       </p>
 
       <HeadingWithAnchor id="basic-configuration" level={2}>

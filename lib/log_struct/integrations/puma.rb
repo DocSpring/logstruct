@@ -139,12 +139,7 @@ module LogStruct
 
         sig { params(e: StandardError).void }
         def handle_integration_error(e)
-          server_mode = false
-          begin
-            server_mode = ::LogStruct.instance_variable_defined?(:@server_mode) && ::LogStruct.instance_variable_get(:@server_mode)
-          rescue
-            server_mode = false
-          end
+          server_mode = ::LogStruct.server_mode?
           if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env.test? && !server_mode
             raise e
           else

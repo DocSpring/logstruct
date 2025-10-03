@@ -22,7 +22,9 @@ export default function DocsPage() {
       </HeadingWithAnchor>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          JSON logging enabled by default in production and test environments.
+          JSON logging enabled by default for server processes in production and
+          test environments, and for CI test runs (automatically disabled for
+          console, local tests, and other Rake tasks).
         </li>
         <li>
           Sets up <a href="https://github.com/roidrage/lograge">Lograge</a> for

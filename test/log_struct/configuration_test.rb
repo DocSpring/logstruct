@@ -15,16 +15,18 @@ module LogStruct
       LogStruct.configuration = @original_config
     end
 
-    def test_set_enabled_from_rails_env_with_matching_environment
+    def test_set_enabled_from_rails_env_with_matching_environment_in_ci
       # Set up test conditions
       LogStruct.config.enabled = false
       LogStruct.config.enabled_environments = [:test]
 
-      # Stub Rails.env to match enabled_environments
-      Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
-        LogStruct.set_enabled_from_rails_env!
+      # Stub Rails.env to match enabled_environments AND set CI=true
+      ClimateControl.modify CI: "true" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
 
-        assert LogStruct.config.enabled, "LogStruct should be enabled in test environment"
+          assert LogStruct.config.enabled, "LogStruct should be enabled in test environment when CI=true"
+        end
       end
     end
 
@@ -194,6 +196,169 @@ module LogStruct
     ensure
       LogStruct.config.filters.filter_keys = original_filter_keys
       LogStruct.config.filters.filter_matchers = original_matchers
+    end
+
+    # Test server process detection
+    def test_enabled_for_server_process_in_production
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:production]
+
+      # Define Rails::Server to simulate server process
+      rails_server_class = Class.new
+      Object.const_set(:Rails, Module.new) unless defined?(::Rails)
+      ::Rails.const_set(:Server, rails_server_class) unless defined?(::Rails::Server)
+
+      original_argv = ::ARGV.dup
+      ::ARGV.replace(["server"])
+
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+        LogStruct.set_enabled_from_rails_env!
+
+        assert LogStruct.config.enabled, "LogStruct should be enabled for server process in production"
+      end
+    ensure
+      ::ARGV.replace(original_argv) if defined?(original_argv)
+      ::Rails.send(:remove_const, :Server) if defined?(::Rails::Server)
+    end
+
+    def test_disabled_for_console_in_production
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:production]
+
+      # Define Rails::Console to simulate console process
+      rails_console_class = Class.new
+      Object.const_set(:Rails, Module.new) unless defined?(::Rails)
+      ::Rails.const_set(:Console, rails_console_class) unless defined?(::Rails::Console)
+
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+        LogStruct.set_enabled_from_rails_env!
+
+        assert_not LogStruct.config.enabled, "LogStruct should be disabled for console in production"
+      end
+    ensure
+      ::Rails.send(:remove_const, :Console) if defined?(::Rails::Console)
+    end
+
+    def test_disabled_for_local_test_runs
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:test]
+
+      # No CI env var, no Rails::Server, no Rails::Console
+      ClimateControl.modify CI: nil do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert_not LogStruct.config.enabled, "LogStruct should be disabled for local test runs"
+        end
+      end
+    end
+
+    def test_enabled_for_ci_test_runs
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:test]
+
+      # CI=true should enable for test runs
+      ClimateControl.modify CI: "true" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert LogStruct.config.enabled, "LogStruct should be enabled for CI test runs"
+        end
+      end
+    end
+
+    def test_ci_false_treated_as_not_ci
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:test]
+
+      # CI=false should be treated as not CI
+      ClimateControl.modify CI: "false" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert_not LogStruct.config.enabled, "LogStruct should be disabled when CI=false"
+        end
+      end
+    end
+
+    def test_disabled_for_rake_tasks_in_production
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:production]
+
+      # No Rails::Server, no Rails::Console, not test env
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+        LogStruct.set_enabled_from_rails_env!
+
+        assert_not LogStruct.config.enabled, "LogStruct should be disabled for rake tasks in production"
+      end
+    end
+
+    def test_logstruct_enabled_overrides_all_logic
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = []
+
+      # Even with console defined and no enabled environments, LOGSTRUCT_ENABLED=true should enable
+      rails_console_class = Class.new
+      Object.const_set(:Rails, Module.new) unless defined?(::Rails)
+      ::Rails.const_set(:Console, rails_console_class) unless defined?(::Rails::Console)
+
+      ClimateControl.modify LOGSTRUCT_ENABLED: "true" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert LogStruct.config.enabled, "LOGSTRUCT_ENABLED=true should override all other logic"
+        end
+      end
+    ensure
+      ::Rails.send(:remove_const, :Console) if defined?(::Rails::Console)
+    end
+
+    def test_console_disabled_even_in_ci
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:test]
+
+      # Console should be disabled even in CI
+      rails_console_class = Class.new
+      Object.const_set(:Rails, Module.new) unless defined?(::Rails)
+      ::Rails.const_set(:Console, rails_console_class) unless defined?(::Rails::Console)
+
+      ClimateControl.modify CI: "true" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert_not LogStruct.config.enabled, "Console should be disabled even in CI"
+        end
+      end
+    ensure
+      ::Rails.send(:remove_const, :Console) if defined?(::Rails::Console)
+    end
+
+    def test_various_ci_env_values
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:test]
+
+      # Test various truthy CI values
+      %w[true 1 yes].each do |ci_value|
+        ClimateControl.modify CI: ci_value do
+          Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+            LogStruct.set_enabled_from_rails_env!
+
+            assert LogStruct.config.enabled, "CI=#{ci_value} should enable LogStruct in test"
+          end
+        end
+
+        # Reset for next iteration
+        LogStruct.config.enabled = false
+      end
+
+      # Test that empty string is treated as CI not set
+      ClimateControl.modify CI: "" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          assert_not LogStruct.config.enabled, "CI='' (empty string) should be treated as not CI"
+        end
+      end
     end
   end
 end

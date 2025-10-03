@@ -55,11 +55,7 @@ module LogStruct
 
     # Emit Puma lifecycle logs when running `rails server`
     initializer "logstruct.puma_lifecycle", after: "logstruct.configure_logger" do
-      begin
-        is_server = ::LogStruct.instance_variable_defined?(:@server_mode) && ::LogStruct.instance_variable_get(:@server_mode)
-      rescue
-        is_server = false
-      end
+      is_server = ::LogStruct.server_mode?
       next unless is_server
       begin
         require "log_struct/log/puma"

@@ -10,6 +10,11 @@ module LogStruct
       module ClassMethods
         extend T::Sig
 
+        SERVER_COMMAND_ARGS = T.let(["server", "s"].freeze, T::Array[String])
+        CONSOLE_COMMAND_ARGS = T.let(["console", "c"].freeze, T::Array[String])
+        EMPTY_ARGV = T.let([].freeze, T::Array[String])
+        CI_FALSE_VALUES = T.let(["false", "0", "no"].freeze, T::Array[String])
+
         sig { params(block: T.proc.params(config: LogStruct::Configuration).void).void }
         def configure(&block)
           yield(config)
@@ -45,14 +50,20 @@ module LogStruct
           #    - Sets enabled=true only when value is "true", "yes", "1", etc.
           #    - Sets enabled=false when value is any other value
           # 2. Otherwise, check if current Rails environment is in enabled_environments
+          #    AND one of: Rails::Server is defined, OR test environment with CI=true
+          #    BUT NOT Rails::Console (to exclude interactive console)
           # 3. Otherwise, leave as config.enabled (defaults to true)
 
           # Then check if LOGSTRUCT_ENABLED env var is set
           config.enabled = if ENV["LOGSTRUCT_ENABLED"]
-            # Override to true only if env var is "true"
             %w[true t yes y 1].include?(ENV["LOGSTRUCT_ENABLED"]&.strip&.downcase)
           else
-            config.enabled_environments.include?(::Rails.env.to_sym)
+            is_console = console_process?
+            is_server = server_process?
+            is_ci = ci_build?
+            in_enabled_env = config.enabled_environments.include?(::Rails.env.to_sym)
+
+            in_enabled_env && !is_console && (is_server || (::Rails.env.test? && is_ci))
           end
         end
 
@@ -111,6 +122,45 @@ module LogStruct
         end
 
         private
+
+        sig { returns(T::Boolean) }
+        def console_process?
+          return true if defined?(::Rails::Console)
+
+          current_argv.any? { |arg| CONSOLE_COMMAND_ARGS.include?(arg) }
+        end
+
+        sig { returns(T::Boolean) }
+        def server_process?
+          return true if logstruct_server_mode?
+
+          current_argv.any? { |arg| SERVER_COMMAND_ARGS.include?(arg) }
+        end
+
+        sig { returns(T::Boolean) }
+        def logstruct_server_mode?
+          ::LogStruct.server_mode?
+        end
+
+        sig { returns(T::Array[String]) }
+        def current_argv
+          raw = ::ARGV
+          strings = raw.map { |arg| arg.to_s }
+          T.let(strings, T::Array[String])
+        rescue NameError
+          EMPTY_ARGV
+        end
+
+        sig { returns(T::Boolean) }
+        def ci_build?
+          value = ENV["CI"]
+          return false if value.nil?
+
+          normalized = value.strip.downcase
+          return false if normalized.empty?
+
+          !CI_FALSE_VALUES.include?(normalized)
+        end
 
         sig { params(filter: T.untyped).returns(T.nilable(Symbol)) }
         def normalize_filter_symbol(filter)

@@ -3,84 +3,89 @@ colors: true
 pre-commit:
   parallel: true
 
+  commands:
+    sorbet:
+      glob: '*.{rb,rbi}'
+      run: scripts/typecheck.sh
+
+    typescript:
+      glob: 'docs/**/*.{ts,tsx,js,jsx}'
+      run: cd docs && pnpm exec tsc --noEmit
+
+    typescript-export:
+      glob: '{schemas/log_sources/**/*,lib/log_struct/enums.rb,lib/log_struct/enums/*.rb,tools/codegen/**/*.rb,scripts/generate_structs.rb}'
+      run: scripts/generate_structs.rb
+
+    codegen-sync:
+      glob: '{schemas/log_sources/**/*,tools/codegen/templates/**/*,tools/codegen/**/*.rb,scripts/generate_structs.rb}'
+      run: scripts/check_generated.sh
+
+    cspell:
+      glob: '*.{rb,md,yml,yaml,txt,ts,tsx,js,jsx}'
+      run: scripts/spellcheck.sh
+
+    changelog:
+      glob: 'lib/log_struct/version.rb'
+      run: ruby scripts/check_changelog_version.rb
+
+    eslint:
+      glob: 'docs/**/*.{ts,tsx,js,jsx}'
+      run: cd docs && pnpm run lint
+
+    typescript-tests:
+      glob: 'docs/**/*.{ts,tsx}'
+      run: cd docs && pnpm test
+
+    ruby-tests:
+      glob: '{lib,test}/**/*.rb'
+      run: scripts/test.rb
+
+    bundle-install:
+      glob: '{Gemfile,Gemfile.lock,lib/log_struct/version.rb}'
+      run: |
+        echo "Detected Gemfile/version change; running bundle install..."
+        bundle install
+        if [[ -f Gemfile.lock ]]; then
+          git add Gemfile.lock
+        fi
+      stage_fixed: true
+
+    fix-whitespace:
+      run: |
+        for file in {staged_files}; do
+          if [[ -f "$file" ]]; then
+            # Remove trailing whitespace (portable sed usage)
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+              sed -i '' 's/[[:space:]]*$//' "$file"
+            else
+              sed -i 's/[[:space:]]*$//' "$file"
+            fi
+            # Ensure file ends with newline
+            if [[ -s "$file" ]] && [[ $(tail -c1 "$file" | wc -l) -eq 0 ]]; then
+              echo >> "$file"
+            fi
+          fi
+        done
+      file_types:
+        - text
+      exclude: '**/.*'
+      stage_fixed: true
+
+    prettier:
+      glob: '*.{js,jsx,ts,tsx,json,yml,yaml,md}'
+      run: scripts/prettier.sh --write {staged_files}
+      stage_fixed: true
+
+    rubocop:
+      glob: '*.rb'
+      run: bin/rubocop -A {staged_files}
+      stage_fixed: true
+
+post-commit:
+  parallel: false
   jobs:
-    # Checks group - runs in parallel
-    - group:
-        parallel: true
-        jobs:
-          - name: sorbet
-            glob: '*.{rb,rbi}'
-            run: scripts/typecheck.sh
-
-          - name: typescript
-            glob: 'docs/**/*.{ts,tsx,js,jsx}'
-            run: cd docs && pnpm exec tsc --noEmit
-
-          - name: typescript-export
-            glob: '{schemas/log_sources/**/*,lib/log_struct/enums.rb,lib/log_struct/enums/*.rb,tools/codegen/**/*.rb,scripts/generate_structs.rb}'
-            run: scripts/generate_structs.rb
-
-          - name: codegen-sync
-            glob: '{schemas/log_sources/**/*,tools/codegen/templates/**/*,tools/codegen/**/*.rb,scripts/generate_structs.rb}'
-            run: scripts/check_generated.sh
-
-          - name: cspell
-            glob: '*.{rb,md,yml,yaml,txt,ts,tsx,js,jsx}'
-            run: scripts/spellcheck.sh
-
-          - name: eslint
-            glob: 'docs/**/*.{ts,tsx,js,jsx}'
-            run: cd docs && pnpm run lint
-
-          - name: typescript-tests
-            glob: 'docs/**/*.{ts,tsx}'
-            run: cd docs && pnpm test
-
-          - name: ruby-tests
-            glob: '{lib,test}/**/*.rb'
-            run: scripts/test.rb
-
-    # Fixes group - runs sequentially to avoid git conflicts
-    - group:
-        parallel: false
-        jobs:
-          - name: bundle-install
-            glob: '{Gemfile,Gemfile.lock,lib/log_struct/version.rb}'
-            run: |
-              echo "Detected Gemfile/version change; running bundle install..."
-              bundle install
-              if [[ -f Gemfile.lock ]]; then
-                git add Gemfile.lock
-              fi
-            stage_fixed: true
-
-          - name: fix-whitespace
-            run: |
-              for file in {staged_files}; do
-                if [[ -f "$file" ]]; then
-                  # Remove trailing whitespace (portable sed usage)
-                  if [[ "$OSTYPE" == "darwin"* ]]; then
-                    sed -i '' 's/[[:space:]]*$//' "$file"
-                  else
-                    sed -i 's/[[:space:]]*$//' "$file"
-                  fi
-                  # Ensure file ends with newline
-                  if [[ -s "$file" ]] && [[ $(tail -c1 "$file" | wc -l) -eq 0 ]]; then
-                    echo >> "$file"
-                  fi
-                fi
-              done
-            file_types:
-              - text
-            exclude: '**/.*'
-            stage_fixed: true
-
-          - name: prettier
-            glob: '*.{js,jsx,ts,tsx,json,yml,yaml,md}'
-            run: scripts/prettier.sh --write {staged_files}
-            stage_fixed: true
-
-          - name: rubocop
-            glob: '*.rb'
-            run: bin/rubocop -A {staged_files}
-            stage_fixed: true
+    - name: create-release-tag
+      run: |
+        if git show --pretty='' --name-only HEAD -- lib/log_struct/version.rb | grep -q 'lib/log_struct/version.rb'; then
+          ./scripts/create_release_tag.sh
+        fi

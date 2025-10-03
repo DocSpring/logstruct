@@ -66,7 +66,7 @@ class RailsBootBannerSilencerTest < Minitest::Test
 
     assert_equal(:original_perform, result)
     assert_equal([:foo, :bar], instance.performed_args)
-    assert(LogStruct.instance_variable_get(:@server_mode))
+    assert_predicate(LogStruct, :server_mode?)
   end
 
   def test_print_boot_information_consumes_banner_lines
@@ -133,17 +133,12 @@ class RailsBootBannerSilencerTest < Minitest::Test
   private
 
   def store_server_mode
-    @had_server_mode = LogStruct.instance_variable_defined?(:@server_mode)
-    @stored_server_mode = LogStruct.instance_variable_get(:@server_mode) if @had_server_mode
-    LogStruct.instance_variable_set(:@server_mode, false)
+    @stored_server_mode = LogStruct.server_mode?
+    LogStruct.server_mode = false
   end
 
   def restore_server_mode
-    if @had_server_mode
-      LogStruct.instance_variable_set(:@server_mode, @stored_server_mode)
-    elsif LogStruct.instance_variable_defined?(:@server_mode)
-      LogStruct.remove_instance_variable(:@server_mode)
-    end
+    LogStruct.server_mode = @stored_server_mode
   end
 
   def build_server_command_stub(executable: "task-cli")

@@ -72,6 +72,9 @@ cd "$TEST_APP_DIR"
 unset BUNDLE_GEMFILE BUNDLE_PATH BUNDLE_WITH BUNDLE_WITHOUT RUBYOPT GEM_HOME GEM_PATH
 export RUBYOPT="-W0"
 
+# Set CI=true so LogStruct is enabled for integration tests
+export CI=true
+
 # Install gems for the test app under the selected Ruby
 bundle install
 

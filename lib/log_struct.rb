@@ -23,11 +23,25 @@ require "log_struct/semantic_logger/setup"
 require "log_struct/rails_boot_banner_silencer"
 
 module LogStruct
+  extend T::Sig
+
+  @server_mode = T.let(false, T::Boolean)
+
   class Error < StandardError; end
 
   extend Concerns::ErrorHandling::ClassMethods
   extend Concerns::Configuration::ClassMethods
   extend Concerns::Logging::ClassMethods
+
+  sig { returns(T::Boolean) }
+  def self.server_mode?
+    @server_mode
+  end
+
+  sig { params(value: T::Boolean).void }
+  def self.server_mode=(value)
+    @server_mode = value
+  end
 
   # Set enabled at require time based on current Rails environment.
   # (Users can disable or enable LogStruct later in an initializer.)

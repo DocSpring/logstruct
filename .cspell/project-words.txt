@@ -21,6 +21,7 @@ gettime
 goodjob
 Healthcheck
 Honeybadger
+regen
 hotwire
 hrefs
 instrumenter

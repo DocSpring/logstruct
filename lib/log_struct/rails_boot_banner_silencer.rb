@@ -54,24 +54,17 @@ module LogStruct
 
       sig { params(args: T.untyped, block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
       def perform(*args, &block)
-        mark_server_mode!
+        ::LogStruct.server_mode = true
         super
       end
 
       sig { params(server: T.untyped, url: T.nilable(String)).void }
       def print_boot_information(server, url)
-        mark_server_mode!
+        ::LogStruct.server_mode = true
         consume_boot_banner(server, url)
       end
 
       private
-
-      sig { void }
-      def mark_server_mode!
-        ::LogStruct.instance_variable_set(:@server_mode, true)
-      rescue
-        # Ignore – server mode is best-effort
-      end
 
       sig { params(server: T.untyped, url: T.nilable(String)).void }
       def consume_boot_banner(server, url)

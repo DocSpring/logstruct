@@ -31,47 +31,83 @@ export default function ConfigurationPage() {
       <HeadingWithAnchor id="enabling-logstruct">
         Enabling LogStruct
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-        LogStruct can be enabled or disabled in the following ways:
+
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        LogStruct follows a simple philosophy:{' '}
+        <strong>machines get JSON, humans get readable logs</strong>. By
+        default:
       </p>
 
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
         <li>
-          LogStruct will be <strong>enabled</strong> if the{' '}
-          <strong>
-            <code>LOGSTRUCT_ENABLED</code>
-          </strong>{' '}
-          environment variable is set to <code>&quot;true&quot;</code>,
-          <code>&quot;yes&quot;</code>, <code>&quot;1&quot;</code>, etc.
+          <strong>Production servers</strong> → JSON logs (for parsing and
+          analysis)
         </li>
         <li>
-          LogStruct will be <strong>disabled</strong> if{' '}
-          <strong>
-            <code>LOGSTRUCT_ENABLED</code>
-          </strong>{' '}
-          is set to any other value.
+          <strong>CI test runs</strong> → JSON logs (to catch production bugs)
         </li>
         <li>
-          If{' '}
-          <strong>
-            <code>LOGSTRUCT_ENABLED</code>
-          </strong>{' '}
-          is undefined, LogStruct will be <strong>enabled</strong> if the
-          current Rails environment is listed in{' '}
-          <code>config.enabled_environments</code>.
+          <strong>Local development</strong> → Human-readable logs (disabled by
+          default)
         </li>
         <li>
-          Finally, you can manually set <code>config.enabled</code> in an
-          initializer. This will override all other configuration methods.
+          <strong>Rails console</strong> → Human-readable logs (always)
+        </li>
+        <li>
+          <strong>Rake tasks</strong> → Human-readable logs
+        </li>
+        <li>
+          <strong>Local test runs</strong> → Human-readable logs (for debugging)
         </li>
       </ul>
 
-      <p>
-        First, we check if <code>config.enabled_environments</code> includes the
-        current Rails environment. If it does, we use that value. Otherwise, we
-        check the <code>LOGSTRUCT_ENABLED</code> environment variable. If that
-        is not set, we fall back to <code>config.enabled</code>.
+      <HeadingWithAnchor id="overriding-defaults" level={3}>
+        Overriding the Defaults
+      </HeadingWithAnchor>
+
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        You can override this behavior in several ways, with the following
+        precedence (highest to lowest):
       </p>
+
+      <ol className="list-decimal list-outside ml-6 space-y-3 text-neutral-600 dark:text-neutral-300 mb-6">
+        <li>
+          <strong>Environment variable override</strong>
+          <br />
+          Set <code>LOGSTRUCT_ENABLED=true</code> to force JSON logs, or{' '}
+          <code>LOGSTRUCT_ENABLED=false</code> to disable completely.
+          <div className="mt-2">
+            <CodeBlock language="bash">
+              {`# Force JSON logs in console for debugging\nLOGSTRUCT_ENABLED=true rails console\n\n# Force JSON logs in local tests\nLOGSTRUCT_ENABLED=true rails test`}
+            </CodeBlock>
+          </div>
+        </li>
+        <li>
+          <strong>Initializer configuration</strong>
+          <br />
+          Manually set <code>config.enabled = true</code> in your initializer to
+          enable in all development processes.
+          <div className="mt-2">
+            <CodeBlock language="ruby">
+              {`LogStruct.configure do |c|\n  c.enabled = true\nend`}
+            </CodeBlock>
+          </div>
+        </li>
+        <li>
+          <strong>Environment list</strong>
+          <br />
+          Modify <code>config.enabled_environments</code> to change which
+          environments have JSON logs by default (currently{' '}
+          <code>[:test, :production]</code>).
+        </li>
+      </ol>
+
+      <Callout type="info">
+        The <code>CI</code> environment variable is automatically detected by
+        most CI systems (GitHub Actions, GitLab CI, CircleCI, Travis, etc.). If
+        your CI doesn&apos;t set it, add <code>CI=true</code> to your CI
+        configuration.
+      </Callout>
 
       <HeadingWithAnchor id="environment-configuration">
         Environment Configuration
@@ -116,6 +152,16 @@ end`}
         errors, missing fields, or broken integrations) before they reach prod.
         If you prefer to disable it in test, remove <code>:test</code> from{' '}
         <code>config.enabled_environments</code>.
+      </Callout>
+
+      <Callout type="info">
+        To force JSON logs in console, local test runs, or other Rake tasks
+        (e.g., for debugging or inspecting the exact JSON output), set{' '}
+        <code>LOGSTRUCT_ENABLED=true</code> when running the command:
+        <br />
+        <code>LOGSTRUCT_ENABLED=true rails console</code>
+        <br />
+        <code>LOGSTRUCT_ENABLED=true rails test</code>
       </Callout>
 
       <HeadingWithAnchor id="integration-configuration">

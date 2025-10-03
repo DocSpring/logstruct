@@ -6,7 +6,7 @@ We support all your other favorite gems too, like Sidekiq, Sentry, and Shrine. (
 
 ## Features
 
-- JSON logging enabled by default in production and test environments
+- JSON logging enabled by default for server processes in production and test environments, and for CI test runs (automatically disabled for console, local tests, and other Rake tasks)
 - ActionMailer integration for email delivery logging
 - ActiveJob integration for job execution logging
 - Sidekiq integration for background job logging
@@ -58,11 +58,16 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 - Rails `config.filter_parameters` are merged into LogStruct's filters and then cleared (to avoid double filtering). Configure sensitive keys via `LogStruct.config.filters`.
 - When `RAILS_LOG_TO_STDOUT` is set, we log to STDOUT only. Otherwise, we log to STDOUT by default without adding a file appender to avoid duplicate logs.
 
-### Development behavior
+### Default behavior by process type
 
-- Disabled by default in development. Enable explicitly via `LOGSTRUCT_ENABLED=true` or `LogStruct.configure { |c| c.enabled = true }`.
-- When enabled in development, LogStruct now defaults to production‑style JSON output so you can preview exactly what will be shipped in prod.
-- You can opt back into the colorful human formatter with:
+- **Server processes** (`rails server`): JSON logging is enabled by default in production and test environments
+- **CI test runs** (`rails test` when `CI=true`): JSON logging is enabled by default to catch production bugs in your automated tests
+- **Local test runs** (`rails test` locally): JSON logging is disabled by default, providing human-readable logs for debugging
+- **Console** (`rails console`): JSON logging is disabled by default in all environments, providing human-readable logs instead
+- **Other Rake tasks** (`rake db:migrate`, etc.): JSON logging is disabled by default in production, providing human-readable logs instead
+- **Development environment**: Disabled by default for all process types. Enable explicitly via `LOGSTRUCT_ENABLED=true` or `LogStruct.configure { |c| c.enabled = true }`.
+
+When enabled in development, LogStruct defaults to production‑style JSON output so you can preview exactly what will be shipped in prod. You can opt back into the colorful human formatter with:
 
 ```ruby
 LogStruct.configure do |c|
@@ -70,6 +75,8 @@ LogStruct.configure do |c|
   c.enable_color_output = true
 end
 ```
+
+To force JSON logs in console, local test runs, or other Rake tasks (e.g., for debugging), set `LOGSTRUCT_ENABLED=true` in your environment.
 
 ## Documentation
 
