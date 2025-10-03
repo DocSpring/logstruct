@@ -36,7 +36,7 @@ export function IntegrationExamples({
             }),
           )}
         </CodeBlock>
-        <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
+        <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-300 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
           <label className="cursor-pointer select-none" htmlFor={inputId}>
             Apply filtering
           </label>
@@ -84,7 +84,7 @@ export function IntegrationExamples({
                     }),
                   )}
                 </CodeBlock>
-                <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
+                <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-300 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
                   <label
                     className="cursor-pointer select-none"
                     htmlFor={inputId}

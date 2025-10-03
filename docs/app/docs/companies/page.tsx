@@ -33,7 +33,7 @@ export default function CompaniesUsingLogStructPage() {
         Companies Using LogStruct
       </HeadingWithAnchor>
 
-      <p className="text-neutral-600 dark:text-neutral-400">
+      <p className="text-neutral-600 dark:text-neutral-300">
         Does your team run LogStruct in production? Click the edit link below to
         add your company to the list.
       </p>
@@ -58,7 +58,7 @@ export default function CompaniesUsingLogStructPage() {
               {company.name}
             </a>
 
-            <div className="text-neutral-600 dark:text-neutral-400 pt-4">
+            <div className="text-neutral-600 dark:text-neutral-300 pt-4">
               {company.summary}
             </div>
           </li>

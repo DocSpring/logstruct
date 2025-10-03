@@ -292,7 +292,7 @@ function ComparisonTable() {
               <tr className="bg-neutral-50 dark:bg-neutral-900">
                 <td
                   colSpan={6}
-                  className="py-2 px-3 font-semibold text-xs uppercase tracking-wide text-neutral-600 dark:text-neutral-400"
+                  className="py-2 px-3 font-semibold text-xs uppercase tracking-wide text-neutral-600 dark:text-neutral-300"
                 >
                   {category.category}
                 </td>
@@ -335,7 +335,7 @@ export default function ComparisonPage() {
         <HeadingWithAnchor id="comparison" level={1}>
           Comparison with Other Logging Gems
         </HeadingWithAnchor>
-        <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-4">
+        <p className="text-lg text-neutral-600 dark:text-neutral-300 mt-4">
           How LogStruct compares to other popular Rails logging solutions.
         </p>
       </div>
@@ -352,7 +352,7 @@ export default function ComparisonPage() {
           Rails Semantic Logger
         </a>
       </HeadingWithAnchor>
-      <div className="space-y-4 text-neutral-600 dark:text-neutral-400">
+      <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
         <p>
           <a
             href="https://github.com/reidmorrison/rails_semantic_logger"
@@ -382,7 +382,7 @@ export default function ComparisonPage() {
             Lograge
           </a>
         </HeadingWithAnchor>
-        <div className="space-y-4 text-neutral-600 dark:text-neutral-400">
+        <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
           <p>
             <a
               href="https://github.com/roidrage/lograge"
@@ -411,7 +411,7 @@ export default function ComparisonPage() {
             Logstasher
           </a>
         </HeadingWithAnchor>
-        <div className="space-y-4 text-neutral-600 dark:text-neutral-400">
+        <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
           <p>
             <a
               href="https://github.com/shadabahmed/logstasher"
@@ -439,7 +439,7 @@ export default function ComparisonPage() {
             Logcraft
           </a>
         </HeadingWithAnchor>
-        <div className="space-y-4 text-neutral-600 dark:text-neutral-400">
+        <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
           <p>
             <a
               href="https://github.com/zormandi/logcraft"
@@ -460,7 +460,7 @@ export default function ComparisonPage() {
         <HeadingWithAnchor id="why-logstruct" level={2}>
           Why Choose LogStruct?
         </HeadingWithAnchor>
-        <div className="space-y-4 text-neutral-600 dark:text-neutral-400">
+        <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
           <p>
             LogStruct combines the best features of all these gems while adding
             unique capabilities:

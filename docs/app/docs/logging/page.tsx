@@ -9,7 +9,7 @@ export default function LoggingDocsPage() {
       <HeadingWithAnchor id="logging-to-stdout" level={1}>
         Logging to STDOUT (12‑Factor)
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         LogStruct embraces{' '}
         <a
           className="underline"
@@ -29,7 +29,7 @@ export default function LoggingDocsPage() {
       <HeadingWithAnchor id="rails-defaults" level={2}>
         Rails Defaults vs. LogStruct
       </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
           <b>Rails (development):</b> writes to <code>log/development.log</code>{' '}
           by default; the server console shows Puma boot lines, not application
@@ -53,7 +53,7 @@ export default function LoggingDocsPage() {
       <HeadingWithAnchor id="dev-parity" level={2}>
         Make Development Match Test/Production
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400">
+      <p className="text-neutral-600 dark:text-neutral-300">
         Opt‑in locally so development behaves like test/production:
       </p>
       <CodeBlock language="bash">
@@ -80,7 +80,7 @@ config.logger = ActiveSupport::TaggedLogging.new(logger)`}
       <HeadingWithAnchor id="production-recommendations" level={2}>
         Production Recommendations
       </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
           Ensure <code>RAILS_LOG_TO_STDOUT=1</code> (many platforms set this by
           default).

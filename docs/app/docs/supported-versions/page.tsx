@@ -19,7 +19,7 @@ export default async function SupportedVersionsPage() {
       <HeadingWithAnchor id="ruby-versions" level={2}>
         Ruby Version
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400">
+      <p className="text-neutral-600 dark:text-neutral-300">
         LogStruct requires Ruby <span className="text-gray-200">3.2.0</span> or
         higher.
       </p>
@@ -27,7 +27,7 @@ export default async function SupportedVersionsPage() {
       <HeadingWithAnchor id="required-dependencies" level={2}>
         Required Dependencies
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         These gems are required for LogStruct to function properly.
       </p>
 
@@ -74,7 +74,7 @@ export default async function SupportedVersionsPage() {
       <HeadingWithAnchor id="optional-integrations" level={2}>
         Optional Integrations
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct provides seamless integration with these gems, but they are
         not required for its core functionality.
       </p>
@@ -129,7 +129,7 @@ export default async function SupportedVersionsPage() {
       <HeadingWithAnchor id="how-to-use" level={2}>
         How to Use Integrations
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400">
+      <p className="text-neutral-600 dark:text-neutral-300">
         To use LogStruct with any of the optional integrations, simply add the
         desired gem to your Gemfile and LogStruct will automatically detect and
         configure it. See the <a href="/docs/integrations">Integrations</a> page

@@ -126,7 +126,7 @@ export function GitHubStatus() {
         </div>
         <h3 className="text-xl font-semibold">Build Status</h3>
       </div>
-      <p className="text-neutral-600 dark:text-neutral-400">
+      <p className="text-neutral-600 dark:text-neutral-300">
         CI/CD pipeline status:{' '}
         {workflowStatus.loading ? (
           <span className="text-blue-600 dark:text-blue-400 font-semibold inline-flex items-center h-5">
@@ -185,7 +185,7 @@ export function GitHubStatus() {
             <span>Action Required</span>
           </span>
         ) : workflowStatus.conclusion === 'neutral' ? (
-          <span className="text-neutral-600 dark:text-neutral-400 font-semibold inline-flex items-center h-5">
+          <span className="text-neutral-600 dark:text-neutral-300 font-semibold inline-flex items-center h-5">
             <span className="flex items-center justify-center h-4 w-4 mr-1">
               ◯
             </span>
@@ -199,7 +199,7 @@ export function GitHubStatus() {
             <span>Stale</span>
           </span>
         ) : (
-          <span className="text-neutral-600 dark:text-neutral-400 font-semibold inline-flex items-center h-5">
+          <span className="text-neutral-600 dark:text-neutral-300 font-semibold inline-flex items-center h-5">
             <span>
               {workflowStatus.conclusion || workflowStatus.status || 'Unknown'}
             </span>

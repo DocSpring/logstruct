@@ -85,7 +85,7 @@ export function MainNav() {
                         <div className="text-sm font-medium leading-none">
                           Configuration
                         </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-400">
+                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-300">
                           Learn how to customize LogStruct for your application
                         </p>
                       </a>
@@ -100,7 +100,7 @@ export function MainNav() {
                         <div className="text-sm font-medium leading-none">
                           Integrations
                         </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-400">
+                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-300">
                           Explore the built-in integrations with popular gems
                         </p>
                       </a>
@@ -115,7 +115,7 @@ export function MainNav() {
                         <div className="text-sm font-medium leading-none">
                           Type Safety
                         </div>
-                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-400">
+                        <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-300">
                           Using LogStruct with Sorbet for type-safe logging
                         </p>
                       </a>
@@ -151,7 +151,7 @@ export function MainNav() {
       {/* Mobile Navigation */}
       <div className="md:hidden">
         <Sheet>
-          <SheetTrigger className="flex items-center justify-center rounded-md p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-50">
+          <SheetTrigger className="flex items-center justify-center rounded-md p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-50">
             <Menu className="h-6 w-6" />
             <span className="sr-only">Toggle menu</span>
           </SheetTrigger>
@@ -191,25 +191,25 @@ export function MainNav() {
                 </Link>
                 <Link
                   href="/docs/getting-started"
-                  className="text-base text-neutral-600 dark:text-neutral-400"
+                  className="text-base text-neutral-600 dark:text-neutral-300"
                 >
                   Getting Started
                 </Link>
                 <Link
                   href="/docs/configuration"
-                  className="text-base text-neutral-600 dark:text-neutral-400"
+                  className="text-base text-neutral-600 dark:text-neutral-300"
                 >
                   Configuration
                 </Link>
                 <Link
                   href="/docs/integrations"
-                  className="text-base text-neutral-600 dark:text-neutral-400"
+                  className="text-base text-neutral-600 dark:text-neutral-300"
                 >
                   Integrations
                 </Link>
                 <Link
                   href="/docs/sorbet-types"
-                  className="text-base text-neutral-600 dark:text-neutral-400"
+                  className="text-base text-neutral-600 dark:text-neutral-300"
                 >
                   Type Safety
                 </Link>

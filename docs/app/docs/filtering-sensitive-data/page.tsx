@@ -10,7 +10,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="filtering-sensitive-data" level={1}>
         Filtering Sensitive Data
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         LogStruct provides comprehensive protection for sensitive data through
         parameter filtering and string scrubbing, keeping your logs secure while
         still providing useful information for debugging.
@@ -19,7 +19,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="parameter-filtering" level={1} className="mt-16">
         Parameter Filtering
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct automatically filters sensitive data in request parameters,
         job arguments, and other structured data based on key names. When a
         sensitive key is detected, the actual value is replaced with metadata
@@ -29,7 +29,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="how-parameter-filtering-works" level={3}>
         How Parameter Filtering Works
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         When LogStruct encounters a key that matches one of the configured
         sensitive keys, it replaces the value with metadata that provides
         context without exposing sensitive information:
@@ -51,12 +51,12 @@ export default function FilteringSensitiveDataPage() {
 }`}
       </CodeBlock>
 
-      <p className="text-neutral-600 dark:text-neutral-400 mt-6 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mt-6 mb-4">
         For different data types, LogStruct provides different types of
         metadata:
       </p>
 
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400 ml-4">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 ml-4">
         <li>
           <strong>Strings</strong>: Shows class name, but omits byte size for
           sensitive keys
@@ -78,7 +78,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="default-filtered-keys" level={3}>
         Default Filtered Keys
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct filters these keys by default:
       </p>
 
@@ -95,7 +95,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="email-hashing" level={3}>
         Email Hashing for Request Tracing
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         For email addresses, LogStruct provides special handling by generating a
         consistent hash that allows tracing user activity across different log
         entries while still protecting personal information:
@@ -114,7 +114,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="configuring-parameter-filtering" level={3}>
         Configuring Parameter Filtering
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         You can customize which keys are filtered and which keys should include
         hashes:
       </p>
@@ -124,7 +124,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="string-scrubbing" level={1} className="mt-16">
         String Scrubbing
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         In addition to filtering based on key names, LogStruct automatically
         scans all string values for patterns that might contain sensitive
         information, regardless of the key they&apos;re associated with.
@@ -152,7 +152,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="how-string-scrubbing-works" level={3}>
         How String Scrubbing Works
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         String scrubbing uses regular expressions to identify and replace
         sensitive data patterns with descriptive placeholders:
       </p>
@@ -168,11 +168,11 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="types-of-scrubbed-data" level={3}>
         Types of Scrubbed Data
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct can detect and scrub the following types of sensitive data:
       </p>
 
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400 ml-4">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 ml-4">
         <li>
           <strong>Email addresses</strong>: Replaced with{' '}
           <code>[EMAIL:hash]</code>
@@ -205,7 +205,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="configuring-string-scrubbing" level={3}>
         Configuring String Scrubbing
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         You can enable or disable specific scrubbers as part of the filter
         configuration:
       </p>
@@ -215,7 +215,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="custom-string-scrubbing" level={3}>
         Custom String Scrubbing
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         For data patterns not covered by the built-in scrubbers, you can
         implement a custom string scrubbing handler:
       </p>
@@ -224,7 +224,7 @@ export default function FilteringSensitiveDataPage() {
       <HeadingWithAnchor id="examples" level={1} className="mt-16">
         Examples
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Here are examples of how LogStruct filters and scrubs sensitive data in
         different scenarios:
       </p>

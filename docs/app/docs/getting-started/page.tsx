@@ -10,7 +10,7 @@ export default function GettingStartedPage() {
       <HeadingWithAnchor id="getting-started" level={1}>
         Getting Started with LogStruct
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         Follow these steps to add LogStruct to your Rails application and start
         enjoying the benefits of structured JSON logging.
       </p>
@@ -18,12 +18,12 @@ export default function GettingStartedPage() {
       <HeadingWithAnchor id="installation" level={2}>
         Installation
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         {`Add this line to your application's Gemfile:`}
       </p>
       <CodeBlock language="ruby">{`gem 'logstruct'`}</CodeBlock>
 
-      <p className="text-neutral-600 dark:text-neutral-400 mt-6 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mt-6 mb-4">
         And then execute:
       </p>
       <CodeBlock language="bash">bundle install</CodeBlock>
@@ -35,7 +35,7 @@ export default function GettingStartedPage() {
       <HeadingWithAnchor id="basic-configuration" level={2}>
         Basic Configuration
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         While LogStruct works out of the box with zero configuration, you might
         want to customize it to better suit your application. Create a new file
         at{' '}
@@ -53,7 +53,7 @@ export default function GettingStartedPage() {
       <HeadingWithAnchor id="basic-usage" level={2}>
         Basic Usage
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         You can use LogStruct with the standard Rails logger:
       </p>
 
@@ -61,7 +61,7 @@ export default function GettingStartedPage() {
         {getCodeExample('getting_started_basic_logging').code}
       </CodeBlock>
 
-      <p className="text-neutral-600 dark:text-neutral-400 mt-6">
+      <p className="text-neutral-600 dark:text-neutral-300 mt-6">
         LogStruct will automatically convert all logs to JSON format with a
         consistent structure, making them easy to parse and search in log
         management systems.
@@ -70,10 +70,10 @@ export default function GettingStartedPage() {
       <HeadingWithAnchor id="next-steps" level={2}>
         Next Steps
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Explore these pages to learn more about LogStruct:
       </p>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
           <a href="/docs/configuration">Configuration</a> - Learn how to
           customize LogStruct for your application

@@ -67,10 +67,10 @@ export async function EnumsList() {
             <HeadingWithAnchor id={`enums-${shortName.toLowerCase()}`}>
               <code>{shortName}</code>
             </HeadingWithAnchor>
-            <p className="text-neutral-600 dark:text-neutral-400 mb-2">
+            <p className="text-neutral-600 dark:text-neutral-300 mb-2">
               {getEnumDescription(enumName)}
             </p>
-            <ul className="list-disc list-inside space-y-1 text-neutral-600 dark:text-neutral-400 ml-4">
+            <ul className="list-disc list-inside space-y-1 text-neutral-600 dark:text-neutral-300 ml-4">
               {values.map(({ name }) => (
                 <li key={`${enumName}-${name}`}>
                   <code className="py-0.5 text-neutral-800 dark:text-neutral-200 rounded">

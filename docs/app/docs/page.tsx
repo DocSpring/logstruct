@@ -11,7 +11,7 @@ export default function DocsPage() {
       <HeadingWithAnchor id="introduction" level={1}>
         Introduction
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         LogStruct adds JSON structured logging to any Rails app. Simply add the
         gem to your Gemfile and add an initializer to configure it. Now your
         Rails app prints beautiful JSON logs to STDOUT.
@@ -20,7 +20,7 @@ export default function DocsPage() {
       <HeadingWithAnchor id="features" level={2}>
         Features
       </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
           JSON logging enabled by default in production and test environments.
         </li>

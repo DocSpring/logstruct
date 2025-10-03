@@ -12,13 +12,13 @@ export default function ConfigurationPage() {
       <HeadingWithAnchor id="configuration" level={1}>
         Configuration
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         LogStruct is designed to be highly configurable while working with
         sensible defaults. You can customize how and where logs are generated,
         which integrations are enabled, and how errors are handled.
       </p>
 
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Create a file at{' '}
         <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
           config/initializers/logstruct.rb
@@ -76,7 +76,7 @@ export default function ConfigurationPage() {
       <HeadingWithAnchor id="environment-configuration">
         Environment Configuration
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct supports different environments and handles them
         appropriately:
       </p>
@@ -86,7 +86,7 @@ export default function ConfigurationPage() {
       <HeadingWithAnchor id="development-preview">
         Preview Production Logs in Development
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct is disabled by default in development. When you explicitly
         enable it (for example, <code>LOGSTRUCT_ENABLED=true rails s</code> or
         setting <code>config.enabled = true</code>), LogStruct uses the same
@@ -121,7 +121,7 @@ end`}
       <HeadingWithAnchor id="integration-configuration">
         Integration Configuration
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct integrates with many popular gems. You can enable or disable
         specific integrations:
       </p>
@@ -131,7 +131,7 @@ end`}
       <HeadingWithAnchor id="filtering-sensitive-data">
         Filtering Sensitive Data
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct includes robust filtering for sensitive data to ensure privacy
         and security:
       </p>
@@ -152,7 +152,7 @@ end`}
       <HeadingWithAnchor id="error-handling-configuration">
         Error Handling Configuration
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct provides customizable error handling modes to control how
         errors are processed. You probably don&apos;t want type-checking errors
         or internal logging-related errors to crash your application, so our
@@ -169,7 +169,7 @@ end`}
       <HeadingWithAnchor id="custom-lograge-options">
         Custom Lograge Options
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         You can extend Lograge request logging with custom fields:
       </p>
 
@@ -178,7 +178,7 @@ end`}
       <HeadingWithAnchor id="custom-string-scrubbing">
         Custom String Scrubbing
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         You can implement custom string scrubbers to filter out sensitive data
         that isn&apos;t caught by the built-in filters:
       </p>
@@ -188,7 +188,7 @@ end`}
       <HeadingWithAnchor id="custom-error-reporting">
         Custom Error Reporting
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         {/* cspell:ignore doesn */}
         If LogStruct doesn&apos;t support your error reporting service, you can
         register a custom error reporting handler. (Or submit a PR!)
@@ -199,7 +199,7 @@ end`}
       <HeadingWithAnchor id="sorbet-integration">
         Sorbet Integration
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct integrates with Sorbet to handle type checking errors based on
         the environment. We raise type errors or logging-related errors in
         test/development so you can catch them early, but we only log or report

@@ -55,7 +55,7 @@ data "logstruct_pattern" "email_delivered" {
   return (
     <div className="space-y-10">
       <h1 className="text-3xl font-bold mb-2">Terraform Provider</h1>
-      <p className="text-neutral-600 dark:text-neutral-400">
+      <p className="text-neutral-600 dark:text-neutral-300">
         The LogStruct Terraform provider offers type-safe helpers for building
         CloudWatch filter patterns from your structured logs, and validates
         struct/event combinations at plan time.
@@ -116,7 +116,7 @@ variable "namespace" { type = string }`}
 
       <section id="recipes" className="space-y-4">
         <h2 className="text-2xl font-semibold">Recipes</h2>
-        <p className="text-neutral-600 dark:text-neutral-400">
+        <p className="text-neutral-600 dark:text-neutral-300">
           A few helpful patterns you can copy and adapt:
         </p>
         <CodeBlock language="hcl" title="Count Email Deliveries">
@@ -131,7 +131,7 @@ variable "namespace" { type = string }`}
         <CodeBlock language="hcl" title="Provider Reference: Compile Pattern">
           {providerPattern}
         </CodeBlock>
-        <p className="text-neutral-600 dark:text-neutral-400">
+        <p className="text-neutral-600 dark:text-neutral-300">
           For delivery failures, use metric math to compare attempts vs.
           delivered counts. CloudWatch filter patterns do not support numeric
           comparisons, so slow-query thresholds are usually handled downstream

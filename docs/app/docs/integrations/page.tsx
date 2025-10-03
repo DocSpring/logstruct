@@ -20,7 +20,7 @@ export default function IntegrationsPage() {
       <HeadingWithAnchor id="integrations" level={1}>
         Integrations
       </HeadingWithAnchor>
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         LogStruct integrates with many popular gems and Rails components to
         provide comprehensive structured logging throughout your application.
         These integrations automatically hook into important events and capture
@@ -41,7 +41,7 @@ export default function IntegrationsPage() {
               <HeadingWithAnchor id={getTitleId(title)}>
                 {title}
               </HeadingWithAnchor>
-              <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+              <p className="text-neutral-600 dark:text-neutral-300 mb-4">
                 {description}
               </p>
 
@@ -89,7 +89,7 @@ export default function IntegrationsPage() {
         <HeadingWithAnchor id="sorbet-integration">
           Sorbet Integration
         </HeadingWithAnchor>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+        <p className="text-neutral-600 dark:text-neutral-300 mb-4">
           LogStruct integrates with Sorbet to handle type checking errors
           appropriately based on the environment. We raise any logging-related
           errors in test/development and log or report them in production to

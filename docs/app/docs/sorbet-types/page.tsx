@@ -19,20 +19,20 @@ export default async function TypeSafetyPage() {
         width={100}
         height={100}
       />
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         <a href="https://sorbet.org/" target="_blank" rel="noopener noreferrer">
           Sorbet
         </a>{' '}
         is a static type checker for Ruby. Static type-checking has many
         benefits:
       </p>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-400">
+      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>Catches errors at development time, not at runtime</li>
         <li>Ensures consistent log structure</li>
         <li>Provides better IDE documentation and autocompletion</li>
       </ul>
 
-      <p className="text-lg text-neutral-600 dark:text-neutral-400">
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
         LogStruct is built with Sorbet and provides full type-checking support.
         We use it to catch errors during development and test and keep the code
         bug-free.
@@ -41,7 +41,7 @@ export default async function TypeSafetyPage() {
       <HeadingWithAnchor id="adding-sorbet">
         Adding Sorbet to Your Application
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         To fully utilize LogStruct&apos;s type safety features, you can add
         Sorbet to your application:
       </p>
@@ -58,7 +58,7 @@ gem "sorbet-runtime"`}
 bundle exec srb init`}
       </CodeBlock>
 
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         See the <a href="https://sorbet.org/docs/overview">Sorbet docs</a> for
         more details.
       </p>
@@ -66,7 +66,7 @@ bundle exec srb init`}
       <HeadingWithAnchor id="using-logstruct-with-sorbet">
         Using LogStruct with Sorbet
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct uses predefined log classes with strict typing. This ensures
         that your logs have a consistent format and that required fields are
         present and have the right type.
@@ -77,7 +77,7 @@ bundle exec srb init`}
       <HeadingWithAnchor id="error-handling">
         Error Handling for Type Errors
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct configures Sorbet error handlers to log and report
         type-checking errors. If you already use Sorbet and you want to keep
         using your own error handlers, set{' '}
@@ -89,7 +89,7 @@ bundle exec srb init`}
       <HeadingWithAnchor id="custom-log-classes">
         Custom Typed Logs
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Define your own typed logs by composing LogStruct interfaces and
         helpers. Include <code>LogStruct::Log::Interfaces::CommonFields</code>,{' '}
         <code>LogStruct::Log::Interfaces::AdditionalDataField</code>, and the
@@ -111,7 +111,7 @@ bundle exec srb init`}
       <HeadingWithAnchor id="builtin-log-classes" level={1}>
         Built-In Log Classes
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Log classes are{' '}
         <a href="https://sorbet.org/docs/tstruct">typed structs</a> under the{' '}
         <code className="text-neutral-800 dark:text-neutral-100">
@@ -124,7 +124,7 @@ bundle exec srb init`}
       <HeadingWithAnchor id="built-in-enums" level={1}>
         Built-In Enums
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Common values are defined as{' '}
         <a href="https://sorbet.org/docs/tenum">
           <code>Typed Enums</code>

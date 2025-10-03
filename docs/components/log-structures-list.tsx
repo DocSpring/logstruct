@@ -76,7 +76,7 @@ export async function LogStructuresList() {
           <h3 className="text-xl pt-4 font-semibold text-neutral-800 dark:text-neutral-300">
             <code>{category}</code>
           </h3>
-          <ul className="list-disc list-inside space-y-3 text-neutral-600 dark:text-neutral-400 ml-4">
+          <ul className="list-disc list-inside space-y-3 text-neutral-600 dark:text-neutral-300 ml-4">
             {variants
               .sort((a, b) => a.label?.localeCompare(b.label ?? '') ?? 0)
               .map(({ label, description }) => (

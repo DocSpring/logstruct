@@ -29,7 +29,7 @@ export function EditPageLink({ path }: EditPageLinkProps) {
         href={githubEditUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 flex items-center"
+        className="text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100 flex items-center"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
