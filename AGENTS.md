@@ -2,47 +2,79 @@
 
 ## 🚨 CRITICAL RULES - MUST ALWAYS BE FOLLOWED 🚨
 
-1. **NEVER mark a feature as done until `task all` is passing**
-2. **ALWAYS run `task all` before claiming completion**
+1. **NEVER mark a feature as done until `task ci` is passing**
+2. **ALWAYS run `task ci` before claiming completion**
 3. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
 4. **This rule must ALWAYS be followed no matter what**
 
 ## Commands
 
+All commands use [Task](https://taskfile.dev) - run `task --list` to see all available tasks.
+
 ### Core Commands
 
 - Setup: `scripts/setup.sh`
-- Run all checks: `task all` (runs typecheck, export, lint, test, etc.)
-- Run all checks with auto-fix: `task fix`
+- Run full CI validation: `task ci` (typecheck, lint, spellcheck, tests, etc.)
+- Auto-fix lint issues then run CI: `task fix`
 - Interactive console: `scripts/console.rb`
 
 ### Testing Commands
 
-- Run all tests (unit + Rails integration): `scripts/all_tests.sh`
-- Run all Ruby unit tests: `scripts/test.rb`
-- Run single test file: `scripts/test.rb test/path_to_test.rb`
-- Run test at specific line: `scripts/test.rb test/path_to_test.rb:LINE_NUMBER`
-- Run test by name: `scripts/test.rb -n=test_method_name`
+- Run all tests (unit + Rails integration): `task test`
+- Run Ruby unit tests only: `task ruby:test`
+- Run Rails integration tests: `task rails:test`
+- Run Rails tests for all supported versions: `task rails:test:matrix`
+- Run frontend tests: `task docs:test`
+- Run single test file: `bundle exec ruby scripts/test.rb test/path_to_test.rb`
+- Run test at specific line: `bundle exec ruby scripts/test.rb test/path_to_test.rb:LINE_NUMBER`
+- Run test by name: `bundle exec ruby scripts/test.rb -n=test_method_name`
 - Debug a specific test: Add `debugger` statements (developer only)
-- Run Rails integration tests: `scripts/rails_tests.sh`
-- Merge coverage reports: `scripts/merge_coverage.sh`
-- Run Next.js TypeScript tests: `cd docs && npm test`
+- Merge coverage reports: `task ruby:coverage:merge`
 
 ### Quality Commands
 
-- Ruby typecheck: `scripts/typecheck.sh`
-- Next.js typecheck: `cd docs && pnpm exec tsc --noEmit`
-- Lint Ruby: `bin/rubocop`
-- Format Ruby: `bin/rubocop -A`
-- Format JS/TS/JSON: `scripts/prettier.sh --write`
-- Lint JS/TS/JSON: `scripts/prettier.sh --check`
-- Spellcheck: `scripts/spellcheck.sh`
+- Run all typechecking: `task typecheck`
+- Run all linting: `task lint`
+- Auto-fix all lint issues: `task lint:fix`
+- Spellcheck: `task spellcheck`
+
+#### Ruby Commands
+
+- Ruby typecheck: `task ruby:typecheck`
+- Lint Ruby: `task ruby:lint`
+- Format Ruby: `task ruby:lint:fix`
+
+#### Frontend Commands
+
+- Next.js typecheck: `task docs:typecheck`
+- Lint frontend: `task docs:lint`
+- Auto-fix frontend lint: `task docs:lint:fix`
+
+#### Formatting Commands
+
+- Format all files (JS/TS/JSON/YAML/MD): `task prettier:write`
+- Check formatting: `task prettier:check`
 
 ### Development Commands
 
-- Generate Sorbet RBI files: `scripts/tapioca.rb`
+- Generate all (structs + catalog): `task generate`
+- Generate Sorbet RBI files: `task ruby:tapioca`
 - Generate spellcheck dictionary: `scripts/generate_lockfile_words.sh`
-- Generate TypeScript + Ruby structs from YAML schemas: `scripts/generate_structs.rb`
+- Check generated files are up to date: `task ruby:check-generated`
+
+### Documentation Commands
+
+- Generate YARD docs: `task yard:generate`
+- Clean YARD docs: `task yard:clean`
+- Regenerate YARD docs: `task yard:regen`
+- Open YARD docs in browser: `task yard:open`
+
+### Gem Commands
+
+- Build gem: `task gem:build`
+- Install gem locally: `task gem:install`
+- Install gem without network: `task gem:install:local`
+- Release gem to RubyGems: `task gem:release`
 
 ## Terraform Provider repo in this workspace
 
