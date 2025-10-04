@@ -53,7 +53,7 @@ module LogStruct
 
           # Log the store operation with structured data
           log_data = Log::CarrierWave::Upload.new(
-            storage: storage.class.name,
+            storage: storage.class.name.split("::").last.downcase.to_sym,
             file_id: identifier,
             filename: file.filename,
             mime_type: file.content_type,
@@ -85,7 +85,7 @@ module LogStruct
 
           # Log the retrieve operation with structured data
           log_data = Log::CarrierWave::Download.new(
-            storage: storage.class.name,
+            storage: storage.class.name.split("::").last.downcase.to_sym,
             file_id: identifier,
             filename: file&.filename,
             mime_type: file&.content_type,

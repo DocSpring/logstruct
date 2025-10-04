@@ -37,10 +37,13 @@ module LogStruct
           end
 
           # Create structured log data
+          # Ensure storage is always a symbol
+          storage_sym = payload[:storage].to_sym
+
           log_data = case event_type
           when Event::Upload
             Log::Shrine::Upload.new(
-              storage: payload[:storage],
+              storage: storage_sym,
               location: payload[:location],
               uploader: payload[:uploader],
               upload_options: payload[:upload_options],
@@ -50,34 +53,34 @@ module LogStruct
             )
           when Event::Download
             Log::Shrine::Download.new(
-              storage: payload[:storage],
+              storage: storage_sym,
               location: payload[:location],
               download_options: payload[:download_options],
               additional_data: payload.except(:storage, :location, :download_options)
             )
           when Event::Delete
             Log::Shrine::Delete.new(
-              storage: payload[:storage],
+              storage: storage_sym,
               location: payload[:location],
               additional_data: payload.except(:storage, :location)
             )
           when Event::Metadata
             Log::Shrine::Metadata.new(
-              storage: payload[:storage],
+              storage: storage_sym,
               location: payload[:location],
               metadata: payload[:metadata],
               additional_data: payload.except(:storage, :location, :metadata)
             )
           when Event::Exist
             Log::Shrine::Exist.new(
-              storage: payload[:storage],
+              storage: storage_sym,
               location: payload[:location],
               exist: payload[:exist],
               additional_data: payload.except(:storage, :location, :exist)
             )
           else
             Log::Shrine::Metadata.new(
-              storage: payload[:storage],
+              storage: storage_sym,
               location: payload[:location],
               metadata: payload[:metadata]
             )

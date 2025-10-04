@@ -71,7 +71,7 @@ module LogStruct
         log_data = case event_type
         when Event::Upload
           Log::ActiveStorage::Upload.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             checksum: event.payload[:checksum]&.to_s,
             duration_ms: duration_ms,
@@ -82,7 +82,7 @@ module LogStruct
           )
         when Event::Download
           Log::ActiveStorage::Download.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             filename: event.payload[:filename],
             range: event.payload[:range],
@@ -90,36 +90,36 @@ module LogStruct
           )
         when Event::Delete
           Log::ActiveStorage::Delete.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s
           )
         when Event::Metadata
           Log::ActiveStorage::Metadata.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             metadata: event.payload[:metadata]
           )
         when Event::Exist
           Log::ActiveStorage::Exist.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             exist: event.payload[:exist]
           )
         when Event::Stream
           Log::ActiveStorage::Stream.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             prefix: event.payload[:prefix]
           )
         when Event::Url
           Log::ActiveStorage::Url.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             url: event.payload[:url]
           )
         else
           Log::ActiveStorage::Metadata.new(
-            storage: service_name.to_s,
+            storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             metadata: event.payload[:metadata]
           )
