@@ -73,12 +73,18 @@ module LogStruct
         # T.untyped because users can pass any logger: ::Logger, ActiveSupport::Logger,
         # custom loggers (FakeLogger in tests), or third-party loggers
         @broadcasts = T.let([], T::Array[T.untyped])
+        # ActiveJob expects logger.formatter to exist and respond to current_tags
+        @formatter = T.let(FormatterProxy.new, FormatterProxy)
       end
 
       # ActiveSupport::BroadcastLogger compatibility
       # These methods allow Rails.logger to broadcast to multiple loggers
       sig { returns(T::Array[T.untyped]) }
       attr_reader :broadcasts
+
+      # ActiveJob compatibility - expects logger.formatter.current_tags
+      sig { returns(FormatterProxy) }
+      attr_reader :formatter
 
       # T.untyped for logger param because we accept any logger-like object:
       # ::Logger, ActiveSupport::Logger, test doubles, etc.
@@ -138,6 +144,16 @@ module LogStruct
         info(msg)
         @broadcasts.each { |logger| logger << msg if logger.respond_to?(:<<) }
         self
+      end
+    end
+
+    # Proxy object to provide ActiveJob-compatible formatter interface
+    class FormatterProxy
+      extend T::Sig
+
+      sig { returns(T::Array[T.any(String, Symbol)]) }
+      def current_tags
+        Thread.current[:activesupport_tagged_logging_tags] || []
       end
     end
   end

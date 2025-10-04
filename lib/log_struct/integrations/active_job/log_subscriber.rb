@@ -81,7 +81,7 @@ module LogStruct
           Log::ActiveJob::BaseFields.new(
             job_id: job.job_id,
             job_class: job.class.to_s,
-            queue_name: job.queue_name,
+            queue_name: job.queue_name&.to_sym,
             executions: job.executions,
             provider_job_id: job.provider_job_id,
             arguments: ((job.class.respond_to?(:log_arguments?) && job.class.log_arguments?) ? job.arguments : nil)
@@ -98,7 +98,7 @@ module LogStruct
           logger.error(log_data)
         end
 
-        sig { returns(::ActiveSupport::Logger) }
+        sig { returns(T.untyped) }
         def logger
           ::ActiveJob::Base.logger
         end

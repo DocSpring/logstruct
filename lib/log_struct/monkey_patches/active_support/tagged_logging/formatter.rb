@@ -8,6 +8,16 @@ require "active_support/tagged_logging"
 # directly into the hash instead of being prepended as strings
 module ActiveSupport
   module TaggedLogging
+    extend T::Sig
+
+    # Add class-level current_tags method for compatibility with Rails code
+    # that expects to call ActiveSupport::TaggedLogging.current_tags
+    # Use thread-local storage directly like Rails does internally
+    sig { returns(T::Array[T.any(String, Symbol)]) }
+    def self.current_tags
+      Thread.current[:activesupport_tagged_logging_tags] || []
+    end
+
     module FormatterExtension
       extend T::Sig
       extend T::Helpers
@@ -23,7 +33,8 @@ module ActiveSupport
         data = {message: data.to_s} unless data.is_a?(Hash)
 
         # Add current tags to the hash if present
-        tags = current_tags
+        # Use thread-local storage directly as fallback if current_tags method doesn't exist
+        tags = T.unsafe(self).respond_to?(:current_tags) ? current_tags : (Thread.current[:activesupport_tagged_logging_tags] || [])
         data[:tags] = tags if tags.present?
 
         # Call the original formatter with our enhanced data

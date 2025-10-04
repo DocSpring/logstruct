@@ -152,8 +152,8 @@ module LogStruct
           )
         end
 
-        # Add file appender if configured and not already logging to STDOUT/StringIO
-        if app.config.paths["log"].first && io != $stdout && !io.is_a?(StringIO)
+        # Add file appender if Rails has a log path configured (normal Rails behavior)
+        if app.config.paths["log"].first
           ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,
@@ -164,14 +164,14 @@ module LogStruct
 
       sig { params(app: T.untyped).returns(T.untyped) }
       def self.determine_output(app)
-        # Always honor explicit STDOUT directive, even in test, or when LogStruct is enabled via env
-        return $stdout if ENV["RAILS_LOG_TO_STDOUT"].present? || ENV["LOGSTRUCT_ENABLED"].to_s.strip.downcase == "true"
+        # Always honor explicit STDOUT directive
+        return $stdout if ENV["RAILS_LOG_TO_STDOUT"].present?
 
         if Rails.env.test?
-          # Default to StringIO to keep test output clean unless STDOUT is requested
+          # Use StringIO in test to keep stdout clean
           StringIO.new
         else
-          # Default to STDOUT for app logs
+          # Use STDOUT for app logs in dev/production
           $stdout
         end
       end
@@ -222,7 +222,11 @@ module LogStruct
         # Also replace various component loggers
         ActiveRecord::Base.logger = logger if defined?(ActiveRecord::Base)
         ActionController::Base.logger = logger if defined?(ActionController::Base)
-        ActionMailer::Base.logger = logger if defined?(ActionMailer::Base)
+        if defined?(ActionMailer::Base)
+          ActionMailer::Base.logger = logger
+          # Ensure ActionMailer.logger is also set (it might be accessed directly)
+          T.unsafe(::ActionMailer).logger = logger if T.unsafe(::ActionMailer).respond_to?(:logger=)
+        end
         ActiveJob::Base.logger = logger if defined?(ActiveJob::Base)
         ActionView::Base.logger = logger if defined?(ActionView::Base)
         ActionCable.server.config.logger = logger if defined?(ActionCable)

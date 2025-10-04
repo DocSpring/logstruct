@@ -17,6 +17,7 @@ dotenv
 Dotenv
 Fanout
 favicons
+popen
 gettime
 goodjob
 Healthcheck

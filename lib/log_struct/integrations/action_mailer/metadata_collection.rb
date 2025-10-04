@@ -54,11 +54,13 @@ module LogStruct
 
         sig { params(log_data: T::Hash[Symbol, T.untyped]).void }
         def self.add_current_tags_to_log_data(log_data)
-          # Get current tags from ActiveSupport::TaggedLogging if available
-          if ::ActiveSupport::TaggedLogging.respond_to?(:current_tags)
-            tags = T.unsafe(::ActiveSupport::TaggedLogging).current_tags
-            log_data[:tags] = tags if tags.present?
+          # Get current tags from thread-local storage or ActiveSupport::TaggedLogging
+          tags = if ::ActiveSupport::TaggedLogging.respond_to?(:current_tags)
+            T.unsafe(::ActiveSupport::TaggedLogging).current_tags
+          else
+            Thread.current[:activesupport_tagged_logging_tags] || []
           end
+          log_data[:tags] = tags if tags.present?
 
           # Get request_id from ActionDispatch if available
           if ::ActionDispatch::Request.respond_to?(:current_request_id) &&

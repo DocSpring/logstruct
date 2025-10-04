@@ -22,6 +22,9 @@ require "log_struct/semantic_logger/logger"
 require "log_struct/semantic_logger/setup"
 require "log_struct/rails_boot_banner_silencer"
 
+# Monkey patches for Rails compatibility
+require "log_struct/monkey_patches/active_support/tagged_logging/formatter"
+
 module LogStruct
   extend T::Sig
 
