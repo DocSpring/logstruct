@@ -34,7 +34,7 @@ module LogStruct
         const :timestamp, Time, factory: -> { Time.now }
         const :level, Level, default: Level::Info
 
-        const :storage, String
+        const :storage, Symbol
         const :file_id, String
 
         # Event-specific fields

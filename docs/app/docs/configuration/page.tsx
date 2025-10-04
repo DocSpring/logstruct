@@ -44,7 +44,8 @@ export default function ConfigurationPage() {
           analysis)
         </li>
         <li>
-          <strong>CI test runs</strong> → JSON logs (to catch production bugs)
+          <strong>Test runs</strong> → JSON logs (to catch production bugs in
+          both local and CI environments)
         </li>
         <li>
           <strong>Local development</strong> → Human-readable logs (disabled by
@@ -55,9 +56,6 @@ export default function ConfigurationPage() {
         </li>
         <li>
           <strong>Rake tasks</strong> → Human-readable logs
-        </li>
-        <li>
-          <strong>Local test runs</strong> → Human-readable logs (for debugging)
         </li>
       </ul>
 
@@ -78,7 +76,7 @@ export default function ConfigurationPage() {
           <code>LOGSTRUCT_ENABLED=false</code> to disable completely.
           <div className="mt-2">
             <CodeBlock language="bash">
-              {`# Force JSON logs in console for debugging\nLOGSTRUCT_ENABLED=true rails console\n\n# Force JSON logs in local tests\nLOGSTRUCT_ENABLED=true rails test`}
+              {`# Force JSON logs in console for debugging\nLOGSTRUCT_ENABLED=true rails console\n\n# Disable JSON logs in tests (not recommended)\nLOGSTRUCT_ENABLED=false rails test`}
             </CodeBlock>
           </div>
         </li>
@@ -155,13 +153,13 @@ end`}
       </Callout>
 
       <Callout type="info">
-        To force JSON logs in console, local test runs, or other Rake tasks
-        (e.g., for debugging or inspecting the exact JSON output), set{' '}
+        To force JSON logs in console or other Rake tasks (e.g., for debugging
+        or inspecting the exact JSON output), set{' '}
         <code>LOGSTRUCT_ENABLED=true</code> when running the command:
         <br />
         <code>LOGSTRUCT_ENABLED=true rails console</code>
         <br />
-        <code>LOGSTRUCT_ENABLED=true rails test</code>
+        <code>LOGSTRUCT_ENABLED=true rake db:migrate</code>
       </Callout>
 
       <HeadingWithAnchor id="integration-configuration">

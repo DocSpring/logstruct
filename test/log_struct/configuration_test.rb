@@ -170,7 +170,7 @@ module LogStruct
       filter_params = [regex_filter]
 
       filter_params.define_singleton_method(:clear) do
-        replace([])
+        T.unsafe(self).replace([])
       end
 
       mock_config = T.unsafe(Object.new)
@@ -194,8 +194,8 @@ module LogStruct
 
       assert ParamFilters.should_filter_key?("api_token"), "regex-based Rails filters should continue filtering keys"
     ensure
-      LogStruct.config.filters.filter_keys = original_filter_keys
-      LogStruct.config.filters.filter_matchers = original_matchers
+      LogStruct.config.filters.filter_keys = T.must(original_filter_keys)
+      LogStruct.config.filters.filter_matchers = T.must(original_matchers)
     end
 
     # Test server process detection
@@ -239,16 +239,16 @@ module LogStruct
       ::Rails.send(:remove_const, :Console) if defined?(::Rails::Console)
     end
 
-    def test_disabled_for_local_test_runs
+    def test_enabled_for_test_runs
       LogStruct.config.enabled = false
       LogStruct.config.enabled_environments = [:test]
 
-      # No CI env var, no Rails::Server, no Rails::Console
+      # Test environment always enables JSON logging (both local and CI)
       ClimateControl.modify CI: nil do
         Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
           LogStruct.set_enabled_from_rails_env!
 
-          assert_not LogStruct.config.enabled, "LogStruct should be disabled for local test runs"
+          assert LogStruct.config.enabled, "LogStruct should be enabled for all test runs"
         end
       end
     end
@@ -267,16 +267,16 @@ module LogStruct
       end
     end
 
-    def test_ci_false_treated_as_not_ci
+    def test_enabled_regardless_of_ci_value
       LogStruct.config.enabled = false
       LogStruct.config.enabled_environments = [:test]
 
-      # CI=false should be treated as not CI
+      # Test environment enables JSON logging regardless of CI value
       ClimateControl.modify CI: "false" do
         Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
           LogStruct.set_enabled_from_rails_env!
 
-          assert_not LogStruct.config.enabled, "LogStruct should be disabled when CI=false"
+          assert LogStruct.config.enabled, "LogStruct should be enabled in test environment regardless of CI value"
         end
       end
     end
@@ -351,12 +351,12 @@ module LogStruct
         LogStruct.config.enabled = false
       end
 
-      # Test that empty string is treated as CI not set
+      # Test that empty string CI value still enables in test environment
       ClimateControl.modify CI: "" do
         Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
           LogStruct.set_enabled_from_rails_env!
 
-          assert_not LogStruct.config.enabled, "CI='' (empty string) should be treated as not CI"
+          assert LogStruct.config.enabled, "Test environment should be enabled regardless of CI value"
         end
       end
     end

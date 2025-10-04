@@ -10,7 +10,7 @@ base:
   default_required: false
   fields:
     Storage:
-      type: String
+      type: Symbol
       required: true
     FileId:
       type: String

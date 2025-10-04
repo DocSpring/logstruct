@@ -45,6 +45,8 @@
       "type": "string",
       "enum": [
         "String",
+        "Symbol",
+        "T.any(String, Symbol)",
         "Integer",
         "T.any(Integer, String)",
         "Float",

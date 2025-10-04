@@ -48,7 +48,9 @@ class ErrorHandlingTest < Minitest::Test
     end
 
     assert_equal 1, logged.length
-    assert_equal "log me", logged.first.message
+    log_entry = T.unsafe(logged).first
+
+    assert_equal "log me", log_entry.message
   end
 
   def test_handle_exception_report

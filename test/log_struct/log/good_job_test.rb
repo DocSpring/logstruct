@@ -25,12 +25,12 @@ module LogStruct
           thread_id: Thread.current.object_id.to_s(36),
           job_id: "job_123",
           job_class: "UserNotificationJob",
-          queue_name: "default"
+          queue_name: :default
         )
 
         assert_equal "job_123", log_entry.job_id
         assert_equal "UserNotificationJob", log_entry.job_class
-        assert_equal "default", log_entry.queue_name
+        assert_equal :default, log_entry.queue_name
       end
 
       test "accepts execution context fields" do
@@ -99,7 +99,7 @@ module LogStruct
           level: Level::Info,
           job_id: "job_123",
           job_class: "UserNotificationJob",
-          queue_name: "default",
+          queue_name: :default,
           arguments: ["user_123"],
           executions: 1,
           process_id: 1234,
@@ -120,7 +120,7 @@ module LogStruct
         # Check job identification
         assert_equal "job_123", hash[:job_id]
         assert_equal "UserNotificationJob", hash[:job_class]
-        assert_equal "default", hash[:queue_name]
+        assert_equal :default, hash[:queue_name]
         # Removed batch_id and job_label fields from schema
 
         # Check execution context

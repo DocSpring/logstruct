@@ -60,10 +60,10 @@ module LogStruct
           else
             is_console = console_process?
             is_server = server_process?
-            is_ci = ci_build?
+            ci_build?
             in_enabled_env = config.enabled_environments.include?(::Rails.env.to_sym)
 
-            in_enabled_env && !is_console && (is_server || (::Rails.env.test? && is_ci))
+            in_enabled_env && !is_console && (is_server || ::Rails.env.test?)
           end
         end
 

@@ -72,7 +72,7 @@ module LogStruct
           mock_execution = OpenStruct.new(
             job_id: "job_123",
             job_class: "TestJob",
-            queue_name: "default",
+            queue_name: :default,
             executions: 1,
             scheduled_at: Time.now,
             priority: 5

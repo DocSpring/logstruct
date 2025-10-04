@@ -9,7 +9,7 @@ events:
   Request:
     default_required: false
     fields:
-      Format: String
+      Format: Symbol
       Controller: String
       Action: String
       Status: Integer

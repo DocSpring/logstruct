@@ -41,7 +41,7 @@ module LogStruct
       const :request_id, T.nilable(String), default: nil
 
       # Event-specific fields
-      const :format, T.nilable(String), default: nil
+      const :format, T.nilable(Symbol), default: nil
       const :controller, T.nilable(String), default: nil
       const :action, T.nilable(String), default: nil
       const :status, T.nilable(Integer), default: nil

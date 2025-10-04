@@ -6,7 +6,7 @@ We support all your other favorite gems too, like Sidekiq, Sentry, and Shrine. (
 
 ## Features
 
-- JSON logging enabled by default for server processes in production and test environments, and for CI test runs (automatically disabled for console, local tests, and other Rake tasks)
+- JSON logging enabled by default for server processes in production and test environments (automatically disabled for console and other Rake tasks)
 - ActionMailer integration for email delivery logging
 - ActiveJob integration for job execution logging
 - Sidekiq integration for background job logging
@@ -61,8 +61,7 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 ### Default behavior by process type
 
 - **Server processes** (`rails server`): JSON logging is enabled by default in production and test environments
-- **CI test runs** (`rails test` when `CI=true`): JSON logging is enabled by default to catch production bugs in your automated tests
-- **Local test runs** (`rails test` locally): JSON logging is disabled by default, providing human-readable logs for debugging
+- **Test runs** (`rails test`): JSON logging is enabled by default in test environment to ensure tests catch production bugs
 - **Console** (`rails console`): JSON logging is disabled by default in all environments, providing human-readable logs instead
 - **Other Rake tasks** (`rake db:migrate`, etc.): JSON logging is disabled by default in production, providing human-readable logs instead
 - **Development environment**: Disabled by default for all process types. Enable explicitly via `LOGSTRUCT_ENABLED=true` or `LogStruct.configure { |c| c.enabled = true }`.
@@ -76,7 +75,7 @@ LogStruct.configure do |c|
 end
 ```
 
-To force JSON logs in console, local test runs, or other Rake tasks (e.g., for debugging), set `LOGSTRUCT_ENABLED=true` in your environment.
+To force JSON logs in console or other Rake tasks (e.g., for debugging), set `LOGSTRUCT_ENABLED=true` in your environment.
 
 ## Documentation
 

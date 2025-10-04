@@ -35,7 +35,7 @@ module LogStruct
         const :level, Level, default: Level::Info
 
         # Event-specific fields
-        const :storage, String
+        const :storage, Symbol
         const :location, String
         const :download_options, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
 

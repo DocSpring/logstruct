@@ -104,6 +104,8 @@ Sorbet/TrueSigil:
     - 'scripts/**/*.rb'
   Exclude:
     - 'scripts/test.rb' # Has dynamic code that Sorbet can't handle
+    - 'test/log_struct/formatter_test.rb' # Metaprogramming-heavy, uses typed: false
+    - 'test/log_struct/rails_boot_banner_silencer_test.rb' # Metaprogramming-heavy, uses typed: false
   SuggestedStrictness: true
 
 # Don't try to validate typing on generated Sorbet RBI files

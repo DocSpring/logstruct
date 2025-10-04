@@ -225,12 +225,12 @@ module LogStruct
       wrapper = MultiErrorReporter.reporter
 
       assert_respond_to wrapper, :original
-      assert_same custom_reporter, wrapper.original
+      assert_same custom_reporter, T.cast(wrapper, MultiErrorReporter::CallableReporterWrapper).original
 
       MultiErrorReporter.report_error(@exception, @context)
 
       assert_equal 1, calls.size
-      payload = calls.first
+      payload = T.unsafe(calls).first
 
       assert_equal @exception, payload[:error]
       assert_equal @context, payload[:context]
@@ -241,10 +241,10 @@ module LogStruct
       calls = []
       custom = ->(error, context) { calls << [error, context] }
 
-      MultiErrorReporter.reporter = custom
+      MultiErrorReporter.reporter = T.cast(custom, T.proc.params(arg0: StandardError, arg1: T.nilable(T::Hash[Symbol, T.untyped]), arg2: Source).void)
       wrapper = MultiErrorReporter.reporter
 
-      assert_kind_of Proc, wrapper.original
+      assert_kind_of Proc, T.cast(wrapper, MultiErrorReporter::CallableReporterWrapper).original
 
       MultiErrorReporter.report_error(@exception, @context)
 

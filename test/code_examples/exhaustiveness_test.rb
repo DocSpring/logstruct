@@ -57,13 +57,13 @@ module LogStruct
         start_idx = content.index(begin_marker)
 
         assert start_idx, "BEGIN marker for #{id} not found in #{EXAMPLE_FILE}"
-        after_start = content[start_idx..]
+        after_start = T.must(content[start_idx..])
 
-        end_idx = after_start.index(end_marker)
+        end_idx = T.must(after_start).index(end_marker)
 
         assert end_idx, "END marker for #{id} not found in #{EXAMPLE_FILE}"
 
-        after_start[0...end_idx]
+        T.must(after_start)[0...end_idx]
       end
 
       def props_from_struct(path)

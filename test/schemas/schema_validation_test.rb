@@ -6,6 +6,9 @@ require "json_schemer"
 require "yaml"
 
 class SchemaValidationTest < Minitest::Test
+  extend T::Sig
+
+  sig { void }
   def test_log_source_schemas_are_valid
     root = File.expand_path("../..", __dir__)
     schema_path = File.join(root, "schemas", "meta", "log-source-schema.json")
@@ -21,6 +24,7 @@ class SchemaValidationTest < Minitest::Test
 
   private
 
+  sig { params(file: String, errors: T::Array[T::Hash[String, T.untyped]]).returns(String) }
   def format_errors(file, errors)
     lines = ["Schema validation failed for #{relative(file)}:"]
     errors.first(20).each do |err|
@@ -30,6 +34,7 @@ class SchemaValidationTest < Minitest::Test
     lines.join("\n")
   end
 
+  sig { params(path: String).returns(String) }
   def relative(path)
     Pathname.new(path).relative_path_from(Pathname.new(File.expand_path("../..", __dir__))).to_s
   end

@@ -19,12 +19,12 @@ module LogStruct
     class ActiveStorage
       class BaseFields < T::Struct
         extend T::Sig
-        const :storage, String
+        const :storage, Symbol
         const :file_id, String
 
         Kwargs = T.type_alias do
           {
-            storage: String,
+            storage: Symbol,
             file_id: String
           }
         end

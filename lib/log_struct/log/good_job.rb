@@ -20,7 +20,7 @@ module LogStruct
         extend T::Sig
         const :job_id, T.nilable(String), default: nil
         const :job_class, T.nilable(String), default: nil
-        const :queue_name, T.nilable(String), default: nil
+        const :queue_name, T.nilable(Symbol), default: nil
         const :arguments, T.nilable(T::Array[T.untyped]), default: nil
         const :executions, T.nilable(Integer), default: nil
 
@@ -28,7 +28,7 @@ module LogStruct
           {
             job_id: T.nilable(String),
             job_class: T.nilable(String),
-            queue_name: T.nilable(String),
+            queue_name: T.nilable(Symbol),
             arguments: T.nilable(T::Array[T.untyped]),
             executions: T.nilable(Integer)
           }

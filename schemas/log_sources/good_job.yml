@@ -9,7 +9,7 @@ base:
   fields:
     JobId: String
     JobClass: String
-    QueueName: String
+    QueueName: Symbol
     Arguments: 'T::Array[T.untyped]'
     Executions: Integer
 

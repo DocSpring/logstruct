@@ -1,4 +1,4 @@
-# typed: true
+# typed: false
 # frozen_string_literal: true
 
 require "test_helper"
@@ -75,7 +75,7 @@ class RailsBootBannerSilencerTest < Minitest::Test
     instance = stub_class.new
 
     processed = []
-    boot_called = false
+    boot_called = T.let(false, T::Boolean)
 
     LogStruct::Integrations::Puma.stub(:emit_boot_if_needed!, proc { boot_called = true }) do
       LogStruct::Integrations::Puma.stub(:process_line, ->(line) { processed << line }) do
@@ -192,29 +192,33 @@ class RailsBootBannerSilencerTest < Minitest::Test
     kernel_singleton = Kernel.singleton_class
     kernel_module = Kernel
 
-    kernel_module.class_eval do
-      alias_method :__logstruct_original_instance_require, :require
-      define_method(:require) do |*_args|
-        raise LoadError, "missing"
+    T.unsafe(self).instance_eval do
+      kernel_module.class_eval do
+        alias_method :__logstruct_original_instance_require, :require
+        define_method(:require) do |*_args|
+          raise LoadError, "missing"
+        end
       end
-    end
-    kernel_singleton.class_eval do
-      alias_method :__logstruct_original_module_require, :require
-      define_method(:require) do |*_args|
-        raise LoadError, "missing"
+      kernel_singleton.class_eval do
+        alias_method :__logstruct_original_module_require, :require
+        define_method(:require) do |*_args|
+          raise LoadError, "missing"
+        end
       end
     end
     yield
   ensure
-    kernel_module.class_eval do
-      remove_method :require
-      alias_method :require, :__logstruct_original_instance_require
-      remove_method :__logstruct_original_instance_require
-    end
-    kernel_singleton.class_eval do
-      remove_method :require
-      alias_method :require, :__logstruct_original_module_require
-      remove_method :__logstruct_original_module_require
+    T.unsafe(self).instance_eval do
+      kernel_module.class_eval do
+        remove_method :require
+        alias_method :require, :__logstruct_original_instance_require
+        remove_method :__logstruct_original_instance_require
+      end
+      kernel_singleton.class_eval do
+        remove_method :require
+        alias_method :require, :__logstruct_original_module_require
+        remove_method :__logstruct_original_module_require
+      end
     end
   end
 end

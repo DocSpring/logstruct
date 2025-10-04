@@ -50,7 +50,7 @@ module LogStruct
                 Log::Request.new(
                   http_method: data[:method]&.to_s,
                   path: data[:path]&.to_s,
-                  format: data[:format]&.to_s,
+                  format: data[:format]&.to_sym,
                   controller: data[:controller]&.to_s,
                   action: data[:action]&.to_s,
                   status: status,

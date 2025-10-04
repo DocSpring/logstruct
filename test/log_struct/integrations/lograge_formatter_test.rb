@@ -31,7 +31,7 @@ module LogStruct
         assert_kind_of LogStruct::Log::Request, log
         assert_equal "GET", log.http_method
         assert_equal "/users", log.path
-        assert_equal "json", log.format
+        assert_equal :json, log.format
         assert_equal "Templates", log.controller
         assert_equal "index", log.action
         assert_equal 200, log.status
@@ -48,7 +48,7 @@ module LogStruct
         json_hash = log.serialize
 
         assert_equal "GET", json_hash[:method]
-        assert_equal "json", json_hash[:format]
+        assert_equal :json, json_hash[:format]
         assert_equal :foo, json_hash[:params].keys.first
       end
 

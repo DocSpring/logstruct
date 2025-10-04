@@ -146,7 +146,7 @@ module LogStruct
           Log::GoodJob::BaseFields.new(
             job_id: job&.job_id,
             job_class: job&.job_class,
-            queue_name: job&.queue_name,
+            queue_name: job&.queue_name&.to_sym,
             arguments: job&.arguments,
             executions: execution&.executions
           )

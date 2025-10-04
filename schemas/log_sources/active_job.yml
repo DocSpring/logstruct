@@ -12,7 +12,7 @@ base:
     JobClass:
       type: String
       required: true
-    QueueName: String
+    QueueName: Symbol
     Arguments: 'T::Array[T.untyped]'
     Executions: Integer
     ProviderJobId: String
