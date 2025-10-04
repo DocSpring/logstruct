@@ -63,13 +63,13 @@ export default function Home() {
           <div className="grid grid-cols-1 xl:grid-cols-[42fr_58fr] gap-16 md:gap-24 2xl:gap-36">
             <div className="space-y-6 max-w-xl mx-auto xl:mx-0">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl leading-tight xl:mt-2">
-                Zero-config JSON logging for Ruby on Rails
+                Zero-config structured logging for Ruby on Rails
               </h1>
               <p className="text-lg text-neutral-600 dark:text-neutral-300 my-10">
-                LogStruct is a new way to add type-safe, dev-ops friendly JSON
-                logging to any Ruby on Rails application. Just add the gem to
-                your Gemfile, and your Rails app will print beautiful JSON logs
-                that are easy to search, filter, and visualize.
+                LogStruct is a new way to add type-safe, SOC 2 compliant, and
+                DevOps friendly JSON logs to any Ruby on Rails application. Just
+                add the gem to your Gemfile and your Rails app will print JSON
+                logs that are easy to search, filter, and visualize.
               </p>
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">

@@ -141,6 +141,29 @@ export default function DocsLayout({
                     ]}
                   />
                   <NestedDocNavItem
+                    href="/docs/soc2-compliance"
+                    title="SOC 2 Compliance"
+                    active={pathname.startsWith('/docs/soc2-compliance')}
+                    subHeadings={[
+                      {
+                        id: 'why-logging-matters-for-soc2',
+                        title: 'Why Logging Matters for SOC 2',
+                      },
+                      {
+                        id: 'type-safe-logs-for-forensics',
+                        title: 'Type-Safe Logs for Forensics',
+                      },
+                      {
+                        id: 'sensitive-data-protection',
+                        title: 'Sensitive Data Protection',
+                      },
+                      {
+                        id: 'soc2-audit-benefits',
+                        title: 'Benefits for SOC 2 Audits',
+                      },
+                    ]}
+                  />
+                  <NestedDocNavItem
                     href="/docs/sorbet-types"
                     title="Sorbet Types"
                     active={pathname.startsWith('/docs/sorbet-types')}
