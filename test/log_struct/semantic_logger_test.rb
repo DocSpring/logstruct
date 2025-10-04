@@ -120,6 +120,98 @@ module LogStruct
       assert_respond_to @logger, :push_tags
       assert_respond_to @logger, :pop_tags
       assert_respond_to @logger, :clear_tags!
+      # ActiveSupport::BroadcastLogger compatibility
+      assert_respond_to @logger, :broadcast_to
+      assert_respond_to @logger, :stop_broadcasting_to
+      assert_respond_to @logger, :broadcasts
+      assert_respond_to @logger, :<<
+    end
+
+    test "supports broadcast_to for multiple loggers" do
+      # Create a secondary logger to broadcast to
+      secondary_io = StringIO.new
+      secondary_logger = Logger.new(secondary_io)
+
+      # Add secondary logger to broadcasts
+      @logger.broadcast_to(secondary_logger)
+
+      # Log a message
+      @logger.info("Test broadcast message")
+      ::SemanticLogger.flush
+
+      # Check main logger output
+      main_output = @io.string
+
+      assert_includes main_output, "Test broadcast message"
+
+      # Check secondary logger output
+      secondary_output = secondary_io.string
+
+      assert_includes secondary_output, "Test broadcast message"
+    end
+
+    test "stop_broadcasting_to removes logger from broadcasts" do
+      secondary_io = StringIO.new
+      secondary_logger = Logger.new(secondary_io)
+
+      @logger.broadcast_to(secondary_logger)
+      @logger.stop_broadcasting_to(secondary_logger)
+
+      @logger.info("After removal")
+      ::SemanticLogger.flush
+
+      # Main logger should have output
+      assert_includes @io.string, "After removal"
+
+      # Secondary logger should NOT have output
+      assert_empty secondary_io.string
+    end
+
+    test "broadcasts array returns all broadcast loggers" do
+      logger1 = Logger.new(StringIO.new)
+      logger2 = Logger.new(StringIO.new)
+
+      @logger.broadcast_to(logger1)
+      @logger.broadcast_to(logger2)
+
+      assert_equal 2, @logger.broadcasts.length
+      assert_includes @logger.broadcasts, logger1
+      assert_includes @logger.broadcasts, logger2
+    end
+
+    test "supports << operator for appending messages" do
+      secondary_io = StringIO.new
+      secondary_logger = Logger.new(secondary_io)
+
+      @logger.broadcast_to(secondary_logger)
+      @logger << "Appended message"
+      ::SemanticLogger.flush
+
+      # Check main logger output
+      assert_includes @io.string, "Appended message"
+
+      # Check secondary logger output
+      assert_includes secondary_io.string, "Appended message"
+    end
+
+    test "broadcast works with different log levels" do
+      secondary_io = StringIO.new
+      secondary_logger = Logger.new(secondary_io)
+
+      @logger.broadcast_to(secondary_logger)
+
+      @logger.debug("Debug message")
+      @logger.info("Info message")
+      @logger.warn("Warn message")
+      @logger.error("Error message")
+      ::SemanticLogger.flush
+
+      secondary_output = secondary_io.string
+
+      assert_includes secondary_output, "Debug message"
+      assert_includes secondary_output, "Info message"
+      assert_includes secondary_output, "Warn message"
+      assert_includes secondary_output, "Error message"
     end
 
     test "handles errors gracefully" do

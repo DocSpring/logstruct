@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "semantic_logger"
+require_relative "concerns/log_methods"
 
 module LogStruct
   module SemanticLogger
@@ -69,24 +70,30 @@ module LogStruct
       def initialize(name = "Application", level: nil, filter: nil)
         # SemanticLogger::Logger expects positional arguments, not named arguments
         super(name, level, filter)
+        # T.untyped because users can pass any logger: ::Logger, ActiveSupport::Logger,
+        # custom loggers (FakeLogger in tests), or third-party loggers
+        @broadcasts = T.let([], T::Array[T.untyped])
       end
 
-      # Override log methods to handle LogStruct types
-      %i[debug info warn error fatal].each do |level|
-        define_method(level) do |message = nil, payload = nil, &block|
-          # If message is a LogStruct type, use it as payload
-          if message.is_a?(LogStruct::Log::Interfaces::CommonFields) ||
-              message.is_a?(T::Struct) ||
-              message.is_a?(Hash)
-            payload = message
-            message = nil
-            super(message, payload: payload, &block)
-          else
-            # For plain string messages, pass them through normally
-            super(message, payload, &block)
-          end
-        end
+      # ActiveSupport::BroadcastLogger compatibility
+      # These methods allow Rails.logger to broadcast to multiple loggers
+      sig { returns(T::Array[T.untyped]) }
+      attr_reader :broadcasts
+
+      # T.untyped for logger param because we accept any logger-like object:
+      # ::Logger, ActiveSupport::Logger, test doubles, etc.
+      sig { params(logger: T.untyped).returns(T.untyped) }
+      def broadcast_to(logger)
+        @broadcasts << logger
+        logger
       end
+
+      sig { params(logger: T.untyped).void }
+      def stop_broadcasting_to(logger)
+        @broadcasts.delete(logger)
+      end
+
+      include Concerns::LogMethods
 
       # Support for tagged logging
       sig { params(tags: T.untyped, block: T.proc.returns(T.untyped)).returns(T.untyped) }
@@ -123,6 +130,14 @@ module LogStruct
       sig { params(count: Integer).void }
       def pop_tags(count = 1)
         ::SemanticLogger.pop_tags(count)
+      end
+
+      # Support for << operator (used by RailsLogSplitter)
+      sig { params(msg: String).returns(T.self_type) }
+      def <<(msg)
+        info(msg)
+        @broadcasts.each { |logger| logger << msg if logger.respond_to?(:<<) }
+        self
       end
     end
   end
