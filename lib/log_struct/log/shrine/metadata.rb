@@ -36,7 +36,7 @@ module LogStruct
 
         # Event-specific fields
         const :storage, Symbol
-        const :location, String
+        const :location, T.nilable(String), default: nil
         const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
 
         # Additional data
@@ -63,13 +63,13 @@ module LogStruct
             timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
         }
         def self.build(storage:,
-          location:,
+          location: nil,
           metadata: nil,
           additional_data: nil,
           timestamp: Time.now)
           h = base_hash
           h[LogField::Storage] = storage
-          h[LogField::Location] = location
+          h[LogField::Location] = location unless location.nil?
           h[LogField::Metadata] = metadata unless metadata.nil?
           h
         end

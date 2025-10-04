@@ -45,10 +45,10 @@ module LogStruct
             Log::Shrine::Upload.new(
               storage: storage_sym,
               location: payload[:location],
-              uploader: payload[:uploader],
+              uploader: payload[:uploader]&.to_s,
               upload_options: payload[:upload_options],
               options: payload[:options],
-              duration_ms: event.duration,
+              duration_ms: event.duration.to_f,
               additional_data: payload.except(:storage, :location, :uploader, :upload_options, :options)
             )
           when Event::Download

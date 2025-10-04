@@ -39,7 +39,9 @@ events:
   Metadata:
     fields:
       Storage: Symbol
-      Location: String
+      Location:
+        type: String
+        required: false
       Metadata:
         type: 'T::Hash[String, T.untyped]'
         required: false
