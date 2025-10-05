@@ -111,7 +111,7 @@ module LogStruct
             exception_executions: execution&.exception_executions,
             err_class: exception&.class&.name,
             error_message: exception&.message,
-            backtrace: exception&.backtrace&.first(20),
+            backtrace: exception&.backtrace,
             duration_ms: event.duration.to_f,
             process_id: ::Process.pid,
             thread_id: Thread.current.object_id.to_s(36),

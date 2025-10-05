@@ -1,0 +1,15 @@
+      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+      def to_h
+        self.class.build(
+<% base_fields.each do |f| -%>
+          <%= f.prop_name %>: <%= f.prop_name %>,
+<% end -%>
+<% event_only(event).each do |f| -%>
+          <%= f.prop_name %>: <%= f.prop_name %>,
+<% end -%>
+<% if additional_data -%>
+          additional_data: additional_data,
+<% end -%>
+          timestamp: timestamp
+        )
+      end

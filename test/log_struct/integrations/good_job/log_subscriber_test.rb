@@ -205,10 +205,10 @@ module LogStruct
           output = @log_output.string
           log = JSON.parse(output.lines.first.strip)
 
-          # Should limit backtrace to 20 lines
-          assert_equal 20, log["backtrace"].length
+          # Should limit backtrace to 5 lines (done in Error#to_h)
+          assert_equal 5, log["backtrace"].length
           assert_equal "file1.rb:1", log["backtrace"].first
-          assert_equal "file20.rb:20", log["backtrace"].last
+          assert_equal "file5.rb:5", log["backtrace"].last
         end
 
         test "calculates wait_time correctly" do

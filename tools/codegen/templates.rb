@@ -186,6 +186,18 @@ module LogStruct
         erb = ERB.new(File.read(path), trim_mode: "-")
         erb.result(get_binding)
       end
+
+      sig { params(event: T.untyped).returns(String) }
+      def render_to_h_partial(event)
+        templates_dir = File.join(@root, "tools", "codegen", "templates", "sorbet", "to_h")
+        # Try event-specific template first, fall back to _default.rb.erb
+        event_specific = File.join(templates_dir, "#{event.name.downcase}.rb.erb")
+        default_template = File.join(templates_dir, "_default.rb.erb")
+
+        path = File.exist?(event_specific) ? event_specific : default_template
+        erb = ERB.new(File.read(path), trim_mode: "-")
+        erb.result(get_binding)
+      end
     end
   end
 end
