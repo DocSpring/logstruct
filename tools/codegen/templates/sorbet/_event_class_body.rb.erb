@@ -32,9 +32,9 @@ extend T::Sig
       const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
       include LogStruct::Log::Shared::MergeAdditionalDataFields
 <% end -%>
+<% if add_request_fields -%>
 
       # Request fields (optional)
-<% if add_request_fields -%>
       include LogStruct::Log::Interfaces::RequestFields
 <% end -%>
 

@@ -1,7 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../interfaces/additional_data_field"
+require_relative "interfaces/additional_data_field"
 
 module LogStruct
   module Log

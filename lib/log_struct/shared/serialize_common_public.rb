@@ -1,8 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../enums/log_field"
-require_relative "../interfaces/public_common_fields"
+require_relative "../enums/log_field"
+require_relative "interfaces/public_common_fields"
 
 module LogStruct
   module Log

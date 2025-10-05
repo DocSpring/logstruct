@@ -9,9 +9,9 @@
 require "log_struct/shared/interfaces/common_fields"
 require "log_struct/shared/interfaces/additional_data_field"
 require "log_struct/shared/interfaces/request_fields"
-require "log_struct/shared/shared/serialize_common"
-require "log_struct/shared/shared/merge_additional_data_fields"
-require "log_struct/shared/shared/add_request_fields"
+require "log_struct/shared/serialize_common"
+require "log_struct/shared/merge_additional_data_fields"
+require "log_struct/shared/add_request_fields"
 require_relative "../../enums/source"
 require_relative "../../enums/event"
 require_relative "../../enums/level"
@@ -38,8 +38,6 @@ module LogStruct
         const :file, String
 
         # Additional data
-
-        # Request fields (optional)
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields

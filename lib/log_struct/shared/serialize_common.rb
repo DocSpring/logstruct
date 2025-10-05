@@ -1,9 +1,9 @@
 # typed: strict
 # frozen_string_literal: true
 
-require_relative "../../enums/log_field"
-require_relative "../interfaces/common_fields"
-require_relative "../../log/shared/merge_additional_data_fields"
+require_relative "../enums/log_field"
+require_relative "interfaces/common_fields"
+require_relative "merge_additional_data_fields"
 
 module LogStruct
   module Log

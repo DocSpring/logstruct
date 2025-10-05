@@ -7,7 +7,7 @@ require_relative "enums/event"
 require_relative "enums/level"
 require_relative "enums/log_field"
 require_relative "log/interfaces/public_common_fields"
-require_relative "log/shared/serialize_common_public"
+require_relative "shared/serialize_common_public"
 
 # Dynamically require all top-level log structs under log/*
 # Nested per-event files are required by their parent files.
