@@ -17,7 +17,7 @@ module LogStruct
             extend T::Sig
 
             sig { params(name: T.untyped, properties: T.nilable(T::Hash[T.untyped, T.untyped]), options: T.untyped).returns(T.untyped) }
-            def track(name, properties = nil, options = nil)
+            def track(name, properties = nil, options = {})
               result = super
               begin
                 # Emit a lightweight structured log about the analytics event

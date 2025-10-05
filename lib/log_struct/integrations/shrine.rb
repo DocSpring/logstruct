@@ -65,12 +65,13 @@ module LogStruct
               additional_data: payload.except(:storage, :location)
             )
           when Event::Metadata
-            Log::Shrine::Metadata.new(
+            metadata_params = {
               storage: storage_sym,
-              location: payload[:location],
               metadata: payload[:metadata],
               additional_data: payload.except(:storage, :location, :metadata)
-            )
+            }
+            metadata_params[:location] = payload[:location] if payload[:location]
+            Log::Shrine::Metadata.new(**metadata_params)
           when Event::Exist
             Log::Shrine::Exist.new(
               storage: storage_sym,
@@ -79,11 +80,9 @@ module LogStruct
               additional_data: payload.except(:storage, :location, :exist)
             )
           else
-            Log::Shrine::Metadata.new(
-              storage: storage_sym,
-              location: payload[:location],
-              metadata: payload[:metadata]
-            )
+            unknown_params = {storage: storage_sym, metadata: payload[:metadata]}
+            unknown_params[:location] = payload[:location] if payload[:location]
+            Log::Shrine::Metadata.new(**unknown_params)
           end
 
           # Pass the structured hash to the logger

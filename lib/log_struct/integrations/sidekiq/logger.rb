@@ -23,11 +23,18 @@ module LogStruct
         # Override log methods to create Sidekiq log structs
         %i[debug info warn error fatal].each do |level|
           define_method(level) do |message = nil, payload = nil, &block|
+            # Ensure message is a String (Sidekiq may pass Hash for config logs)
+            msg = if message.nil?
+              block ? block.call.to_s : ""
+            else
+              message.to_s
+            end
+
             # Create a Sidekiq log struct with the message
             log_struct = Log::Sidekiq.new(
               level: LogStruct::Level.from_severity(level.to_s.upcase),
               event: Event::Log,
-              message: message || (block ? block.call : ""),
+              message: msg,
               process_id: ::Process.pid,
               thread_id: Sidekiq.tid,
               context: ::Sidekiq::Context.current || {}

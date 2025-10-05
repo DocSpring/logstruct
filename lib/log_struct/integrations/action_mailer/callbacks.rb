@@ -71,6 +71,9 @@ module LogStruct
           def deliver_now
             processed_mailer.run_callbacks(:deliver) do
               message.deliver
+            rescue => e
+              # Let the mailer's rescue_from handlers deal with the error
+              processed_mailer.send(:rescue_with_handler, e) || raise
             end
           end
 
@@ -78,6 +81,9 @@ module LogStruct
           def deliver_now!
             processed_mailer.run_callbacks(:deliver) do
               message.deliver!
+            rescue => e
+              # Let the mailer's rescue_from handlers deal with the error
+              processed_mailer.send(:rescue_with_handler, e) || raise
             end
           end
         end
