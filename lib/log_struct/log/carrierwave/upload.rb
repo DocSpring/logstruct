@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class CarrierWave
       class Upload < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -56,82 +51,20 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped,
-            uploader: T.untyped,
-            model: T.untyped,
-            mount_point: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(storage: nil,
-          file_id: nil,
-          uploader: nil,
-          model: nil,
-          mount_point: nil)
-          h = {}
-          h[LogField::Storage] = storage unless storage.nil?
-          h[LogField::FileId] = file_id unless file_id.nil?
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
+          h[LogField::Storage] = storage
+          h[LogField::FileId] = file_id
           h[LogField::Uploader] = uploader unless uploader.nil?
           h[LogField::Model] = model unless model.nil?
           h[LogField::MountPoint] = mount_point unless mount_point.nil?
-          h
-        end
-
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped,
-            uploader: T.untyped,
-            model: T.untyped,
-            mount_point: T.untyped,
-            filename: T.untyped,
-            mime_type: T.untyped,
-            size: T.untyped,
-            metadata: T.untyped,
-            duration_ms: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(storage:,
-          file_id:,
-          uploader: nil,
-          model: nil,
-          mount_point: nil,
-          filename: nil,
-          mime_type: nil,
-          size: nil,
-          metadata: nil,
-          duration_ms: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(storage: storage,
-            file_id: file_id,
-            uploader: uploader,
-            model: model,
-            mount_point: mount_point)
           h[LogField::Filename] = filename unless filename.nil?
           h[LogField::MimeType] = mime_type unless mime_type.nil?
           h[LogField::Size] = size unless size.nil?
           h[LogField::Metadata] = metadata unless metadata.nil?
           h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            storage: storage,
-            file_id: file_id,
-            uploader: uploader,
-            model: model,
-            mount_point: mount_point,
-            filename: filename,
-            mime_type: mime_type,
-            size: size,
-            metadata: metadata,
-            duration_ms: duration_ms,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

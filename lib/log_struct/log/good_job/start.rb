@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class GoodJob
       class Start < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -55,78 +50,19 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(job_id: T.untyped,
-            job_class: T.untyped,
-            queue_name: T.untyped,
-            arguments: T.untyped,
-            executions: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(job_id: nil,
-          job_class: nil,
-          queue_name: nil,
-          arguments: nil,
-          executions: nil)
-          h = {}
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::JobId] = job_id unless job_id.nil?
           h[LogField::JobClass] = job_class unless job_class.nil?
           h[LogField::QueueName] = queue_name unless queue_name.nil?
           h[LogField::Arguments] = arguments unless arguments.nil?
           h[LogField::Executions] = executions unless executions.nil?
-          h
-        end
-
-        sig {
-          params(process_id: T.untyped,
-            thread_id: T.untyped,
-            job_id: T.untyped,
-            job_class: T.untyped,
-            queue_name: T.untyped,
-            arguments: T.untyped,
-            executions: T.untyped,
-            wait_ms: T.untyped,
-            scheduled_at: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(process_id:,
-          thread_id:,
-          job_id: nil,
-          job_class: nil,
-          queue_name: nil,
-          arguments: nil,
-          executions: nil,
-          wait_ms: nil,
-          scheduled_at: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(job_id: job_id,
-            job_class: job_class,
-            queue_name: queue_name,
-            arguments: arguments,
-            executions: executions)
           h[LogField::ProcessId] = process_id
           h[LogField::ThreadId] = thread_id
           h[LogField::WaitMs] = wait_ms unless wait_ms.nil?
           h[LogField::ScheduledAt] = scheduled_at unless scheduled_at.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            job_id: job_id,
-            job_class: job_class,
-            queue_name: queue_name,
-            arguments: arguments,
-            executions: executions,
-            process_id: process_id,
-            thread_id: thread_id,
-            wait_ms: wait_ms,
-            scheduled_at: scheduled_at,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

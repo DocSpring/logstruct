@@ -1,11 +1,4 @@
-# typed: strict
-# frozen_string_literal: true
-
 extend T::Sig
-
-<%# No nested BaseFields; base fields are top-level props on the struct -%>
-
-      extend T::Sig
 
       # Shared/common fields
       <% if source_has_default -%>
@@ -44,34 +37,5 @@ extend T::Sig
 <% if add_request_fields -%>
       include LogStruct::Log::Shared::AddRequestFields
 <% end -%>
-
-<%# Base hash helper assembles base LogField entries from arguments -%>
-<% if base_fields.any? -%>
-      sig { params(<%= base_fields.map { |f| "#{f.prop_name}: T.untyped" }.join(",\n          ") %>).returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.base_hash(<%= base_fields.map { |f| "#{f.prop_name}: nil" }.join(",\n          ") %>)
-<% else -%>
-      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.base_hash
-<% end -%>
-        h = {}
-<% base_fields.each do |f| -%>
-        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %> unless <%= f.prop_name %>.nil?
-<% end -%>
-        h
-      end
-
-      sig { params(<%= builder_method_types(event) %>).returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.build(<%= builder_method_params(event) %>)
-        h = base_hash(<%= base_fields_params %>)
-<% event_only(event).each do |f| -%>
-<% if f.required -%>
-        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %>
-<% else -%>
-        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %> unless <%= f.prop_name %>.nil?
-<% end -%>
-<% end -%>
-<%# Additional data merged during final serialization in app code; skip here -%>
-        h
-      end
 
 <%= render_partial('_to_h.rb.erb') -%>

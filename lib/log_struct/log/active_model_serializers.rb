@@ -20,11 +20,6 @@ require_relative "../enums/log_field"
 module LogStruct
   module Log
     class ActiveModelSerializers < T::Struct
-      # typed: strict
-      # frozen_string_literal: true
-
-      extend T::Sig
-
       extend T::Sig
 
       # Shared/common fields
@@ -47,45 +42,14 @@ module LogStruct
       include LogStruct::Log::Shared::SerializeCommon
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.base_hash
-        {}
-      end
-
-      sig {
-        params(message: T.untyped,
-          duration_ms: T.untyped,
-          serializer: T.untyped,
-          adapter: T.untyped,
-          resource_class: T.untyped,
-          additional_data: T.untyped,
-          timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-      }
-      def self.build(message:,
-        duration_ms:,
-        serializer: nil,
-        adapter: nil,
-        resource_class: nil,
-        additional_data: nil,
-        timestamp: Time.now)
-        h = base_hash
+      def to_h
+        h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
         h[LogField::Message] = message
         h[LogField::Serializer] = serializer unless serializer.nil?
         h[LogField::Adapter] = adapter unless adapter.nil?
         h[LogField::ResourceClass] = resource_class unless resource_class.nil?
         h[LogField::DurationMs] = duration_ms
         h
-      end
-
-      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def to_h
-        self.class.build(
-          message: message,
-          serializer: serializer,
-          adapter: adapter,
-          resource_class: resource_class,
-          duration_ms: duration_ms,
-          timestamp: timestamp
-        )
       end
     end
   end

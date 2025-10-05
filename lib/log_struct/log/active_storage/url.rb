@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class ActiveStorage
       class Url < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -46,44 +41,13 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(storage: nil,
-          file_id: nil)
-          h = {}
-          h[LogField::Storage] = storage unless storage.nil?
-          h[LogField::FileId] = file_id unless file_id.nil?
-          h
-        end
-
-        sig {
-          params(url: T.untyped,
-            storage: T.untyped,
-            file_id: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(url:,
-          storage:,
-          file_id:,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(storage: storage,
-            file_id: file_id)
-          h[LogField::Url] = url
-          h
-        end
-
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
         def to_h
-          self.class.build(
-            storage: storage,
-            file_id: file_id,
-            url: url,
-            timestamp: timestamp
-          )
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
+          h[LogField::Storage] = storage
+          h[LogField::FileId] = file_id
+          h[LogField::Url] = url
+          h
         end
       end
     end

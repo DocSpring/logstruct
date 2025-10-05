@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class Shrine
       class Upload < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -52,29 +47,8 @@ module LogStruct
         include LogStruct::Log::Shared::SerializeCommon
 
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def self.base_hash
-          {}
-        end
-
-        sig {
-          params(storage: T.untyped,
-            location: T.untyped,
-            upload_options: T.untyped,
-            options: T.untyped,
-            uploader: T.untyped,
-            duration_ms: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(storage:,
-          location:,
-          upload_options: nil,
-          options: nil,
-          uploader: nil,
-          duration_ms: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
           h[LogField::Location] = location
           h[LogField::UploadOptions] = upload_options unless upload_options.nil?
@@ -82,20 +56,6 @@ module LogStruct
           h[LogField::Uploader] = uploader unless uploader.nil?
           h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            storage: storage,
-            location: location,
-            upload_options: upload_options,
-            options: options,
-            uploader: uploader,
-            duration_ms: duration_ms,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

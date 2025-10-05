@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class ActionMailer
       class Delivered < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -49,47 +44,13 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(to: T.untyped,
-            from: T.untyped,
-            subject: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(to: nil,
-          from: nil,
-          subject: nil)
-          h = {}
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::To] = to unless to.nil?
           h[LogField::From] = from unless from.nil?
           h[LogField::Subject] = subject unless subject.nil?
           h
-        end
-
-        sig {
-          params(to: T.untyped,
-            from: T.untyped,
-            subject: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(to: nil,
-          from: nil,
-          subject: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          base_hash(to: to,
-            from: from,
-            subject: subject)
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            to: to,
-            from: from,
-            subject: subject,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

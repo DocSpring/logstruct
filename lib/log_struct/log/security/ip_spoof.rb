@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class Security
       class IPSpoof < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -59,81 +54,19 @@ module LogStruct
         include LogStruct::Log::Shared::SerializeCommon
         include LogStruct::Log::Shared::AddRequestFields
 
-        sig {
-          params(path: T.untyped,
-            http_method: T.untyped,
-            source_ip: T.untyped,
-            user_agent: T.untyped,
-            referer: T.untyped,
-            request_id: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(path: nil,
-          http_method: nil,
-          source_ip: nil,
-          user_agent: nil,
-          referer: nil,
-          request_id: nil)
-          h = {}
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Path] = path unless path.nil?
           h[LogField::HttpMethod] = http_method unless http_method.nil?
           h[LogField::SourceIp] = source_ip unless source_ip.nil?
           h[LogField::UserAgent] = user_agent unless user_agent.nil?
           h[LogField::Referer] = referer unless referer.nil?
           h[LogField::RequestId] = request_id unless request_id.nil?
-          h
-        end
-
-        sig {
-          params(path: T.untyped,
-            http_method: T.untyped,
-            source_ip: T.untyped,
-            user_agent: T.untyped,
-            referer: T.untyped,
-            request_id: T.untyped,
-            message: T.untyped,
-            client_ip: T.untyped,
-            x_forwarded_for: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(path: nil,
-          http_method: nil,
-          source_ip: nil,
-          user_agent: nil,
-          referer: nil,
-          request_id: nil,
-          message: nil,
-          client_ip: nil,
-          x_forwarded_for: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(path: path,
-            http_method: http_method,
-            source_ip: source_ip,
-            user_agent: user_agent,
-            referer: referer,
-            request_id: request_id)
           h[LogField::Message] = message unless message.nil?
           h[LogField::ClientIp] = client_ip unless client_ip.nil?
           h[LogField::XForwardedFor] = x_forwarded_for unless x_forwarded_for.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            path: path,
-            http_method: http_method,
-            source_ip: source_ip,
-            user_agent: user_agent,
-            referer: referer,
-            request_id: request_id,
-            message: message,
-            client_ip: client_ip,
-            x_forwarded_for: x_forwarded_for,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

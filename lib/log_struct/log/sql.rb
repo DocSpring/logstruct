@@ -20,11 +20,6 @@ require_relative "../enums/log_field"
 module LogStruct
   module Log
     class SQL < T::Struct
-      # typed: strict
-      # frozen_string_literal: true
-
-      extend T::Sig
-
       extend T::Sig
 
       # Shared/common fields
@@ -57,41 +52,8 @@ module LogStruct
       include LogStruct::Log::Shared::SerializeCommon
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.base_hash
-        {}
-      end
-
-      sig {
-        params(message: T.untyped,
-          sql: T.untyped,
-          name: T.untyped,
-          duration_ms: T.untyped,
-          row_count: T.untyped,
-          adapter: T.untyped,
-          bind_params: T.untyped,
-          database_name: T.untyped,
-          connection_pool_size: T.untyped,
-          active_connections: T.untyped,
-          operation_type: T.untyped,
-          table_names: T.untyped,
-          additional_data: T.untyped,
-          timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-      }
-      def self.build(message:,
-        sql:,
-        name:,
-        duration_ms:,
-        row_count: nil,
-        adapter: nil,
-        bind_params: nil,
-        database_name: nil,
-        connection_pool_size: nil,
-        active_connections: nil,
-        operation_type: nil,
-        table_names: nil,
-        additional_data: nil,
-        timestamp: Time.now)
-        h = base_hash
+      def to_h
+        h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
         h[LogField::Message] = message
         h[LogField::Sql] = sql
         h[LogField::Name] = name
@@ -105,26 +67,6 @@ module LogStruct
         h[LogField::OperationType] = operation_type unless operation_type.nil?
         h[LogField::TableNames] = table_names unless table_names.nil?
         h
-      end
-
-      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def to_h
-        self.class.build(
-          message: message,
-          sql: sql,
-          name: name,
-          duration_ms: duration_ms,
-          row_count: row_count,
-          adapter: adapter,
-          bind_params: bind_params,
-          database_name: database_name,
-          connection_pool_size: connection_pool_size,
-          active_connections: active_connections,
-          operation_type: operation_type,
-          table_names: table_names,
-          additional_data: additional_data,
-          timestamp: timestamp
-        )
       end
     end
   end

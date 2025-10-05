@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class GoodJob
       class Schedule < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -55,78 +50,19 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(job_id: T.untyped,
-            job_class: T.untyped,
-            queue_name: T.untyped,
-            arguments: T.untyped,
-            executions: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(job_id: nil,
-          job_class: nil,
-          queue_name: nil,
-          arguments: nil,
-          executions: nil)
-          h = {}
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::JobId] = job_id unless job_id.nil?
           h[LogField::JobClass] = job_class unless job_class.nil?
           h[LogField::QueueName] = queue_name unless queue_name.nil?
           h[LogField::Arguments] = arguments unless arguments.nil?
           h[LogField::Executions] = executions unless executions.nil?
-          h
-        end
-
-        sig {
-          params(duration_ms: T.untyped,
-            scheduled_at: T.untyped,
-            job_id: T.untyped,
-            job_class: T.untyped,
-            queue_name: T.untyped,
-            arguments: T.untyped,
-            executions: T.untyped,
-            priority: T.untyped,
-            cron_key: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(duration_ms:,
-          scheduled_at:,
-          job_id: nil,
-          job_class: nil,
-          queue_name: nil,
-          arguments: nil,
-          executions: nil,
-          priority: nil,
-          cron_key: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(job_id: job_id,
-            job_class: job_class,
-            queue_name: queue_name,
-            arguments: arguments,
-            executions: executions)
           h[LogField::DurationMs] = duration_ms
           h[LogField::ScheduledAt] = scheduled_at
           h[LogField::Priority] = priority unless priority.nil?
           h[LogField::CronKey] = cron_key unless cron_key.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            job_id: job_id,
-            job_class: job_class,
-            queue_name: queue_name,
-            arguments: arguments,
-            executions: executions,
-            duration_ms: duration_ms,
-            scheduled_at: scheduled_at,
-            priority: priority,
-            cron_key: cron_key,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

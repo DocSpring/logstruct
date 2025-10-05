@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class CarrierWave
       class Delete < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -51,61 +46,15 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped,
-            uploader: T.untyped,
-            model: T.untyped,
-            mount_point: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(storage: nil,
-          file_id: nil,
-          uploader: nil,
-          model: nil,
-          mount_point: nil)
-          h = {}
-          h[LogField::Storage] = storage unless storage.nil?
-          h[LogField::FileId] = file_id unless file_id.nil?
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
+          h[LogField::Storage] = storage
+          h[LogField::FileId] = file_id
           h[LogField::Uploader] = uploader unless uploader.nil?
           h[LogField::Model] = model unless model.nil?
           h[LogField::MountPoint] = mount_point unless mount_point.nil?
           h
-        end
-
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped,
-            uploader: T.untyped,
-            model: T.untyped,
-            mount_point: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(storage:,
-          file_id:,
-          uploader: nil,
-          model: nil,
-          mount_point: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          base_hash(storage: storage,
-            file_id: file_id,
-            uploader: uploader,
-            model: model,
-            mount_point: mount_point)
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            storage: storage,
-            file_id: file_id,
-            uploader: uploader,
-            model: model,
-            mount_point: mount_point,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

@@ -20,11 +20,6 @@ require_relative "../enums/log_field"
 module LogStruct
   module Log
     class Plain < T::Struct
-      # typed: strict
-      # frozen_string_literal: true
-
-      extend T::Sig
-
       extend T::Sig
 
       # Shared/common fields
@@ -46,30 +41,10 @@ module LogStruct
       include LogStruct::Log::Shared::SerializeCommon
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.base_hash
-        {}
-      end
-
-      sig {
-        params(message: T.untyped,
-          additional_data: T.untyped,
-          timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-      }
-      def self.build(message:,
-        additional_data: nil,
-        timestamp: Time.now)
-        h = base_hash
+      def to_h
+        h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
         h[LogField::Message] = message
         h
-      end
-
-      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def to_h
-        self.class.build(
-          message: message,
-          additional_data: additional_data,
-          timestamp: timestamp
-        )
       end
     end
   end

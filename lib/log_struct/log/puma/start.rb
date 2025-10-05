@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class Puma
       class Start < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -55,35 +50,8 @@ module LogStruct
         include LogStruct::Log::Shared::SerializeCommon
 
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def self.base_hash
-          {}
-        end
-
-        sig {
-          params(mode: T.untyped,
-            puma_version: T.untyped,
-            puma_codename: T.untyped,
-            ruby_version: T.untyped,
-            min_threads: T.untyped,
-            max_threads: T.untyped,
-            environment: T.untyped,
-            process_id: T.untyped,
-            listening_addresses: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(mode: nil,
-          puma_version: nil,
-          puma_codename: nil,
-          ruby_version: nil,
-          min_threads: nil,
-          max_threads: nil,
-          environment: nil,
-          process_id: nil,
-          listening_addresses: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Mode] = mode unless mode.nil?
           h[LogField::PumaVersion] = puma_version unless puma_version.nil?
           h[LogField::PumaCodename] = puma_codename unless puma_codename.nil?
@@ -94,23 +62,6 @@ module LogStruct
           h[LogField::ProcessId] = process_id unless process_id.nil?
           h[LogField::ListeningAddresses] = listening_addresses unless listening_addresses.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            mode: mode,
-            puma_version: puma_version,
-            puma_codename: puma_codename,
-            ruby_version: ruby_version,
-            min_threads: min_threads,
-            max_threads: max_threads,
-            environment: environment,
-            process_id: process_id,
-            listening_addresses: listening_addresses,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

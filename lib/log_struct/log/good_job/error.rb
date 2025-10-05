@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class GoodJob
       class Error < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -58,62 +53,14 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(job_id: T.untyped,
-            job_class: T.untyped,
-            queue_name: T.untyped,
-            arguments: T.untyped,
-            executions: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(job_id: nil,
-          job_class: nil,
-          queue_name: nil,
-          arguments: nil,
-          executions: nil)
-          h = {}
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::JobId] = job_id unless job_id.nil?
           h[LogField::JobClass] = job_class unless job_class.nil?
           h[LogField::QueueName] = queue_name unless queue_name.nil?
           h[LogField::Arguments] = arguments unless arguments.nil?
           h[LogField::Executions] = executions unless executions.nil?
-          h
-        end
-
-        sig {
-          params(err_class: T.untyped,
-            error_message: T.untyped,
-            process_id: T.untyped,
-            thread_id: T.untyped,
-            job_id: T.untyped,
-            job_class: T.untyped,
-            queue_name: T.untyped,
-            arguments: T.untyped,
-            executions: T.untyped,
-            duration_ms: T.untyped,
-            exception_executions: T.untyped,
-            backtrace: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(err_class:,
-          error_message:,
-          process_id:,
-          thread_id:,
-          job_id: nil,
-          job_class: nil,
-          queue_name: nil,
-          arguments: nil,
-          executions: nil,
-          duration_ms: nil,
-          exception_executions: nil,
-          backtrace: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(job_id: job_id,
-            job_class: job_class,
-            queue_name: queue_name,
-            arguments: arguments,
-            executions: executions)
           h[LogField::ErrClass] = err_class
           h[LogField::ErrorMessage] = error_message
           h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
@@ -122,26 +69,6 @@ module LogStruct
           h[LogField::ExceptionExecutions] = exception_executions unless exception_executions.nil?
           h[LogField::Backtrace] = backtrace unless backtrace.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            job_id: job_id,
-            job_class: job_class,
-            queue_name: queue_name,
-            arguments: arguments,
-            executions: executions,
-            err_class: err_class,
-            error_message: error_message,
-            duration_ms: duration_ms,
-            process_id: process_id,
-            thread_id: thread_id,
-            exception_executions: exception_executions,
-            backtrace: backtrace,
-            additional_data: additional_data,
-            timestamp: timestamp
-          )
         end
       end
     end

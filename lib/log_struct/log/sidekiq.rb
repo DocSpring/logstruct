@@ -20,11 +20,6 @@ require_relative "../enums/log_field"
 module LogStruct
   module Log
     class Sidekiq < T::Struct
-      # typed: strict
-      # frozen_string_literal: true
-
-      extend T::Sig
-
       extend T::Sig
 
       # Shared/common fields
@@ -46,41 +41,13 @@ module LogStruct
       include LogStruct::Log::Shared::SerializeCommon
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def self.base_hash
-        {}
-      end
-
-      sig {
-        params(message: T.untyped,
-          context: T.untyped,
-          process_id: T.untyped,
-          thread_id: T.untyped,
-          additional_data: T.untyped,
-          timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-      }
-      def self.build(message: nil,
-        context: nil,
-        process_id: nil,
-        thread_id: nil,
-        additional_data: nil,
-        timestamp: Time.now)
-        h = base_hash
+      def to_h
+        h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
         h[LogField::Message] = message unless message.nil?
         h[LogField::Context] = context unless context.nil?
         h[LogField::ProcessId] = process_id unless process_id.nil?
         h[LogField::ThreadId] = thread_id unless thread_id.nil?
         h
-      end
-
-      sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-      def to_h
-        self.class.build(
-          message: message,
-          context: context,
-          process_id: process_id,
-          thread_id: thread_id,
-          timestamp: timestamp
-        )
       end
     end
   end

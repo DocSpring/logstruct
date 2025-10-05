@@ -21,11 +21,6 @@ module LogStruct
   module Log
     class ActiveStorage
       class Download < T::Struct
-        # typed: strict
-        # frozen_string_literal: true
-
-        extend T::Sig
-
         extend T::Sig
 
         # Shared/common fields
@@ -48,52 +43,15 @@ module LogStruct
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.base_hash(storage: nil,
-          file_id: nil)
-          h = {}
-          h[LogField::Storage] = storage unless storage.nil?
-          h[LogField::FileId] = file_id unless file_id.nil?
-          h
-        end
-
-        sig {
-          params(storage: T.untyped,
-            file_id: T.untyped,
-            filename: T.untyped,
-            range: T.untyped,
-            duration_ms: T.untyped,
-            additional_data: T.untyped,
-            timestamp: T.untyped).returns(T::Hash[LogStruct::LogField, T.untyped])
-        }
-        def self.build(storage:,
-          file_id:,
-          filename: nil,
-          range: nil,
-          duration_ms: nil,
-          additional_data: nil,
-          timestamp: Time.now)
-          h = base_hash(storage: storage,
-            file_id: file_id)
+        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
+        def to_h
+          h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
+          h[LogField::Storage] = storage
+          h[LogField::FileId] = file_id
           h[LogField::Filename] = filename unless filename.nil?
           h[LogField::Range] = range unless range.nil?
           h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
           h
-        end
-
-        sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
-        def to_h
-          self.class.build(
-            storage: storage,
-            file_id: file_id,
-            filename: filename,
-            range: range,
-            duration_ms: duration_ms,
-            timestamp: timestamp
-          )
         end
       end
     end

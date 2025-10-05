@@ -1,15 +1,19 @@
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
       def to_h
-        self.class.build(
+        h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
 <% base_fields.each do |f| -%>
-          <%= f.prop_name %>: <%= f.prop_name %>,
+<% if f.required -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %>
+<% else -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %> unless <%= f.prop_name %>.nil?
+<% end -%>
 <% end -%>
 <% event_only(event).each do |f| -%>
-          <%= f.prop_name %>: <%= f.prop_name %>,
+<% if f.required -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %>
+<% else -%>
+        h[LogField::<%= f.enum_name %>] = <%= f.prop_name %> unless <%= f.prop_name %>.nil?
 <% end -%>
-<% if additional_data -%>
-          additional_data: additional_data,
 <% end -%>
-          timestamp: timestamp
-        )
+        h
       end
