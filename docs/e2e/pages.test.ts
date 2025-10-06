@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import http from 'http';
-import fs from 'fs';
-import path from 'path';
+
+import fs from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3010;
 const BASE = `http://localhost:${PORT}`;
 
-async function waitForServer(url: string, timeoutMs = 120000): Promise<void> {
+async function _waitForServer(url: string, timeoutMs = 120000): Promise<void> {
   const start = Date.now();
   return new Promise((resolve, reject) => {
     const check = () => {
@@ -45,11 +46,7 @@ beforeAll(async () => {
         const full = path.join(outDir, clean);
         if (fs.existsSync(full) && fs.statSync(full).isFile()) return full;
         // Try index.html in a directory
-        const withIndex = path.join(
-          outDir,
-          clean.replace(/\/?$/, '/'),
-          'index.html',
-        );
+        const withIndex = path.join(outDir, clean.replace(/\/?$/, '/'), 'index.html');
         if (fs.existsSync(withIndex)) return withIndex;
         // Try appending .html
         const withHtml = path.join(outDir, `${clean}.html`);
@@ -62,12 +59,12 @@ beforeAll(async () => {
         res.end('Not found');
       });
       stream.pipe(res);
-    } catch (e) {
+    } catch (_e) {
       res.statusCode = 500;
       res.end('Server error');
     }
   });
-  await new Promise<void>((resolve) => server!.listen(PORT, resolve));
+  await new Promise<void>((resolve) => server?.listen(PORT, resolve));
 });
 
 afterAll(() => {
@@ -76,8 +73,7 @@ afterAll(() => {
 
 async function get(path: string): Promise<string> {
   const res = await fetch(`${BASE}${path}`);
-  if (!res.ok)
-    throw new Error(`GET ${path} failed: ${res.status} ${res.statusText}`);
+  if (!res.ok) throw new Error(`GET ${path} failed: ${res.status} ${res.statusText}`);
   return await res.text();
 }
 

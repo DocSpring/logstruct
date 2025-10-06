@@ -1,6 +1,6 @@
 // This module directly parses the gemspec file to extract dependencies
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export interface GemDependency {
   name: string;
@@ -17,30 +17,33 @@ export function parseGemspec(): GemDependency[] {
     const gemspecContent = fs.readFileSync(gemspecPath, 'utf8');
 
     // Define regex patterns to match dependencies
-    const requiredDepPattern =
-      /spec\.add_dependency\s+["']([^"']+)["'],\s*["']([^"']+)["']/g;
+    const requiredDepPattern = /spec\.add_dependency\s+["']([^"']+)["'],\s*["']([^"']+)["']/g;
     const optionalDepPattern =
       /spec\.add_development_dependency\s+["']([^"']+)["'],\s*["']([^"']+)["']/g;
 
     const dependencies: GemDependency[] = [];
 
     // Extract required dependencies
-    let match;
-    while ((match = requiredDepPattern.exec(gemspecContent)) !== null) {
+    let match: RegExpExecArray | null;
+    match = requiredDepPattern.exec(gemspecContent);
+    while (match !== null) {
       dependencies.push({
         name: match[1],
         version: match[2],
         type: 'required',
       });
+      match = requiredDepPattern.exec(gemspecContent);
     }
 
     // Extract optional dependencies
-    while ((match = optionalDepPattern.exec(gemspecContent)) !== null) {
+    match = optionalDepPattern.exec(gemspecContent);
+    while (match !== null) {
       dependencies.push({
         name: match[1],
         version: match[2],
         type: 'optional',
       });
+      match = optionalDepPattern.exec(gemspecContent);
     }
 
     // If no dependencies were found, use fallback data
@@ -56,6 +59,6 @@ export function parseGemspec(): GemDependency[] {
       return a.name.localeCompare(b.name);
     });
   } catch (error) {
-    throw new Error('Error parsing gemspec! ' + error);
+    throw new Error(`Error parsing gemspec! ${error}`);
   }
 }

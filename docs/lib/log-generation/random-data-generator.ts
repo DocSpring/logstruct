@@ -173,19 +173,12 @@ export class RandomDataGenerator {
   /**
    * Generate a filtered hash (for nested objects that contain sensitive data)
    */
-  filteredHash(
-    sensitivity: 'password' | 'pii' | 'json' = 'json',
-  ): FilteredValue {
+  filteredHash(sensitivity: 'password' | 'pii' | 'json' = 'json'): FilteredValue {
     let keys: string[];
 
     switch (sensitivity) {
       case 'password':
-        keys = [
-          'password',
-          'password_confirmation',
-          'current_password',
-          'token',
-        ];
+        keys = ['password', 'password_confirmation', 'current_password', 'token'];
         break;
       case 'pii':
         keys = ['ssn', 'tax_id', 'credit_card', 'phone', 'address'];
@@ -226,9 +219,7 @@ export class RandomDataGenerator {
    */
   randomTimestamp(daysBack = 7): string {
     const now = new Date();
-    const past = new Date(
-      now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000),
-    );
+    const past = new Date(now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000));
     return past.toISOString();
   }
 
@@ -250,7 +241,7 @@ export class RandomDataGenerator {
    * Generate a random enum value
    */
   randomEnum<T>(enumObj: Record<string, T>): T {
-    const keys = Object.keys(enumObj).filter((k) => isNaN(Number(k)));
+    const keys = Object.keys(enumObj).filter((k) => Number.isNaN(Number(k)));
     const randomKey = this.sample(keys);
     return enumObj[randomKey] as T;
   }

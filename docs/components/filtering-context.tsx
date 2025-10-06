@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import type React from 'react';
+import { createContext, useContext, useState } from 'react';
 
 type FilteringCtx = {
   filtering: boolean;
@@ -11,14 +12,11 @@ const Ctx = createContext<FilteringCtx | null>(null);
 
 export function FilteringProvider({ children }: { children: React.ReactNode }) {
   const [filtering, setFiltering] = useState(true);
-  return (
-    <Ctx.Provider value={{ filtering, setFiltering }}>{children}</Ctx.Provider>
-  );
+  return <Ctx.Provider value={{ filtering, setFiltering }}>{children}</Ctx.Provider>;
 }
 
 export function useFiltering(): FilteringCtx {
   const ctx = useContext(Ctx);
-  if (!ctx)
-    throw new Error('useFiltering must be used within FilteringProvider');
+  if (!ctx) throw new Error('useFiltering must be used within FilteringProvider');
   return ctx;
 }

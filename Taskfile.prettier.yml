@@ -8,13 +8,13 @@ tasks:
       - pnpm install --frozen-lockfile
 
   check:
-    desc: Check formatting with Prettier
+    desc: Check YAML formatting with Prettier
     deps: [deps]
     cmds:
       - scripts/prettier.sh --check
 
   write:
-    desc: Format files with Prettier
+    desc: Format YAML files with Prettier
     deps: [deps]
     cmds:
       - scripts/prettier.sh --write

@@ -1,6 +1,6 @@
+import { Event, Level, Source } from '@/generated/logstruct';
 import { RandomDataGenerator } from '../random-data-generator';
 import { SampleData } from '../sample-data';
-import { Level, Source, Event } from '@/generated/logstruct';
 
 describe('RandomDataGenerator', () => {
   let generator: RandomDataGenerator;
@@ -100,9 +100,7 @@ describe('RandomDataGenerator', () => {
 
   test('should generate unfiltered sensitive values when requested', () => {
     expect(generator.randomPassword(false)).toContain('password');
-    expect(generator.randomCreditCard(false)).toMatch(
-      /^\d{4}-\d{4}-\d{4}-\d{4}$/,
-    );
+    expect(generator.randomCreditCard(false)).toMatch(/^\d{4}-\d{4}-\d{4}-\d{4}$/);
     expect(generator.randomPhone(false)).toMatch(/^\+1-\d{3}-\d{3}-\d{4}$/);
     expect(SampleData.IP_ADDRESSES).toContain(generator.randomIP(false));
   });

@@ -1,7 +1,7 @@
-import { EditPageLink } from '@/components/edit-page-link';
 import { CodeBlock } from '@/components/code-block';
-import { RubyCodeExample } from '@/components/ruby-code-example';
+import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+import { RubyCodeExample } from '@/components/ruby-code-example';
 import { Callout } from '@/components/ui/callout';
 
 export default function FilteringSensitiveDataPage() {
@@ -11,28 +11,27 @@ export default function FilteringSensitiveDataPage() {
         Filtering Sensitive Data
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct provides comprehensive protection for sensitive data through
-        parameter filtering and string scrubbing, keeping your logs secure while
-        still providing useful information for debugging.
+        LogStruct provides comprehensive protection for sensitive data through parameter filtering
+        and string scrubbing, keeping your logs secure while still providing useful information for
+        debugging.
       </p>
 
       <HeadingWithAnchor id="parameter-filtering" level={1} className="mt-16">
         Parameter Filtering
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct automatically filters sensitive data in request parameters,
-        job arguments, and other structured data based on key names. When a
-        sensitive key is detected, the actual value is replaced with metadata
-        instead.
+        LogStruct automatically filters sensitive data in request parameters, job arguments, and
+        other structured data based on key names. When a sensitive key is detected, the actual value
+        is replaced with metadata instead.
       </p>
 
       <HeadingWithAnchor id="how-parameter-filtering-works" level={3}>
         How Parameter Filtering Works
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        When LogStruct encounters a key that matches one of the configured
-        sensitive keys, it replaces the value with metadata that provides
-        context without exposing sensitive information:
+        When LogStruct encounters a key that matches one of the configured sensitive keys, it
+        replaces the value with metadata that provides context without exposing sensitive
+        information:
       </p>
 
       <CodeBlock language="ruby">
@@ -52,23 +51,21 @@ export default function FilteringSensitiveDataPage() {
       </CodeBlock>
 
       <p className="text-neutral-600 dark:text-neutral-300 mt-6 mb-4">
-        For different data types, LogStruct provides different types of
-        metadata:
+        For different data types, LogStruct provides different types of metadata:
       </p>
 
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 ml-4">
         <li>
-          <strong>Strings</strong>: Shows class name, but omits byte size for
-          sensitive keys
+          <strong>Strings</strong>: Shows class name, but omits byte size for sensitive keys
         </li>
         <li>
           <strong>Hashable strings</strong>: For keys configured in{' '}
-          <code>filter_keys_with_hashes</code> (like email addresses), includes
-          a hash for tracing across logs
+          <code>filter_keys_with_hashes</code> (like email addresses), includes a hash for tracing
+          across logs
         </li>
         <li>
-          <strong>Hashes</strong>: Shows class name, key count, and first 10
-          keys (but hides byte size if sensitive keys are present)
+          <strong>Hashes</strong>: Shows class name, key count, and first 10 keys (but hides byte
+          size if sensitive keys are present)
         </li>
         <li>
           <strong>Arrays</strong>: Shows class name, count, and byte size
@@ -96,9 +93,9 @@ export default function FilteringSensitiveDataPage() {
         Email Hashing for Request Tracing
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        For email addresses, LogStruct provides special handling by generating a
-        consistent hash that allows tracing user activity across different log
-        entries while still protecting personal information:
+        For email addresses, LogStruct provides special handling by generating a consistent hash
+        that allows tracing user activity across different log entries while still protecting
+        personal information:
       </p>
 
       <CodeBlock language="ruby">
@@ -115,8 +112,7 @@ export default function FilteringSensitiveDataPage() {
         Configuring Parameter Filtering
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        You can customize which keys are filtered and which keys should include
-        hashes:
+        You can customize which keys are filtered and which keys should include hashes:
       </p>
 
       <RubyCodeExample name="filter_configuration" />
@@ -125,36 +121,29 @@ export default function FilteringSensitiveDataPage() {
         String Scrubbing
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        In addition to filtering based on key names, LogStruct automatically
-        scans all string values for patterns that might contain sensitive
-        information, regardless of the key they&apos;re associated with.
+        In addition to filtering based on key names, LogStruct automatically scans all string values
+        for patterns that might contain sensitive information, regardless of the key they&apos;re
+        associated with.
       </p>
 
       <Callout type="info">
         Special thanks to{' '}
-        <a
-          className="text-blue-200 hover:text-white"
-          href="https://github.com/ankane"
-        >
+        <a className="text-blue-200 hover:text-white" href="https://github.com/ankane">
           ankane
         </a>{' '}
         for creating the{' '}
-        <a
-          className="text-blue-200 hover:text-white"
-          href="https://github.com/ankane/logstop"
-        >
+        <a className="text-blue-200 hover:text-white" href="https://github.com/ankane/logstop">
           logstop
         </a>{' '}
-        gem. We use a vendored fork of the logstop formatter code with some
-        modifications.
+        gem. We use a vendored fork of the logstop formatter code with some modifications.
       </Callout>
 
       <HeadingWithAnchor id="how-string-scrubbing-works" level={3}>
         How String Scrubbing Works
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        String scrubbing uses regular expressions to identify and replace
-        sensitive data patterns with descriptive placeholders:
+        String scrubbing uses regular expressions to identify and replace sensitive data patterns
+        with descriptive placeholders:
       </p>
 
       <CodeBlock language="ruby">
@@ -174,31 +163,25 @@ export default function FilteringSensitiveDataPage() {
 
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 ml-4">
         <li>
-          <strong>Email addresses</strong>: Replaced with{' '}
-          <code>[EMAIL:hash]</code>
+          <strong>Email addresses</strong>: Replaced with <code>[EMAIL:hash]</code>
         </li>
         <li>
-          <strong>Passwords in URLs</strong>: Replaced with{' '}
-          <code>[PASSWORD]</code>
+          <strong>Passwords in URLs</strong>: Replaced with <code>[PASSWORD]</code>
         </li>
         <li>
-          <strong>Credit card numbers</strong>: Replaced with{' '}
-          <code>[CREDIT_CARD]</code>
+          <strong>Credit card numbers</strong>: Replaced with <code>[CREDIT_CARD]</code>
         </li>
         <li>
           <strong>Phone numbers</strong>: Replaced with <code>[PHONE]</code>
         </li>
         <li>
-          <strong>Social security numbers</strong>: Replaced with{' '}
-          <code>[SSN]</code>
+          <strong>Social security numbers</strong>: Replaced with <code>[SSN]</code>
         </li>
         <li>
-          <strong>IP addresses</strong>: Replaced with <code>[IP]</code>{' '}
-          (disabled by default)
+          <strong>IP addresses</strong>: Replaced with <code>[IP]</code> (disabled by default)
         </li>
         <li>
-          <strong>MAC addresses</strong>: Replaced with <code>[MAC]</code>{' '}
-          (disabled by default)
+          <strong>MAC addresses</strong>: Replaced with <code>[MAC]</code> (disabled by default)
         </li>
       </ul>
 
@@ -206,8 +189,7 @@ export default function FilteringSensitiveDataPage() {
         Configuring String Scrubbing
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        You can enable or disable specific scrubbers as part of the filter
-        configuration:
+        You can enable or disable specific scrubbers as part of the filter configuration:
       </p>
 
       <RubyCodeExample name="filter_configuration" />
@@ -216,8 +198,8 @@ export default function FilteringSensitiveDataPage() {
         Custom String Scrubbing
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        For data patterns not covered by the built-in scrubbers, you can
-        implement a custom string scrubbing handler:
+        For data patterns not covered by the built-in scrubbers, you can implement a custom string
+        scrubbing handler:
       </p>
       <RubyCodeExample name="custom_string_scrubber" />
 
@@ -225,8 +207,7 @@ export default function FilteringSensitiveDataPage() {
         Examples
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        Here are examples of how LogStruct filters and scrubs sensitive data in
-        different scenarios:
+        Here are examples of how LogStruct filters and scrubs sensitive data in different scenarios:
       </p>
 
       <HeadingWithAnchor id="example-filtered-hash" level={3}>

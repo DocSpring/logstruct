@@ -1,5 +1,3 @@
-// Server Component - used at build time for static generation
-import React from 'react';
 import { getCodeExample } from '@/lib/codeExamples';
 import { CodeBlock } from './code-block';
 

@@ -6,10 +6,8 @@ export const ENUM_DESCRIPTIONS: Record<string, string> = {
   'LogStruct::Level': 'Log severity levels for different types of log messages',
   'LogStruct::Source':
     'Sources of log messages to identify which part of the system generated them',
-  'LogStruct::Event':
-    'Event types for different kinds of operations and activities',
-  'LogStruct::ErrorHandlingMode':
-    'Error handling strategies for different types of errors',
+  'LogStruct::Event': 'Event types for different kinds of operations and activities',
+  'LogStruct::ErrorHandlingMode': 'Error handling strategies for different types of errors',
 };
 
 /**
@@ -22,8 +20,7 @@ export function getEnumDescription(enumName: string): string {
   const description = ENUM_DESCRIPTIONS[enumName];
   if (!description) {
     throw new Error(
-      `No description found for enum: ${enumName}. ` +
-        'Add it to lib/enum-descriptions.ts',
+      `No description found for enum: ${enumName}. Add it to lib/enum-descriptions.ts`,
     );
   }
   return description;
@@ -54,8 +51,7 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
     Shrine: 'Shrine file upload logs and errors',
     CarrierWave: 'CarrierWave file upload logs and errors',
     Sidekiq: 'Sidekiq background job logs and errors',
-    Dotenv:
-      'Dotenv-rails configuration events (env file load/update/save/restore)',
+    Dotenv: 'Dotenv-rails configuration events (env file load/update/save/restore)',
     Puma: 'Puma server lifecycle events',
   },
   'LogStruct::ErrorHandlingMode': {
@@ -63,8 +59,7 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
     Log: "Log errors but don't report them",
     LogProduction: 'Log in production, raise in development',
     Report: 'Log and report errors to error service',
-    ReportProduction:
-      'Report in production without crashing, raise during dev/test',
+    ReportProduction: 'Report in production without crashing, raise during dev/test',
     Raise: 'Always raise the error (reported by tracking service)',
   },
   'LogStruct::Event': {
@@ -105,10 +100,7 @@ export const ENUM_VALUE_DESCRIPTIONS: Record<string, Record<string, string>> = {
  * @returns The description of the enum value
  * @throws Error if no description is found for the enum value
  */
-export function getEnumValueDescription(
-  enumName: string,
-  valueName: string,
-): string {
+export function getEnumValueDescription(enumName: string, valueName: string): string {
   const enumValues = ENUM_VALUE_DESCRIPTIONS[enumName];
   if (!enumValues) {
     throw new Error(`No values found for enum: ${enumName}`);

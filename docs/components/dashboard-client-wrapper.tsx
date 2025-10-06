@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import dynamic from 'next/dynamic';
 
 // Import dashboard examples dynamically to handle recharts client-side only rendering
@@ -16,9 +15,7 @@ const DashboardExamples = dynamic(() => import('./dashboard-examples'), {
           Loading...
         </span>
       </div>
-      <p className="mt-2 text-sm text-slate-500">
-        Loading visualization examples...
-      </p>
+      <p className="mt-2 text-sm text-slate-500">Loading visualization examples...</p>
     </div>
   ),
 });

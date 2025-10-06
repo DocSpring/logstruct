@@ -1,9 +1,9 @@
 'use client';
 
+import { cva, type VariantProps } from 'class-variance-authority';
+import { useTheme } from 'next-themes';
 // shadcn-style chart components built on top of recharts
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
 import {
   Area,
   AreaChart,
@@ -16,11 +16,11 @@ import {
   LineChart,
   ResponsiveContainer,
   Tooltip,
-  TooltipProps,
+  type TooltipProps,
   XAxis,
   YAxis,
 } from 'recharts';
-import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 // Custom tooltip component for dark mode compatibility
 const CustomTooltip = ({
@@ -38,11 +38,8 @@ const CustomTooltip = ({
   const { theme, resolvedTheme } = useTheme();
   // Check both theme from context and document class for more reliability
   const isDarkFromClass =
-    typeof document !== 'undefined'
-      ? document.documentElement.classList.contains('dark')
-      : false;
-  const isDark =
-    resolvedTheme === 'dark' || theme === 'dark' || isDarkFromClass;
+    typeof document !== 'undefined' ? document.documentElement.classList.contains('dark') : false;
+  const isDark = resolvedTheme === 'dark' || theme === 'dark' || isDarkFromClass;
 
   // For debugging - remove in production
   // console.log('Theme info:', { theme, resolvedTheme, isDarkFromClass, isDark });
@@ -53,28 +50,15 @@ const CustomTooltip = ({
         className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}
                     border p-3 rounded-lg shadow-lg text-sm`}
       >
-        <p
-          className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}
-        >
-          {label}
-        </p>
-        {payload.map((entry, index) => (
-          <div key={`item-${index}`} className="flex items-center py-1">
-            <div
-              className="w-3 h-3 rounded-full mr-2"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span
-              className={`mr-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
-            >
+        <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>{label}</p>
+        {payload.map((entry) => (
+          <div key={`item-${entry.name}`} className="flex items-center py-1">
+            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: entry.color }} />
+            <span className={`mr-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               {entry.name}:
             </span>
-            <span
-              className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}
-            >
-              {typeof entry.value === 'number'
-                ? entry.value.toLocaleString()
-                : entry.value}
+            <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+              {typeof entry.value === 'number' ? entry.value.toLocaleString() : entry.value}
             </span>
           </div>
         ))}
@@ -107,11 +91,7 @@ interface ChartProps
 const Chart = React.forwardRef<HTMLDivElement, ChartProps>(
   ({ className, variant, aspectRatio = 2, children, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn(chartVariants({ variant }), className)}
-        {...props}
-      >
+      <div ref={ref} className={cn(chartVariants({ variant }), className)} {...props}>
         <ResponsiveContainer width="100%" aspect={aspectRatio}>
           {React.isValidElement(children) ? children : <div>{children}</div>}
         </ResponsiveContainer>

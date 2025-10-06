@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -70,8 +70,7 @@ export function MainNav() {
                           Getting Started
                         </div>
                         <p className="text-sm leading-tight text-white/90">
-                          Quick setup guide for adding LogStruct to your Rails
-                          application
+                          Quick setup guide for adding LogStruct to your Rails application
                         </p>
                       </a>
                     </NavigationMenuLink>
@@ -82,9 +81,7 @@ export function MainNav() {
                         href="/docs/configuration"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
-                        <div className="text-sm font-medium leading-none">
-                          Configuration
-                        </div>
+                        <div className="text-sm font-medium leading-none">Configuration</div>
                         <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-300">
                           Learn how to customize LogStruct for your application
                         </p>
@@ -97,9 +94,7 @@ export function MainNav() {
                         href="/docs/integrations"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
-                        <div className="text-sm font-medium leading-none">
-                          Integrations
-                        </div>
+                        <div className="text-sm font-medium leading-none">Integrations</div>
                         <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-300">
                           Explore the built-in integrations with popular gems
                         </p>
@@ -112,9 +107,7 @@ export function MainNav() {
                         href="/docs/sorbet-types"
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-neutral-100 focus:bg-neutral-100 dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
                       >
-                        <div className="text-sm font-medium leading-none">
-                          Type Safety
-                        </div>
+                        <div className="text-sm font-medium leading-none">Type Safety</div>
                         <p className="line-clamp-2 text-sm leading-snug text-neutral-500 dark:text-neutral-300">
                           Using LogStruct with Sorbet for type-safe logging
                         </p>
@@ -159,15 +152,8 @@ export function MainNav() {
             <div className="flex flex-col gap-4 p-6">
               <div className="flex items-center space-x-2">
                 <Link href="/" className="flex items-center space-x-2">
-                  <Image
-                    src="/images/logstruct.svg"
-                    alt="LogStruct Logo"
-                    width={28}
-                    height={28}
-                  />
-                  <span className="font-bold text-xl leading-none">
-                    LogStruct
-                  </span>
+                  <Image src="/images/logstruct.svg" alt="LogStruct Logo" width={28} height={28} />
+                  <span className="font-bold text-xl leading-none">LogStruct</span>
                 </Link>
                 <a
                   href="https://docspring.com"
@@ -183,8 +169,7 @@ export function MainNav() {
                   href="/docs"
                   className={cn(
                     'text-lg font-medium',
-                    pathname.startsWith('/docs') &&
-                      'text-neutral-900 dark:text-neutral-50',
+                    pathname.startsWith('/docs') && 'text-neutral-900 dark:text-neutral-50',
                   )}
                 >
                   Documentation

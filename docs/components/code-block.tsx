@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -91,9 +90,7 @@ export function CodeBlock({
   // Regular wrapped version
   return (
     <div>
-      {title && (
-        <div className="font-medium text-sm mb-2 text-gray-700">{title}</div>
-      )}
+      {title && <div className="font-medium text-sm mb-2 text-gray-700">{title}</div>}
       <div className="overflow-hidden rounded-lg">{highlighter}</div>
     </div>
   );

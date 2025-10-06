@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useId } from 'react';
+import { useId } from 'react';
+import { CodeBlock } from '@/components/code-block';
 import { useFiltering } from '@/components/filtering-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CodeBlock } from '@/components/code-block';
+import type { Event, LogType } from '@/generated/logstruct';
 import { LogGenerator } from '@/lib/log-generation';
-import { Event, LogType } from '@/generated/logstruct';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const formatLog = (log: Record<string, any>) => JSON.stringify(log, null, 2);
@@ -58,11 +58,7 @@ export function IntegrationExamples({
       <Tabs defaultValue={String(events[0])}>
         <TabsList className="cursor-pointer w-fit flex flex-wrap gap-2">
           {events.map((evt) => (
-            <TabsTrigger
-              key={String(evt)}
-              value={String(evt)}
-              className="cursor-pointer"
-            >
+            <TabsTrigger key={String(evt)} value={String(evt)} className="cursor-pointer">
               {String(evt)}
             </TabsTrigger>
           ))}
@@ -70,11 +66,7 @@ export function IntegrationExamples({
         {events.map((evt) => {
           const inputId = `${baseFilteringId}-${String(evt)}`;
           return (
-            <TabsContent
-              key={String(evt)}
-              value={String(evt)}
-              className="mt-0.5"
-            >
+            <TabsContent key={String(evt)} value={String(evt)} className="mt-0.5">
               <div className="relative">
                 <CodeBlock language="json">
                   {formatLog(
@@ -85,10 +77,7 @@ export function IntegrationExamples({
                   )}
                 </CodeBlock>
                 <div className="absolute bottom-2 right-3 text-xs text-neutral-500 dark:text-neutral-300 flex items-center gap-2 bg-white/60 dark:bg-neutral-900/60 px-2 py-1 rounded">
-                  <label
-                    className="cursor-pointer select-none"
-                    htmlFor={inputId}
-                  >
+                  <label className="cursor-pointer select-none" htmlFor={inputId}>
                     Apply filtering
                   </label>
                   <input

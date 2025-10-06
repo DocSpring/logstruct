@@ -29,12 +29,8 @@ describe('Log Structure Descriptions', () => {
 
   it('getLogStructureDescription returns the correct description', () => {
     // Test with a known structure
-    expect(getLogStructureDescription('Plain')).toBe(
-      'For general purpose logging',
-    );
-    expect(getLogStructureDescription('Request')).toBe(
-      'For HTTP request details',
-    );
+    expect(getLogStructureDescription('Plain')).toBe('For general purpose logging');
+    expect(getLogStructureDescription('Request')).toBe('For HTTP request details');
   });
 
   it('getLogStructureDescription throws an error for unknown structures', () => {

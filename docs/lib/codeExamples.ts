@@ -110,10 +110,7 @@ export function extractCodeExample(content: string, id: string): string | null {
 
           // Handle quoted replacement
           let replacement = '';
-          if (
-            replacementPart.startsWith('"') &&
-            replacementPart.includes('"')
-          ) {
+          if (replacementPart.startsWith('"') && replacementPart.includes('"')) {
             // Extract text between first and second double quotes
             const quoteMatch = replacementPart.match(/"([^"]*)"/);
             if (quoteMatch) {
@@ -141,7 +138,7 @@ export function extractCodeExample(content: string, id: string): string | null {
     }
   }
 
-  const startIndex = startMatch.index! + startMatch[0].length;
+  const startIndex = (startMatch.index ?? 0) + startMatch[0].length;
   const contentAfterStart = content.slice(startIndex);
 
   const endMatch = contentAfterStart.match(endPattern);
@@ -156,16 +153,10 @@ export function extractCodeExample(content: string, id: string): string | null {
       if (directive.type === 'replace') {
         // Apply the replacement globally if not already specified in the pattern flags
         if (!directive.pattern.flags.includes('g')) {
-          const regex = new RegExp(
-            directive.pattern.source,
-            directive.pattern.flags + 'g',
-          );
+          const regex = new RegExp(directive.pattern.source, `${directive.pattern.flags}g`);
           extractedCode = extractedCode.replace(regex, directive.replacement);
         } else {
-          extractedCode = extractedCode.replace(
-            directive.pattern,
-            directive.replacement,
-          );
+          extractedCode = extractedCode.replace(directive.pattern, directive.replacement);
         }
       }
     }
@@ -197,18 +188,17 @@ export function loadCodeExamples(): Record<string, CodeExample> {
     }
 
     // Get all Ruby files in the directory
-    const files = fs
-      .readdirSync(examplesDir)
-      .filter((file) => file.endsWith('.rb'));
+    const files = fs.readdirSync(examplesDir).filter((file) => file.endsWith('.rb'));
 
     for (const file of files) {
       const filePath = path.join(examplesDir, file);
       const content = fs.readFileSync(filePath, 'utf8');
 
       const regex = /\s*#\s*BEGIN CODE EXAMPLE:\s*(\w+)(?:,\s*[^)\n\r]*)?/g;
-      let match;
+      let match: RegExpExecArray | null;
 
-      while ((match = regex.exec(content)) !== null) {
+      match = regex.exec(content);
+      while (match !== null) {
         const id = match[1];
         const code = extractCodeExample(content, id);
 
@@ -219,6 +209,7 @@ export function loadCodeExamples(): Record<string, CodeExample> {
             filePath: path.relative(process.cwd(), filePath),
           };
         }
+        match = regex.exec(content);
       }
     }
   } catch (error) {

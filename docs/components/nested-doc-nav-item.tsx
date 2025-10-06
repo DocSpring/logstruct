@@ -1,10 +1,10 @@
 'use client';
 
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface SubHeading {
   id: string;
@@ -18,12 +18,7 @@ interface NestedDocNavItemProps {
   active?: boolean;
 }
 
-export function NestedDocNavItem({
-  href,
-  title,
-  subHeadings = [],
-  active,
-}: NestedDocNavItemProps) {
+export function NestedDocNavItem({ href, title, subHeadings = [], active }: NestedDocNavItemProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(active || pathname.startsWith(href));
   const hasSubHeadings = subHeadings.length > 0;
@@ -80,6 +75,7 @@ export function NestedDocNavItem({
         {/* Arrow button - always toggles expand/collapse */}
         {hasSubHeadings && (
           <button
+            type="button"
             className="ml-2 flex items-center justify-center focus:outline-none"
             onClick={toggleOpen}
             aria-label={isOpen ? 'Collapse section' : 'Expand section'}
@@ -105,8 +101,7 @@ export function NestedDocNavItem({
             const subHeadingHref = `${href}#${subHeading.id}`;
             // Check if this specific subheading is active
             const isSubheadingActive =
-              pathname.startsWith(href) &&
-              pathname.includes(`#${subHeading.id}`);
+              pathname.startsWith(href) && pathname.includes(`#${subHeading.id}`);
 
             return (
               <Link
@@ -114,8 +109,7 @@ export function NestedDocNavItem({
                 href={subHeadingHref}
                 className={cn(
                   'block py-1 px-4 text-sm rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
-                  isSubheadingActive &&
-                    'bg-neutral-100 dark:bg-neutral-800 font-medium',
+                  isSubheadingActive && 'bg-neutral-100 dark:bg-neutral-800 font-medium',
                 )}
               >
                 {subHeading.title}

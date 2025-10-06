@@ -1,8 +1,5 @@
-import {
-  getEnumDescription,
-  getEnumValueDescription,
-} from '@/lib/enum-descriptions';
 import { cache } from 'react';
+import { getEnumDescription, getEnumValueDescription } from '@/lib/enum-descriptions';
 import { HeadingWithAnchor } from './heading-with-anchor';
 
 interface EnumValue {

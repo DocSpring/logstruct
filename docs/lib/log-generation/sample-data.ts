@@ -66,13 +66,7 @@ export const SampleData = {
     'Ibrahim',
   ],
   // cspell:enable
-  DOMAINS: [
-    'example.com',
-    'gmail.com',
-    'outlook.com',
-    'icloud.com',
-    'company.org',
-  ],
+  DOMAINS: ['example.com', 'gmail.com', 'outlook.com', 'icloud.com', 'company.org'],
   HTTP_METHODS: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   CONTROLLERS: [
     'UsersController',
@@ -115,13 +109,7 @@ export const SampleData = {
     'invoice',
     'notification',
   ],
-  ERROR_TYPES: [
-    'NoMethodError',
-    'ArgumentError',
-    'RuntimeError',
-    'TypeError',
-    'NameError',
-  ],
+  ERROR_TYPES: ['NoMethodError', 'ArgumentError', 'RuntimeError', 'TypeError', 'NameError'],
   ERROR_MESSAGES: [
     'undefined method for nil:NilClass',
     'wrong number of arguments (given 2, expected 1)',
@@ -132,28 +120,10 @@ export const SampleData = {
     'database connection failed',
   ],
   STATUS_CODES: [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500],
-  FILE_TYPES: [
-    'image/jpeg',
-    'image/png',
-    'application/pdf',
-    'text/csv',
-    'text/plain',
-  ],
-  FILE_NAMES: [
-    'profile.jpg',
-    'document.pdf',
-    'report.csv',
-    'data.xlsx',
-    'avatar.png',
-  ],
+  FILE_TYPES: ['image/jpeg', 'image/png', 'application/pdf', 'text/csv', 'text/plain'],
+  FILE_NAMES: ['profile.jpg', 'document.pdf', 'report.csv', 'data.xlsx', 'avatar.png'],
   STORAGE_SERVICES: ['s3', 'google', 'cloud_storage', 'disk', 'local'],
-  IP_ADDRESSES: [
-    '192.168.1.1',
-    '10.0.0.123',
-    '172.16.254.1',
-    '8.8.8.8',
-    '1.1.1.1',
-  ],
+  IP_ADDRESSES: ['192.168.1.1', '10.0.0.123', '172.16.254.1', '8.8.8.8', '1.1.1.1'],
   BACKTRACE_LINES: [
     "app/models/user.rb:45:in `process_data'",
     "app/controllers/accounts_controller.rb:78:in `update'",
@@ -192,28 +162,21 @@ export const SampleHelpers = {
   httpMethod: (gen: RandomGen) => gen.sample(['GET', 'POST', 'PUT', 'DELETE']),
   path: (gen: RandomGen) => `/api/${gen.randomInt(1, 100)}`,
   status: (gen: RandomGen) => gen.randomInt(200, 599),
-  queue: (gen: RandomGen) =>
-    gen.sample(['default', 'mailers', 'critical', 'low']),
+  queue: (gen: RandomGen) => gen.sample(['default', 'mailers', 'critical', 'low']),
   email: (gen: RandomGen) => `user${gen.randomInt(1, 999)}@example.com`,
   emailArray: (gen: RandomGen) => [`user${gen.randomInt(1, 999)}@example.com`],
-  filename: (gen: RandomGen) =>
-    gen.sample(['file.txt', 'image.png', 'data.json']),
-  mime: (gen: RandomGen) =>
-    gen.sample(['text/plain', 'image/png', 'application/json']),
+  filename: (gen: RandomGen) => gen.sample(['file.txt', 'image.png', 'data.json']),
+  mime: (gen: RandomGen) => gen.sample(['text/plain', 'image/png', 'application/json']),
   url: (_gen: RandomGen) => 'https://example.com/file',
   ip: (gen: RandomGen) => gen.sample(['127.0.0.1', '10.0.0.1', '192.168.1.1']),
   threadId: (gen: RandomGen) => `thread-${gen.randomHex(4)}`,
   processId: (gen: RandomGen) => gen.randomInt(1000, 99999),
-  errClass: (gen: RandomGen) =>
-    gen.sample(['RuntimeError', 'ArgumentError', 'TimeoutError']),
-  name: (gen: RandomGen) =>
-    gen.sample(['User Load', 'Project Load', 'Order Load']),
+  errClass: (gen: RandomGen) => gen.sample(['RuntimeError', 'ArgumentError', 'TimeoutError']),
+  name: (gen: RandomGen) => gen.sample(['User Load', 'Project Load', 'Order Load']),
   sql: (_gen: RandomGen) => 'SELECT 1',
 } as const;
 
-export const SampleByLogField: Readonly<
-  Record<LogField, (gen: RandomGen) => unknown>
-> = {
+export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unknown>> = {
   [LogField.Path]: SampleHelpers.path,
   [LogField.Range]: (_gen: RandomGen) => '0-100',
   [LogField.Backtrace]: (_gen: RandomGen) => [
@@ -264,8 +227,7 @@ export const SampleByLogField: Readonly<
   [LogField.WaitTime]: SampleHelpers.duration,
   [LogField.RunTime]: SampleHelpers.duration,
   [LogField.Result]: (_gen: RandomGen) => 'success',
-  [LogField.EnqueueCaller]: (_gen: RandomGen) =>
-    'app/controllers/users_controller.rb:15:in create',
+  [LogField.EnqueueCaller]: (_gen: RandomGen) => 'app/controllers/users_controller.rb:15:in create',
   [LogField.Level]: (_gen: RandomGen) => 'info',
   [LogField.Event]: (_gen: RandomGen) => 'log',
   [LogField.CronKey]: (_gen: RandomGen) => 'daily',

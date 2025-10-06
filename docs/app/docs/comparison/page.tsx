@@ -1,7 +1,7 @@
+import { Check, Minus, X } from 'lucide-react';
 import React from 'react';
-import { Check, X, Minus } from 'lucide-react';
-import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { EditPageLink } from '@/components/edit-page-link';
+import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 
 type FeatureValue = boolean | string | { partial: boolean; tooltip: string };
 
@@ -232,15 +232,10 @@ function ComparisonTable() {
     },
   ];
 
-  const renderCell = (
-    value: boolean | string | { partial: boolean; tooltip: string },
-  ) => {
+  const renderCell = (value: boolean | string | { partial: boolean; tooltip: string }) => {
     if (value === true)
-      return (
-        <Check className="w-5 h-5 text-green-600 dark:text-green-500 mx-auto" />
-      );
-    if (value === false)
-      return <X className="w-5 h-5 text-red-500 dark:text-red-400 mx-auto" />;
+      return <Check className="w-5 h-5 text-green-600 dark:text-green-500 mx-auto" />;
+    if (value === false) return <X className="w-5 h-5 text-red-500 dark:text-red-400 mx-auto" />;
     if (typeof value === 'object' && value.partial)
       return (
         <div className="relative group flex justify-center">
@@ -251,9 +246,7 @@ function ComparisonTable() {
         </div>
       );
     if (value === 'partial')
-      return (
-        <Minus className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mx-auto" />
-      );
+      return <Minus className="w-5 h-5 text-yellow-600 dark:text-yellow-500 mx-auto" />;
     return <span className="text-xs">{String(value)}</span>;
   };
 
@@ -262,9 +255,7 @@ function ComparisonTable() {
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-neutral-200 dark:border-neutral-800">
-            <th className="text-left py-4 px-3 text-sm font-semibold">
-              Feature
-            </th>
+            <th className="text-left py-4 px-3 text-sm font-semibold">Feature</th>
             <th className="text-center py-4 px-2 text-sm font-semibold bg-purple-50 dark:bg-purple-950/20">
               LogStruct
             </th>
@@ -275,15 +266,9 @@ function ComparisonTable() {
               <br />
               Logger
             </th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">
-              Lograge
-            </th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">
-              Logstasher
-            </th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">
-              Logcraft
-            </th>
+            <th className="text-center py-4 px-2 text-sm font-semibold">Lograge</th>
+            <th className="text-center py-4 px-2 text-sm font-semibold">Logstasher</th>
+            <th className="text-center py-4 px-2 text-sm font-semibold">Logcraft</th>
           </tr>
         </thead>
         <tbody>
@@ -309,15 +294,9 @@ function ComparisonTable() {
                   <td className="py-2 px-2 text-center">
                     {renderCell(feature.railsSemanticLogger)}
                   </td>
-                  <td className="py-2 px-2 text-center">
-                    {renderCell(feature.lograge)}
-                  </td>
-                  <td className="py-2 px-2 text-center">
-                    {renderCell(feature.logstasher)}
-                  </td>
-                  <td className="py-2 px-2 text-center">
-                    {renderCell(feature.logcraft)}
-                  </td>
+                  <td className="py-2 px-2 text-center">{renderCell(feature.lograge)}</td>
+                  <td className="py-2 px-2 text-center">{renderCell(feature.logstasher)}</td>
+                  <td className="py-2 px-2 text-center">{renderCell(feature.logcraft)}</td>
                 </tr>
               ))}
             </React.Fragment>
@@ -362,12 +341,11 @@ export default function ComparisonPage() {
           >
             Rails Semantic Logger
           </a>{' '}
-          bridges Semantic Logger with Rails, providing automatic integration
-          with Rails components. It replaces various Rails loggers and adds
-          request logging similar to Lograge. While it offers good Rails
-          integration, it lacks the type safety, advanced filtering, and
-          security features that LogStruct provides. The configuration can also
-          be complex for teams wanting specific behaviors.
+          bridges Semantic Logger with Rails, providing automatic integration with Rails components.
+          It replaces various Rails loggers and adds request logging similar to Lograge. While it
+          offers good Rails integration, it lacks the type safety, advanced filtering, and security
+          features that LogStruct provides. The configuration can also be complex for teams wanting
+          specific behaviors.
         </p>
       </div>
 
@@ -392,12 +370,11 @@ export default function ComparisonPage() {
             >
               Lograge
             </a>{' '}
-            is the original Rails request log tamer. It transforms Rails&apos;
-            verbose, multi-line request logs into single-line structured logs.
-            It&apos;s lightweight, focused, and does one thing exceptionally
-            well: cleaning up request logs. LogStruct actually uses Lograge
-            under the hood for request log processing, then enhances it with
-            type safety and advanced filtering.
+            is the original Rails request log tamer. It transforms Rails&apos; verbose, multi-line
+            request logs into single-line structured logs. It&apos;s lightweight, focused, and does
+            one thing exceptionally well: cleaning up request logs. LogStruct actually uses Lograge
+            under the hood for request log processing, then enhances it with type safety and
+            advanced filtering.
           </p>
         </div>
 
@@ -421,11 +398,10 @@ export default function ComparisonPage() {
             >
               Logstasher
             </a>{' '}
-            is designed specifically for Logstash integration, formatting logs
-            in Logstash&apos;s expected JSON format. It includes basic request
-            logging and some ActiveSupport notifications. While it works well
-            for ELK stack users, it lacks the comprehensive filtering, type
-            safety, and broad integration support that LogStruct offers.
+            is designed specifically for Logstash integration, formatting logs in Logstash&apos;s
+            expected JSON format. It includes basic request logging and some ActiveSupport
+            notifications. While it works well for ELK stack users, it lacks the comprehensive
+            filtering, type safety, and broad integration support that LogStruct offers.
           </p>
         </div>
 
@@ -449,11 +425,10 @@ export default function ComparisonPage() {
             >
               Logcraft
             </a>{' '}
-            is a newer gem that provides structured logging with good defaults
-            for Rails applications. It focuses on simplicity and includes
-            request logging and basic integrations. However, it lacks the
-            advanced security features, type safety, and comprehensive
-            third-party integrations that LogStruct provides.
+            is a newer gem that provides structured logging with good defaults for Rails
+            applications. It focuses on simplicity and includes request logging and basic
+            integrations. However, it lacks the advanced security features, type safety, and
+            comprehensive third-party integrations that LogStruct provides.
           </p>
         </div>
 
@@ -462,35 +437,34 @@ export default function ComparisonPage() {
         </HeadingWithAnchor>
         <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
           <p>
-            LogStruct combines the best features of all these gems while adding
-            unique capabilities:
+            LogStruct combines the best features of all these gems while adding unique capabilities:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>
-              <strong>Type Safety:</strong> The only logging gem with full
-              Sorbet type checking support
+              <strong>Type Safety:</strong> The only logging gem with full Sorbet type checking
+              support
             </li>
             <li>
-              <strong>Security First:</strong> Advanced filtering and scrubbing
-              that goes beyond basic parameter filtering
+              <strong>Security First:</strong> Advanced filtering and scrubbing that goes beyond
+              basic parameter filtering
             </li>
             <li>
-              <strong>True Zero Configuration:</strong> Works perfectly out of
-              the box with sensible, production-ready defaults
+              <strong>True Zero Configuration:</strong> Works perfectly out of the box with
+              sensible, production-ready defaults
             </li>
             <li>
-              <strong>Comprehensive Integrations:</strong> Supports more
-              third-party gems than any other solution
+              <strong>Comprehensive Integrations:</strong> Supports more third-party gems than any
+              other solution
             </li>
             <li>
-              <strong>DevOps Friendly:</strong> Terraform export for
-              infrastructure-as-code metrics and alarms
+              <strong>DevOps Friendly:</strong> Terraform export for infrastructure-as-code metrics
+              and alarms
             </li>
           </ul>
           <p>
-            If you&apos;re starting a new Rails application or looking to
-            upgrade your logging infrastructure, LogStruct provides the most
-            complete, secure, and developer-friendly solution available.
+            If you&apos;re starting a new Rails application or looking to upgrade your logging
+            infrastructure, LogStruct provides the most complete, secure, and developer-friendly
+            solution available.
           </p>
         </div>
       </div>

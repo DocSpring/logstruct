@@ -17,17 +17,17 @@ tasks:
 
   lint:
     dir: docs
-    desc: Run ESLint
+    desc: Run Biome linter and formatter check
     deps: [deps]
     cmds:
       - npm run lint
 
   lint:fix:
     dir: docs
-    desc: Run ESLint with auto-fix
+    desc: Run Biome with auto-fix
     deps: [deps]
     cmds:
-      - npm run lint -- --fix
+      - npm run lint:fix
 
   test:
     dir: docs

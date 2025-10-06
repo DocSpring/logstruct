@@ -10,21 +10,16 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   Delivered: 'ActionMailer callback emitted after a message is delivered',
   Delivery: 'ActionMailer event capturing when a mailer sends a message',
   ActiveJob: 'For background job execution',
-  Enqueue:
-    'Background job enqueued event (ActiveJob or GoodJob scheduling a job for execution)',
-  Finish:
-    'Background job completion event indicating success (ActiveJob/GoodJob)',
+  Enqueue: 'Background job enqueued event (ActiveJob or GoodJob scheduling a job for execution)',
+  Finish: 'Background job completion event indicating success (ActiveJob/GoodJob)',
   Schedule:
     'Deferred background job scheduling event (ActiveJob or GoodJob scheduling with a run_at time)',
-  Start:
-    'Lifecycle start event for jobs or services (ActiveJob, GoodJob, or Puma boot)',
+  Start: 'Lifecycle start event for jobs or services (ActiveJob, GoodJob, or Puma boot)',
   ActiveStorage: 'For file storage operations',
-  Delete:
-    'Deletion of a persisted attachment (ActiveStorage, CarrierWave, or Shrine)',
+  Delete: 'Deletion of a persisted attachment (ActiveStorage, CarrierWave, or Shrine)',
   Download: 'File download event (ActiveStorage, CarrierWave, or Shrine)',
   Exist: 'Existence check for a stored file (ActiveStorage or Shrine)',
-  Metadata:
-    'Metadata read or write against a stored file (ActiveStorage or Shrine)',
+  Metadata: 'Metadata read or write against a stored file (ActiveStorage or Shrine)',
   Stream: 'Streaming read of stored file contents (ActiveStorage)',
   Upload: 'File upload event (ActiveStorage, CarrierWave, or Shrine)',
   Url: 'URL generation event for a stored file (ActiveStorage)',

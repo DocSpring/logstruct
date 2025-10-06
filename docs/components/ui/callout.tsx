@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { cn } from '@/lib/utils';
 
 interface CalloutProps {
@@ -17,10 +17,6 @@ export function Callout({ children, type = 'info', className }: CalloutProps) {
   };
 
   return (
-    <div
-      className={cn('p-4 rounded-md border-l-4', typeStyles[type], className)}
-    >
-      {children}
-    </div>
+    <div className={cn('p-4 rounded-md border-l-4', typeStyles[type], className)}>{children}</div>
   );
 }

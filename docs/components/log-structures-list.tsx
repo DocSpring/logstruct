@@ -1,5 +1,5 @@
-import { getLogStructureDescription } from '@/lib/log-structure-descriptions';
 import { cache } from 'react';
+import { getLogStructureDescription } from '@/lib/log-structure-descriptions';
 
 // Interface for the structure in the log structs JSON file
 interface StructField {
@@ -65,9 +65,7 @@ export async function LogStructuresList() {
     categoryMap.set(category, list);
   });
 
-  const categories = Array.from(categoryMap.entries()).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
+  const categories = Array.from(categoryMap.entries()).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="space-y-6">

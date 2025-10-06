@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
 import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu';
 import { cva } from 'class-variance-authority';
 import { ChevronDownIcon } from 'lucide-react';
+import type * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -38,10 +38,7 @@ function NavigationMenuList({
   return (
     <NavigationMenuPrimitive.List
       data-slot="navigation-menu-list"
-      className={cn(
-        'group flex flex-1 list-none items-center justify-center gap-1',
-        className,
-      )}
+      className={cn('group flex flex-1 list-none items-center justify-center gap-1', className)}
       {...props}
     />
   );
@@ -106,11 +103,7 @@ function NavigationMenuViewport({
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Viewport>) {
   return (
-    <div
-      className={cn(
-        'absolute top-full left-0 isolate z-50 flex justify-center',
-      )}
-    >
+    <div className={cn('absolute top-full left-0 isolate z-50 flex justify-center')}>
       <NavigationMenuPrimitive.Viewport
         data-slot="navigation-menu-viewport"
         className={cn(

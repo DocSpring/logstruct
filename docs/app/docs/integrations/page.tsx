@@ -1,18 +1,13 @@
-import React from 'react';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
-import { RubyCodeExample } from '@/components/ruby-code-example';
+import { FilteringProvider } from '@/components/filtering-context';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
-import { AllLogTypes } from '@/generated/logstruct';
-import { getCodeExample } from '@/lib/codeExamples';
-import {
-  getEventsForLogType,
-  getLogTypeInfo,
-  getTitleId,
-} from '@/lib/integration-helpers';
 // Tabs are now handled inside IntegrationExamples
 import { IntegrationExamples } from '@/components/integration-examples';
-import { FilteringProvider } from '@/components/filtering-context';
+import { RubyCodeExample } from '@/components/ruby-code-example';
+import { AllLogTypes } from '@/generated/logstruct';
+import { getCodeExample } from '@/lib/codeExamples';
+import { getEventsForLogType, getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
 
 export default function IntegrationsPage() {
   return (
@@ -21,10 +16,9 @@ export default function IntegrationsPage() {
         Integrations
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct integrates with many popular gems and Rails components to
-        provide comprehensive structured logging throughout your application.
-        These integrations automatically hook into important events and capture
-        relevant context for better observability.
+        LogStruct integrates with many popular gems and Rails components to provide comprehensive
+        structured logging throughout your application. These integrations automatically hook into
+        important events and capture relevant context for better observability.
       </p>
 
       <FilteringProvider>
@@ -33,17 +27,12 @@ export default function IntegrationsPage() {
           const logTypeInfo = getLogTypeInfo(logType);
           if (!logTypeInfo) return null; // Skip plain logs, etc.
 
-          const { title, description, configuration_code, preferredEvent } =
-            logTypeInfo;
+          const { title, description, configuration_code, preferredEvent } = logTypeInfo;
 
           return (
             <div key={logType} className="mt-10">
-              <HeadingWithAnchor id={getTitleId(title)}>
-                {title}
-              </HeadingWithAnchor>
-              <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-                {description}
-              </p>
+              <HeadingWithAnchor id={getTitleId(title)}>{title}</HeadingWithAnchor>
+              <p className="text-neutral-600 dark:text-neutral-300 mb-4">{description}</p>
 
               {/* Show Ruby code example if one is specified */}
               {configuration_code && (
@@ -86,14 +75,11 @@ export default function IntegrationsPage() {
 
       {/* Special case for Sorbet that doesn't fit the standard pattern */}
       <div className="mt-10">
-        <HeadingWithAnchor id="sorbet-integration">
-          Sorbet Integration
-        </HeadingWithAnchor>
+        <HeadingWithAnchor id="sorbet-integration">Sorbet Integration</HeadingWithAnchor>
         <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-          LogStruct integrates with Sorbet to handle type checking errors
-          appropriately based on the environment. We raise any logging-related
-          errors in test/development and log or report them in production to
-          avoid crashing your application.
+          LogStruct integrates with Sorbet to handle type checking errors appropriately based on the
+          environment. We raise any logging-related errors in test/development and log or report
+          them in production to avoid crashing your application.
         </p>
 
         <HeadingWithAnchor

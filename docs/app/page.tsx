@@ -1,38 +1,24 @@
-import { LogScroller } from '@/components/log-scroller';
-import { Button } from '@/components/ui/button';
+import fs from 'node:fs';
+import path from 'node:path';
+import { AlertCircle, FilterX, Globe, IceCream, PieChart, Puzzle, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
-import {
-  FilterX,
-  Tag,
-  Puzzle,
-  AlertCircle,
-  Globe,
-  IceCream,
-  PieChart,
-} from 'lucide-react';
-import fs from 'fs';
-import path from 'path';
-import { RubyGemsIcon } from '@/components/icons';
-import { GitHubStatus } from '@/components/github-status';
 import DashboardClientWrapper from '@/components/dashboard-client-wrapper';
+import { GitHubStatus } from '@/components/github-status';
+import { RubyGemsIcon } from '@/components/icons';
+import { LogScroller } from '@/components/log-scroller';
+import { Button } from '@/components/ui/button';
 
 // Get code coverage percentage from JSON file
 function getCodeCoverage() {
-  const coverageFilePath = path.join(
-    process.cwd(),
-    'public/coverage/coverage.json',
-  );
+  const coverageFilePath = path.join(process.cwd(), 'public/coverage/coverage.json');
   const coverageData = JSON.parse(fs.readFileSync(coverageFilePath, 'utf8'));
   return coverageData.metrics.covered_percent.toFixed(2);
 }
 
 // Get gem version from the version file
 function getGemVersion() {
-  const versionFilePath = path.join(
-    process.cwd(),
-    '../lib/log_struct/version.rb',
-  );
+  const versionFilePath = path.join(process.cwd(), '../lib/log_struct/version.rb');
   const versionFileContent = fs.readFileSync(versionFilePath, 'utf8');
   const versionMatch = versionFileContent.match(/VERSION\s*=\s*"([^"]+)"/);
 
@@ -66,10 +52,9 @@ export default function Home() {
                 Zero-config structured logging for Ruby on Rails
               </h1>
               <p className="text-lg text-neutral-600 dark:text-neutral-300 my-10">
-                LogStruct is a new way to add type-safe, SOC 2 compliant, and
-                DevOps friendly JSON logs to any Ruby on Rails application. Just
-                add the gem to your Gemfile and your Rails app will print JSON
-                logs that are easy to search, filter, and visualize.
+                LogStruct is a new way to add type-safe, SOC 2 compliant, and DevOps friendly JSON
+                logs to any Ruby on Rails application. Just add the gem to your Gemfile and your
+                Rails app will print JSON logs that are easy to search, filter, and visualize.
               </p>
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
@@ -86,11 +71,7 @@ export default function Home() {
                   </Link>
                 </Button>
                 <Button variant="secondary" size="lg" asChild>
-                  <a
-                    href="/yard/index.html"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="/yard/index.html" target="_blank" rel="noopener noreferrer">
                     YARD Docs
                   </a>
                 </Button>
@@ -114,9 +95,7 @@ export default function Home() {
           </p>
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-              <h3 className="mb-4 text-xl font-semibold">
-                1. Add to your Gemfile
-              </h3>
+              <h3 className="mb-4 text-xl font-semibold">1. Add to your Gemfile</h3>
               <CodeBlock language="ruby">{`gem "logstruct"`}</CodeBlock>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -130,8 +109,8 @@ export default function Home() {
         <section className="py-16">
           <h2 className="mb-8 text-3xl font-bold">Monitoring and Dashboards</h2>
           <p className="my-6 text-lg text-neutral-600 dark:text-neutral-300">
-            Structured JSON logs are easy to parse, so you can quickly set up
-            metrics, alerts, and dashboards.
+            Structured JSON logs are easy to parse, so you can quickly set up metrics, alerts, and
+            dashboards.
           </p>
 
           <DashboardClientWrapper />
@@ -149,8 +128,8 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Type-safe with Sorbet</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                LogStruct is fully type-checked with Sorbet. Your logs are
-                guaranteed to have the correct structure and valid data.
+                LogStruct is fully type-checked with Sorbet. Your logs are guaranteed to have the
+                correct structure and valid data.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -158,13 +137,11 @@ export default function Home() {
                 <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                   <FilterX className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
                 </div>
-                <h3 className="text-xl font-semibold">
-                  Advanced Filtering and Scrubbing
-                </h3>
+                <h3 className="text-xl font-semibold">Advanced Filtering and Scrubbing</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Automatically redact sensitive information like emails, credit
-                cards, passwords, IPs, and SSNs from your log output.
+                Automatically redact sensitive information like emails, credit cards, passwords,
+                IPs, and SSNs from your log output.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -172,14 +149,12 @@ export default function Home() {
                 <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                   <Puzzle className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
                 </div>
-                <h3 className="text-xl font-semibold">
-                  Integrates with Everything
-                </h3>
+                <h3 className="text-xl font-semibold">Integrates with Everything</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Integrates with ActiveJob, ActionMailer, ActiveStorage, Lograge,
-                Sidekiq, Carrierwave, and more to provide consistent structured
-                logging. (Open a PR to add support for your favorite gem!)
+                Integrates with ActiveJob, ActionMailer, ActiveStorage, Lograge, Sidekiq,
+                Carrierwave, and more to provide consistent structured logging. (Open a PR to add
+                support for your favorite gem!)
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -190,9 +165,8 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Error Reporting</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Smart and configurable error handling behaviors. Automatic error
-                reporting integration with Sentry, Bugsnag, Rollbar, and
-                Honeybadger.
+                Smart and configurable error handling behaviors. Automatic error reporting
+                integration with Sentry, Bugsnag, Rollbar, and Honeybadger.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -203,10 +177,9 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Cloud-Ready</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Compatible with AWS CloudWatch, Google Cloud Logging, and other
-                cloud monitoring services that can filter and parse JSON log
-                data. LogStruct provides Terraform types so your IaC config is
-                always type-safe and up-to-date.
+                Compatible with AWS CloudWatch, Google Cloud Logging, and other cloud monitoring
+                services that can filter and parse JSON log data. LogStruct provides Terraform types
+                so your IaC config is always type-safe and up-to-date.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -217,9 +190,8 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Tagged Logging</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Add tags to your logs for better querying and aggregation.
-                Perfect for tracking requests, background jobs, or custom
-                workflows.
+                Add tags to your logs for better querying and aggregation. Perfect for tracking
+                requests, background jobs, or custom workflows.
               </p>
             </div>
           </div>
@@ -227,9 +199,7 @@ export default function Home() {
 
         {/* Project Status */}
         <section className="py-16">
-          <h2 className="mb-8 text-3xl font-bold text-center">
-            Project Status
-          </h2>
+          <h2 className="mb-8 text-3xl font-bold text-center">Project Status</h2>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <GitHubStatus />
 
@@ -287,10 +257,7 @@ export default function Home() {
                   className="mr-3 flex h-10 w-10 items-center justify-center rounded-full"
                   style={{ backgroundColor: 'rgba(215, 40, 40, 0.15)' }}
                 >
-                  <RubyGemsIcon
-                    className="h-5 w-5"
-                    style={{ color: '#d72828' }}
-                  />
+                  <RubyGemsIcon className="h-5 w-5" style={{ color: '#d72828' }} />
                 </div>
                 <h3 className="text-xl font-semibold">RubyGems</h3>
               </div>
@@ -306,18 +273,13 @@ export default function Home() {
 
         {/* FAQ Section */}
         <section className="py-16">
-          <h2 className="mb-12 text-center text-3xl font-bold">
-            Frequently Asked Questions
-          </h2>
+          <h2 className="mb-12 text-center text-3xl font-bold">Frequently Asked Questions</h2>
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-              <h3 className="mb-4 text-xl font-semibold">
-                Do I need to use Sorbet?
-              </h3>
+              <h3 className="mb-4 text-xl font-semibold">Do I need to use Sorbet?</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
-                No, you can use LogStruct even if you don&apos;t use Sorbet. You
-                can use the regular Rails logger as usual without worrying about
-                Sorbet types.{' '}
+                No, you can use LogStruct even if you don&apos;t use Sorbet. You can use the regular
+                Rails logger as usual without worrying about Sorbet types.{' '}
                 <a href="https://sorbet.org/docs/runtime">
                   <code>sorbet-runtime</code>
                 </a>{' '}
@@ -331,15 +293,13 @@ export default function Home() {
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
               <h3 className="mb-4 text-xl font-semibold">Is LogStruct free?</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Yes, LogStruct is completely free and open source under the MIT
-                license. Pull requests and contributions are welcome!
+                Yes, LogStruct is completely free and open source under the MIT license. Pull
+                requests and contributions are welcome!
               </p>
             </div>
 
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-              <h3 className="mb-4 text-xl font-semibold">
-                Why was LogStruct built?
-              </h3>
+              <h3 className="mb-4 text-xl font-semibold">Why was LogStruct built?</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
                 DocSpring was originally using the{' '}
                 <a
@@ -349,21 +309,16 @@ export default function Home() {
                 >
                   <code>lograge</code>
                 </a>{' '}
-                gem to format our request logs as JSON. We realized that we had
-                a lot of other plain text logs that would be useful for
-                CloudWatch metrics and dashboards. We wrote much of this code in
-                our own app before deciding to extract it and release it as a
-                gem. (It was also a great opportunity to learn more about
-                Sorbet.)
+                gem to format our request logs as JSON. We realized that we had a lot of other plain
+                text logs that would be useful for CloudWatch metrics and dashboards. We wrote much
+                of this code in our own app before deciding to extract it and release it as a gem.
+                (It was also a great opportunity to learn more about Sorbet.)
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
-              <h3 className="mb-4 text-xl font-semibold">
-                What about other logging gems?
-              </h3>
+              <h3 className="mb-4 text-xl font-semibold">What about other logging gems?</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Several other gems provide structured logging for Rails apps,
-                including{' '}
+                Several other gems provide structured logging for Rails apps, including{' '}
                 <a
                   href="https://github.com/reidmorrison/rails_semantic_logger"
                   target="_blank"
@@ -395,9 +350,8 @@ export default function Home() {
                 >
                   Logcraft
                 </a>
-                . LogStruct focuses on powerful filtering and scrubbing,
-                structured error handling, and type‑safety across integrations.
-                See the{' '}
+                . LogStruct focuses on powerful filtering and scrubbing, structured error handling,
+                and type‑safety across integrations. See the{' '}
                 <Link href="/docs/comparison" className="underline">
                   comparison page
                 </Link>{' '}

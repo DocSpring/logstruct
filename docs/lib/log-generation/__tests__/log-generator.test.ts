@@ -1,5 +1,5 @@
+import { Event, Level, LogType, Source } from '@/generated/logstruct';
 import { LogGenerator } from '../log-generator';
-import { LogType, Level, Source, Event } from '@/generated/logstruct';
 
 describe('LogGenerator', () => {
   let generator: LogGenerator;

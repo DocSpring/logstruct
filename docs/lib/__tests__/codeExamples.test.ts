@@ -1,12 +1,12 @@
 // Jest globals are available in test environment without explicit import
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
-  loadCodeExamples,
-  getCodeExample,
+  extractCodeExample,
   getAllCodeExamples,
   getAllExampleIds,
-  extractCodeExample,
+  getCodeExample,
+  loadCodeExamples,
 } from '../codeExamples';
 
 // This is an integration test that uses the real file system to load actual code examples
@@ -85,9 +85,7 @@ describe('Code Examples Integration', () => {
     // Check that relative indentation is preserved (don't check exact content)
     if (lines.length > 2) {
       // Find a line with indentation
-      const indentedLine = lines.find(
-        (line) => line.trim().length > 0 && line.startsWith('  '),
-      );
+      const indentedLine = lines.find((line) => line.trim().length > 0 && line.startsWith('  '));
       if (indentedLine) {
         expect(indentedLine.startsWith('  ')).toBe(true);
       }
@@ -109,9 +107,7 @@ console.log(example);
 `;
 
     const extracted = extractCodeExample(content, 'basic_example');
-    expect(extracted).toBe(
-      'const example = "Hello, world!";\nconsole.log(example);',
-    );
+    expect(extracted).toBe('const example = "Hello, world!";\nconsole.log(example);');
   });
 
   it('supports replace directives', () => {
@@ -163,9 +159,7 @@ const result = compute();
 `;
 
     const extracted = extractCodeExample(content, 'complex_replace');
-    expect(extracted).toBe(
-      'const value = 42;\n// value\n// "testing"\nconst result = compute();',
-    );
+    expect(extracted).toBe('const value = 42;\n// value\n// "testing"\nconst result = compute();');
   });
 
   it('preserves indentation after replacements', () => {

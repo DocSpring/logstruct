@@ -7,9 +7,8 @@ export default function ComingSoon() {
         Coming Soon
       </h1>
       <p className="text-xl text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto mb-12">
-        LogStruct is a new way to add type-safe, structured JSON logging to any
-        Rails app. We&apos;re currently in development and will be launching
-        soon!
+        LogStruct is a new way to add type-safe, structured JSON logging to any Rails app.
+        We&apos;re currently in development and will be launching soon!
       </p>
     </div>
   );

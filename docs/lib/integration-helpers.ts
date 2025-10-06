@@ -67,8 +67,7 @@ export function getLogTypeInfo(logType: LogType): {
     case LogType.SECURITY:
       return {
         title: 'Security Logging',
-        description:
-          'LogStruct includes security-focused logging for Rails applications.',
+        description: 'LogStruct includes security-focused logging for Rails applications.',
       };
 
     case LogType.SHRINE:
@@ -145,14 +144,7 @@ export function getEventsForLogType(logType: LogType): Event[] {
     case LogType.SIDEKIQ:
       return [Event.Log];
     case LogType.ACTIVESTORAGE:
-      return [
-        Event.Upload,
-        Event.Download,
-        Event.Delete,
-        Event.Metadata,
-        Event.Exist,
-        Event.Url,
-      ];
+      return [Event.Upload, Event.Download, Event.Delete, Event.Metadata, Event.Exist, Event.Url];
     case LogType.ACTIONMAILER:
       return [Event.Delivery, Event.Delivered];
     case LogType.CARRIERWAVE:

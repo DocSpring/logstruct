@@ -1,5 +1,6 @@
-import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { EditPageLink } from '@/components/edit-page-link';
+import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+
 interface ProductionCompany {
   name: string;
   url: string;
@@ -34,8 +35,8 @@ export default function CompaniesUsingLogStructPage() {
       </HeadingWithAnchor>
 
       <p className="text-neutral-600 dark:text-neutral-300">
-        Does your team run LogStruct in production? Click the edit link below to
-        add your company to the list.
+        Does your team run LogStruct in production? Click the edit link below to add your company to
+        the list.
       </p>
 
       <hr className="my-14" />
@@ -50,17 +51,11 @@ export default function CompaniesUsingLogStructPage() {
               className="font-semibold text-2xl hover:underline flex items-center space-x-2"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={company.logo}
-                alt={company.name}
-                className="w-8 h-8 mr-4"
-              />
+              <img src={company.logo} alt={company.name} className="w-8 h-8 mr-4" />
               {company.name}
             </a>
 
-            <div className="text-neutral-600 dark:text-neutral-300 pt-4">
-              {company.summary}
-            </div>
+            <div className="text-neutral-600 dark:text-neutral-300 pt-4">{company.summary}</div>
           </li>
         ))}
       </ul>

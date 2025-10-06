@@ -1,18 +1,17 @@
 'use client';
 
-import React from 'react';
+import { LogGenerator } from '@/lib/log-generation/log-generator';
 import { Card } from './ui/card';
 import {
-  Chart,
-  AreaChart,
   Area,
+  AreaChart,
+  Chart,
+  CustomTooltip,
+  Legend,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
-  CustomTooltip,
 } from './ui/recharts';
-import { LogGenerator } from '@/lib/log-generation/log-generator';
 
 // Refined color palette with blues, purples - brightened dark colors
 const chartColors = {
@@ -53,18 +52,17 @@ const generateChartData = () => {
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
-        date: new Date(
-          Date.now() - (days - day) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          'en-US',
+          { month: 'short', day: 'numeric' },
+        ),
       };
 
       // Base avg value between 80-150ms
       const avgValue = generator.randomInt(80, 150);
 
       // P95 is typically 1.5-2x the average
-      const p95Value = Math.round(
-        avgValue * (1.5 + generator.randomFloat(0, 0.5)),
-      );
+      const p95Value = Math.round(avgValue * (1.5 + generator.randomFloat(0, 0.5)));
 
       // P99 is typically 2-3x the average
       const p99Value = Math.round(avgValue * (2 + generator.randomFloat(0, 1)));
@@ -90,9 +88,10 @@ const generateChartData = () => {
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
-        date: new Date(
-          Date.now() - (days - day) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          'en-US',
+          { month: 'short', day: 'numeric' },
+        ),
       };
 
       // Total deliveries (combine all mailers)
@@ -130,9 +129,10 @@ const generateChartData = () => {
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
-        date: new Date(
-          Date.now() - (days - day) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          'en-US',
+          { month: 'short', day: 'numeric' },
+        ),
       };
 
       for (const queue of queues) {
@@ -166,18 +166,16 @@ const generateChartData = () => {
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
-        date: new Date(
-          Date.now() - (days - day) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          'en-US',
+          { month: 'short', day: 'numeric' },
+        ),
       };
 
       // Base low levels for each category
-      entry['api'] =
-        generator.randomInt(0, 100) < 70 ? 0 : generator.randomInt(1, 10);
-      entry['signup'] =
-        generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 5);
-      entry['pentesters'] =
-        generator.randomInt(0, 100) < 90 ? 0 : generator.randomInt(1, 3);
+      entry['api'] = generator.randomInt(0, 100) < 70 ? 0 : generator.randomInt(1, 10);
+      entry['signup'] = generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 5);
+      entry['pentesters'] = generator.randomInt(0, 100) < 90 ? 0 : generator.randomInt(1, 3);
 
       // Add spikes on specific days
       if (apiSpikes.includes(day)) {
@@ -212,14 +210,14 @@ const generateChartData = () => {
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
-        date: new Date(
-          Date.now() - (days - day) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          'en-US',
+          { month: 'short', day: 'numeric' },
+        ),
       };
 
       // Default to 0 for most days, with occasional small amounts (1-2)
-      entry['blocked_host'] =
-        generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 2);
+      entry['blocked_host'] = generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 2);
       entry['ip_spoof'] = generator.randomInt(0, 100) < 90 ? 0 : 1;
       entry['csrf_violation'] = generator.randomInt(0, 100) < 95 ? 0 : 1;
 
@@ -257,17 +255,16 @@ const generateChartData = () => {
 
     for (let day = 0; day < days; day++) {
       const entry: Record<string, number | string> = {
-        date: new Date(
-          Date.now() - (days - day) * 24 * 60 * 60 * 1000,
-        ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
+          'en-US',
+          { month: 'short', day: 'numeric' },
+        ),
       };
 
       // Default to low error rates (0-2)
-      entry['500_errors'] =
-        generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 2);
+      entry['500_errors'] = generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 2);
       entry['422_errors'] = generator.randomInt(1, 5); // Validation errors are more common
-      entry['db_errors'] =
-        generator.randomInt(0, 100) < 85 ? 0 : generator.randomInt(1, 2);
+      entry['db_errors'] = generator.randomInt(0, 100) < 85 ? 0 : generator.randomInt(1, 2);
       entry['timeouts'] = generator.randomInt(0, 100) < 90 ? 0 : 1;
 
       // Add spikes on specific days

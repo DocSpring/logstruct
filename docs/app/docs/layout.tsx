@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { NestedDocNavItem } from '@/components/nested-doc-nav-item';
 import { AllLogTypes } from '@/generated/logstruct';
 import { getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
+import { cn } from '@/lib/utils';
 
 interface DocNavItemProps {
   href: string;
@@ -27,11 +27,7 @@ function DocNavItem({ href, title, active }: DocNavItemProps) {
   );
 }
 
-export default function DocsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Build Integrations subheadings from log types (plus Sorbet special case)
@@ -122,9 +118,7 @@ export default function DocsLayout({
                   <NestedDocNavItem
                     href="/docs/filtering-sensitive-data"
                     title="Filtering Sensitive Data"
-                    active={pathname.startsWith(
-                      '/docs/filtering-sensitive-data',
-                    )}
+                    active={pathname.startsWith('/docs/filtering-sensitive-data')}
                     subHeadings={[
                       {
                         id: 'parameter-filtering',
@@ -223,16 +217,8 @@ export default function DocsLayout({
 
                 <h2 className="mt-6 mb-3 text-lg font-semibold">Reference</h2>
                 <nav className="space-y-1">
-                  <DocNavItem
-                    href="/yard/index.html"
-                    title="YARD Documentation"
-                    active={false}
-                  />
-                  <DocNavItem
-                    href="/coverage/index.html"
-                    title="Code Coverage"
-                    active={false}
-                  />
+                  <DocNavItem href="/yard/index.html" title="YARD Documentation" active={false} />
+                  <DocNavItem href="/coverage/index.html" title="Code Coverage" active={false} />
                 </nav>
               </div>
             </div>

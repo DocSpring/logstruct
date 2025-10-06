@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import useInterval from 'use-interval';
-import { LogGenerator } from '../lib/log-generation/log-generator';
 import { Event, LogType } from '@/generated/logstruct';
+import { LogGenerator } from '../lib/log-generation/log-generator';
 
 // For generating random logs
 const logGenerator = new LogGenerator();
@@ -67,12 +67,8 @@ export function LogScroller() {
   // Generate a random log entry (for logs after the Puma boot)
   const generateLogEntry = useCallback(() => {
     // Pick a random log type, excluding Puma once the initial start log is shown
-    const logTypes = Object.values(LogType).filter(
-      (type) => type !== LogType.PUMA,
-    );
-    const randomLogType = logTypes[
-      Math.floor(Math.random() * logTypes.length)
-    ] as LogType;
+    const logTypes = Object.values(LogType).filter((type) => type !== LogType.PUMA);
+    const randomLogType = logTypes[Math.floor(Math.random() * logTypes.length)] as LogType;
 
     // Generate a random log using the LogGenerator
     const log = logGenerator.generateLog(randomLogType);
@@ -102,7 +98,7 @@ export function LogScroller() {
     if (scrollerRef.current && (!isPaused || isMaximized)) {
       scrollerRef.current.scrollTop = scrollerRef.current.scrollHeight;
     }
-  }, [logs, isPaused, isMaximized]);
+  }, [isPaused, isMaximized]);
 
   // Toggle the minimized state
   const handleMinimize = () => {
@@ -177,8 +173,7 @@ export function LogScroller() {
         }
       : {
           // 3D perspective for side-by-side mode
-          transform:
-            'perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)',
+          transform: 'perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg)',
           transformOrigin: 'center center',
           marginLeft: '-40px',
           marginRight: '80px',
@@ -192,12 +187,10 @@ export function LogScroller() {
     : isStandalone
       ? {
           transform: 'scale(1.01)',
-          boxShadow:
-            '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35)',
+          boxShadow: '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35)',
         }
       : {
-          transform:
-            'perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)',
+          transform: 'perspective(1500px) rotateX(3deg) rotateY(-6deg) rotateZ(0.5deg) scale(1.01)',
           boxShadow:
             '0 15px 35px rgba(0, 0, 0, 0.25), 0 3px 5px rgba(0, 0, 0, 0.35), -8px 8px 20px rgba(0, 0, 0, 0.15)',
         };
@@ -210,8 +203,7 @@ export function LogScroller() {
           boxShadow: baseStyle.boxShadow,
         }
       : {
-          transform:
-            'perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)',
+          transform: 'perspective(1500px) rotateX(4deg) rotateY(-8deg) rotateZ(1deg) scale(1)',
           boxShadow: baseStyle.boxShadow,
         };
 
@@ -308,9 +300,7 @@ export function LogScroller() {
       </div>
 
       {/* Container with relative positioning for the scrollable content and overlay */}
-      <div
-        className={`relative ${isMaximized ? 'h-[calc(100vh-30px)]' : 'h-[333px]'}`}
-      >
+      <div className={`relative ${isMaximized ? 'h-[calc(100vh-30px)]' : 'h-[333px]'}`}>
         {/* Scrollable content */}
         <div
           ref={scrollerRef}

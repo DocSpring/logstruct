@@ -1,8 +1,8 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { Callout } from '@/components/ui/callout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCodeExample } from '@/lib/codeExamples';
 
 export default function DocsPage() {
@@ -12,9 +12,9 @@ export default function DocsPage() {
         Introduction
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct adds JSON structured logging to any Rails app. Simply add the
-        gem to your Gemfile and add an initializer to configure it. Now your
-        Rails app prints beautiful JSON logs to STDOUT.
+        LogStruct adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile
+        and add an initializer to configure it. Now your Rails app prints beautiful JSON logs to
+        STDOUT.
       </p>
 
       <HeadingWithAnchor id="features" level={2}>
@@ -22,38 +22,24 @@ export default function DocsPage() {
       </HeadingWithAnchor>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          JSON logging enabled by default for server processes and test runs in
-          production and test environments (automatically disabled for console
-          and other Rake tasks).
+          JSON logging enabled by default for server processes and test runs in production and test
+          environments (automatically disabled for console and other Rake tasks).
         </li>
         <li>
-          Sets up <a href="https://github.com/roidrage/lograge">Lograge</a> for
-          structured request logging.
+          Sets up <a href="https://github.com/roidrage/lograge">Lograge</a> for structured request
+          logging.
         </li>
         <li>
-          Uses{' '}
-          <a href="https://github.com/reidmorrison/semantic_logger">
-            Semantic Logger
-          </a>{' '}
-          as the logging framework.
+          Uses <a href="https://github.com/reidmorrison/semantic_logger">Semantic Logger</a> as the
+          logging framework.
         </li>
+        <li>Automatic integration with many Rails components and third-party gems.</li>
+        <li>Customizable error handling and reporting with sensible, production-ready defaults.</li>
+        <li>Sensitive data scrubbing and param filtering for security and privacy.</li>
         <li>
-          Automatic integration with many Rails components and third-party gems.
+          Host authorization response app for logging &quot;blocked host&quot; security violations.
         </li>
-        <li>
-          Customizable error handling and reporting with sensible,
-          production-ready defaults.
-        </li>
-        <li>
-          Sensitive data scrubbing and param filtering for security and privacy.
-        </li>
-        <li>
-          Host authorization response app for logging &quot;blocked host&quot;
-          security violations.
-        </li>
-        <li>
-          Rack middleware for logging errors, IP Spoofing, CSRF violations, etc.
-        </li>
+        <li>Rack middleware for logging errors, IP Spoofing, CSRF violations, etc.</li>
         <li>Type checking with Sorbet.</li>
       </ul>
 
@@ -72,22 +58,16 @@ export default function DocsPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="ruby" className="mt-0.5">
-            <CodeBlock language="ruby">
-              {getCodeExample('basic_logging').code}
-            </CodeBlock>
+            <CodeBlock language="ruby">{getCodeExample('basic_logging').code}</CodeBlock>
             <Callout className="mt-4">
-              This approach is ideal for most applications. No knowledge of
-              Sorbet is required.
+              This approach is ideal for most applications. No knowledge of Sorbet is required.
             </Callout>
           </TabsContent>
           <TabsContent value="typed" className="mt-0.5">
-            <CodeBlock language="ruby">
-              {getCodeExample('typed_logging').code}
-            </CodeBlock>
+            <CodeBlock language="ruby">{getCodeExample('typed_logging').code}</CodeBlock>
             <Callout className="mt-4" type="success">
-              This approach provides several benefits: IDE autocompletion, type
-              checking (in all environments), and guaranteed log structure with
-              valid data.
+              This approach provides several benefits: IDE autocompletion, type checking (in all
+              environments), and guaranteed log structure with valid data.
             </Callout>
           </TabsContent>
         </Tabs>

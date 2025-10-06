@@ -14,9 +14,6 @@ importers:
       cspell:
         specifier: ^9.2.1
         version: 9.2.1
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
 
 packages:
 
@@ -469,11 +466,6 @@ packages:
   picomatch@4.0.3:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
     engines: {node: '>=12'}
-
-  prettier@3.6.2:
-    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
-    engines: {node: '>=14'}
-    hasBin: true
 
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
@@ -1015,8 +1007,6 @@ snapshots:
       minipass: 7.1.2
 
   picomatch@4.0.3: {}
-
-  prettier@3.6.2: {}
 
   resolve-from@4.0.0: {}
 
