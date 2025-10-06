@@ -31,7 +31,7 @@ module LogStruct
     def self.from_exception(source, ex, additional_data = {}, timestamp = Time.now)
       LogStruct::Log::Error.new(
         source: source,
-        err_class: ex.class,
+        error_class: ex.class,
         message: ex.message,
         backtrace: ex.backtrace,
         additional_data: additional_data,

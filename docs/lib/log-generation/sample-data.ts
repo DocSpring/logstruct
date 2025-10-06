@@ -207,7 +207,7 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.MailerClass]: (_gen: RandomGen) => 'UserMailer',
   [LogField.MailerAction]: (_gen: RandomGen) => 'welcome_email',
   [LogField.AttachmentCount]: (gen: RandomGen) => gen.randomInt(0, 3),
-  [LogField.ErrClass]: SampleHelpers.errClass,
+  [LogField.ErrorClass]: SampleHelpers.errClass,
   [LogField.JobId]: SampleHelpers.hex8,
   [LogField.JobClass]: (_gen: RandomGen) => 'HardJob',
   [LogField.QueueName]: SampleHelpers.queue,

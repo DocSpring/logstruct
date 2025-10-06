@@ -109,7 +109,7 @@ module LogStruct
           logger.error(Log::GoodJob::Error.new(
             **base_fields.to_kwargs,
             exception_executions: execution&.exception_executions,
-            err_class: exception&.class&.name,
+            error_class: exception&.class&.name,
             error_message: exception&.message,
             backtrace: exception&.backtrace,
             duration_ms: event.duration.to_f,

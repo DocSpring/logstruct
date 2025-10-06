@@ -9,11 +9,11 @@ require "stringio"
 module LogStruct
   class ColorFormatterTest < ActiveSupport::TestCase
     setup do
-      @original_appenders = ::SemanticLogger.appenders.dup
-      ::SemanticLogger.clear_appenders!
-
       @io = StringIO.new
+      @saved_appenders = ::SemanticLogger.appenders.dup
       @formatter = LogStruct::SemanticLogger::ColorFormatter.new
+
+      ::SemanticLogger.clear_appenders!
       ::SemanticLogger.add_appender(
         io: @io,
         formatter: @formatter,
@@ -25,10 +25,12 @@ module LogStruct
 
     teardown do
       ::SemanticLogger.clear_appenders!
-      @original_appenders.each { |appender| ::SemanticLogger.add_appender(appender) }
+      @saved_appenders&.each { |appender| ::SemanticLogger.appenders << appender }
     end
 
     test "colorizes LogStruct types with proper JSON structure" do
+      clear_log_buffer(@io)
+
       # Create a test log entry
       log_entry = LogStruct::Log::Plain.new(
         message: "Test message",
@@ -60,6 +62,8 @@ module LogStruct
     end
 
     test "colorizes hash payloads correctly" do
+      clear_log_buffer(@io)
+
       payload = {
         name: "John Doe",
         age: 30,
@@ -86,6 +90,8 @@ module LogStruct
     end
 
     test "falls back to standard colorization for plain messages" do
+      clear_log_buffer(@io)
+
       @logger.info("Plain string message")
       ::SemanticLogger.flush
 
@@ -162,6 +168,8 @@ module LogStruct
     end
 
     test "generates proper log prefix with colors" do
+      clear_log_buffer(@io)
+
       @logger.error("test message")
       ::SemanticLogger.flush
 

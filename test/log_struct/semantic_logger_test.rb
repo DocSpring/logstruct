@@ -8,28 +8,17 @@ require "log_struct/semantic_logger/logger"
 module LogStruct
   class SemanticLoggerTest < ActiveSupport::TestCase
     setup do
-      @original_appenders = ::SemanticLogger.appenders.dup
-      ::SemanticLogger.clear_appenders!
-
-      @io = StringIO.new
-      # Use sync: true to make appender synchronous for testing
-      ::SemanticLogger.add_appender(
-        io: @io,
-        formatter: LogStruct::SemanticLogger::Formatter.new,
-        async: false  # Make synchronous for testing
-      )
-
+      @io = setup_isolated_logger
       @logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
     end
 
     teardown do
-      ::SemanticLogger.clear_appenders!
-      @original_appenders.each { |appender| ::SemanticLogger.add_appender(appender) }
+      teardown_isolated_logger
     end
 
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
-      ::SemanticLogger.flush  # Flush to ensure output is written
+      ::SemanticLogger.flush
 
       output = @io.string
 
@@ -43,6 +32,8 @@ module LogStruct
     end
 
     test "logs LogStruct types correctly" do
+      clear_log_buffer(@io)
+
       log_entry = LogStruct::Log::Plain.new(
         message: "Structured log",
         source: LogStruct::Source::App,
@@ -50,7 +41,7 @@ module LogStruct
       )
 
       @logger.info(log_entry)
-      ::SemanticLogger.flush  # Flush to ensure output is written
+      ::SemanticLogger.flush
 
       output = @io.string
 
@@ -69,6 +60,8 @@ module LogStruct
     end
 
     test "logs hashes with proper filtering" do
+      clear_log_buffer(@io)
+
       # Set up filter parameters
       LogStruct.config.filters.filter_keys = [:password, :secret]
 

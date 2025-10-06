@@ -52,7 +52,7 @@ module LogStruct
         backtrace = ["file1.rb:10", "file2.rb:20"]
         log_entry = GoodJob::Error.new(
           level: Level::Error,
-          err_class: "StandardError",
+          error_class: "StandardError",
           error_message: "Job failed",
           backtrace: backtrace,
           process_id: Process.pid,
@@ -60,7 +60,7 @@ module LogStruct
         )
 
         assert_equal Level::Error, log_entry.level
-        assert_equal "StandardError", log_entry.err_class
+        assert_equal "StandardError", log_entry.error_class
         assert_equal "Job failed", log_entry.error_message
         assert_equal backtrace, log_entry.backtrace
       end
@@ -169,7 +169,7 @@ module LogStruct
         assert_equal Event::Enqueue, GoodJob::Enqueue.new(duration_ms: 1.0).event
         assert_equal Event::Start, GoodJob::Start.new(process_id: 1, thread_id: "t").event
         assert_equal Event::Finish, GoodJob::Finish.new(process_id: 1, thread_id: "t", duration_ms: 1.0, finished_at: Time.now).event
-        assert_equal Event::Error, GoodJob::Error.new(process_id: 1, thread_id: "t", err_class: "E", error_message: "m").event
+        assert_equal Event::Error, GoodJob::Error.new(process_id: 1, thread_id: "t", error_class: "E", error_message: "m").event
         assert_equal Event::Schedule, GoodJob::Schedule.new(duration_ms: 1.0, scheduled_at: Time.now).event
       end
 

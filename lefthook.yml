@@ -28,9 +28,11 @@ pre-commit:
       glob: 'lib/log_struct/version.rb'
       run: ruby scripts/check_changelog_version.rb
 
-    eslint:
-      glob: 'docs/**/*.{ts,tsx,js,jsx}'
-      run: cd docs && pnpm run lint
+    biome:
+      glob: '**/*.{ts,tsx,js,jsx,json}'
+      root: docs/
+      run: pnpm exec biome check --write {staged_files}
+      stage_fixed: true
 
     typescript-tests:
       glob: 'docs/**/*.{ts,tsx}'
@@ -72,7 +74,7 @@ pre-commit:
       stage_fixed: true
 
     prettier:
-      glob: '*.{js,jsx,ts,tsx,json,yml,yaml,md}'
+      glob: '*.{yml,yaml,md}'
       run: scripts/prettier.sh --write {staged_files}
       stage_fixed: true
 

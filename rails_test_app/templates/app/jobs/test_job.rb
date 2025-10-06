@@ -21,7 +21,7 @@ class TestJob < ApplicationJob
       # Example of enhanced structured logging
       exception_log = LogStruct::Log::Error.new(
         source: LogStruct::Source::Job,
-        err_class: e.class,
+        error_class: e.class,
         message: e.message,
         additional_data: {job_class: self.class.name, job_id: job_id}
       )

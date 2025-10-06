@@ -93,7 +93,7 @@ module LogStruct
       log_struct = Log::Error.new(
         message: "Error message",
         source: Source::App,
-        err_class: StandardError,
+        error_class: StandardError,
         timestamp: Time.new(2023, 1, 1, 12, 0, 0)
       )
 
@@ -108,7 +108,7 @@ module LogStruct
       assert_equal "Error message", parsed_log["msg"]
       assert_equal "app", parsed_log["src"]
       assert_equal "error", parsed_log["lvl"]
-      assert_equal "StandardError", parsed_log["err_class"]
+      assert_equal "StandardError", parsed_log["error_class"]
     end
 
     def test_fatal_method_logs_struct_directly
@@ -116,7 +116,7 @@ module LogStruct
       log_struct = Log::Error.new(
         message: "Fatal error",
         source: Source::App,
-        err_class: RuntimeError,
+        error_class: RuntimeError,
         timestamp: Time.new(2023, 1, 1, 12, 0, 0)
       )
 
@@ -131,7 +131,7 @@ module LogStruct
       assert_equal "Fatal error", parsed_log["msg"]
       assert_equal "app", parsed_log["src"]
       assert_equal "fatal", parsed_log["lvl"]
-      assert_equal "RuntimeError", parsed_log["err_class"]
+      assert_equal "RuntimeError", parsed_log["error_class"]
     end
 
     def test_structured_logging_preserves_custom_fields

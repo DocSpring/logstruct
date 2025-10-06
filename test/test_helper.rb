@@ -45,38 +45,14 @@ end
 # Ensure log directory exists
 FileUtils.mkdir_p(File.expand_path("../log", __dir__))
 
+# Set Rails environment to test
+ENV["RAILS_ENV"] = "test"
+
 # Require Rails
 require "rails"
 require "active_support/test_case"
 
-# Create a minimal Rails application for testing
-class TestApp < Rails::Application
-  extend T::Sig
-  sig { returns(T::Boolean) }
-  def self.eager_load_frameworks
-    false
-  end
-
-  config.eager_load = false
-  config.logger = T.let(
-    Logger.new(Rails.root.join("log/test.log").to_s).tap { |logger| logger.level = Logger::DEBUG },
-    Logger
-  )
-
-  # Configure Rails filter_parameters
-  config.filter_parameters = T.let(
-    [:password, :token, :secret, :key, :access, :auth, :credentials],
-    T::Array[Symbol]
-  )
-
-  # Fix Rails 8.1 deprecation warning for to_time timezone preservation
-  config.active_support.to_time_preserves_timezone = :zone
-end
-
-# Initialize the application
-Rails.application.initialize!
-
-# Require the gem
+# Require the gem BEFORE initializing Rails (like a real Rails app)
 require "log_struct"
 
 # Configure LogStruct
@@ -99,8 +75,79 @@ LogStruct.configure do |config|
   config.filters.hash_length = 12
 end
 
-# Since Rails was already initialized before requiring LogStruct,
-# explicitly set up integrations that depend on Railtie init order.
+# Create a minimal Rails application for testing
+class TestApp < Rails::Application
+  extend T::Sig
+  sig { returns(T::Boolean) }
+  def self.eager_load_frameworks
+    false
+  end
+
+  config.eager_load = false
+
+  # Configure Rails filter_parameters
+  config.filter_parameters = T.let(
+    [:password, :token, :secret, :key, :access, :auth, :credentials],
+    T::Array[Symbol]
+  )
+
+  # Fix Rails 8.1 deprecation warning for to_time timezone preservation
+  config.active_support.to_time_preserves_timezone = :zone
+end
+
+# Initialize the application - Railtie initializers will run now
+Rails.application.initialize!
+
+# Override SemanticLogger appenders for testing - use StringIO to keep output clean
+TEST_LOG_IO = StringIO.new
+::SemanticLogger.clear_appenders!
+::SemanticLogger.add_appender(
+  io: TEST_LOG_IO,
+  formatter: LogStruct::SemanticLogger::Formatter.new,
+  async: false
+)
+
+# Clear the test log buffer before each test
+class ActiveSupport::TestCase
+  extend T::Sig
+
+  setup do
+    TEST_LOG_IO.truncate(0)
+    TEST_LOG_IO.rewind
+  end
+
+  # Helper method for tests that need to capture and parse log output
+  # Returns a StringIO that only contains logs from the test itself
+  sig { returns(StringIO) }
+  def setup_isolated_logger
+    io = T.let(StringIO.new, StringIO)
+    @saved_appenders = T.let(::SemanticLogger.appenders.dup, T.nilable(T::Array[T.untyped]))
+    ::SemanticLogger.clear_appenders!
+    ::SemanticLogger.add_appender(
+      io: io,
+      formatter: LogStruct::SemanticLogger::Formatter.new,
+      async: false
+    )
+    io
+  end
+
+  sig { void }
+  def teardown_isolated_logger
+    ::SemanticLogger.clear_appenders!
+    @saved_appenders&.each { |appender| ::SemanticLogger.appenders << appender }
+  end
+
+  # Clear the isolated logger buffer (call this at the start of each test method)
+  # Flushes any buffered logs first, then clears the buffer
+  sig { params(io: StringIO).void }
+  def clear_log_buffer(io)
+    ::SemanticLogger.flush
+    io.truncate(0)
+    io.rewind
+  end
+end
+
+# Explicitly set up integrations that may need manual setup
 begin
   LogStruct::Integrations::Lograge.setup(LogStruct.config)
 rescue NameError

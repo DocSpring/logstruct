@@ -10,23 +10,13 @@ module LogStruct
     module GoodJob
       class LoggerTest < ActiveSupport::TestCase
         setup do
-          @original_appenders = ::SemanticLogger.appenders.dup
-          ::SemanticLogger.clear_appenders!
-
-          @io = StringIO.new
-          ::SemanticLogger.add_appender(
-            io: @io,
-            formatter: LogStruct::SemanticLogger::Formatter.new,
-            async: false
-          )
-
+          @io = setup_isolated_logger
           @logger = Logger.new("GoodJob")
-          @logger.level = :debug  # Ensure all log levels are captured
+          @logger.level = :debug
         end
 
         teardown do
-          ::SemanticLogger.clear_appenders!
-          @original_appenders.each { |appender| ::SemanticLogger.add_appender(appender) }
+          teardown_isolated_logger
         end
 
         test "extends LogStruct SemanticLogger Logger" do
@@ -34,6 +24,8 @@ module LogStruct
         end
 
         test "logs info messages with GoodJob structure" do
+          clear_log_buffer(@io)
+
           @logger.info("Job started")
           ::SemanticLogger.flush
 
@@ -57,6 +49,8 @@ module LogStruct
         end
 
         test "logs error messages with proper level" do
+          clear_log_buffer(@io)
+
           @logger.error("Job failed")
           ::SemanticLogger.flush
 
@@ -68,6 +62,8 @@ module LogStruct
         end
 
         test "extracts job context from thread local variables" do
+          clear_log_buffer(@io)
+
           # Simulate GoodJob setting thread-local execution context
           mock_execution = OpenStruct.new(
             job_id: "job_123",
@@ -98,6 +94,8 @@ module LogStruct
         end
 
         test "handles missing job context gracefully" do
+          clear_log_buffer(@io)
+
           # Ensure no job context is set
           Thread.current[:good_job_execution] = nil
 
@@ -118,6 +116,8 @@ module LogStruct
         end
 
         test "handles execution context with missing methods gracefully" do
+          clear_log_buffer(@io)
+
           # Create a mock execution that doesn't respond to some methods
           mock_execution = Object.new
           mock_execution.define_singleton_method(:job_id) do
@@ -144,6 +144,8 @@ module LogStruct
         end
 
         test "supports all log levels" do
+          clear_log_buffer(@io)
+
           levels = %w[debug info warn error fatal]
 
           levels.each do |level|
@@ -170,6 +172,8 @@ module LogStruct
         end
 
         test "supports block syntax for messages" do
+          clear_log_buffer(@io)
+
           @logger.info { "Block message" }
           ::SemanticLogger.flush
 
@@ -189,6 +193,8 @@ module LogStruct
         end
 
         test "thread_id is consistently formatted" do
+          clear_log_buffer(@io)
+
           @logger.info("Test message")
           ::SemanticLogger.flush
 

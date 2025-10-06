@@ -60,7 +60,7 @@ module LogStruct
       AttachmentCount = new(:attachments)
 
       # Error fields
-      ErrClass = new(:err_class)
+      ErrorClass = new(:error_class)
       Backtrace = new(:backtrace)
 
       # Job-specific fields

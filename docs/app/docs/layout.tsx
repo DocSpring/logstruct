@@ -135,29 +135,6 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                     ]}
                   />
                   <NestedDocNavItem
-                    href="/docs/soc2-compliance"
-                    title="SOC 2 Compliance"
-                    active={pathname.startsWith('/docs/soc2-compliance')}
-                    subHeadings={[
-                      {
-                        id: 'why-logging-matters-for-soc2',
-                        title: 'Why Logging Matters for SOC 2',
-                      },
-                      {
-                        id: 'type-safe-logs-for-forensics',
-                        title: 'Type-Safe Logs for Forensics',
-                      },
-                      {
-                        id: 'sensitive-data-protection',
-                        title: 'Sensitive Data Protection',
-                      },
-                      {
-                        id: 'soc2-audit-benefits',
-                        title: 'Benefits for SOC 2 Audits',
-                      },
-                    ]}
-                  />
-                  <NestedDocNavItem
                     href="/docs/sorbet-types"
                     title="Sorbet Types"
                     active={pathname.startsWith('/docs/sorbet-types')}
@@ -212,6 +189,38 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                     href="/docs/companies"
                     title="Companies Using LogStruct"
                     active={pathname.startsWith('/docs/companies')}
+                  />
+                </nav>
+
+                <h2 className="mt-6 mb-3 text-lg font-semibold">Guides</h2>
+                <nav className="space-y-1">
+                  <NestedDocNavItem
+                    href="/docs/soc2-compliance"
+                    title="SOC 2 Compliance"
+                    active={pathname.startsWith('/docs/soc2-compliance')}
+                    subHeadings={[
+                      {
+                        id: 'why-logging-matters-for-soc2',
+                        title: 'Why Logging Matters for SOC 2',
+                      },
+                      {
+                        id: 'type-safe-logs-for-forensics',
+                        title: 'Type-Safe Logs for Forensics',
+                      },
+                      {
+                        id: 'sensitive-data-protection',
+                        title: 'Sensitive Data Protection',
+                      },
+                      {
+                        id: 'soc2-audit-benefits',
+                        title: 'Benefits for SOC 2 Audits',
+                      },
+                    ]}
+                  />
+                  <DocNavItem
+                    href="/docs/guides/postmark-error-handling"
+                    title="Handling Postmark Errors"
+                    active={pathname.startsWith('/docs/guides/postmark-error-handling')}
                   />
                 </nav>
 

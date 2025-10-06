@@ -208,8 +208,9 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
     log_content = @log_output.string
     # Should have our error logging
     assert_match(/Unhandled error/, log_content)
-    # Should have structured logging from LogStruct
-    assert_match(/will retry/, log_content)
+    # Should have structured logging from LogStruct with ActionMailer-specific fields
+    assert_match(/error_class=StandardError/, log_content)
+    assert_match(/mailer_action="error_during_delivery"/, log_content)
   end
 
   test "LogStruct error handling can be disabled" do

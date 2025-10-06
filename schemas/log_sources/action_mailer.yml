@@ -21,8 +21,8 @@ events:
   Delivered:
   Error:
     fields:
-      ErrClass: String
-      ErrorMessage: String
+      ErrorClass: 'T.class_of(StandardError)'
+      Message: String
       Backtrace:
         type: 'T::Array[String]'
         required: false

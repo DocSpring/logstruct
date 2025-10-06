@@ -38,8 +38,8 @@ module LogStruct
         const :attachment_count, T.nilable(Integer), default: nil
 
         # Event-specific fields
-        const :err_class, String
-        const :error_message, String
+        const :error_class, T.class_of(StandardError)
+        const :message, String
         const :backtrace, T.nilable(T::Array[String]), default: nil
 
         # Additional data
@@ -61,8 +61,8 @@ module LogStruct
           h[LogField::MailerClass] = mailer_class unless mailer_class.nil?
           h[LogField::MailerAction] = mailer_action unless mailer_action.nil?
           h[LogField::AttachmentCount] = attachment_count unless attachment_count.nil?
-          h[LogField::ErrClass] = err_class
-          h[LogField::ErrorMessage] = error_message
+          h[LogField::ErrorClass] = error_class
+          h[LogField::Message] = message
           h[LogField::Backtrace] = backtrace unless backtrace.nil?
           h
         end

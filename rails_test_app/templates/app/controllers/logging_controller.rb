@@ -33,7 +33,7 @@ class LoggingController < ApplicationController
       # Log the error first
       error_log = LogStruct::Log::Error.new(
         source: LogStruct::Source::App,
-        err_class: e.class,
+        error_class: e.class,
         message: e.message
       )
       Rails.logger.error(error_log)
@@ -136,7 +136,7 @@ class LoggingController < ApplicationController
       error_log = LogStruct::Log::Error.new(
         source: LogStruct::Source::App,
         message: e.message,
-        err_class: e.class
+        error_class: e.class
       )
       Rails.logger.error(error_log)
     end

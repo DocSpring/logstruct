@@ -29,7 +29,7 @@ module LogStruct
       const :level, Level, default: Level::Info
 
       # Event-specific fields
-      const :err_class, T.class_of(StandardError)
+      const :error_class, T.class_of(StandardError)
       const :message, String
       const :backtrace, T.nilable(T::Array[String]), default: nil
 
@@ -45,7 +45,7 @@ module LogStruct
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
       def to_h
         h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
-        h[LogField::ErrClass] = err_class
+        h[LogField::ErrorClass] = error_class
         h[LogField::Message] = message
         h[LogField::Backtrace] = backtrace unless backtrace.nil?
         h

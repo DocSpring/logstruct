@@ -58,7 +58,7 @@ events:
 
   Error:
     fields:
-      ErrClass: String
+      ErrorClass: String
       ErrorMessage: String
       DurationMs:
         type: Float

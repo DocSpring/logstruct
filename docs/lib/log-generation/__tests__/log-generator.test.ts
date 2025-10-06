@@ -33,7 +33,7 @@ describe('LogGenerator', () => {
     expect(requestLog).toHaveProperty('status');
 
     const errorLog = generator.generateLog(LogType.ERROR);
-    expect(errorLog).toHaveProperty('err_class');
+    expect(errorLog).toHaveProperty('error_class');
     expect(errorLog).toHaveProperty('msg');
     expect(errorLog).toHaveProperty('backtrace');
 

@@ -82,7 +82,7 @@ module LogStruct
         if goodjob_module.respond_to?(:on_thread_error=)
           goodjob_module.on_thread_error = ->(exception) do
             log_entry = LogStruct::Log::GoodJob::Error.new(
-              err_class: exception.class.name,
+              error_class: exception.class.name,
               error_message: exception.message,
               backtrace: exception.backtrace,
               process_id: ::Process.pid,

@@ -25,7 +25,7 @@ module LogStruct
         # Create a typed error log entry
         error_log = LogStruct::Log::Error.new(
           source: LogStruct::Source::App,
-          err_class: StandardError,
+          error_class: StandardError,
           message: "An error occurred during processing"
         )
 
@@ -43,7 +43,7 @@ module LogStruct
         assert_equal LogStruct::Source::Rails, request_log.source
 
         assert_equal LogStruct::Source::App, error_log.source
-        assert_equal StandardError, error_log.err_class
+        assert_equal StandardError, error_log.error_class
         assert_equal "An error occurred during processing", error_log.message
       end
 

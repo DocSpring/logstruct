@@ -31,6 +31,8 @@ class DotenvIntegrationTest < ActiveSupport::TestCase
 
   def teardown
     ::Rails.logger = @original_logger
+    # Reset subscription state so each test can resubscribe
+    LogStruct::Integrations::Dotenv::STATE.subscribed = false
   end
 
   test "logs load event with file path" do
@@ -40,7 +42,16 @@ class DotenvIntegrationTest < ActiveSupport::TestCase
     env = OpenStruct.new(filename: Rails.root.join(".env.test").to_s)
     ActiveSupport::Notifications.instrument("load.dotenv", env: env) {}
 
-    json = JSON.parse(@buffer.string)
+    # Ensure all writes are flushed
+    if ::Rails.logger.instance_variable_defined?(:@logdev)
+      logdev = ::Rails.logger.instance_variable_get(:@logdev)
+      logdev&.instance_variable_get(:@dev)&.flush
+    end
+
+    buffer_content = @buffer.string
+    # Parse only the first line (subscription might be called multiple times)
+    first_line = buffer_content.lines.first || ""
+    json = JSON.parse(first_line)
 
     assert_equal "dotenv", json["src"]
     assert_equal "load", json["evt"]
@@ -55,7 +66,14 @@ class DotenvIntegrationTest < ActiveSupport::TestCase
     diff = OpenStruct.new(env: {"FOO" => "1", "BAR" => "2"})
     ActiveSupport::Notifications.instrument("update.dotenv", diff: diff) {}
 
-    json = JSON.parse(@buffer.string)
+    # Ensure all writes are flushed
+    if ::Rails.logger.instance_variable_defined?(:@logdev)
+      logdev = ::Rails.logger.instance_variable_get(:@logdev)
+      logdev&.instance_variable_get(:@dev)&.flush
+    end
+
+    # Parse only the first line (subscription might be called multiple times)
+    json = JSON.parse(@buffer.string.lines.first)
 
     assert_equal "dotenv", json["src"]
     assert_equal "update", json["evt"]
@@ -66,7 +84,15 @@ class DotenvIntegrationTest < ActiveSupport::TestCase
     @buffer.truncate(0)
     @buffer.rewind
     ActiveSupport::Notifications.instrument("restore.dotenv", diff: diff) {}
-    json = JSON.parse(@buffer.string)
+
+    # Ensure all writes are flushed
+    if ::Rails.logger.instance_variable_defined?(:@logdev)
+      logdev = ::Rails.logger.instance_variable_get(:@logdev)
+      logdev&.instance_variable_get(:@dev)&.flush
+    end
+
+    # Parse only the first line (subscription might be called multiple times)
+    json = JSON.parse(@buffer.string.lines.first)
 
     assert_equal "dotenv", json["src"]
     assert_equal "restore", json["evt"]
@@ -75,8 +101,14 @@ class DotenvIntegrationTest < ActiveSupport::TestCase
   end
 
   test "errors in subscribers raise in test env (no suppression)" do
+    # Reset and resubscribe with fresh handlers that will use the stub
+    LogStruct::Integrations::Dotenv::STATE.subscribed = false
+
     # Force an error inside the subscriber by stubbing Log::Dotenv.new
     LogStruct::Log::Dotenv.stub(:new, ->(*args, **kwargs) { raise "boom" }) do
+      # Resubscribe with the stub in place
+      LogStruct::Integrations::Dotenv.setup(LogStruct.config)
+
       assert_raises(RuntimeError) do
         ActiveSupport::Notifications.instrument("load.dotenv", env: OpenStruct.new(filename: ".env")) {}
       end
@@ -87,5 +119,8 @@ class DotenvIntegrationTest < ActiveSupport::TestCase
         ActiveSupport::Notifications.instrument("restore.dotenv", diff: OpenStruct.new(env: {"A" => "1"})) {}
       end
     end
+
+    # Clean up - reset for next test
+    LogStruct::Integrations::Dotenv::STATE.subscribed = false
   end
 end

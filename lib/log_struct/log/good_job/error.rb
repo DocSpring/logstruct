@@ -36,7 +36,7 @@ module LogStruct
         const :executions, T.nilable(Integer), default: nil
 
         # Event-specific fields
-        const :err_class, String
+        const :error_class, String
         const :error_message, String
         const :duration_ms, T.nilable(Float), default: nil
         const :process_id, Integer
@@ -56,7 +56,7 @@ module LogStruct
           h[LogField::QueueName] = queue_name unless queue_name.nil?
           h[LogField::Arguments] = arguments unless arguments.nil?
           h[LogField::Executions] = executions unless executions.nil?
-          h[LogField::ErrClass] = err_class
+          h[LogField::ErrorClass] = error_class
           h[LogField::ErrorMessage] = error_message
           h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
           h[LogField::ProcessId] = process_id

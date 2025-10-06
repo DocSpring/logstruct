@@ -12,24 +12,14 @@ module LogStruct
       class LogSubscriberTest < ActiveSupport::TestCase
         setup do
           @original_logger = Rails.logger
-          @log_output = StringIO.new
-
-          # Set up a test logger
-          test_logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
-          ::SemanticLogger.clear_appenders!
-          ::SemanticLogger.add_appender(
-            io: @log_output,
-            formatter: LogStruct::SemanticLogger::Formatter.new,
-            async: false
-          )
-          Rails.logger = test_logger
-
+          @log_output = setup_isolated_logger
+          Rails.logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
           @subscriber = LogSubscriber.new
         end
 
         teardown do
           Rails.logger = @original_logger
-          ::SemanticLogger.clear_appenders!
+          teardown_isolated_logger
         end
 
         test "extends ActiveSupport LogSubscriber" do
@@ -45,6 +35,8 @@ module LogStruct
         end
 
         test "enqueue event creates proper log entry" do
+          clear_log_buffer(@log_output)
+
           event_data = create_test_event({
             job: create_mock_job("UserNotificationJob", "job_123", "default"),
             duration: 0.1
@@ -66,6 +58,8 @@ module LogStruct
         end
 
         test "start event creates proper log entry" do
+          clear_log_buffer(@log_output)
+
           event_data = create_test_event({
             job: create_mock_job("TestJob", "job_456", "priority"),
             execution: create_mock_execution(executions: 1, wait_time: 0.5)
@@ -88,6 +82,8 @@ module LogStruct
         end
 
         test "finish event creates proper log entry" do
+          clear_log_buffer(@log_output)
+
           event_data = create_test_event({
             job: create_mock_job("CompletedJob", "job_789", "default"),
             execution: create_mock_execution(executions: 1),
@@ -111,6 +107,8 @@ module LogStruct
         end
 
         test "error event creates proper log entry" do
+          clear_log_buffer(@log_output)
+
           exception = StandardError.new("Job processing failed")
           exception.set_backtrace(["file1.rb:10", "file2.rb:20", "file3.rb:30"])
 
@@ -133,13 +131,15 @@ module LogStruct
           assert_equal "FailedJob", log["job_class"]
           assert_equal 2, log["executions"]
           assert_equal 1, log["exception_executions"]
-          assert_equal "StandardError", log["err_class"]
+          assert_equal "StandardError", log["error_class"]
           assert_equal "Job processing failed", log["error_message"]
           assert_equal ["file1.rb:10", "file2.rb:20", "file3.rb:30"], log["backtrace"]
           assert_in_delta(1200.0, log["duration_ms"])
         end
 
         test "schedule event creates proper log entry" do
+          clear_log_buffer(@log_output)
+
           scheduled_time = Time.now + 1.hour
           event_data = create_test_event({
             job: create_mock_job("ScheduledJob",
@@ -170,6 +170,8 @@ module LogStruct
         end
 
         test "handles missing job data gracefully" do
+          clear_log_buffer(@log_output)
+
           # Event with minimal data
           event_data = create_test_event({})
 
@@ -189,6 +191,8 @@ module LogStruct
         end
 
         test "truncates long backtraces" do
+          clear_log_buffer(@log_output)
+
           exception = StandardError.new("Test error")
           # Create a very long backtrace (more than 20 lines)
           long_backtrace = (1..30).map { |i| "file#{i}.rb:#{i}" }
