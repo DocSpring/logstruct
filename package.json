@@ -23,6 +23,7 @@
   "homepage": "https://github.com/docspring/logstruct#readme",
   "devDependencies": {
     "@docspring/cspell-lockfile-dicts": "^1.2.0",
-    "cspell": "^9.2.1"
+    "cspell": "^9.2.1",
+    "prettier": "^3.4.2"
   }
 }
