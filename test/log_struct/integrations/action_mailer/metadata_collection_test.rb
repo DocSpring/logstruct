@@ -9,13 +9,11 @@ class ActionMailerMetadataCollectionTest < ActiveSupport::TestCase
 
   DummyMessage = Struct.new(:to, :cc, :bcc, :attachments, :subject, :from, :message_id)
 
-  test "add_message_metadata counts recipients and attachments when message present" do
+  test "add_message_metadata counts attachments when message present" do
     msg = DummyMessage.new(%w[a@b.com], nil, %w[x@y.com], [1, 2], "S", ["from@example.com"], "mid")
     data = {}
     MetadataCollection.add_message_metadata(OpenStruct.new(message: msg), data)
 
-    assert_equal 2, data[:recipient_count]
-    assert data[:has_attachments]
     assert_equal 2, data[:attachment_count]
   end
 
@@ -23,8 +21,6 @@ class ActionMailerMetadataCollectionTest < ActiveSupport::TestCase
     data = {}
     MetadataCollection.add_message_metadata(OpenStruct.new, data)
 
-    assert_equal 0, data[:recipient_count]
-    refute data[:has_attachments]
     assert_equal 0, data[:attachment_count]
   end
 

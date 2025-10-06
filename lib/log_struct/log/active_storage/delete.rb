@@ -32,10 +32,6 @@ module LogStruct
         const :storage, Symbol
         const :file_id, String
 
-        # Event-specific fields
-
-        # Additional data
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

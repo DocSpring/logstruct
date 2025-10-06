@@ -24,6 +24,11 @@ module LogStruct
       # Default: true
       prop :enable_actionmailer, T::Boolean, default: true
 
+      # Map instance variables on mailer to ID fields in additional_data
+      # Default: { account: :account_id, user: :user_id }
+      # Example: { organization: :org_id, company: :company_id }
+      prop :actionmailer_id_mapping, T::Hash[Symbol, Symbol], factory: -> { {account: :account_id, user: :user_id} }
+
       # Enable or disable host authorization logging
       # Default: true
       prop :enable_host_authorization, T::Boolean, default: true

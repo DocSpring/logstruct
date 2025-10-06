@@ -35,8 +35,6 @@ module LogStruct
       const :resource_class, T.nilable(String), default: nil
       const :duration_ms, Float
 
-      # Additional data
-
       # Serialize shared fields
       include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon

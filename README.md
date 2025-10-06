@@ -1,6 +1,6 @@
 # LogStruct
 
-Adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile and add an initializer to configure it. By default, your Rails app prints JSON logs to STDOUT (or to the configured destination when `RAILS_LOG_TO_STDOUT` is set). They're easy to search and filter, you can turn them into metrics and alerts, and they're great for building dashboards in CloudWatch, Grafana, or Datadog.
+Adds secure JSON structured logging to any Rails app (>= 7.1). Simply add the gem to your Gemfile and add an initializer to configure it. By default, your Rails app prints JSON logs to STDOUT (or to the configured destination when `RAILS_LOG_TO_STDOUT` is set). They're easy to search and filter, you can turn them into metrics and alerts, and they're great for building dashboards in CloudWatch, Grafana, or Datadog.
 
 We support all your other favorite gems too, like Sidekiq, Sentry, and Shrine. (And if not, please open a PR!)
 
@@ -17,7 +17,6 @@ We support all your other favorite gems too, like Sidekiq, Sentry, and Shrine. (
 - Sensitive data scrubbing for strings (inspired by the Logstop gem)
 - Host authorization logging for security violations
 - Rack middleware for enhanced error logging
-- ActionMailer delivery callbacks for Rails 7.0.x (backported from Rails 7.1)
 - Type checking with Sorbet and RBS annotations
 
 ## Installation

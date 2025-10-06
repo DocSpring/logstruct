@@ -8,6 +8,7 @@
 
 require_relative "action_mailer/delivery"
 require_relative "action_mailer/delivered"
+require_relative "action_mailer/error"
 
 module LogStruct
   module Log
@@ -17,12 +18,20 @@ module LogStruct
         const :to, T.nilable(T::Array[String]), default: nil
         const :from, T.nilable(String), default: nil
         const :subject, T.nilable(String), default: nil
+        const :message_id, T.nilable(String), default: nil
+        const :mailer_class, T.nilable(String), default: nil
+        const :mailer_action, T.nilable(String), default: nil
+        const :attachment_count, T.nilable(Integer), default: nil
 
         Kwargs = T.type_alias do
           {
             to: T.nilable(T::Array[String]),
             from: T.nilable(String),
-            subject: T.nilable(String)
+            subject: T.nilable(String),
+            message_id: T.nilable(String),
+            mailer_class: T.nilable(String),
+            mailer_action: T.nilable(String),
+            attachment_count: T.nilable(Integer)
           }
         end
 
@@ -31,7 +40,11 @@ module LogStruct
           {
             to: to,
             from: from,
-            subject: subject
+            subject: subject,
+            message_id: message_id,
+            mailer_class: mailer_class,
+            mailer_action: mailer_action,
+            attachment_count: attachment_count
           }
         end
       end

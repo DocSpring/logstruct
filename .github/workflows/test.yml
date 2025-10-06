@@ -198,10 +198,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: 'Ruby 3.2 / Rails 7.0'
-            ruby: '3.2'
-            rails: '7.0.8.7'
-
           - name: 'Ruby 3.3 / Rails 7.1'
             ruby: '3.3'
             rails: '7.1.5.1'

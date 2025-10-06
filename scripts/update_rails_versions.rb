@@ -87,7 +87,7 @@ def update_github_workflow(versions)
   # Update the matrix versions
   versions.each do |major_minor, version|
     # Look for matrix entries with this major.minor version
-    # Handle both cases: with patch number (7.0.8) or without (7.2)
+    # Handle both cases: with patch number or without
     if updated_content.match?(/rails:\s*'#{major_minor}([\.\d]*)'/)
       updated_content.gsub!(/rails:\s*'#{major_minor}([\.\d]*)'/, "rails: '#{version}'")
       puts "  Updated matrix Rails #{major_minor} to version #{version}"

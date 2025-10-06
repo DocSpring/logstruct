@@ -38,11 +38,7 @@ module LogStruct
         # Event-specific fields
         const :duration_ms, Float
         const :scheduled_at, T.nilable(Time), default: nil
-
-        # Additional data
-        include LogStruct::Log::Interfaces::AdditionalDataField
-        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
-        include LogStruct::Log::Shared::MergeAdditionalDataFields
+        const :enqueue_caller, T.nilable(String), default: nil
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -58,6 +54,7 @@ module LogStruct
           h[LogField::Executions] = executions unless executions.nil?
           h[LogField::DurationMs] = duration_ms
           h[LogField::ScheduledAt] = scheduled_at unless scheduled_at.nil?
+          h[LogField::EnqueueCaller] = enqueue_caller unless enqueue_caller.nil?
           h
         end
       end

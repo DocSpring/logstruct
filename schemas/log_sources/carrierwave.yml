@@ -4,8 +4,6 @@ snake_case: carrierwave
 consts:
   source: Source::CarrierWave
 
-additional_data: true
-
 base:
   default_required: false
   fields:
@@ -18,6 +16,9 @@ base:
     Uploader: String
     Model: String
     MountPoint: String
+    Version: String
+    StorePath: String
+    Extension: String
 
 events:
   Upload:

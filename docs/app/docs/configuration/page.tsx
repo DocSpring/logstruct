@@ -210,6 +210,47 @@ end`}
 
       <RubyCodeExample name="error_handling_modes" />
 
+      <HeadingWithAnchor id="actionmailer-id-mapping">
+        ActionMailer ID Mapping
+      </HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        Configure which instance variables on your mailers should be logged as
+        IDs in <code>additional_data</code>. This is useful for tracking which
+        account, user, organization, etc. sent an email.
+      </p>
+
+      <CodeBlock language="ruby">
+        {`LogStruct.configure do |c|
+  # Default mapping
+  c.integrations.actionmailer_id_mapping = {
+    account: :account_id,
+    user: :user_id
+  }
+
+  # Custom mapping for your app
+  c.integrations.actionmailer_id_mapping = {
+    organization: :org_id,
+    company: :company_id,
+    tenant: :tenant_id
+  }
+end`}
+      </CodeBlock>
+
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
+        In your mailer, set the instance variables and they&apos;ll
+        automatically be logged:
+      </p>
+
+      <CodeBlock language="ruby">
+        {`class UserMailer < ApplicationMailer
+  def welcome_email(user, account)
+    @user = user      # Logs user_id
+    @account = account  # Logs account_id
+    mail(to: user.email, subject: 'Welcome')
+  end
+end`}
+      </CodeBlock>
+
       <HeadingWithAnchor id="custom-lograge-options">
         Custom Lograge Options
       </HeadingWithAnchor>

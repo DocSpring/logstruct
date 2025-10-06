@@ -33,11 +33,6 @@ module LogStruct
       const :ahoy_event, String
       const :properties, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
 
-      # Additional data
-      include LogStruct::Log::Interfaces::AdditionalDataField
-      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
-      include LogStruct::Log::Shared::MergeAdditionalDataFields
-
       # Serialize shared fields
       include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon

@@ -46,11 +46,6 @@ module LogStruct
               end
             end
 
-            # Emit a GoodJob::Log event with context and extra fields as additional_data
-            extras = {}
-            extras[:scheduled_at] = job_context[:scheduled_at] if job_context.key?(:scheduled_at)
-            extras[:priority] = job_context[:priority] if job_context.key?(:priority)
-
             log_struct = Log::GoodJob::Log.new(
               message: message || (block ? block.call : ""),
               process_id: ::Process.pid,
@@ -59,7 +54,8 @@ module LogStruct
               job_class: job_context[:job_class],
               queue_name: job_context[:queue_name],
               executions: job_context[:executions],
-              additional_data: extras
+              scheduled_at: job_context[:scheduled_at],
+              priority: job_context[:priority]
             )
 
             super(log_struct, payload, &nil)

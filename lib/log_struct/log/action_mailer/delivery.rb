@@ -32,8 +32,10 @@ module LogStruct
         const :to, T.nilable(T::Array[String]), default: nil
         const :from, T.nilable(String), default: nil
         const :subject, T.nilable(String), default: nil
-
-        # Event-specific fields
+        const :message_id, T.nilable(String), default: nil
+        const :mailer_class, T.nilable(String), default: nil
+        const :mailer_action, T.nilable(String), default: nil
+        const :attachment_count, T.nilable(Integer), default: nil
 
         # Additional data
         include LogStruct::Log::Interfaces::AdditionalDataField
@@ -50,6 +52,10 @@ module LogStruct
           h[LogField::To] = to unless to.nil?
           h[LogField::From] = from unless from.nil?
           h[LogField::Subject] = subject unless subject.nil?
+          h[LogField::MessageId] = message_id unless message_id.nil?
+          h[LogField::MailerClass] = mailer_class unless mailer_class.nil?
+          h[LogField::MailerAction] = mailer_action unless mailer_action.nil?
+          h[LogField::AttachmentCount] = attachment_count unless attachment_count.nil?
           h
         end
       end

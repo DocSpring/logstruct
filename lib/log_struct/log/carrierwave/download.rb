@@ -34,16 +34,14 @@ module LogStruct
         const :uploader, T.nilable(String), default: nil
         const :model, T.nilable(String), default: nil
         const :mount_point, T.nilable(String), default: nil
+        const :version, T.nilable(String), default: nil
+        const :store_path, T.nilable(String), default: nil
+        const :extension, T.nilable(String), default: nil
 
         # Event-specific fields
         const :filename, T.nilable(String), default: nil
         const :mime_type, T.nilable(String), default: nil
         const :size, T.nilable(Integer), default: nil
-
-        # Additional data
-        include LogStruct::Log::Interfaces::AdditionalDataField
-        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
-        include LogStruct::Log::Shared::MergeAdditionalDataFields
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -57,6 +55,9 @@ module LogStruct
           h[LogField::Uploader] = uploader unless uploader.nil?
           h[LogField::Model] = model unless model.nil?
           h[LogField::MountPoint] = mount_point unless mount_point.nil?
+          h[LogField::Version] = version unless version.nil?
+          h[LogField::StorePath] = store_path unless store_path.nil?
+          h[LogField::Extension] = extension unless extension.nil?
           h[LogField::Filename] = filename unless filename.nil?
           h[LogField::MimeType] = mime_type unless mime_type.nil?
           h[LogField::Size] = size unless size.nil?

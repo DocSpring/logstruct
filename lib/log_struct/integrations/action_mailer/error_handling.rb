@@ -15,6 +15,9 @@ module LogStruct
         extend T::Sig
         extend ActiveSupport::Concern
 
+        sig { returns(T.nilable(T::Boolean)) }
+        attr_accessor :logstruct_mail_failed
+
         # NOTE: rescue_from handlers are checked in reverse order of declaration.
         # We want LogStruct handlers to be checked AFTER user handlers (lower priority),
         # so we need to add them BEFORE user handlers are declared.
@@ -47,6 +50,7 @@ module LogStruct
         # Just log the error without reporting or retrying
         sig { params(ex: StandardError).void }
         def log_and_ignore_error(ex)
+          self.logstruct_mail_failed = true
           log_email_delivery_error(ex, notify: false, report: false, reraise: false)
         end
 

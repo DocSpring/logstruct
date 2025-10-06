@@ -49,7 +49,7 @@ module LogStruct
             **base_fields.to_kwargs,
             scheduled_at: (job&.scheduled_at ? Time.at(job.scheduled_at.to_i) : nil),
             duration_ms: event.duration.to_f,
-            additional_data: {enqueue_caller: job&.enqueue_caller_location},
+            enqueue_caller: job&.enqueue_caller_location,
             timestamp: ts
           ))
         end
@@ -91,7 +91,7 @@ module LogStruct
             finished_at: end_ts,
             process_id: ::Process.pid,
             thread_id: Thread.current.object_id.to_s(36),
-            additional_data: {result: payload[:result]},
+            result: payload[:result]&.to_s,
             timestamp: start_ts
           ))
         end

@@ -10,13 +10,25 @@ module LogStruct
         extend T::Sig
         extend T::Helpers
         requires_ancestor { ::ActionMailer::Base }
+        requires_ancestor { ErrorHandling }
 
         included do
-          T.bind(self, ActionMailer::Callbacks::ClassMethods)
+          T.bind(self, T.class_of(::ActionMailer::Base))
 
           # Add callbacks for delivery events
           before_deliver :log_email_delivery
           after_deliver :log_email_delivered
+        end
+
+        # When this module is prepended (our integration uses prepend), ensure callbacks are registered
+        if respond_to?(:prepended)
+          prepended do
+            T.bind(self, T.class_of(::ActionMailer::Base))
+
+            # Add callbacks for delivery events
+            before_deliver :log_email_delivery
+            after_deliver :log_email_delivered
+          end
         end
 
         protected
@@ -30,6 +42,9 @@ module LogStruct
         # Log when an email is delivered
         sig { void }
         def log_email_delivered
+          # Don't log delivered event if the delivery failed (error was handled with log_and_ignore_error)
+          return if logstruct_mail_failed
+
           log_mailer_event(Event::Delivered)
         end
 
@@ -41,17 +56,14 @@ module LogStruct
           # Get message (self refers to the mailer instance)
           mailer_message = message if respond_to?(:message)
 
-          # Prepare data for the log entry
-          data = {
-            message_id: extract_message_id,
-            mailer_class: self.class.to_s,
-            mailer_action: action_name.to_s
-          }.compact
+          # Prepare universal mailer fields
+          message_data = {}
+          MetadataCollection.add_message_metadata(self, message_data)
 
-          # Add any additional metadata
-          MetadataCollection.add_message_metadata(self, data)
-          MetadataCollection.add_context_metadata(self, data)
-          data.merge!(additional_data) if additional_data.present?
+          # Prepare app-specific context data for additional_data
+          context_data = {}
+          MetadataCollection.add_context_metadata(self, context_data)
+          context_data.merge!(additional_data) if additional_data.present?
 
           # Extract email fields (these will be filtered if email_addresses=true)
           to = mailer_message&.to
@@ -61,20 +73,24 @@ module LogStruct
           base_fields = Log::ActionMailer::BaseFields.new(
             to: to,
             from: from,
-            subject: subject
+            subject: subject,
+            message_id: extract_message_id,
+            mailer_class: self.class.to_s,
+            mailer_action: action_name.to_s,
+            attachment_count: message_data[:attachment_count]
           )
 
           log = case event_type
           when Event::Delivery
             Log::ActionMailer::Delivery.new(
               **base_fields.to_kwargs,
-              additional_data: data,
+              additional_data: context_data.presence,
               timestamp: Time.now
             )
           when Event::Delivered
             Log::ActionMailer::Delivered.new(
               **base_fields.to_kwargs,
-              additional_data: data,
+              additional_data: context_data.presence,
               timestamp: Time.now
             )
           else

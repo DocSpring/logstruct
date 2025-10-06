@@ -58,9 +58,6 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
   end
 
   class InheritedMailer < ApplicationMailer
-    # Include callbacks module to enable before_deliver
-    include LogStruct::Integrations::ActionMailer::Callbacks
-
     def test_email
       mail(to: "recipient@example.com", subject: "Test") do |format|
         format.text { render plain: "Test email" }
@@ -97,12 +94,9 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
     ActionMailer::Base.deliveries.clear
   end
 
-  test "user defined rescue_from handlers work without LogStruct interference" do
+  test "user rescue_from that swallows error without LogStruct still logs Delivery and Delivered" do
     # Setup LogStruct ActionMailer integration
     LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
-
-    # Patch MessageDelivery to include handle_errors
-    LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery
 
     # Include all our modules (simulates what happens on_load)
     TestMailer.include LogStruct::Integrations::ActionMailer::ErrorHandling
@@ -117,14 +111,49 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
 
     assert_match(/Custom handler caught: This is a custom error/, log_content)
 
-    # No structured error should have been logged since user handled it
-    refute_match(/mailer_class/, log_content)
+    # Since user swallowed error without calling log_and_ignore_error, callbacks still run
+    assert_match(/mailer_class/, log_content)
+    assert_match(/Delivery/, log_content)
+    assert_match(/Delivered/, log_content)
+  end
+
+  test "user rescue_from that calls log_and_ignore_error suppresses Delivered event" do
+    # Create a mailer that uses log_and_ignore_error
+    test_mailer = Class.new(ActionMailer::Base) do
+      default from: "test@example.com"
+
+      rescue_from StandardError do |ex|
+        log_and_ignore_error(ex)
+      end
+
+      def error_during_delivery
+        raise StandardError, "Test error"
+      end
+    end
+
+    # Setup LogStruct
+    LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
+    test_mailer.include LogStruct::Integrations::ActionMailer::ErrorHandling
+
+    assert_nothing_raised do
+      test_mailer.error_during_delivery.deliver_now
+    end
+
+    log_content = @log_output.string
+
+    # Should have error log from log_and_ignore_error
+    assert_match(/Test error/, log_content)
+
+    # Should have Delivery event
+    assert_match(/Delivery/, log_content)
+
+    # Should NOT have Delivered event (suppressed by logstruct_mail_failed flag)
+    refute_match(/Delivered/, log_content)
   end
 
   test "user handlers that reraise still trigger LogStruct logging" do
     # Setup LogStruct ActionMailer integration
     LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
-    LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery
     TestMailer.include LogStruct::Integrations::ActionMailer::ErrorHandling
 
     # AnotherError is caught by user handler but reraises
@@ -144,7 +173,6 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
   test "LogStruct handler works with inherited mailers" do
     # Setup LogStruct ActionMailer integration
     LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
-    LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery
     InheritedMailer.include LogStruct::Integrations::ActionMailer::ErrorHandling
 
     # Error should be caught by ApplicationMailer's handler first
@@ -170,7 +198,6 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
 
     # Setup LogStruct
     LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
-    LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery
     simple_mailer.include LogStruct::Integrations::ActionMailer::ErrorHandling
 
     # Should be caught by our default handler
@@ -211,7 +238,6 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
     # Create a complex inheritance chain
     base_mailer = Class.new(ActionMailer::Base) do
       default from: "base@example.com"
-      include LogStruct::Integrations::ActionMailer::Callbacks
 
       rescue_from StandardError do |e|
         Rails.logger.info "Base handler: #{e.message}"
@@ -240,7 +266,6 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
 
     # Setup LogStruct
     LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
-    LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery
     child_mailer.include LogStruct::Integrations::ActionMailer::ErrorHandling
 
     # ArgumentError should be caught by child's specific handler

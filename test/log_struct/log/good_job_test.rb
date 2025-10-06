@@ -106,7 +106,7 @@ module LogStruct
           thread_id: "thread_abc",
           duration_ms: 2500.0,
           finished_at: finished_time,
-          additional_data: {custom_field: "value"}
+          result: "success"
         )
 
         hash = log_entry.serialize
@@ -138,8 +138,8 @@ module LogStruct
         assert_in_delta(2500.0, hash[:duration_ms])
         assert_equal finished_time.iso8601, hash[:finished_at]
 
-        # Check additional data
-        assert_equal "value", hash[:custom_field]
+        # Check result field
+        assert_equal "success", hash[:result]
       end
 
       test "serializes with only present fields" do
@@ -173,23 +173,20 @@ module LogStruct
         assert_equal Event::Schedule, GoodJob::Schedule.new(duration_ms: 1.0, scheduled_at: Time.now).event
       end
 
-      test "additional_data field works correctly" do
+      test "scheduled_at and priority fields work correctly" do
+        scheduled_time = Time.now
         log_entry = GoodJob::Log.new(
           message: "m",
           process_id: Process.pid,
           thread_id: Thread.current.object_id.to_s(36),
-          additional_data: {
-            user_id: 123,
-            request_id: "req_abc",
-            custom_metric: 42.5
-          }
+          scheduled_at: scheduled_time,
+          priority: 10
         )
 
         hash = log_entry.serialize
 
-        assert_equal 123, hash[:user_id]
-        assert_equal "req_abc", hash[:request_id]
-        assert_in_delta(42.5, hash[:custom_metric])
+        assert_equal scheduled_time.iso8601, hash[:scheduled_at]
+        assert_equal 10, hash[:priority]
       end
 
       test "timestamp is automatically set" do
@@ -205,9 +202,7 @@ module LogStruct
         klass = GoodJob::Start
 
         assert_includes klass.included_modules, Interfaces::CommonFields
-        assert_includes klass.included_modules, Interfaces::AdditionalDataField
         assert_includes klass.included_modules, Shared::SerializeCommon
-        assert_includes klass.included_modules, Shared::MergeAdditionalDataFields
       end
     end
   end

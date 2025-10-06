@@ -6,12 +6,12 @@ require "action_mailer"
 
 class ActionMailerEventLoggingTest < ActiveSupport::TestCase
   EventLogging = LogStruct::Integrations::ActionMailer::EventLogging
-  Callbacks = LogStruct::Integrations::ActionMailer::Callbacks
+  ErrorHandling = LogStruct::Integrations::ActionMailer::ErrorHandling
 
   DummyMessage = Struct.new(:to, :cc, :bcc, :attachments, :subject, :from, :message_id)
 
   class DummyMailer < ActionMailer::Base
-    include Callbacks
+    include ErrorHandling
     include EventLogging
 
     def initialize(msg)
@@ -49,9 +49,9 @@ class ActionMailerEventLoggingTest < ActiveSupport::TestCase
     assert_match(/\[EMAIL:/, parsed["to"].first)
     assert_match(/\[EMAIL:/, parsed["from"])
     assert_equal "Welcome", parsed["subject"]
-    assert_match(/DummyMailer\z/, parsed["mailer_class"])
+    assert_match(/DummyMailer\z/, parsed["mailer"])
     assert_equal "sample", parsed["mailer_action"]
-    assert_equal "m-1", parsed["message_id"]
+    assert_equal "m-1", parsed["msg_id"]
   end
 
   test "log_email_delivered builds ActionMailer log with Delivered event" do

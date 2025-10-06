@@ -11,7 +11,18 @@ base:
     To: 'T::Array[String]'
     From: String
     Subject: String
+    MessageId: String
+    MailerClass: String
+    MailerAction: String
+    AttachmentCount: Integer
 
 events:
   Delivery:
   Delivered:
+  Error:
+    fields:
+      ErrClass: String
+      ErrorMessage: String
+      Backtrace:
+        type: 'T::Array[String]'
+        required: false

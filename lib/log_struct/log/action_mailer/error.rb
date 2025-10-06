@@ -20,12 +20,12 @@ require_relative "../../enums/log_field"
 module LogStruct
   module Log
     class ActionMailer
-      class Delivered < T::Struct
+      class Error < T::Struct
         extend T::Sig
 
         # Shared/common fields
         const :source, Source::Mailer, default: Source::Mailer
-        const :event, Event, default: Event::Delivered
+        const :event, Event, default: Event::Error
         const :timestamp, Time, factory: -> { Time.now }
         const :level, Level, default: Level::Info
 
@@ -36,6 +36,11 @@ module LogStruct
         const :mailer_class, T.nilable(String), default: nil
         const :mailer_action, T.nilable(String), default: nil
         const :attachment_count, T.nilable(Integer), default: nil
+
+        # Event-specific fields
+        const :err_class, String
+        const :error_message, String
+        const :backtrace, T.nilable(T::Array[String]), default: nil
 
         # Additional data
         include LogStruct::Log::Interfaces::AdditionalDataField
@@ -56,6 +61,9 @@ module LogStruct
           h[LogField::MailerClass] = mailer_class unless mailer_class.nil?
           h[LogField::MailerAction] = mailer_action unless mailer_action.nil?
           h[LogField::AttachmentCount] = attachment_count unless attachment_count.nil?
+          h[LogField::ErrClass] = err_class
+          h[LogField::ErrorMessage] = error_message
+          h[LogField::Backtrace] = backtrace unless backtrace.nil?
           h
         end
       end

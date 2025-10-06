@@ -3,8 +3,6 @@ source: Shrine
 consts:
   source: Source::Shrine
 
-additional_data: true
-
 events:
   Upload:
     fields:

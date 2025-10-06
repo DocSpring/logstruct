@@ -37,8 +37,6 @@ module LogStruct
         const :range, T.nilable(String), default: nil
         const :duration_ms, T.nilable(Float), default: nil
 
-        # Additional data
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

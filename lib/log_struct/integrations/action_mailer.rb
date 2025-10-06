@@ -12,7 +12,6 @@ if defined?(::ActionMailer)
   require_relative "action_mailer/metadata_collection"
   require_relative "action_mailer/event_logging"
   require_relative "action_mailer/error_handling"
-  require_relative "action_mailer/callbacks"
 end
 
 module LogStruct
@@ -37,11 +36,19 @@ module LogStruct
 
         # Register our custom observers and handlers
         # Registering these at the class level means all mailers will use them
-        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::MetadataCollection }
-        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::EventLogging }
-        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::ErrorHandling }
-        ActiveSupport.on_load(:action_mailer) { prepend LogStruct::Integrations::ActionMailer::Callbacks }
-        ActiveSupport.on_load(:action_mailer) { LogStruct::Integrations::ActionMailer::Callbacks.patch_message_delivery }
+        ActiveSupport.on_load(:action_mailer) do
+          prepend LogStruct::Integrations::ActionMailer::EventLogging
+          prepend LogStruct::Integrations::ActionMailer::ErrorHandling
+          prepend LogStruct::Integrations::ActionMailer::MetadataCollection
+        end
+
+        # If ActionMailer::Base is already loaded, the on_load hooks won't run
+        # So we need to apply the modules directly
+        if defined?(::ActionMailer::Base)
+          ::ActionMailer::Base.prepend(LogStruct::Integrations::ActionMailer::EventLogging)
+          ::ActionMailer::Base.prepend(LogStruct::Integrations::ActionMailer::ErrorHandling)
+          ::ActionMailer::Base.prepend(LogStruct::Integrations::ActionMailer::MetadataCollection)
+        end
 
         true
       end

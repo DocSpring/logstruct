@@ -45,8 +45,6 @@ module LogStruct
       const :database, T.nilable(Float), default: nil
       const :params, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
 
-      # Additional data
-
       # Request fields (optional)
       include LogStruct::Log::Interfaces::RequestFields
 

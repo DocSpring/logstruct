@@ -54,6 +54,10 @@ module LogStruct
       To = new(:to)
       From = new(:from)
       Subject = new(:subject)
+      MessageId = new(:msg_id)
+      MailerClass = new(:mailer)
+      MailerAction = new(:mailer_action)
+      AttachmentCount = new(:attachments)
 
       # Error fields
       ErrClass = new(:err_class)
@@ -82,6 +86,8 @@ module LogStruct
       Priority = new(:priority)
       CronKey = new(:cron_key)
       ErrorMessage = new(:error_message)
+      Result = new(:result)
+      EnqueueCaller = new(:enqueue_caller)
 
       # Dotenv fields
       File = new(:file)
@@ -117,6 +123,9 @@ module LogStruct
       # CarrierWave-specific fields
       Model = new(:model)
       MountPoint = new(:mount_point)
+      Version = new(:version)
+      StorePath = new(:store_path)
+      Extension = new(:ext)
 
       # SQL-specific fields
       Sql = new(:sql)

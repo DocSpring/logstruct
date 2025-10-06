@@ -35,8 +35,6 @@ module LogStruct
         # Event-specific fields
         const :exist, T.nilable(T::Boolean), default: nil
 
-        # Additional data
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

@@ -1,7 +1,7 @@
 version: '3'
 
 vars:
-  RAILS_VERSION: '{{.RAILS_VERSION | default "7.0.8"}}'
+  RAILS_VERSION: '{{.RAILS_VERSION | default "7.1.5"}}'
 
 tasks:
   test:
@@ -11,8 +11,7 @@ tasks:
         dir: .
 
   test:matrix:
-    desc: Run Rails integration tests for supported versions (7.0.8 and 8.0.1)
+    desc: Run Rails integration tests for supported versions (7.1.5 and 8.0.1)
     cmds:
-      - task: test
-      - cmd: RAILS_VERSION=8.0.1 ./scripts/rails_tests.sh
-        dir: .
+      - RAILS_VERSION=7.1.5 ./scripts/rails_tests.sh
+      - RAILS_VERSION=8.0.1 ./scripts/rails_tests.sh

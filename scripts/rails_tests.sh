@@ -6,7 +6,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 TEST_APP_DIR="$PROJECT_ROOT/rails_test_app/logstruct_test_app"
 CREATE_APP_SCRIPT="$PROJECT_ROOT/rails_test_app/create_app.rb"
 VERSION_FILE="$TEST_APP_DIR/.rails_version"
-RAILS_VERSION="${RAILS_VERSION:-"7.0.8"}"
+RAILS_VERSION="${RAILS_VERSION:-"7.1.5.1"}"
 FORCE_RECREATE="${FORCE_RECREATE:-false}"
 
 # Show what we're testing

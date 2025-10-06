@@ -13,19 +13,26 @@ base:
     Arguments: 'T::Array[T.untyped]'
     Executions: Integer
 
-additional_data: true
-
 events:
   Log:
     fields:
       Message: String
       ProcessId: Integer
       ThreadId: String
+      ScheduledAt:
+        type: Time
+        required: false
+      Priority:
+        type: Integer
+        required: false
   Enqueue:
     fields:
       DurationMs: Float
       ScheduledAt:
         type: Time
+        required: false
+      EnqueueCaller:
+        type: String
         required: false
 
   Start:
@@ -45,6 +52,9 @@ events:
       FinishedAt: Time
       ProcessId: Integer
       ThreadId: String
+      Result:
+        type: String
+        required: false
 
   Error:
     fields:

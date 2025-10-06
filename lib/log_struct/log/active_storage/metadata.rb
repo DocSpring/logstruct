@@ -35,8 +35,6 @@ module LogStruct
         # Event-specific fields
         const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
 
-        # Additional data
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

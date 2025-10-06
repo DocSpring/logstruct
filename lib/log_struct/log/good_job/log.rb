@@ -39,11 +39,8 @@ module LogStruct
         const :message, String
         const :process_id, Integer
         const :thread_id, String
-
-        # Additional data
-        include LogStruct::Log::Interfaces::AdditionalDataField
-        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
-        include LogStruct::Log::Shared::MergeAdditionalDataFields
+        const :scheduled_at, T.nilable(Time), default: nil
+        const :priority, T.nilable(Integer), default: nil
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -60,6 +57,8 @@ module LogStruct
           h[LogField::Message] = message
           h[LogField::ProcessId] = process_id
           h[LogField::ThreadId] = thread_id
+          h[LogField::ScheduledAt] = scheduled_at unless scheduled_at.nil?
+          h[LogField::Priority] = priority unless priority.nil?
           h
         end
       end

@@ -11,8 +11,6 @@ rails_version = ENV["RAILS_VERSION"] || "7.0"
 # This mapping will be updated by scripts/update_rails_versions.rb
 if rails_version.count(".") < 2
   latest_version = case rails_version
-  when "7.0"
-    "7.0.8.7"  # Updated by update_rails_versions script
   when "7.1"
     "7.1.5.1"  # Updated by update_rails_versions script
   when "7.2"

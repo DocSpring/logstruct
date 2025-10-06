@@ -31,6 +31,8 @@ All commands use [Task](https://taskfile.dev) - run `task --list` to see all ava
 - Debug a specific test: Add `debugger` statements (developer only)
 - Merge coverage reports: `task ruby:coverage:merge`
 
+**Note**: Rails integration tests are in `rails_test_app/templates/test/integration/`.
+
 ### Quality Commands
 
 - Run all typechecking: `task typecheck`

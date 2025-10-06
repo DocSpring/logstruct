@@ -32,8 +32,7 @@ module LogStruct
                     properties: T.let(
                       properties && properties.transform_keys { |k| k.to_sym },
                       T.nilable(T::Hash[Symbol, T.untyped])
-                    ),
-                    additional_data: {}
+                    )
                   )
                 )
               rescue => e

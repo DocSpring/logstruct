@@ -47,7 +47,7 @@ module LogStruct
   end
 
   # Set enabled at require time based on current Rails environment.
-  # (Users can disable or enable LogStruct later in an initializer.)
+  # (Users can override this in their initializer which runs before the Railtie checks enabled)
   set_enabled_from_rails_env!
 
   # Silence Rails boot banners for cleaner server output

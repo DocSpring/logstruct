@@ -62,11 +62,9 @@ module LogStruct
             uploader: self.class.name,
             model: model.class.name,
             mount_point: mounted_as.to_s,
-            additional_data: {
-              version: version_name.to_s,
-              store_path: store_path,
-              extension: file.extension
-            }
+            version: version_name.to_s,
+            store_path: store_path,
+            extension: file.extension
           )
 
           ::Rails.logger.info(log_data)
@@ -94,9 +92,9 @@ module LogStruct
             uploader: self.class.name,
             model: model.class.name,
             mount_point: mounted_as.to_s,
-            additional_data: {
-              version: version_name.to_s
-            }
+            version: version_name.to_s,
+            store_path: store_path,
+            extension: file&.extension
           )
 
           ::Rails.logger.info(log_data)

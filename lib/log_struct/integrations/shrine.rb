@@ -48,27 +48,23 @@ module LogStruct
               uploader: payload[:uploader]&.to_s,
               upload_options: payload[:upload_options],
               options: payload[:options],
-              duration_ms: event.duration.to_f,
-              additional_data: payload.except(:storage, :location, :uploader, :upload_options, :options)
+              duration_ms: event.duration.to_f
             )
           when Event::Download
             Log::Shrine::Download.new(
               storage: storage_sym,
               location: payload[:location],
-              download_options: payload[:download_options],
-              additional_data: payload.except(:storage, :location, :download_options)
+              download_options: payload[:download_options]
             )
           when Event::Delete
             Log::Shrine::Delete.new(
               storage: storage_sym,
-              location: payload[:location],
-              additional_data: payload.except(:storage, :location)
+              location: payload[:location]
             )
           when Event::Metadata
             metadata_params = {
               storage: storage_sym,
-              metadata: payload[:metadata],
-              additional_data: payload.except(:storage, :location, :metadata)
+              metadata: payload[:metadata]
             }
             metadata_params[:location] = payload[:location] if payload[:location]
             Log::Shrine::Metadata.new(**metadata_params)
@@ -76,8 +72,7 @@ module LogStruct
             Log::Shrine::Exist.new(
               storage: storage_sym,
               location: payload[:location],
-              exist: payload[:exist],
-              additional_data: payload.except(:storage, :location, :exist)
+              exist: payload[:exist]
             )
           else
             unknown_params = {storage: storage_sym, metadata: payload[:metadata]}

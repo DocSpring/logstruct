@@ -41,11 +41,6 @@ module LogStruct
         const :priority, T.nilable(Integer), default: nil
         const :cron_key, T.nilable(String), default: nil
 
-        # Additional data
-        include LogStruct::Log::Interfaces::AdditionalDataField
-        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
-        include LogStruct::Log::Shared::MergeAdditionalDataFields
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

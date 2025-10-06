@@ -40,8 +40,6 @@ module LogStruct
         const :started_at, Time
         const :attempt, T.nilable(Integer), default: nil
 
-        # Additional data
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

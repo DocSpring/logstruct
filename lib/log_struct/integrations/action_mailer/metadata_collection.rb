@@ -12,18 +12,11 @@ module LogStruct
         def self.add_message_metadata(mailer, log_data)
           message = mailer.respond_to?(:message) ? mailer.message : nil
 
-          # Add recipient count if message is available
-          if message
-            # Don't log actual email addresses
-            log_data[:recipient_count] = [message.to, message.cc, message.bcc].flatten.compact.count
-
-            # Handle case when attachments might be nil
-            log_data[:has_attachments] = message.attachments&.any? || false
-            log_data[:attachment_count] = message.attachments&.count || 0
+          # Add attachment count if message is available
+          log_data[:attachment_count] = if message
+            message.attachments&.count || 0
           else
-            log_data[:recipient_count] = 0
-            log_data[:has_attachments] = false
-            log_data[:attachment_count] = 0
+            0
           end
         end
 
@@ -39,17 +32,16 @@ module LogStruct
 
         sig { params(mailer: T.untyped, log_data: T::Hash[Symbol, T.untyped]).void }
         def self.extract_ids_to_log_data(mailer, log_data)
-          # Extract account ID if available
-          if mailer.instance_variable_defined?(:@account)
-            account = mailer.instance_variable_get(:@account)
-            log_data[:account_id] = account.id if account.respond_to?(:id)
+          # Use configured ID mapping from LogStruct configuration
+          id_mapping = LogStruct.config.integrations.actionmailer_id_mapping
+
+          id_mapping.each do |ivar_name, log_key|
+            ivar = :"@#{ivar_name}"
+            next unless mailer.instance_variable_defined?(ivar)
+
+            obj = mailer.instance_variable_get(ivar)
+            log_data[log_key] = obj.id if obj.respond_to?(:id)
           end
-
-          # Extract user ID if available
-          return unless mailer.instance_variable_defined?(:@user)
-
-          user = mailer.instance_variable_get(:@user)
-          log_data[:user_id] = user.id if user.respond_to?(:id)
         end
 
         sig { params(log_data: T::Hash[Symbol, T.untyped]).void }

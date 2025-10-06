@@ -34,8 +34,6 @@ module LogStruct
       const :process_id, T.nilable(Integer), default: nil
       const :thread_id, T.nilable(T.any(Integer, String)), default: nil
 
-      # Additional data
-
       # Serialize shared fields
       include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon

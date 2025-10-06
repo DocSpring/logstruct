@@ -40,8 +40,6 @@ module LogStruct
         const :duration_ms, Float
         const :finished_at, Time
 
-        # Additional data
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
