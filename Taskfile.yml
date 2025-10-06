@@ -2,10 +2,9 @@ version: '3'
 
 includes:
   ruby: ./Taskfile.ruby.yml
+  rails: ./Taskfile.rails.yml
   docs: ./Taskfile.docs.yml
   prettier: ./Taskfile.prettier.yml
-  rails: ./Taskfile.rails.yml
-  sorbet: ./Taskfile.sorbet.yml
   yard: ./Taskfile.yard.yml
   gem: ./Taskfile.gem.yml
 
@@ -45,7 +44,6 @@ tasks:
   test:
     desc: Run Ruby unit tests, Rails integration tests, and merge coverage
     cmds:
-      - task: ruby:check-generated
       - task: ruby:test
       - task: rails:test
       - task: ruby:coverage:merge

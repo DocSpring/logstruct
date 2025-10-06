@@ -27,7 +27,14 @@ const CustomTooltip = ({
   active,
   payload,
   label,
-}: TooltipProps<number, string>) => {
+}: TooltipProps<number, string> & {
+  payload?: Array<{
+    name?: string;
+    value?: number | string;
+    color?: string;
+  }>;
+  label?: string;
+}) => {
   const { theme, resolvedTheme } = useTheme();
   // Check both theme from context and document class for more reliability
   const isDarkFromClass =

@@ -1,4 +1,5 @@
 version: '3'
+run: once
 
 vars:
   RAILS_VERSION: '{{.RAILS_VERSION | default "7.1.5"}}'

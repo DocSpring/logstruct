@@ -1,9 +1,9 @@
 version: '3'
+run: once
 
 tasks:
   deps:
     desc: Install repository tooling dependencies (pnpm)
-    run: once
     cmds:
       - pnpm install --frozen-lockfile
 

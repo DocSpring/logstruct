@@ -1,14 +1,17 @@
 version: '3'
+run: once
 
 tasks:
   generate:
     desc: Generate Sorbet structs, TypeScript artifacts, and provider catalog
+    run: once
     cmds:
       - bundle exec ruby scripts/generate_structs.rb
       - bundle exec ruby scripts/export_provider_catalog.rb
 
   tapioca:
     desc: Run Tapioca
+    deps: [generate]
     cmds:
       - bundle exec tapioca gems
       - bundle exec tapioca dsl
@@ -16,16 +19,19 @@ tasks:
 
   typecheck:
     desc: Run Sorbet type checking
+    deps: [generate]
     cmds:
       - scripts/typecheck.sh
 
   lint:
     desc: Run RuboCop
+    deps: [generate]
     cmds:
       - bundle exec ruby bin/rubocop
 
   lint:fix:
     desc: Auto-correct RuboCop offenses
+    deps: [generate]
     cmds:
       - bundle exec ruby bin/rubocop -A
 
