@@ -47,6 +47,8 @@ module LogStruct
       # Security-specific fields
       BlockedHost = new(:blocked_host)
       BlockedHosts = new(:blocked_hosts)
+      AllowedHosts = new(:allowed_hosts)
+      AllowIpHosts = new(:allow_ip_hosts)
       ClientIp = new(:client_ip)
       XForwardedFor = new(:x_forwarded_for)
 

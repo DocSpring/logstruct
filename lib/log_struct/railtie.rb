@@ -10,25 +10,6 @@ require_relative "integrations"
 module LogStruct
   # Railtie to integrate with Rails
   class Railtie < ::Rails::Railtie
-    # Ensure test hosts are allowed early enough for middleware build
-    initializer "logstruct.allow_test_hosts", before: :build_middleware_stack do |app|
-      if ::Rails.env.test? && app.config.respond_to?(:hosts)
-        begin
-          app.config.hosts << /.*\z/
-        rescue
-          # best-effort
-        end
-        begin
-          app.config.middleware.delete(::ActionDispatch::HostAuthorization)
-        rescue
-          # best-effort
-        end
-      end
-    end
-
-    # After ActionDispatch is configured, remove HostAuthorization in test to prevent 403s
-    # (No late deletion needed; handled above before middleware stack is built)
-
     # Configure early, right after logger initialization
     initializer "logstruct.configure_logger", after: :initialize_logger do |app|
       next unless LogStruct.enabled?

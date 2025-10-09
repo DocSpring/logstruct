@@ -6,6 +6,7 @@
 2. **ALWAYS run `task ci` before claiming completion**
 3. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
 4. **This rule must ALWAYS be followed no matter what**
+5. **`additional_data` is ONLY for unknown and dynamic fields that a user or integration might send. IF YOU KNOW THE NAME OF A FIELD, IT GOES IN THE SCHEMA. NEVER use `additional_data` for known fields.**
 
 ## Commands
 

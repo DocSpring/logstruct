@@ -26,3 +26,6 @@ events:
       Message: String
       BlockedHost: String
       BlockedHosts: 'T::Array[String]'
+      XForwardedFor: String
+      AllowedHosts: 'T::Array[String]'
+      AllowIpHosts: T::Boolean

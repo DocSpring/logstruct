@@ -40,6 +40,9 @@ module LogStruct
         const :message, T.nilable(String), default: nil
         const :blocked_host, T.nilable(String), default: nil
         const :blocked_hosts, T.nilable(T::Array[String]), default: nil
+        const :x_forwarded_for, T.nilable(String), default: nil
+        const :allowed_hosts, T.nilable(T::Array[String]), default: nil
+        const :allow_ip_hosts, T.nilable(T::Boolean), default: nil
 
         # Additional data
         include LogStruct::Log::Interfaces::AdditionalDataField
@@ -66,6 +69,9 @@ module LogStruct
           h[LogField::Message] = message unless message.nil?
           h[LogField::BlockedHost] = blocked_host unless blocked_host.nil?
           h[LogField::BlockedHosts] = blocked_hosts unless blocked_hosts.nil?
+          h[LogField::XForwardedFor] = x_forwarded_for unless x_forwarded_for.nil?
+          h[LogField::AllowedHosts] = allowed_hosts unless allowed_hosts.nil?
+          h[LogField::AllowIpHosts] = allow_ip_hosts unless allow_ip_hosts.nil?
           h
         end
       end

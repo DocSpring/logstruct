@@ -3,6 +3,7 @@
 
 require "action_dispatch/middleware/host_authorization"
 require_relative "../enums/event"
+require_relative "../log/security/blocked_host"
 
 module LogStruct
   module Integrations
@@ -34,23 +35,6 @@ module LogStruct
         return nil unless config.enabled
         return nil unless config.integrations.enable_host_authorization
 
-        # In test environment, ensure HostAuthorization does not block requests
-        # from the default integration test hosts. Allow all hosts explicitly.
-        if ::Rails.env.test? && ::Rails.application.config.respond_to?(:hosts)
-          begin
-            ::Rails.application.config.hosts << /.*\z/
-          rescue
-            # best-effort; ignore if hosts not configurable
-          end
-          # Additionally, exclude all requests from HostAuthorization in test
-          begin
-            ::Rails.application.config.host_authorization ||= {}
-            ::Rails.application.config.host_authorization[:exclude] = ->(_request) { true }
-          rescue
-            # best-effort
-          end
-        end
-
         # Define the response app as a separate variable to fix block alignment
         response_app = lambda do |env|
           request = ::ActionDispatch::Request.new(env)
@@ -58,32 +42,39 @@ module LogStruct
           # This can be helpful later when reviewing logs.
           blocked_hosts = env["action_dispatch.blocked_hosts"]
 
-          # Create a security error to be handled
-          blocked_host_error = ::ActionController::BadRequest.new(
-            "Blocked host detected: #{request.host}"
-          )
+          # Build allowed_hosts array
+          allowed_hosts_array = T.let(nil, T.nilable(T::Array[String]))
+          if blocked_hosts.respond_to?(:allowed_hosts)
+            allowed_hosts_array = blocked_hosts.allowed_hosts
+          end
 
-          # Create request context hash
-          context = {
+          # Get allow_ip_hosts value
+          allow_ip_hosts_value = T.let(nil, T.nilable(T::Boolean))
+          if blocked_hosts.respond_to?(:allow_ip_hosts)
+            allow_ip_hosts_value = blocked_hosts.allow_ip_hosts
+          end
+
+          # Create structured log entry for blocked host
+          log_entry = LogStruct::Log::Security::BlockedHost.new(
+            message: "Blocked host detected: #{request.host}",
             blocked_host: request.host,
-            client_ip: request.ip,
-            x_forwarded_for: request.x_forwarded_for,
-            http_method: request.method,
             path: request.path,
+            http_method: request.method,
+            source_ip: request.ip,
             user_agent: request.user_agent,
-            allowed_hosts: blocked_hosts.allowed_hosts,
-            allow_ip_hosts: blocked_hosts.allow_ip_hosts
-          }
-
-          # Handle error according to configured mode (log, report, raise)
-          LogStruct.handle_exception(
-            blocked_host_error,
-            source: Source::Security,
-            context: context
+            referer: request.referer,
+            request_id: request.request_id,
+            x_forwarded_for: request.x_forwarded_for,
+            allowed_hosts: allowed_hosts_array&.empty? ? nil : allowed_hosts_array,
+            allow_ip_hosts: allow_ip_hosts_value
           )
+
+          # Log the blocked host
+          LogStruct.warn(log_entry)
 
           # Use pre-defined headers and response if we are only logging or reporting
-          [FORBIDDEN_STATUS, RESPONSE_HEADERS, [RESPONSE_HTML]]
+          # Dup the headers so they can be modified by downstream middleware
+          [FORBIDDEN_STATUS, RESPONSE_HEADERS.dup, [RESPONSE_HTML]]
         end
 
         # Merge our response_app into existing host_authorization config to preserve excludes

@@ -11,6 +11,8 @@
         "Adapter",
         "Address",
         "AhoyEvent",
+        "AllowIpHosts",
+        "AllowedHosts",
         "Arguments",
         "AttachmentCount",
         "Attempt",
