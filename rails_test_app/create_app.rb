@@ -331,14 +331,23 @@ if File.exist?(test_env_path)
   content = File.read(test_env_path)
   # Remove previous blanket clearing if present
   content.gsub!(/^\s*config\.hosts\.clear\s*\n/, "")
+  # Remove old appending style if present
+  content.gsub!(/^\s*# Allow test hostnames for integration tests\s*\n/, "")
+  content.gsub!(/^\s*config\.hosts << "www\.example\.com"\s*\n/, "")
+  content.gsub!(/^\s*config\.hosts << "127\.0\.0\.1"\s*\n/, "")
+  content.gsub!(/^\s*config\.hosts << "localhost"\s*\n/, "")
+  content.gsub!(/^\s*config\.hosts << \/\.\*\\z\/\s*\n/, "")
+
   insert = <<~RUBY
-    # Allow test hostnames for integration tests
-    config.hosts << "www.example.com"
-    config.hosts << "127.0.0.1"
-    config.hosts << "localhost"
-    config.hosts << /.*\z/
+    # Host authorization for tests - allow .localhost subdomains, IPs, and www.example.com
+    config.hosts = [
+      ".localhost",
+      "www.example.com",
+      IPAddr.new("0.0.0.0/0"), # IPv4
+      IPAddr.new("::/0"),      # IPv6
+    ]
   RUBY
-  unless content.include?("config.hosts << \"www.example.com\"")
+  unless content.include?("config.hosts = [")
     content.sub!("Rails.application.configure do", "Rails.application.configure do\n#{insert}")
   end
   File.write(test_env_path, content)

@@ -198,6 +198,8 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.View]: (gen: RandomGen) => gen.randomFloat(0, 200),
   [LogField.Params]: (_gen: RandomGen) => ({}),
   [LogField.BlockedHosts]: (_gen: RandomGen) => ['malicious.example.com'],
+  [LogField.AllowedHosts]: (_gen: RandomGen) => ['example.com', 'trusted.com'],
+  [LogField.AllowIpHosts]: (_gen: RandomGen) => false,
   [LogField.ClientIp]: SampleHelpers.ip,
   [LogField.XForwardedFor]: (_gen: RandomGen) => '203.0.113.1, 70.41.3.18',
   [LogField.To]: SampleHelpers.emailArray,

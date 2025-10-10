@@ -9,7 +9,11 @@ tasks:
     desc: Run Rails integration tests (override with RAILS_VERSION=...)
     cmds:
       - cmd: RAILS_VERSION={{.RAILS_VERSION}} ./scripts/rails_tests.sh
-        dir: .
+
+  test:force:
+    desc: Run Rails integration tests with force recreation of test app (override with RAILS_VERSION=...)
+    cmds:
+      - cmd: RAILS_VERSION={{.RAILS_VERSION}} FORCE_RECREATE=true ./scripts/rails_tests.sh
 
   test:matrix:
     desc: Run Rails integration tests for supported versions (7.1.5 and 8.0.1)
