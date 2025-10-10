@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2025-10-04
+## [0.1.3] - 2025-10-11
 
 ### Changed
 
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSON logging now enabled for all test runs (both local and CI) to ensure tests catch production bugs
   - Previously only enabled for CI test runs, now always enabled in test environment
   - This ensures local tests match CI behavior and catch serialization issues early
+- Fixed host authorization app
 
 ## [0.1.2] - 2025-10-03
 
