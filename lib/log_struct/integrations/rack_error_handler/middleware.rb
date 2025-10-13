@@ -55,8 +55,14 @@ module LogStruct
         def call(env)
           return @app.call(env) unless LogStruct.enabled?
 
-          # Try to process the request
+          request = ::ActionDispatch::Request.new(env)
+
           begin
+            # Trigger the same spoofing checks that ActionDispatch::RemoteIp performs after
+            # it is initialized in the middleware stack. We run this manually because we
+            # execute before that middleware and still want spoofing attacks to surface here.
+            perform_remote_ip_check!(request)
+
             @app.call(env)
           rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError => ip_spoof_error
             # Create a security log for IP spoofing
@@ -65,7 +71,7 @@ module LogStruct
               http_method: env["REQUEST_METHOD"],
               user_agent: env["HTTP_USER_AGENT"],
               referer: env["HTTP_REFERER"],
-              request_id: env["action_dispatch.request_id"],
+              request_id: request.request_id,
               message: ip_spoof_error.message,
               client_ip: env["HTTP_CLIENT_IP"],
               x_forwarded_for: env["HTTP_X_FORWARDED_FOR"],
@@ -74,13 +80,7 @@ module LogStruct
 
             ::Rails.logger.warn(security_log)
 
-            # Report the error
-            context = extract_request_context(env)
-            LogStruct.handle_exception(ip_spoof_error, source: Source::Security, context: context)
-
-            # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
-            # If we are only logging or reporting these security errors, then return a default response
-            [FORBIDDEN_STATUS, IP_SPOOF_HEADERS, [IP_SPOOF_HTML]]
+            [FORBIDDEN_STATUS, IP_SPOOF_HEADERS.dup, [IP_SPOOF_HTML]]
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
             # Create a security log for CSRF error
             request = ::ActionDispatch::Request.new(env)
@@ -102,7 +102,7 @@ module LogStruct
 
             # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
             # If we are only logging or reporting these security errors, then return a default response
-            [FORBIDDEN_STATUS, CSRF_HEADERS, [CSRF_HTML]]
+            [FORBIDDEN_STATUS, CSRF_HEADERS.dup, [CSRF_HTML]]
           rescue => error
             # Extract request context for error reporting
             context = extract_request_context(env)
@@ -118,6 +118,23 @@ module LogStruct
         end
 
         private
+
+        sig { params(request: ::ActionDispatch::Request).void }
+        def perform_remote_ip_check!(request)
+          action_dispatch_config = ::Rails.application.config.action_dispatch
+
+          remote_ip_middleware = ::ActionDispatch::RemoteIp.new(
+            ->(_env) { [200, {}, []] },
+            action_dispatch_config.ip_spoofing_check,
+            action_dispatch_config.trusted_proxies
+          )
+
+          return unless remote_ip_middleware.check_ip
+
+          ::ActionDispatch::RemoteIp::GetIp
+            .new(request, remote_ip_middleware.check_ip, remote_ip_middleware.proxies)
+            .to_s
+        end
 
         sig { params(env: T::Hash[String, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
         def extract_request_context(env)

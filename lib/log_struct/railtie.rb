@@ -25,10 +25,19 @@ module LogStruct
       # Merge Rails filter parameters into our filters
       LogStruct.merge_rails_filter_parameters!
 
-      # Set up all integrations
-      Integrations.setup_integrations
+      # Set up non-middleware integrations first
+      Integrations.setup_integrations(stage: :non_middleware)
 
       # Note: Host allowances are managed by the test app itself.
+    end
+
+    # Setup middleware integrations during Rails configuration (before middleware stack is built)
+    # Must be done in the Railtie class body, not in an initializer
+    initializer "logstruct.configure_middleware", before: :build_middleware_stack do |app|
+      # This runs before middleware stack is frozen, so we can configure it
+      next unless LogStruct.enabled?
+
+      Integrations.setup_integrations(stage: :middleware)
     end
 
     # Emit Puma lifecycle logs when running `rails server`

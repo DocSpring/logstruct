@@ -38,11 +38,25 @@ module LogStruct
       end
     end
 
-    sig { void }
-    def self.setup_integrations
+    sig { params(stage: Symbol).void }
+    def self.setup_integrations(stage: :all)
       config = LogStruct.config
 
-      # Set up each integration with consistent configuration pattern
+      case stage
+      when :non_middleware
+        setup_non_middleware_integrations(config)
+      when :middleware
+        setup_middleware_integrations(config)
+      when :all
+        setup_non_middleware_integrations(config)
+        setup_middleware_integrations(config)
+      else
+        raise ArgumentError, "Unknown integration stage: #{stage}"
+      end
+    end
+
+    sig { params(config: LogStruct::Configuration).void }
+    def self.setup_non_middleware_integrations(config)
       Integrations::Lograge.setup(config) if config.integrations.enable_lograge
       Integrations::ActionMailer.setup(config) if config.integrations.enable_actionmailer
       Integrations::ActiveJob.setup(config) if config.integrations.enable_activejob
@@ -51,8 +65,6 @@ module LogStruct
       Integrations::GoodJob.setup(config) if config.integrations.enable_goodjob
       Integrations::Ahoy.setup(config) if config.integrations.enable_ahoy
       Integrations::ActiveModelSerializers.setup(config) if config.integrations.enable_active_model_serializers
-      Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization
-      Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
       Integrations::Shrine.setup(config) if config.integrations.enable_shrine
       Integrations::ActiveStorage.setup(config) if config.integrations.enable_activestorage
       Integrations::CarrierWave.setup(config) if config.integrations.enable_carrierwave
@@ -62,5 +74,13 @@ module LogStruct
       end
       Integrations::Puma.setup(config) if config.integrations.enable_puma
     end
+
+    sig { params(config: LogStruct::Configuration).void }
+    def self.setup_middleware_integrations(config)
+      Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization
+      Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
+    end
+
+    private_class_method :setup_non_middleware_integrations, :setup_middleware_integrations
   end
 end

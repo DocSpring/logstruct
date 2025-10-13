@@ -19,9 +19,9 @@ module LogStruct
         return nil unless config.integrations.enable_rack_error_handler
 
         # Add structured logging middleware for security violations and errors
-        # Need to insert after ShowExceptions to catch IP spoofing errors
-        ::Rails.application.middleware.insert_after(
-          ::ActionDispatch::ShowExceptions,
+        # Need to insert before RemoteIp to catch IP spoofing errors it raises
+        ::Rails.application.middleware.insert_before(
+          ::ActionDispatch::RemoteIp,
           Integrations::RackErrorHandler::Middleware
         )
 
