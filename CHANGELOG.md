@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2025-10-11
-
 ### Changed
+
+## [0.1.4] - 2025-10-13
+
+- Improve rack spoof handling and split integration setup
+
+## [0.1.3] - 2025-10-11
 
 - **Fix**: Changed storage, queue name, and format fields from `String` to `Symbol` type to match Rails conventions
   - Affected log types: ActiveStorage, CarrierWave, Shrine (storage field), ActiveJob, GoodJob (queue_name field), Request (format field)
