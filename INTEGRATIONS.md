@@ -5,7 +5,7 @@
 **High‑Level Flow**
 
 - Add a typed log structure under `lib/log_struct/log/` (so the docs generator picks it up).
-- Add a configuration toggle in `ConfigStruct::Integrations` and wire it into `Integrations.setup_integrations`.
+- Add a configuration toggle in `ConfigStruct::Integrations` and wire it into `Integrations.setup_integrations` via the appropriate stage (`:non_middleware` for instrumentation hooks, `:middleware` when the integration inserts Rack middleware).
 - Implement the integration under `lib/log_struct/integrations/…` to produce that log type.
 - Add the dev dependency for the third‑party gem and generate RBIs with Tapioca.
 - Add tests (unit + behavior) under `test/log_struct/integrations` and (if needed) `test/log_struct/log`.
@@ -74,7 +74,7 @@
      - `prop :enable_<name>, T::Boolean, default: true`
    - In `lib/log_struct/integrations.rb`:
      - `require_relative "integrations/<name>"`
-     - Call `Integrations::<Name>.setup(config)` inside `setup_integrations` behind the toggle.
+     - Call `Integrations::<Name>.setup(config)` inside `setup_integrations`, selecting the stage that matches your integration (`:non_middleware` for subscribers/hooks, `:middleware` for Rack additions). Most integrations belong in the default `:non_middleware` stage; only code that mutates the middleware stack should go in `:middleware`.
 
 4. Implement the integration
    - File: `lib/log_struct/integrations/<name>.rb`

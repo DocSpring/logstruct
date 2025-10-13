@@ -83,7 +83,6 @@ module LogStruct
             [FORBIDDEN_STATUS, IP_SPOOF_HEADERS.dup, [IP_SPOOF_HTML]]
           rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
             # Create a security log for CSRF error
-            request = ::ActionDispatch::Request.new(env)
             security_log = Log::Security::CSRFViolation.new(
               path: request.path,
               http_method: request.method,
@@ -97,7 +96,7 @@ module LogStruct
             LogStruct.error(security_log)
 
             # Report to error reporting service and/or re-raise
-            context = extract_request_context(env)
+            context = extract_request_context(env, request)
             LogStruct.handle_exception(invalid_auth_token_error, source: Source::Security, context: context)
 
             # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
@@ -105,7 +104,7 @@ module LogStruct
             [FORBIDDEN_STATUS, CSRF_HEADERS.dup, [CSRF_HTML]]
           rescue => error
             # Extract request context for error reporting
-            context = extract_request_context(env)
+            context = extract_request_context(env, request)
 
             # Create and log a structured exception with request context
             exception_log = Log.from_exception(Source::Rails, error, context)
@@ -122,23 +121,19 @@ module LogStruct
         sig { params(request: ::ActionDispatch::Request).void }
         def perform_remote_ip_check!(request)
           action_dispatch_config = ::Rails.application.config.action_dispatch
+          check_ip = action_dispatch_config.ip_spoofing_check
+          return unless check_ip
 
-          remote_ip_middleware = ::ActionDispatch::RemoteIp.new(
-            ->(_env) { [200, {}, []] },
-            action_dispatch_config.ip_spoofing_check,
-            action_dispatch_config.trusted_proxies
-          )
-
-          return unless remote_ip_middleware.check_ip
+          proxies = normalized_trusted_proxies(action_dispatch_config.trusted_proxies)
 
           ::ActionDispatch::RemoteIp::GetIp
-            .new(request, remote_ip_middleware.check_ip, remote_ip_middleware.proxies)
+            .new(request, check_ip, proxies)
             .to_s
         end
 
-        sig { params(env: T::Hash[String, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
-        def extract_request_context(env)
-          request = ::ActionDispatch::Request.new(env)
+        sig { params(env: T::Hash[String, T.untyped], request: T.nilable(::ActionDispatch::Request)).returns(T::Hash[Symbol, T.untyped]) }
+        def extract_request_context(env, request = nil)
+          request ||= ::ActionDispatch::Request.new(env)
           {
             request_id: request.request_id,
             path: request.path,
@@ -149,6 +144,32 @@ module LogStruct
         rescue => error
           # If we can't extract request context, return minimal info
           {error_extracting_context: error.message}
+        end
+
+        sig { params(configured_proxies: T.untyped).returns(T.untyped) }
+        def normalized_trusted_proxies(configured_proxies)
+          if configured_proxies.nil? || (configured_proxies.respond_to?(:empty?) && configured_proxies.empty?)
+            return ::ActionDispatch::RemoteIp::TRUSTED_PROXIES
+          end
+
+          return configured_proxies if configured_proxies.respond_to?(:any?)
+
+          raise(
+            ArgumentError,
+            <<~EOM
+              Setting config.action_dispatch.trusted_proxies to a single value isn't
+              supported. Please set this to an enumerable instead. For
+              example, instead of:
+
+              config.action_dispatch.trusted_proxies = IPAddr.new("10.0.0.0/8")
+
+              Wrap the value in an Array:
+
+              config.action_dispatch.trusted_proxies = [IPAddr.new("10.0.0.0/8")]
+
+              Note that passing an enumerable will *replace* the default set of trusted proxies.
+            EOM
+          )
         end
       end
     end

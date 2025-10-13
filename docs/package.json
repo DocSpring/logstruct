@@ -13,8 +13,8 @@
     "format": "biome format --write .",
     "test": "jest",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "check": "npm run typecheck && npm run lint && npm run build && npm run test:integration && npm run e2e",
-    "test:integration": "node scripts/prepare-integration-fixtures.js && npm run build && jest -c jest.integration.config.ts",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run build && pnpm run test:integration && pnpm run e2e",
+    "test:integration": "node scripts/prepare-integration-fixtures.js && pnpm run build && jest -c jest.integration.config.ts",
     "e2e": "playwright test",
     "test:watch": "jest --watch",
     "generate-favicons": "node scripts/generate-favicons.js"

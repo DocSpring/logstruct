@@ -14,20 +14,20 @@ This is the documentation website for the LogStruct gem, built with Next.js and 
 ### Prerequisites
 
 - Node.js (version 18 or higher)
-- npm (version 8 or higher)
+- pnpm (version 9 or higher)
 
 ### Getting Started
 
 1. Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 2. Start the development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 3. Open [http://localhost:3001](http://localhost:3001) to view the docs in your browser.
@@ -37,7 +37,7 @@ npm run dev
 To build the static docs for production:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 This will generate static HTML files in the `out` directory that can be deployed to any static web hosting service.
@@ -51,7 +51,7 @@ To manually deploy:
 1. Build the docs:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 2. The static files will be in the `out` directory, which can be deployed to any static hosting service.

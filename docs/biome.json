@@ -8,8 +8,8 @@
   "files": {
     "ignoreUnknown": false,
     "includes": [
-      "**/*.{js,ts,jsx,tsx}",
-      "*.{js,ts,jsx,tsx}",
+      "**/*.{js,ts,jsx,tsx,json}",
+      "*.{js,ts,jsx,tsx,json}",
       "!generated/**/*.ts",
       "!scripts/**/*.js",
       "!public/coverage/**/*"
