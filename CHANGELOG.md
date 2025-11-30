@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.5] - 2025-11-30
+
+- **Fix**: Development logs no longer wrapped in `{message: "..."}` when LogStruct is disabled
+  - The TaggedLogging formatter monkey patch now checks `LogStruct.enabled?` before modifying log messages
+  - This preserves original Rails logging behavior in development mode
+
 ## [0.1.4] - 2025-10-13
 
 - Improve rack spoof handling and split integration setup
