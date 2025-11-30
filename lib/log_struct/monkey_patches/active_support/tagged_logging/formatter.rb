@@ -27,8 +27,15 @@ module ActiveSupport
       # plain strings in a Hash under a `msg` key.
       # The data is then passed to our custom log formatter that transforms it
       # into a JSON string before logging.
+      #
+      # IMPORTANT: This only applies when LogStruct is enabled. When disabled,
+      # we preserve the original Rails logging behavior to avoid wrapping
+      # messages in hashes (which would break default Rails log formatting).
       sig { params(severity: T.any(String, Symbol), time: Time, progname: T.untyped, data: T.untyped).returns(String) }
       def call(severity, time, progname, data)
+        # Skip hash wrapping when LogStruct is disabled to preserve default Rails behavior
+        return super unless ::LogStruct.enabled?
+
         # Convert data to a hash if it's not already one
         data = {message: data.to_s} unless data.is_a?(Hash)
 
