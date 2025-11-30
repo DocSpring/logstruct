@@ -114,7 +114,7 @@ All commands use [Task](https://taskfile.dev) - run `task --list` to see all ava
 ## Required secrets
 
 - `RUBYGEMS_API_KEY`: API key with permission to publish `logstruct`.
-- `PROVIDER_PUSH_TOKEN`: PAT with write access to `DocSpring/terraform-provider-logstruct` for syncing/tagging.
+- `TF_PROVIDER_GITHUB_TOKEN`: PAT with write access to `DocSpring/terraform-provider-logstruct` for syncing/tagging.
 
 # Core Dependencies
 

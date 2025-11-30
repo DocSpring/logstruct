@@ -240,7 +240,7 @@ jobs:
 
       - name: Clone terraform-provider-logstruct repository
         env:
-          PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
+          PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
         run: |
           git config --global user.name "DocSpring Bot"
           git config --global user.email "docspring-bot@docspring.com"
@@ -263,7 +263,7 @@ jobs:
 
       - name: Commit and push provider changes
         env:
-          PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
+          PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
         run: |
           cd terraform-provider-logstruct
           if git diff --quiet; then
@@ -282,7 +282,7 @@ jobs:
 
       - name: Tag provider with release version
         env:
-          PUSH_TOKEN: ${{ secrets.PROVIDER_PUSH_TOKEN }}
+          PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
         run: |
           cd terraform-provider-logstruct
           TAG="${{ steps.ver.outputs.tag }}"
