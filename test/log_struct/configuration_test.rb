@@ -198,6 +198,26 @@ module LogStruct
       LogStruct.config.filters.filter_matchers = T.must(original_matchers)
     end
 
+    # Test that development server process is DISABLED by default
+    # (development is not in enabled_environments by default)
+    def test_disabled_for_development_server_with_default_environments
+      LogStruct.config.enabled = true
+      # Use default enabled_environments: [:test, :production]
+      LogStruct.config.enabled_environments = [:test, :production]
+
+      original_argv = ::ARGV.dup
+      ::ARGV.replace(["server"])
+
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("development")) do
+        LogStruct.set_enabled_from_rails_env!
+
+        assert_not LogStruct.config.enabled,
+          "LogStruct should be DISABLED for development server (development not in enabled_environments)"
+      end
+    ensure
+      ::ARGV.replace(original_argv) if defined?(original_argv)
+    end
+
     # Test server process detection
     def test_enabled_for_server_process_in_production
       LogStruct.config.enabled = false
