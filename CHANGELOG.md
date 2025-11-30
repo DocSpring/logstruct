@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.6] - 2025-11-30
+
+- Rename `PROVIDER_PUSH_TOKEN` secret to `TF_PROVIDER_GITHUB_TOKEN`
+
 ## [0.1.5] - 2025-11-30
 
 - **Fix**: Development logs no longer wrapped in `{message: "..."}` when LogStruct is disabled
