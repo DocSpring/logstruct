@@ -10,7 +10,6 @@ module LogStruct
       module ClassMethods
         extend T::Sig
 
-        SERVER_COMMAND_ARGS = T.let(["server", "s"].freeze, T::Array[String])
         CONSOLE_COMMAND_ARGS = T.let(["console", "c"].freeze, T::Array[String])
         EMPTY_ARGV = T.let([].freeze, T::Array[String])
         CI_FALSE_VALUES = T.let(["false", "0", "no"].freeze, T::Array[String])
@@ -133,8 +132,21 @@ module LogStruct
         sig { returns(T::Boolean) }
         def server_process?
           return true if logstruct_server_mode?
+          # Check for web servers - the module/gem is loaded at require time
+          return true if defined?(::Puma::CLI)     # puma CLI is defined when running `puma` command
+          return true if defined?(::Puma::Server)  # or Puma::Server if already loaded
+          return true if defined?(::Unicorn::HttpServer)
+          return true if defined?(::Thin::Server)
+          return true if defined?(::Falcon::Server)
+          return true if defined?(::Rails::Server)
+          return true if sidekiq_server?
 
-          current_argv.any? { |arg| SERVER_COMMAND_ARGS.include?(arg) }
+          false
+        end
+
+        sig { returns(T::Boolean) }
+        def sidekiq_server?
+          !!(defined?(::Sidekiq) && ::Sidekiq.respond_to?(:server?) && ::Sidekiq.server?)
         end
 
         sig { returns(T::Boolean) }

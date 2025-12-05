@@ -5,6 +5,77 @@ require "open3"
 require "timeout"
 
 class PumaIntegrationTest < ActiveSupport::TestCase
+  # Test that running `puma` directly (without `rails server`) auto-enables LogStruct
+  # via Puma::Server detection - no LOGSTRUCT_ENABLED env var needed
+  def test_puma_direct_auto_enables_logstruct
+    port = 32124
+    env = {
+      "RAILS_ENV" => "production",
+      "RAILS_LOG_TO_STDOUT" => "1",
+      "SECRET_KEY_BASE" => "test_secret_key_base_for_production_mode_1234567890"
+    }
+
+    # Run puma directly, NOT rails server
+    cmd = ["bundle", "exec", "puma", "-p", port.to_s, "-e", "production"]
+
+    Open3.popen3(env, *cmd) do |_stdin, stdout, stderr, wait_thr|
+      begin
+        lines = []
+        Timeout.timeout(15) do
+          while (line = stdout.gets)
+            lines << line.strip
+            # Puma outputs "Listening on" when ready
+            break if line.include?("Listening on")
+          end
+        end
+
+        # Send TERM to trigger graceful shutdown
+        begin
+          Process.kill("TERM", wait_thr.pid)
+        rescue Errno::ESRCH
+          # Process already exited
+        end
+
+        # Collect shutdown output
+        Timeout.timeout(10) do
+          while (line = stdout.gets)
+            lines << line.strip
+          end
+        end
+      rescue Timeout::Error
+        # Fall through and ensure process is terminated
+      ensure
+        begin
+          Process.kill("TERM", wait_thr.pid)
+        rescue Errno::ESRCH
+          # already dead
+        end
+      end
+
+      output = lines.join("\n")
+      stderr_output = stderr.read
+
+      # Find JSON log lines - LogStruct should be enabled via Puma::Server detection
+      json_lines = lines.filter_map do |l|
+        JSON.parse(l) if l.strip.start_with?("{")
+      rescue JSON::ParserError
+        nil
+      end
+
+      assert_predicate json_lines,
+        :any?,
+        "Expected JSON logs from direct puma invocation (Puma::Server detection should enable LogStruct).\n" \
+        "STDOUT: #{output}\nSTDERR: #{stderr_output}"
+
+      # Verify we got puma lifecycle logs
+      puma_logs = json_lines.select { |h| h["src"] == "puma" }
+
+      assert_predicate puma_logs,
+        :any?,
+        "Expected puma lifecycle logs. JSON logs: #{json_lines.inspect}"
+    end
+  end
+
   def test_rails_server_emits_structured_puma_logs_and_on_exit
     port = 32123
     env = {

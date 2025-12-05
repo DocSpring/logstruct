@@ -101,7 +101,7 @@ module LogStruct
 
       sig { params(app: T.untyped).returns(Symbol) }
       def self.determine_log_level(app)
-        if app.config.log_level
+        level = if app.config.log_level
           app.config.log_level
         elsif Rails.env.production?
           :info
@@ -110,6 +110,8 @@ module LogStruct
         else
           :debug
         end
+        # Rails config.log_level can be a String or Symbol
+        level.is_a?(String) ? level.to_sym : level
       end
 
       sig { params(app: T.untyped).void }
