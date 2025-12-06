@@ -132,7 +132,7 @@ module LogStruct
         sig { returns(T::Boolean) }
         def server_process?
           return true if logstruct_server_mode?
-          return true if defined?(::Puma::Server)
+          return true if puma_server?
           return true if defined?(::Unicorn::HttpServer)
           return true if defined?(::Thin::Server)
           return true if defined?(::Falcon::Server)
@@ -140,6 +140,13 @@ module LogStruct
           return true if sidekiq_server?
 
           false
+        end
+
+        sig { returns(T::Boolean) }
+        def puma_server?
+          # Just checking defined?(::Puma::Server) is not reliable - Puma might be installed
+          # but not running. Check $PROGRAM_NAME to verify we're actually running puma.
+          $PROGRAM_NAME.include?("puma")
         end
 
         sig { returns(T::Boolean) }
