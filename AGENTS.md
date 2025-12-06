@@ -33,7 +33,14 @@ All commands use [Task](https://taskfile.dev) - run `task --list` to see all ava
 - Debug a specific test: Add `debugger` statements (developer only)
 - Merge coverage reports: `task ruby:coverage:merge`
 
-**Note**: Rails integration tests are in `rails_test_app/templates/test/integration/`.
+**Rails Integration Tests**: Located in `rails_test_app/templates/test/integration/`. The script automatically copies template files to the test app when you run `scripts/rails_tests.sh`.
+
+**FORCE_RECREATE**: Do NOT use `FORCE_RECREATE=true` unless absolutely necessary. It deletes the entire test app and recreates from scratch, which is slow. Only needed when:
+- Gemfile changes require reinstalling gems
+- Something is fundamentally broken with the cached app
+- Rails version changes (but the script auto-detects this anyway)
+
+For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tests.sh` - it copies templates automatically.
 
 ### Quality Commands
 
