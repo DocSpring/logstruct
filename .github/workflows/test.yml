@@ -166,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: raw-coverage-ruby3.4.7-rails8.1.1
+          name: raw-coverage-ruby-rails-latest
           path: |
             coverage
             coverage_rails
@@ -185,7 +185,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: coverage-ruby3.4.7-rails8.1.1
+          name: coverage-ruby-rails-latest
           path: |
             docs/public/coverage/
           retention-days: 5

@@ -66,7 +66,7 @@ jobs:
         with:
           workflow: test.yml
           workflow_conclusion: success
-          name: coverage-ruby3.4-rails8.0
+          name: coverage-ruby-rails-latest
           path: docs/public/coverage/
 
       - name: Generate YARD documentation
