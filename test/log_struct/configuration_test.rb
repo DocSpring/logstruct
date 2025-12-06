@@ -302,15 +302,22 @@ module LogStruct
     end
 
     def test_disabled_for_rake_tasks_in_production
+      original_server_mode = LogStruct.server_mode?
+
       LogStruct.config.enabled = false
       LogStruct.config.enabled_environments = [:production]
 
-      # No Rails::Server, no Rails::Console, not test env
+      # Ensure server_mode is false (might be set by other tests)
+      LogStruct.server_mode = false
+
+      # No Rails::Server, no Rails::Console, not test env - this simulates a rake task
       Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
         LogStruct.set_enabled_from_rails_env!
 
         assert_not LogStruct.config.enabled, "LogStruct should be disabled for rake tasks in production"
       end
+    ensure
+      LogStruct.server_mode = T.must(original_server_mode)
     end
 
     def test_logstruct_enabled_overrides_all_logic
