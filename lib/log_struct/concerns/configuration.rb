@@ -132,9 +132,7 @@ module LogStruct
         sig { returns(T::Boolean) }
         def server_process?
           return true if logstruct_server_mode?
-          # Check for web servers - the module/gem is loaded at require time
-          return true if defined?(::Puma::CLI)     # puma CLI is defined when running `puma` command
-          return true if defined?(::Puma::Server)  # or Puma::Server if already loaded
+          return true if defined?(::Puma::Server)
           return true if defined?(::Unicorn::HttpServer)
           return true if defined?(::Thin::Server)
           return true if defined?(::Falcon::Server)
