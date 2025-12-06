@@ -7,6 +7,7 @@
 3. **NO EXCEPTIONS to the above rules - features are NOT complete until all checks pass**
 4. **This rule must ALWAYS be followed no matter what**
 5. **`additional_data` is ONLY for unknown and dynamic fields that a user or integration might send. IF YOU KNOW THE NAME OF A FIELD, IT GOES IN THE SCHEMA. NEVER use `additional_data` for known fields.**
+6. **NEVER run `git tag` without `-m` flag** - it opens an interactive editor and freezes. Always use: `git tag -a v0.1.7 -m "Release v0.1.7"`
 
 ## Commands
 
