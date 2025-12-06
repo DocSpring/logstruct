@@ -391,5 +391,35 @@ module LogStruct
         end
       end
     end
+
+    # Test puma detection via ARGV when running through wrapper scripts (e.g., gosu)
+    # In this scenario, $PROGRAM_NAME is the wrapper (e.g., /usr/bin/gosu) but ARGV
+    # contains "puma" arguments like: ["deploy", "puma", "-C", "config/puma.rb"]
+    def test_enabled_for_puma_via_argv_in_production
+      original_server_mode = LogStruct.server_mode?
+      had_rails_server = defined?(::Rails::Server)
+
+      # Reset all server detection state
+      LogStruct.server_mode = false
+      ::Rails.send(:remove_const, :Server) if defined?(::Rails::Server)
+
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:production]
+
+      # Simulate gosu wrapper: ARGV contains puma arguments but $PROGRAM_NAME is gosu
+      original_argv = ::ARGV.dup
+      ::ARGV.replace(["deploy", "puma", "-C", "config/puma.rb"])
+
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+        LogStruct.set_enabled_from_rails_env!
+
+        assert LogStruct.config.enabled,
+          "LogStruct should be enabled when puma is detected via ARGV (gosu wrapper scenario)"
+      end
+    ensure
+      ::ARGV.replace(original_argv) if defined?(original_argv)
+      LogStruct.server_mode = T.must(original_server_mode)
+      ::Rails.const_set(:Server, Class.new) if had_rails_server && !defined?(::Rails::Server)
+    end
   end
 end

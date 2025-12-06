@@ -21,6 +21,7 @@ Fanout
 favicons
 gettime
 goodjob
+gosu
 Healthcheck
 Honeybadger
 hostnames

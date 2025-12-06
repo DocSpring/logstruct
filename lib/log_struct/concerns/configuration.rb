@@ -145,8 +145,12 @@ module LogStruct
         sig { returns(T::Boolean) }
         def puma_server?
           # Just checking defined?(::Puma::Server) is not reliable - Puma might be installed
-          # but not running. Check $PROGRAM_NAME to verify we're actually running puma.
-          $PROGRAM_NAME.include?("puma")
+          # but not running. Check $PROGRAM_NAME and ARGV to verify we're actually running puma.
+          # ARGV check is needed when running through wrapper scripts like gosu.
+          return true if $PROGRAM_NAME.include?("puma")
+          return true if current_argv.any? { |arg| arg.include?("puma") }
+
+          false
         end
 
         sig { returns(T::Boolean) }
