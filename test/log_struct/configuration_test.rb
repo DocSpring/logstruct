@@ -303,12 +303,14 @@ module LogStruct
 
     def test_disabled_for_rake_tasks_in_production
       original_server_mode = LogStruct.server_mode?
+      had_rails_server = defined?(::Rails::Server)
+
+      # Reset all server detection state (might be set by other tests)
+      LogStruct.server_mode = false
+      ::Rails.send(:remove_const, :Server) if defined?(::Rails::Server)
 
       LogStruct.config.enabled = false
       LogStruct.config.enabled_environments = [:production]
-
-      # Ensure server_mode is false (might be set by other tests)
-      LogStruct.server_mode = false
 
       # No Rails::Server, no Rails::Console, not test env - this simulates a rake task
       Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
@@ -318,6 +320,8 @@ module LogStruct
       end
     ensure
       LogStruct.server_mode = T.must(original_server_mode)
+      # Restore Rails::Server if it was defined before
+      ::Rails.const_set(:Server, Class.new) if had_rails_server && !defined?(::Rails::Server)
     end
 
     def test_logstruct_enabled_overrides_all_logic

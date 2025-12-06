@@ -134,11 +134,11 @@ jobs:
           cd docs && pnpm test
 
   pilot:
-    name: 'Pilot Test: Ruby 3.4 / Rails 8.0'
+    name: 'Pilot Test: Ruby 3.4.7 / Rails 8.1.1'
     runs-on: ubuntu-22.04
     env:
-      RAILS_VERSION: '8.0.1'
-      RUBY_VERSION: '3.4'
+      RAILS_VERSION: '8.1.1'
+      RUBY_VERSION: '3.4.7'
       CI: 'true'
       BUNDLE_WITHOUT: 'development'
     steps:
@@ -148,10 +148,10 @@ jobs:
       - name: Remove Gemfile.lock for variable Ruby/Rails versions
         run: rm -f Gemfile.lock
 
-      - name: Setup Ruby 3.4
+      - name: Setup Ruby 3.4.7
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4'
+          ruby-version: '3.4.7'
           bundler-cache: true
 
       # Coverage: /coverage
@@ -166,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: raw-coverage-ruby3.4-rails8.0
+          name: raw-coverage-ruby3.4.7-rails8.1.1
           path: |
             coverage
             coverage_rails
@@ -185,7 +185,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: coverage-ruby3.4-rails8.0
+          name: coverage-ruby3.4.7-rails8.1.1
           path: |
             docs/public/coverage/
           retention-days: 5
@@ -206,9 +206,8 @@ jobs:
             ruby: '3.4'
             rails: '7.2.2.1'
 
-          - name: 'Ruby 3.4.5 / Rails 8.1.0.beta1'
-            ruby: '3.4.5'
-            rails: '8.1.0.beta1'
+          # NOTE: Latest Ruby/Rails is tested in the 'pilot' job above
+          # (runs first to fail fast before running the full matrix)
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}

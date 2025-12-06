@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.7] - 2025-12-06
+
+- **Fix**: Puma server detection now uses `$PROGRAM_NAME` instead of checking `defined?(::Puma::Server)` which was unreliable
+- **Fix**: Test isolation for `server_mode` state in configuration tests
+- **CI**: Updated to Ruby 3.4.7 and Rails 8.1.1
+
 ## [0.1.6] - 2025-11-30
 
 - Rename `PROVIDER_PUSH_TOKEN` secret to `TF_PROVIDER_GITHUB_TOKEN`
