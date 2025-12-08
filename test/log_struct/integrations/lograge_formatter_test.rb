@@ -77,6 +77,20 @@ module LogStruct
         assert_nil T.must(log).format
         assert_nil T.must(log).params
       end
+
+      def test_lograge_logger_is_set_to_rails_logger
+        # This test ensures that Lograge uses our SemanticLogger, not a cached
+        # ActiveSupport::LogSubscriber logger. Without explicitly setting
+        # config.lograge.logger, Lograge falls back to super which caches the
+        # logger on first access - potentially before LogStruct replaces Rails.logger.
+        lograge_logger = Rails.application.config.lograge.logger
+
+        assert_not_nil lograge_logger, "config.lograge.logger should be set"
+        assert_equal Rails.logger, lograge_logger, "Lograge logger should be Rails.logger"
+        assert_kind_of LogStruct::SemanticLogger::Logger,
+          lograge_logger,
+          "Lograge logger should be our SemanticLogger"
+      end
     end
   end
 end
