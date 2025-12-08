@@ -61,16 +61,12 @@ module LogStruct
 
       sig { params(log: ::SemanticLogger::Log, logger: T.untyped).returns(String) }
       def call(log, logger)
-        # Handle LogStruct types specially - they get wrapped in payload hash by SemanticLogger
-        json = if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(LogStruct::Log::Interfaces::CommonFields)
-          # Use our formatter to process LogStruct types
-          @logstruct_formatter.call(log.level, log.time, log.name, log.payload[:payload])
-        elsif log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
-          # Direct LogStruct (fallback case)
-          @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
-        elsif log.payload.is_a?(Hash) && log.payload[:payload].is_a?(T::Struct)
-          # T::Struct wrapped in payload hash
-          @logstruct_formatter.call(log.level, log.time, log.name, log.payload[:payload])
+        # Extract LogStruct from various locations where it might be stored
+        logstruct = extract_logstruct(log)
+
+        json = if logstruct
+          # Use our formatter to process LogStruct types directly
+          @logstruct_formatter.call(log.level, log.time, log.name, logstruct)
         elsif log.payload.is_a?(Hash) || log.payload.is_a?(T::Struct)
           # Process hashes and T::Structs through our formatter
           @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
@@ -88,6 +84,34 @@ module LogStruct
       end
 
       private
+
+      # Extract a LogStruct from the various places it might be stored in a SemanticLogger::Log
+      sig { params(log: ::SemanticLogger::Log).returns(T.nilable(LogStruct::Log::Interfaces::CommonFields)) }
+      def extract_logstruct(log)
+        # Check payload first (most common path for structured logging)
+        if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(LogStruct::Log::Interfaces::CommonFields)
+          return T.cast(log.payload[:payload], LogStruct::Log::Interfaces::CommonFields)
+        end
+
+        if log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
+          return log.payload
+        end
+
+        # Check message - this is where structs end up when passed directly to logger.info(struct)
+        if log.message.is_a?(LogStruct::Log::Interfaces::CommonFields)
+          return T.cast(log.message, LogStruct::Log::Interfaces::CommonFields)
+        end
+
+        # Check for T::Struct in payload hash (might be a LogStruct struct not implementing CommonFields directly)
+        if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(T::Struct)
+          struct = log.payload[:payload]
+          if struct.respond_to?(:source) && struct.respond_to?(:event)
+            return T.unsafe(struct)
+          end
+        end
+
+        nil
+      end
 
       sig { returns(LogStruct::Formatter) }
       attr_reader :logstruct_formatter

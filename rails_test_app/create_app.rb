@@ -227,6 +227,7 @@ if !skip_app_creation
     gem "drb"
     gem "benchmark"
     gem "dotenv-rails"
+    gem "shrine", "~> 3.6"
 
     # Test gems
     group :test do

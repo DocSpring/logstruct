@@ -37,7 +37,17 @@ module ActiveSupport
         return super unless ::LogStruct.enabled?
 
         # Convert data to a hash if it's not already one
-        data = {message: data.to_s} unless data.is_a?(Hash)
+        data = if data.is_a?(Hash)
+          data
+        elsif data.is_a?(::LogStruct::Log::Interfaces::CommonFields)
+          # LogStruct structs have a serialize method that returns a proper hash
+          data.serialize
+        elsif data.is_a?(T::Struct)
+          # Other T::Struct types can be serialized to hash
+          data.serialize
+        else
+          {message: data.to_s}
+        end
 
         # Add current tags to the hash if present
         # Use thread-local storage directly as fallback if current_tags method doesn't exist

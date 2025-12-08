@@ -82,7 +82,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     @log_output.rewind
 
     # Download the file
-    document.file.download
+    document.active_storage_file.download
 
     # Give some time for the async events to process
     sleep(0.2)
@@ -115,7 +115,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     # Check if file exists - we need to hit the storage service directly to trigger the exist event
     # In ActiveStorage, we need to directly check through the storage service
     storage = ActiveStorage::Blob.service
-    storage.exist?(document.file.key)
+    storage.exist?(document.active_storage_file.key)
 
     # Give some time for the async events to process
     sleep(0.2)
@@ -145,7 +145,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     @log_output.rewind
 
     # Delete the file
-    document.file.purge
+    document.active_storage_file.purge
 
     # Give some time for the async events to process
     sleep(0.2)
@@ -176,7 +176,7 @@ class ActiveStorageTest < ActiveSupport::TestCase
     @log_output.rewind
 
     # Now attach the file with our known metadata
-    document.file.attach(
+    document.active_storage_file.attach(
       io: StringIO.new("Test content with specific metadata"),
       filename: "metadata_test.txt",
       content_type: "text/plain"

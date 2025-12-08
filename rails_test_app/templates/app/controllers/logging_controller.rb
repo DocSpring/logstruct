@@ -144,4 +144,14 @@ class LoggingController < ApplicationController
     # If we got here without a SystemStackError, the infinite recursion was prevented
     render json: {status: "ok", message: "Stack-safe error handling test completed"}
   end
+
+  # Shrine file upload - triggers Shrine instrumentation logging
+  def test_shrine_upload
+    document = Document.create_with_shrine_file(
+      filename: "test_document.txt",
+      content: "This is test content for Shrine upload"
+    )
+
+    render json: {status: "ok", message: "Shrine upload completed", document_id: document.id}
+  end
 end
