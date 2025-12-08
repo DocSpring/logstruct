@@ -76,7 +76,8 @@ module LogStruct
         refute_includes output,
           "#<LogStruct::Log::Plain:",
           "LogStruct structs should be serialized, not converted to string"
-        assert_includes output, "src:", "Should include the source field"
+        # Output is now valid JSON, so look for JSON format
+        assert_includes output, '"src":', "Should include the source field in JSON format"
         assert_includes output, "Test structured message", "Should include the message"
       end
 
@@ -100,6 +101,53 @@ module LogStruct
           "LogStruct structs should be serialized, not converted to string"
         assert_includes output, "store", "Should include the storage"
         assert_includes output, "test/path.pdf", "Should include the location"
+      end
+
+      # This test reproduces the production bug where logs show Ruby hash inspect:
+      # {message: "...", tags: ["tag"]}
+      # instead of valid JSON:
+      # {"message":"...","tags":["tag"]}
+      def test_output_is_not_ruby_hash_inspect_format
+        LogStruct.config.enabled = true
+
+        @tagged_logger.tagged("my_tag") do
+          @tagged_logger.info("Test message")
+        end
+
+        output = @output.string
+
+        # MUST NOT be Ruby hash inspect format with symbol keys
+        refute_match(/\{message:/,
+          output,
+          "Output must NOT be Ruby hash inspect format like {message: ...}")
+        refute_match(/\{:message\s*=>/,
+          output,
+          "Output must NOT be Ruby hash rocket format like {:message => ...}")
+        refute_match(/tags:\s*\[/,
+          output,
+          "Output must NOT have symbol :tags key")
+      end
+
+      def test_tagged_output_is_not_ruby_hash_inspect_format
+        LogStruct.config.enabled = true
+
+        # Simulate what happens with AMS or other tagged logging
+        @tagged_logger.tagged("active_model_serializers") do
+          @tagged_logger.info("Rendered SubmissionSerializer with Attributes (14.12ms)")
+        end
+
+        output = @output.string
+
+        # This is the exact broken format from production:
+        # [active_model_serializers] {message: "Rendered ...", tags: ["active_model_serializers"]}
+        refute_match(/\[active_model_serializers\]\s*\{message:/,
+          output,
+          "Must NOT output [tag] {message: ...} format")
+
+        # Tags should be incorporated properly, not in broken format
+        refute_match(/\{message:.*tags:/,
+          output,
+          "Must NOT output {message: ..., tags: ...} Ruby inspect format")
       end
     end
   end

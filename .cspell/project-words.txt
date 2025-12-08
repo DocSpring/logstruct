@@ -43,6 +43,7 @@ metaprogramming
 mswin
 nilability
 nilable
+nonblock
 optparse
 parseable
 pentester

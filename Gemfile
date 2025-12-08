@@ -19,6 +19,7 @@ gem "rails", "~> 8.0.2.1", require: false
 gem "bigdecimal"
 gem "drb"  # For ActiveSupport::TestCase
 gem "mutex_m"
+gem "openssl"  # For tapioca SSL certificate verification
 gem "ostruct"  # For Ruby 3.5+ compatibility
 
 # Sorbet is needed for development
