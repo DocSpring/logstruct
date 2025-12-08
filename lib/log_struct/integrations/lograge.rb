@@ -19,34 +19,15 @@ module LogStruct
         # Set up lograge for structured request logging
         sig { override.params(logstruct_config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
         def setup(logstruct_config)
-          # DEBUG: trace Lograge setup - remove after debugging
-          # rubocop:disable Rails/Output
-          if ENV["LOGSTRUCT_DEBUG"] == "true"
-            warn "[logstruct] DEBUG: Lograge.setup called"
-            warn "[logstruct] DEBUG: defined?(::Lograge)=#{defined?(::Lograge).inspect}"
-            warn "[logstruct] DEBUG: logstruct_config.enabled=#{logstruct_config.enabled}"
-            warn "[logstruct] DEBUG: logstruct_config.integrations.enable_lograge=#{logstruct_config.integrations.enable_lograge}"
-          end
-          # rubocop:enable Rails/Output
-
           return nil unless defined?(::Lograge)
           return nil unless logstruct_config.enabled
           return nil unless logstruct_config.integrations.enable_lograge
 
           configure_lograge(logstruct_config)
 
-          # Lograge's railtie calls Lograge.setup(app) in after_initialize, but only
-          # if config.lograge.enabled is already true. Since our integration runs AFTER
-          # Lograge's railtie, we must call Lograge.setup ourselves to attach subscribers.
-          ::Lograge.setup(::Rails.application)
-
-          # rubocop:disable Rails/Output
-          if ENV["LOGSTRUCT_DEBUG"] == "true"
-            warn "[logstruct] DEBUG: Lograge configured and setup completed"
-            warn "[logstruct] DEBUG: Rails.application.config.lograge.enabled=#{::Rails.application.config.lograge.enabled}"
-            warn "[logstruct] DEBUG: Rails.application.config.lograge.formatter.class=#{::Rails.application.config.lograge.formatter.class}"
-          end
-          # rubocop:enable Rails/Output
+          # Lograge's railtie calls Lograge.setup(app) in config.after_initialize,
+          # which runs AFTER our initializer. Since we set config.lograge.enabled = true
+          # in configure_lograge, Lograge's railtie will see it and call setup for us.
 
           true
         end
@@ -65,27 +46,10 @@ module LogStruct
             config.lograge.logger = ::Rails.logger
             ::Lograge.logger = ::Rails.logger
 
-            # DEBUG: trace logger assignment - remove after debugging
-            # rubocop:disable Rails/Output
-            if ENV["LOGSTRUCT_DEBUG"] == "true"
-              warn "[logstruct] DEBUG: Setting config.lograge.logger = Rails.logger"
-              warn "[logstruct] DEBUG: Setting ::Lograge.logger = Rails.logger"
-              warn "[logstruct] DEBUG: Rails.logger.class=#{::Rails.logger.class}"
-              warn "[logstruct] DEBUG: ::Lograge.logger.class=#{::Lograge.logger&.class}"
-            end
-            # rubocop:enable Rails/Output
-
             # Use a raw formatter that just returns the log struct.
             # The struct is converted to JSON by our Formatter (after filtering, etc.)
             config.lograge.formatter = T.let(
               lambda do |data|
-                # DEBUG: trace formatter calls - remove after debugging
-                # rubocop:disable Rails/Output
-                if ENV["LOGSTRUCT_DEBUG"] == "true"
-                  warn "[logstruct] DEBUG: Lograge formatter called with data keys: #{data.keys.inspect}"
-                end
-                # rubocop:enable Rails/Output
-
                 # Coerce common fields to expected types
                 status = ((s = data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
                 duration_ms = ((d = data[:duration]) && d.respond_to?(:to_f)) ? d.to_f : d
@@ -108,13 +72,6 @@ module LogStruct
                   params: params,
                   timestamp: Time.now
                 )
-
-                # DEBUG: trace formatter output - remove after debugging
-                # rubocop:disable Rails/Output
-                if ENV["LOGSTRUCT_DEBUG"] == "true"
-                  warn "[logstruct] DEBUG: Lograge formatter returning Log::Request for path=#{data[:path]}"
-                end
-                # rubocop:enable Rails/Output
 
                 request_log
               end,
