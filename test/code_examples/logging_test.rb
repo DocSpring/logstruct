@@ -15,6 +15,14 @@ module LogStruct
         const :remote_ip, String
       end
 
+      def setup
+        @original_logger = Rails.logger
+      end
+
+      def teardown
+        Rails.logger = @original_logger
+      end
+
       def test_basic_logging
         user = MockUser.new(id: 123, email: "user@example.com")
         # ----------------------------------------------------------

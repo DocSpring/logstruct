@@ -36,6 +36,17 @@ module LogStruct
       railtie.initializer "logstruct.resolve_boot_logs", after: :load_config_initializers do
         LogStruct::Integrations::Dotenv.resolve_boot_logs!
       end
+
+      # Set up integrations that need to run AFTER user initializers.
+      # This is critical for Shrine because apps typically call `Shrine.plugin :instrumentation`
+      # in their config/initializers/shrine.rb. If we set up our subscriber before that,
+      # their call overwrites our config. By running after user initializers, we can
+      # properly replace their default subscriber with ours.
+      railtie.initializer "logstruct.late_integrations", after: :load_config_initializers do
+        next unless LogStruct.enabled?
+
+        LogStruct::Integrations.send(:setup_late_integrations, LogStruct.config)
+      end
     end
 
     sig { params(stage: Symbol).void }
@@ -65,7 +76,8 @@ module LogStruct
       Integrations::GoodJob.setup(config) if config.integrations.enable_goodjob
       Integrations::Ahoy.setup(config) if config.integrations.enable_ahoy
       Integrations::ActiveModelSerializers.setup(config) if config.integrations.enable_active_model_serializers
-      Integrations::Shrine.setup(config) if config.integrations.enable_shrine
+      # NOTE: Shrine is set up in setup_late_integrations, AFTER user initializers run.
+      # This ensures we can replace any default subscriber the app may have configured.
       Integrations::ActiveStorage.setup(config) if config.integrations.enable_activestorage
       Integrations::CarrierWave.setup(config) if config.integrations.enable_carrierwave
       Integrations::Sorbet.setup(config) if config.integrations.enable_sorbet_error_handlers
@@ -81,6 +93,16 @@ module LogStruct
       Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
     end
 
-    private_class_method :setup_non_middleware_integrations, :setup_middleware_integrations
+    # Integrations that must run AFTER user initializers (config/initializers/*.rb).
+    # This is necessary when apps configure gems before LogStruct can intercept.
+    sig { params(config: LogStruct::Configuration).void }
+    def self.setup_late_integrations(config)
+      # Shrine must be set up after user initializers because apps typically call
+      # `Shrine.plugin :instrumentation` in config/initializers/shrine.rb.
+      # If we set up before them, their call overwrites our subscriber.
+      Integrations::Shrine.setup(config) if config.integrations.enable_shrine
+    end
+
+    private_class_method :setup_non_middleware_integrations, :setup_middleware_integrations, :setup_late_integrations
   end
 end
