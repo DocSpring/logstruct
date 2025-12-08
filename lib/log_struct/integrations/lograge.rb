@@ -52,6 +52,20 @@ module LogStruct
         def configure_lograge(logstruct_config)
           ::Rails.application.configure do
             config.lograge.enabled = true
+            # Explicitly set Lograge's logger to Rails.logger (which is our SemanticLogger).
+            # Without this, Lograge falls back to ActiveSupport::LogSubscriber#logger which
+            # caches the logger on first access and may use the wrong logger if accessed before
+            # we replace Rails.logger.
+            config.lograge.logger = ::Rails.logger
+
+            # DEBUG: trace logger assignment - remove after debugging
+            # rubocop:disable Rails/Output
+            if ENV["LOGSTRUCT_DEBUG"] == "true"
+              warn "[logstruct] DEBUG: Setting config.lograge.logger = Rails.logger"
+              warn "[logstruct] DEBUG: Rails.logger.class=#{::Rails.logger.class}"
+            end
+            # rubocop:enable Rails/Output
+
             # Use a raw formatter that just returns the log struct.
             # The struct is converted to JSON by our Formatter (after filtering, etc.)
             config.lograge.formatter = T.let(
