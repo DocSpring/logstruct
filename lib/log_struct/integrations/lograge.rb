@@ -52,17 +52,21 @@ module LogStruct
         def configure_lograge(logstruct_config)
           ::Rails.application.configure do
             config.lograge.enabled = true
-            # Explicitly set Lograge's logger to Rails.logger (which is our SemanticLogger).
-            # Without this, Lograge falls back to ActiveSupport::LogSubscriber#logger which
-            # caches the logger on first access and may use the wrong logger if accessed before
-            # we replace Rails.logger.
+            # We must set BOTH config.lograge.logger AND ::Lograge.logger directly.
+            # Lograge's railtie copies config.lograge.logger to ::Lograge.logger during init,
+            # but that runs BEFORE our integration setup. So ::Lograge.logger is nil.
+            # Lograge's subscriber uses `Lograge.logger.presence || super` - without setting
+            # the class attribute directly, it falls back to super (wrong logger).
             config.lograge.logger = ::Rails.logger
+            ::Lograge.logger = ::Rails.logger
 
             # DEBUG: trace logger assignment - remove after debugging
             # rubocop:disable Rails/Output
             if ENV["LOGSTRUCT_DEBUG"] == "true"
               warn "[logstruct] DEBUG: Setting config.lograge.logger = Rails.logger"
+              warn "[logstruct] DEBUG: Setting ::Lograge.logger = Rails.logger"
               warn "[logstruct] DEBUG: Rails.logger.class=#{::Rails.logger.class}"
+              warn "[logstruct] DEBUG: ::Lograge.logger.class=#{::Lograge.logger&.class}"
             end
             # rubocop:enable Rails/Output
 
