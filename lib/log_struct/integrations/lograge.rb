@@ -19,11 +19,29 @@ module LogStruct
         # Set up lograge for structured request logging
         sig { override.params(logstruct_config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
         def setup(logstruct_config)
+          # DEBUG: trace Lograge setup - remove after debugging
+          # rubocop:disable Rails/Output
+          if ENV["LOGSTRUCT_DEBUG"] == "true"
+            warn "[logstruct] DEBUG: Lograge.setup called"
+            warn "[logstruct] DEBUG: defined?(::Lograge)=#{defined?(::Lograge).inspect}"
+            warn "[logstruct] DEBUG: logstruct_config.enabled=#{logstruct_config.enabled}"
+            warn "[logstruct] DEBUG: logstruct_config.integrations.enable_lograge=#{logstruct_config.integrations.enable_lograge}"
+          end
+          # rubocop:enable Rails/Output
+
           return nil unless defined?(::Lograge)
           return nil unless logstruct_config.enabled
           return nil unless logstruct_config.integrations.enable_lograge
 
           configure_lograge(logstruct_config)
+
+          # rubocop:disable Rails/Output
+          if ENV["LOGSTRUCT_DEBUG"] == "true"
+            warn "[logstruct] DEBUG: Lograge configured successfully"
+            warn "[logstruct] DEBUG: Rails.application.config.lograge.enabled=#{::Rails.application.config.lograge.enabled}"
+            warn "[logstruct] DEBUG: Rails.application.config.lograge.formatter.class=#{::Rails.application.config.lograge.formatter.class}"
+          end
+          # rubocop:enable Rails/Output
 
           true
         end
@@ -38,6 +56,13 @@ module LogStruct
             # The struct is converted to JSON by our Formatter (after filtering, etc.)
             config.lograge.formatter = T.let(
               lambda do |data|
+                # DEBUG: trace formatter calls - remove after debugging
+                # rubocop:disable Rails/Output
+                if ENV["LOGSTRUCT_DEBUG"] == "true"
+                  warn "[logstruct] DEBUG: Lograge formatter called with data keys: #{data.keys.inspect}"
+                end
+                # rubocop:enable Rails/Output
+
                 # Coerce common fields to expected types
                 status = ((s = data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
                 duration_ms = ((d = data[:duration]) && d.respond_to?(:to_f)) ? d.to_f : d
@@ -47,7 +72,7 @@ module LogStruct
                 params = data[:params]
                 params = params.deep_symbolize_keys if params&.respond_to?(:deep_symbolize_keys)
 
-                Log::Request.new(
+                request_log = Log::Request.new(
                   http_method: data[:method]&.to_s,
                   path: data[:path]&.to_s,
                   format: data[:format]&.to_sym,
@@ -60,6 +85,15 @@ module LogStruct
                   params: params,
                   timestamp: Time.now
                 )
+
+                # DEBUG: trace formatter output - remove after debugging
+                # rubocop:disable Rails/Output
+                if ENV["LOGSTRUCT_DEBUG"] == "true"
+                  warn "[logstruct] DEBUG: Lograge formatter returning Log::Request for path=#{data[:path]}"
+                end
+                # rubocop:enable Rails/Output
+
+                request_log
               end,
               T.proc.params(hash: T::Hash[Symbol, T.untyped]).returns(Log::Request)
             )

@@ -64,6 +64,21 @@ module LogStruct
         # Extract LogStruct from various locations where it might be stored
         logstruct = extract_logstruct(log)
 
+        # DEBUG: trace log processing - remove after debugging
+        # rubocop:disable Rails/Output
+        if ENV["LOGSTRUCT_DEBUG"] == "true"
+          is_request = T.unsafe(logstruct).is_a?(::LogStruct::Log::Request) ||
+            log.payload.is_a?(::LogStruct::Log::Request) ||
+            log.message.is_a?(::LogStruct::Log::Request)
+          if is_request
+            warn "[logstruct] DEBUG: SemanticLogger formatter processing Request log"
+            warn "[logstruct] DEBUG:   logstruct.class=#{T.unsafe(logstruct).class}"
+            warn "[logstruct] DEBUG:   log.payload.class=#{log.payload.class}"
+            warn "[logstruct] DEBUG:   log.message.class=#{log.message.class}"
+          end
+        end
+        # rubocop:enable Rails/Output
+
         json = if logstruct
           # Use our formatter to process LogStruct types directly
           @logstruct_formatter.call(log.level, log.time, log.name, logstruct)
