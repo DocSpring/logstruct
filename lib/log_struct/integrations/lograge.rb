@@ -35,9 +35,14 @@ module LogStruct
 
           configure_lograge(logstruct_config)
 
+          # Lograge's railtie calls Lograge.setup(app) in after_initialize, but only
+          # if config.lograge.enabled is already true. Since our integration runs AFTER
+          # Lograge's railtie, we must call Lograge.setup ourselves to attach subscribers.
+          ::Lograge.setup(::Rails.application)
+
           # rubocop:disable Rails/Output
           if ENV["LOGSTRUCT_DEBUG"] == "true"
-            warn "[logstruct] DEBUG: Lograge configured successfully"
+            warn "[logstruct] DEBUG: Lograge configured and setup completed"
             warn "[logstruct] DEBUG: Rails.application.config.lograge.enabled=#{::Rails.application.config.lograge.enabled}"
             warn "[logstruct] DEBUG: Rails.application.config.lograge.formatter.class=#{::Rails.application.config.lograge.formatter.class}"
           end
