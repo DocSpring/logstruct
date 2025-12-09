@@ -80,6 +80,41 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 - Regenerate YARD docs: `task yard:regen`
 - Open YARD docs in browser: `task yard:open`
 
+## Documentation Site (docs/)
+
+The `docs/` directory contains a Next.js documentation site.
+
+### Structure
+
+- `docs/app/` - Next.js App Router pages (TSX files)
+- `docs/app/docs/` - Documentation pages (e.g., `getting-started/page.tsx`, `integrations/page.tsx`)
+- `docs/components/` - React components
+- `docs/lib/` - Utility functions and log generation code
+- `docs/generated/` - Auto-generated files (do not edit manually)
+- `docs/public/` - Static assets
+
+### Commands
+
+- Dev server: `cd docs && pnpm dev`
+- Build: `cd docs && pnpm build`
+- Typecheck: `task docs:typecheck`
+- Lint: `task docs:lint`
+- Fix lint: `task docs:lint:fix`
+- Run tests: `task docs:test`
+
+### Adding/Editing Documentation Pages
+
+Pages are TSX files in `docs/app/docs/`. Each page exports a default React component. Example structure:
+
+```
+docs/app/docs/
+├── getting-started/page.tsx
+├── integrations/page.tsx
+├── configuration/page.tsx
+└── guides/
+    └── postmark-error-handling/page.tsx
+```
+
 ### Gem Commands
 
 - Build gem: `task gem:build`

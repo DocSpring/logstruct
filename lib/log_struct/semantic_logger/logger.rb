@@ -148,12 +148,28 @@ module LogStruct
     end
 
     # Proxy object to provide ActiveJob-compatible formatter interface
+    # Also implements Ruby's Logger formatter interface for compatibility with broadcast loggers
     class FormatterProxy
       extend T::Sig
 
       sig { returns(T::Array[T.any(String, Symbol)]) }
       def current_tags
         Thread.current[:activesupport_tagged_logging_tags] || []
+      end
+
+      # Ruby's Logger expects a formatter that responds to call(severity, datetime, progname, msg)
+      # This provides compatibility when FormatterProxy is used as a formatter on a standard Logger
+      sig { params(severity: String, datetime: Time, progname: T.nilable(String), msg: T.untyped).returns(String) }
+      def call(severity, datetime, progname, msg)
+        # Format as JSON for consistency with LogStruct output
+        log_data = {
+          ts: datetime.iso8601(6),
+          lvl: severity.downcase,
+          prog: progname,
+          msg: msg.is_a?(String) ? msg : msg.inspect
+        }.compact
+
+        "#{::JSON.generate(log_data)}\n"
       end
     end
   end

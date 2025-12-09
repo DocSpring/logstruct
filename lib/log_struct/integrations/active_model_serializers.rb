@@ -17,6 +17,9 @@ module LogStruct
         # Only activate if AMS appears to be present
         return nil unless defined?(::ActiveModelSerializers)
 
+        # Detach AMS's built-in LogSubscriber to suppress "Rendered X with Y" logs
+        detach_ams_log_subscriber!
+
         # Subscribe to common AMS notification names; keep broad but specific
         pattern = /\.active_model_serializers\z/
 
@@ -43,6 +46,17 @@ module LogStruct
         end
 
         true
+      end
+
+      sig { void }
+      def self.detach_ams_log_subscriber!
+        # AMS's LogSubscriber emits "Rendered X with Y (Zms)" to Rails.logger
+        # We replace it with our structured log, so detach their subscriber
+        return unless defined?(::ActiveModelSerializers::Logging::LogSubscriber)
+
+        T.unsafe(::ActiveModelSerializers::Logging::LogSubscriber).detach_from(:active_model_serializers)
+      rescue => e
+        LogStruct.handle_exception(e, source: LogStruct::Source::Rails, context: {integration: :active_model_serializers, action: :detach})
       end
     end
   end

@@ -12,7 +12,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'Puma (Server)',
         description:
-          'Converts Puma server lifecycle output into structured JSON (start and shutdown events).',
+          'Converts Puma server lifecycle output into structured JSON (start and shutdown events). In cluster mode, use a custom log_writer to suppress raw boot logs since LogStruct emits a structured Puma::Start log with equivalent info.',
         preferredEvent: Event.Start,
       };
     case LogType.AHOY:
