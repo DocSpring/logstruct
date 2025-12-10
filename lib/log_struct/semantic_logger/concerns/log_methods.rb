@@ -27,30 +27,14 @@ module LogStruct
 
         sig { params(message: T.untyped, payload: T.untyped, block: T.nilable(T.proc.returns(String))).returns(T::Boolean) }
         def info(message = nil, payload = nil, &block)
-          if ENV["LOGSTRUCT_DEBUG"] == "true"
-            $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods] info() called"
-            $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   message.class = #{message.class}"
-            $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   message.is_a?(T::Struct) = #{message.is_a?(T::Struct)}"
-          end
+          LogStruct::Debug.log(:log_methods, "info() called, message.class=#{message.class}")
           instrument_log(message, :info)
           result = if message.is_a?(LogStruct::Log::Interfaces::CommonFields) || message.is_a?(T::Struct) || message.is_a?(Hash)
-            if ENV["LOGSTRUCT_DEBUG"] == "true"
-              $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   PATH: wrapping message in payload"
-            end
+            LogStruct::Debug.log(:log_methods, "  PATH: wrapping message in payload")
             super(nil, payload: message, &block)
           else
-            if ENV["LOGSTRUCT_DEBUG"] == "true"
-              $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   PATH: passing through as-is"
-            end
+            LogStruct::Debug.log(:log_methods, "  PATH: passing through as-is")
             super
-          end
-          if ENV["LOGSTRUCT_DEBUG"] == "true"
-            $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   super returned: #{result.inspect}"
-            $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   SemanticLogger.appenders:"
-            ::SemanticLogger.appenders.each_with_index do |a, i|
-              $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]     [#{i}] #{a.class}(level=#{a.level}, formatter=#{a.formatter.class})"
-            end
-            $stderr.puts "[LOGSTRUCT_DEBUG] [LogMethods]   SemanticLogger.default_level: #{::SemanticLogger.default_level}"
           end
           broadcasts.each do |logger|
             next unless logger.respond_to?(:info)

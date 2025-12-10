@@ -16,78 +16,39 @@ module LogStruct
       class << self
         extend T::Sig
 
-        sig { returns(T::Boolean) }
-        def debug_enabled?
-          ENV["LOGSTRUCT_DEBUG"] == "true"
-        end
-
-        sig { params(msg: String).void }
-        def debug_log(msg)
-          return unless debug_enabled?
-
-          warn "[LOGSTRUCT_DEBUG] [Lograge] #{msg}"
-        end
-
         # Set up lograge for structured request logging
         sig { override.params(logstruct_config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
         def setup(logstruct_config)
-          debug_log "setup called"
-          debug_log "  defined?(::Lograge) = #{defined?(::Lograge).inspect}"
-          debug_log "  logstruct_config.enabled = #{logstruct_config.enabled}"
-          debug_log "  logstruct_config.integrations.enable_lograge = #{logstruct_config.integrations.enable_lograge}"
+          LogStruct::Debug.log(:lograge, "setup called")
+          LogStruct::Debug.log(:lograge, "  defined?(::Lograge) = #{defined?(::Lograge).inspect}")
+          LogStruct::Debug.log(:lograge, "  logstruct_config.enabled = #{logstruct_config.enabled}")
+          LogStruct::Debug.log(:lograge, "  logstruct_config.integrations.enable_lograge = #{logstruct_config.integrations.enable_lograge}")
 
           unless defined?(::Lograge)
-            debug_log "  RETURNING NIL: ::Lograge not defined"
+            LogStruct::Debug.log(:lograge, "  RETURNING NIL: ::Lograge not defined")
             return nil
           end
           unless logstruct_config.enabled
-            debug_log "  RETURNING NIL: logstruct not enabled"
+            LogStruct::Debug.log(:lograge, "  RETURNING NIL: logstruct not enabled")
             return nil
           end
           unless logstruct_config.integrations.enable_lograge
-            debug_log "  RETURNING NIL: lograge integration not enabled"
+            LogStruct::Debug.log(:lograge, "  RETURNING NIL: lograge integration not enabled")
             return nil
           end
 
-          debug_log "  All checks passed, calling configure_lograge"
-          debug_log "  BEFORE configure_lograge:"
-          debug_log "    ::Lograge.logger = #{::Lograge.logger.inspect}"
-          debug_log "    ::Lograge.logger.class = #{::Lograge.logger.class}" if ::Lograge.logger
-          debug_log "    ::Rails.logger = #{::Rails.logger.inspect}"
-          debug_log "    ::Rails.logger.class = #{::Rails.logger.class}"
+          LogStruct::Debug.log(:lograge, "  All checks passed, calling configure_lograge")
+          LogStruct::Debug.log(:lograge, "  BEFORE configure_lograge:")
+          LogStruct::Debug.log(:lograge, "    ::Lograge.logger = #{::Lograge.logger.inspect}")
+          LogStruct::Debug.log(:lograge, "    ::Lograge.logger.class = #{::Lograge.logger.class}") if ::Lograge.logger
+          LogStruct::Debug.log(:lograge, "    ::Rails.logger = #{::Rails.logger.inspect}")
+          LogStruct::Debug.log(:lograge, "    ::Rails.logger.class = #{::Rails.logger.class}")
 
           configure_lograge(logstruct_config)
 
-          debug_log "  AFTER configure_lograge:"
-          debug_log "    ::Lograge.logger = #{::Lograge.logger.inspect}"
-          debug_log "    ::Lograge.logger.class = #{::Lograge.logger.class}" if ::Lograge.logger
-          debug_log "    ::Lograge.enabled = #{begin
-            ::Lograge.application&.config&.lograge&.enabled
-          rescue
-            "ERROR"
-          end}"
-          debug_log "    config.lograge.enabled = #{begin
-            ::Rails.application.config.lograge.enabled
-          rescue
-            "ERROR"
-          end}"
-          debug_log "    config.lograge.formatter = #{begin
-            ::Rails.application.config.lograge.formatter.inspect
-          rescue
-            "ERROR"
-          end}"
-
-          # Check if Lograge has attached its subscriber
-          debug_log "  Checking ActionController subscribers..."
-          begin
-            subscribers = ::ActiveSupport::Notifications.notifier.listeners_for("process_action.action_controller")
-            debug_log "    process_action.action_controller subscribers count: #{subscribers.size}"
-            subscribers.each_with_index do |sub, idx|
-              debug_log "    [#{idx}] #{sub.class}: #{sub.inspect[0..200]}"
-            end
-          rescue => e
-            debug_log "    ERROR checking subscribers: #{e.message}"
-          end
+          LogStruct::Debug.log(:lograge, "  AFTER configure_lograge:")
+          LogStruct::Debug.log(:lograge, "    ::Lograge.logger = #{::Lograge.logger.inspect}")
+          LogStruct::Debug.log(:lograge, "    ::Lograge.logger.class = #{::Lograge.logger.class}") if ::Lograge.logger
 
           true
         end
@@ -96,7 +57,7 @@ module LogStruct
 
         sig { params(logstruct_config: LogStruct::Configuration).void }
         def configure_lograge(logstruct_config)
-          debug_log "configure_lograge called"
+          LogStruct::Debug.log(:lograge, "configure_lograge called")
 
           ::Rails.application.configure do
             # IMPORTANT: Do NOT set config.lograge.enabled = true here!
@@ -135,9 +96,7 @@ module LogStruct
                   timestamp: Time.now
                 )
 
-                if ENV["LOGSTRUCT_DEBUG"] == "true"
-                  warn "[LOGSTRUCT_DEBUG] [Lograge]   Created Log::Request: #{request_log.inspect}"
-                end
+                LogStruct::Debug.log(:lograge, "  Created Log::Request: #{request_log.inspect}")
 
                 request_log
               end,
@@ -146,11 +105,7 @@ module LogStruct
 
             # Add custom options to lograge
             config.lograge.custom_options = lambda do |event|
-              if ENV["LOGSTRUCT_DEBUG"] == "true"
-                warn "[LOGSTRUCT_DEBUG] [Lograge] custom_options called!"
-                warn "[LOGSTRUCT_DEBUG] [Lograge]   event.name = #{event.name}"
-                warn "[LOGSTRUCT_DEBUG] [Lograge]   event.payload.keys = #{event.payload.keys}"
-              end
+              LogStruct::Debug.log(:lograge, "custom_options called, event.name=#{event.name}")
               Integrations::Lograge.lograge_default_options(event)
             end
           end
@@ -159,11 +114,9 @@ module LogStruct
           # This MUST happen after all config is set, and we do it ourselves
           # because we did NOT set config.lograge.enabled=true (to prevent Lograge's
           # railtie from also calling setup and causing duplicates).
-          debug_log "Calling ::Lograge.setup(::Rails.application)..."
+          LogStruct::Debug.log(:lograge, "Calling ::Lograge.setup(::Rails.application)...")
           ::Lograge.setup(::Rails.application)
-          debug_log "::Lograge.setup complete"
-
-          debug_log "configure_lograge finished"
+          LogStruct::Debug.log(:lograge, "::Lograge.setup complete")
         end
 
         sig { params(event: ActiveSupport::Notifications::Event).returns(T::Hash[Symbol, T.untyped]) }

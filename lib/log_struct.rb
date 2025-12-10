@@ -1,6 +1,9 @@
 # typed: strict
 # frozen_string_literal: true
 
+# Debug logging must be loaded first (no dependencies)
+require "log_struct/debug"
+
 # Core library files
 require "log_struct/sorbet"
 require "log_struct/version"

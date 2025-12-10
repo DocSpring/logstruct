@@ -195,6 +195,30 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
                 <h2 className="mt-6 mb-3 text-lg font-semibold">Guides</h2>
                 <nav className="space-y-1">
                   <NestedDocNavItem
+                    href="/docs/forking-servers"
+                    title="Forking Web Servers"
+                    active={pathname.startsWith('/docs/forking-servers')}
+                    subHeadings={[
+                      { id: 'the-problem', title: 'The Problem' },
+                      { id: 'how-logstruct-handles-it', title: 'How LogStruct Handles It' },
+                      { id: 'puma-integration', title: 'Puma Integration' },
+                      { id: 'unicorn', title: 'Unicorn' },
+                      { id: 'passenger', title: 'Passenger' },
+                    ]}
+                  />
+                  <NestedDocNavItem
+                    href="/docs/troubleshooting"
+                    title="Troubleshooting"
+                    active={pathname.startsWith('/docs/troubleshooting')}
+                    subHeadings={[
+                      { id: 'debug-mode', title: 'Debug Mode' },
+                      { id: 'missing-request-logs', title: 'Missing Request Logs' },
+                      { id: 'missing-logs-forking', title: 'Missing Logs After Fork' },
+                      { id: 'log-flow-architecture', title: 'Log Flow Architecture' },
+                      { id: 'common-issues', title: 'Common Issues' },
+                    ]}
+                  />
+                  <NestedDocNavItem
                     href="/docs/soc2-compliance"
                     title="SOC 2 Compliance"
                     active={pathname.startsWith('/docs/soc2-compliance')}
