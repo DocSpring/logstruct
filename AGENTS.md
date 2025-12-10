@@ -160,6 +160,27 @@ docs/app/docs/
 - `RUBYGEMS_API_KEY`: API key with permission to publish `logstruct`.
 - `TF_PROVIDER_GITHUB_TOKEN`: PAT with write access to `DocSpring/terraform-provider-logstruct` for syncing/tagging.
 
+## LogStruct API Usage
+
+LogStruct provides class-level logging methods that wrap `Rails.logger`. There is NO `LogStruct.logger` - use the class methods directly:
+
+```ruby
+# Correct usage - class methods that wrap Rails.logger
+LogStruct.info(LogStruct::Log::Plain.new(message: 'Something happened', additional_data: { key: 'value' }))
+LogStruct.warn(log_struct)
+LogStruct.error(log_struct)
+LogStruct.debug(log_struct)
+LogStruct.fatal(log_struct)
+
+# These are equivalent - LogStruct methods just delegate to Rails.logger
+Rails.logger.info(log_struct)
+
+# WRONG - there is no .logger method
+# LogStruct.logger.info(...)  # NoMethodError!
+```
+
+All logs MUST include the required fields: `src` (source), `evt` (event), `ts` (timestamp), `lvl` (level). Use the log struct classes which provide these automatically.
+
 # Core Dependencies
 
 This gem requires Rails 7.0+ and will always have access to these core Rails modules:
