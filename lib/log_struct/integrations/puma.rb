@@ -13,6 +13,7 @@ module LogStruct
           boot_emitted: false,
           shutdown_emitted: false,
           handler_pending_started: false,
+          rack_handler_patched: false,
           start_info: {
             mode: nil,
             puma_version: nil,
@@ -33,12 +34,15 @@ module LogStruct
 
         sig { params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
         def setup(config)
+          LogStruct::Debug.log(:puma, "setup() called")
           return nil unless config.integrations.enable_puma
 
           # Ensure Puma is loaded so we can patch its classes
           begin
             require "puma"
+            LogStruct::Debug.log(:puma, "Puma gem loaded successfully")
           rescue LoadError
+            LogStruct::Debug.log(:puma, "Puma gem not available, skipping integration")
             return nil
           end
 
@@ -47,32 +51,20 @@ module LogStruct
           # In clustered mode, each forked worker inherits a dead thread
           # reference from the master process. Sync mode processes logs
           # immediately in the calling thread, avoiding this issue entirely.
+          LogStruct::Debug.log(:puma, "Switching SemanticLogger to sync mode")
           ::SemanticLogger.sync!
 
           install_patches!
 
           if ARGV.include?("server")
+            LogStruct::Debug.log(:puma, "Rails server detected, loading Rack::Handler::Puma")
             # For rails server, explicitly load and patch Rack::Handler::Puma
             # (it may not be loaded yet when install_patches! runs)
             begin
               require "rack/handler/puma"
-              # rubocop:disable Sorbet/ConstantsFromStrings
-              if ::Object.const_defined?(:Rack) && !STATE[:rack_handler_patched]
-                rack_mod = T.unsafe(::Object.const_get(:Rack))
-                if rack_mod.const_defined?(:Handler)
-                  handler_mod = T.unsafe(rack_mod.const_get(:Handler))
-                  if handler_mod.const_defined?(:Puma)
-                    STATE[:rack_handler_patched] = true
-                    handler = T.unsafe(handler_mod.const_get(:Puma))
-                    handler.singleton_class.prepend(RackHandlerPatch)
-                  end
-                end
-              end
-              # rubocop:enable Sorbet/ConstantsFromStrings
+              patch_rack_handler_puma!
             rescue LoadError
               # rack/handler/puma not available
-            rescue => e
-              handle_integration_error(e)
             end
 
             # Emit deterministic boot/started events based on CLI args
@@ -125,42 +117,34 @@ module LogStruct
           return if STATE[:installed]
           STATE[:installed] = true
 
+          LogStruct::Debug.log(:puma, "install_patches! called")
           state_reset!
 
-          begin
-            begin
-              require "puma"
-            rescue => e
-              handle_integration_error(e)
-            end
-            puma_mod = ::Object.const_defined?(:Puma) ? T.unsafe(::Object.const_get(:Puma)) : nil # rubocop:disable Sorbet/ConstantsFromStrings
-            # rubocop:disable Sorbet/ConstantsFromStrings
-            if puma_mod&.const_defined?(:LogWriter)
-              T.unsafe(::Object.const_get("Puma::LogWriter")).prepend(LogWriterPatch)
-            end
-            if puma_mod&.const_defined?(:Events)
-              ev = T.unsafe(::Object.const_get("Puma::Events"))
-              ev.prepend(EventsPatch)
-            end
-            # Patch Rack::Handler::Puma.run to emit lifecycle logs using options
-            if ::Object.const_defined?(:Rack)
-              rack_mod = T.unsafe(::Object.const_get(:Rack))
-              if rack_mod.const_defined?(:Handler)
-                handler_mod = T.unsafe(rack_mod.const_get(:Handler))
-                if handler_mod.const_defined?(:Puma)
-                  handler = T.unsafe(handler_mod.const_get(:Puma))
-                  handler.singleton_class.prepend(RackHandlerPatch)
-                end
-              end
-            end
-            # Avoid patching CLI/Server; rely on log parsing
-            # Avoid patching CLI to minimize version-specific risks
-            # rubocop:enable Sorbet/ConstantsFromStrings
-          rescue => e
-            handle_integration_error(e)
+          patch_puma_classes!
+          patch_rack_handler_puma!
+
+          LogStruct::Debug.log(:puma, "install_patches! complete")
+        end
+
+        sig { void }
+        def patch_puma_classes!
+          return unless ::Object.const_defined?(:Puma)
+
+          # rubocop:disable Sorbet/ConstantsFromStrings
+          puma_mod = ::Object.const_get(:Puma)
+
+          if puma_mod.const_defined?(:LogWriter)
+            puma_mod.const_get(:LogWriter).prepend(LogWriterPatch)
+            LogStruct::Debug.log(:puma, "Patched Puma::LogWriter")
           end
 
-          # Rely on Puma patches to observe lines
+          if puma_mod.const_defined?(:Events)
+            puma_mod.const_get(:Events).prepend(EventsPatch)
+            LogStruct::Debug.log(:puma, "Patched Puma::Events")
+          end
+          # rubocop:enable Sorbet/ConstantsFromStrings
+        rescue => e
+          handle_integration_error(e)
         end
 
         sig { params(e: StandardError).void }
@@ -173,7 +157,30 @@ module LogStruct
           end
         end
 
-        # No stdout interception
+        # Patch Rack::Handler::Puma if available and not already patched.
+        # Returns true if patched, false if already patched or not available.
+        sig { returns(T::Boolean) }
+        def patch_rack_handler_puma!
+          return false if STATE[:rack_handler_patched]
+          return false unless ::Object.const_defined?(:Rack)
+
+          # rubocop:disable Sorbet/ConstantsFromStrings
+          rack_mod = ::Object.const_get(:Rack)
+          return false unless rack_mod.const_defined?(:Handler)
+
+          handler_mod = rack_mod.const_get(:Handler)
+          return false unless handler_mod.const_defined?(:Puma)
+
+          handler = handler_mod.const_get(:Puma)
+          handler.singleton_class.prepend(RackHandlerPatch)
+          STATE[:rack_handler_patched] = true
+          LogStruct::Debug.log(:puma, "Patched Rack::Handler::Puma")
+          # rubocop:enable Sorbet/ConstantsFromStrings
+          true
+        rescue => e
+          handle_integration_error(e)
+          false
+        end
 
         sig { void }
         def state_reset!
@@ -315,11 +322,13 @@ module LogStruct
           STATE[:boot_emitted] = true
         end
 
-        # No server hooks; rely on parsing only
-
         sig { void }
         def emit_started!
           si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
+          LogStruct::Debug.log(:puma, "emit_started! called, pid=#{Process.pid}")
+          LogStruct::Debug.log(:puma, "  mode=#{si[:mode]}, env=#{si[:environment]}")
+          LogStruct::Debug.log(:puma, "  listening=#{si[:listening].inspect}")
+
           log = Log::Puma::Start.new(
             mode: T.cast(si[:mode], T.nilable(String)),
             puma_version: T.cast(si[:puma_version], T.nilable(String)),
@@ -341,22 +350,16 @@ module LogStruct
         sig { params(_message: String).void }
         def emit_shutdown!(_message)
           return if STATE[:shutdown_emitted]
+          STATE[:shutdown_emitted] = true
+
+          LogStruct::Debug.log(:puma, "emit_shutdown! called, pid=#{Process.pid}")
+
           log = Log::Puma::Shutdown.new(
             process_id: T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:pid] || Process.pid,
             level: Level::Info,
             timestamp: Time.now
           )
-          begin
-            LogStruct.info(log)
-          rescue ThreadError
-            # Can't use SemanticLogger from trap context (mutex not allowed).
-            # Write JSON directly to stdout instead.
-            data = log.serialize
-            data[:prog] = "Rails"
-            $stdout.write("#{data.to_json}\n")
-          end
-          $stdout.flush rescue nil
-          STATE[:shutdown_emitted] = true
+          LogStruct.info(log)
         end
       end
 
@@ -393,15 +396,7 @@ module LogStruct
         sig { params(msg: String).returns(T.untyped) }
         def puts(msg)
           consumed = ::LogStruct::Integrations::Puma.process_line(msg)
-          if consumed
-            # attempt to suppress; only forward if not consumed
-            return nil
-          end
-          if ::Kernel.instance_variables.include?(:@stdout)
-            io = T.unsafe(::Kernel.instance_variable_get(:@stdout))
-            return io.puts(msg)
-          end
-          super
+          super unless consumed
         end
 
         sig { params(msg: String).returns(T.untyped) }
