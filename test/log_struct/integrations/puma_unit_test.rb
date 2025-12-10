@@ -16,6 +16,18 @@ class PumaIntegrationUnitTest < Minitest::Test
     ARGV.replace(@original_argv)
   end
 
+  def test_setup_enables_sync_mode
+    # Verify SemanticLogger is switched to sync mode when Puma integration runs.
+    # This prevents the async processor thread from dying when Puma forks workers.
+    config = LogStruct.config
+
+    # Run Puma setup
+    PUMA.setup(config)
+
+    # Verify sync mode is enabled
+    assert ::SemanticLogger.sync?, "SemanticLogger should be in sync mode after Puma setup"
+  end
+
   def test_process_line_builds_started_log_from_boot_sequence
     started_logs = []
 

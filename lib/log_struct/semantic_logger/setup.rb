@@ -127,7 +127,8 @@ module LogStruct
             ::SemanticLogger.add_appender(
               io: io,
               formatter: LogStruct::SemanticLogger::Formatter.new,
-              filter: determine_filter
+              filter: determine_filter,
+              async: false
             )
           elsif config.enable_color_output
             # Opt-in colorful human formatter in development
@@ -136,13 +137,15 @@ module LogStruct
               formatter: LogStruct::SemanticLogger::ColorFormatter.new(
                 color_map: config.color_map
               ),
-              filter: determine_filter
+              filter: determine_filter,
+              async: false
             )
           else
             ::SemanticLogger.add_appender(
               io: io,
               formatter: LogStruct::SemanticLogger::Formatter.new,
-              filter: determine_filter
+              filter: determine_filter,
+              async: false
             )
           end
         else
@@ -150,16 +153,19 @@ module LogStruct
           ::SemanticLogger.add_appender(
             io: io,
             formatter: LogStruct::SemanticLogger::Formatter.new,
-            filter: determine_filter
+            filter: determine_filter,
+            async: false
           )
         end
 
         # Add file appender if Rails has a log path configured (normal Rails behavior)
-        if app.config.paths["log"].first
+        # Skip file appender if RAILS_LOG_TO_STDOUT is set (stdout-only mode)
+        if app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
           ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,
-            filter: determine_filter
+            filter: determine_filter,
+            async: false
           )
         end
       end

@@ -112,13 +112,6 @@ module LogStruct
             # The struct is converted to JSON by our Formatter (after filtering, etc.)
             config.lograge.formatter = T.let(
               lambda do |data|
-                if ENV["LOGSTRUCT_DEBUG"] == "true"
-                  warn "[LOGSTRUCT_DEBUG] [Lograge] FORMATTER CALLED!"
-                  warn "[LOGSTRUCT_DEBUG] [Lograge]   data = #{data.inspect}"
-                  warn "[LOGSTRUCT_DEBUG] [Lograge]   data.class = #{data.class}"
-                  warn "[LOGSTRUCT_DEBUG] [Lograge]   ::Lograge.logger = #{::Lograge.logger.inspect}"
-                end
-
                 # Coerce common fields to expected types
                 status = ((s = data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
                 duration_ms = ((d = data[:duration]) && d.respond_to?(:to_f)) ? d.to_f : d

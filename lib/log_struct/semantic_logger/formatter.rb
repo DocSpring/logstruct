@@ -64,7 +64,7 @@ module LogStruct
       def debug_log(msg)
         return unless @debug_enabled
 
-        warn "[LOGSTRUCT_DEBUG] [SL::Formatter] #{msg}"
+        $stderr.puts "[LOGSTRUCT_DEBUG] [SL::Formatter] #{msg}"
       end
 
       sig { params(log: ::SemanticLogger::Log, logger: T.untyped).returns(String) }

@@ -35,19 +35,46 @@ module LogStruct
         def setup(config)
           return nil unless config.integrations.enable_puma
 
-          # No stdout wrapping here.
-
           # Ensure Puma is loaded so we can patch its classes
           begin
             require "puma"
           rescue LoadError
-            # If Puma isn't available, skip setup
             return nil
           end
+
+          # Switch SemanticLogger to synchronous mode to prevent the async
+          # processor thread from dying when Puma forks worker processes.
+          # In clustered mode, each forked worker inherits a dead thread
+          # reference from the master process. Sync mode processes logs
+          # immediately in the calling thread, avoiding this issue entirely.
+          ::SemanticLogger.sync!
 
           install_patches!
 
           if ARGV.include?("server")
+            # For rails server, explicitly load and patch Rack::Handler::Puma
+            # (it may not be loaded yet when install_patches! runs)
+            begin
+              require "rack/handler/puma"
+              # rubocop:disable Sorbet/ConstantsFromStrings
+              if ::Object.const_defined?(:Rack) && !STATE[:rack_handler_patched]
+                rack_mod = T.unsafe(::Object.const_get(:Rack))
+                if rack_mod.const_defined?(:Handler)
+                  handler_mod = T.unsafe(rack_mod.const_get(:Handler))
+                  if handler_mod.const_defined?(:Puma)
+                    STATE[:rack_handler_patched] = true
+                    handler = T.unsafe(handler_mod.const_get(:Puma))
+                    handler.singleton_class.prepend(RackHandlerPatch)
+                  end
+                end
+              end
+              # rubocop:enable Sorbet/ConstantsFromStrings
+            rescue LoadError
+              # rack/handler/puma not available
+            rescue => e
+              handle_integration_error(e)
+            end
+
             # Emit deterministic boot/started events based on CLI args
             begin
               port = T.let(nil, T.nilable(String))
@@ -75,15 +102,14 @@ module LogStruct
             rescue => e
               handle_integration_error(e)
             end
-            begin
-              %w[TERM INT].each do |sig|
-                Signal.trap(sig) { emit_shutdown!(sig) }
-              end
-            rescue => e
-              handle_integration_error(e)
-            end
+            # Register at_exit to emit shutdown log when process exits.
+            # We intentionally do NOT use Signal.trap because:
+            # 1. Signal handlers in Ruby have restrictions on what operations are safe
+            # 2. Logging involves I/O and potential mutex operations (SemanticLogger)
+            # 3. at_exit runs in a normal context after signal handling completes
             at_exit do
-              emit_shutdown!("Exiting")
+              emit_shutdown!("process exit")
+              $stdout.flush rescue nil
             rescue => e
               handle_integration_error(e)
             end
@@ -315,15 +341,22 @@ module LogStruct
         sig { params(_message: String).void }
         def emit_shutdown!(_message)
           return if STATE[:shutdown_emitted]
-          STATE[:shutdown_emitted] = true
           log = Log::Puma::Shutdown.new(
             process_id: T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:pid] || Process.pid,
             level: Level::Info,
             timestamp: Time.now
           )
-          LogStruct.info(log)
-          # Only use LogStruct; SemanticLogger routes to STDOUT in test
-          # Let SemanticLogger appender write to STDOUT
+          begin
+            LogStruct.info(log)
+          rescue ThreadError
+            # Can't use SemanticLogger from trap context (mutex not allowed).
+            # Write JSON directly to stdout instead.
+            data = log.serialize
+            data[:prog] = "Rails"
+            $stdout.write("#{data.to_json}\n")
+          end
+          $stdout.flush rescue nil
+          STATE[:shutdown_emitted] = true
         end
       end
 
@@ -396,30 +429,19 @@ module LogStruct
         sig do
           params(
             app: T.untyped,
-            args: T.untyped,
+            options: T.untyped,
             block: T.nilable(T.proc.returns(T.untyped))
           ).returns(T.untyped)
         end
-        def run(app, *args, &block)
-          rest = args
-          options = T.let({}, T::Hash[T.untyped, T.untyped])
-          rest.each do |value|
-            next unless value.is_a?(Hash)
-            options.merge!(value)
-          end
-
+        def run(app, **options, &block)
           begin
             si = T.cast(::LogStruct::Integrations::Puma::STATE[:start_info], T::Hash[Symbol, T.untyped])
             si[:mode] ||= "single"
             si[:environment] ||= ((defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil)
             si[:pid] ||= Process.pid
             si[:listening] ||= []
-            port = T.let(nil, T.untyped)
-            host = T.let(nil, T.untyped)
-            if options.respond_to?(:[])
-              port = options[:Port] || options["Port"] || options[:port] || options["port"]
-              host = options[:Host] || options["Host"] || options[:host] || options["host"]
-            end
+            port = options[:Port] || options[:port]
+            host = options[:Host] || options[:host]
             if port
               list = T.cast(si[:listening], T::Array[T.untyped])
               list.clear
@@ -433,22 +455,10 @@ module LogStruct
           end
 
           begin
-            Kernel.at_exit do
-              unless ::LogStruct::Integrations::Puma::STATE[:shutdown_emitted]
-                ::LogStruct::Integrations::Puma.emit_shutdown!("Exiting")
-                ::LogStruct::Integrations::Puma::STATE[:shutdown_emitted] = true
-              end
-            rescue => e
-              ::LogStruct::Integrations::Puma.handle_integration_error(e)
-            end
-          rescue => e
-            ::LogStruct::Integrations::Puma.handle_integration_error(e)
-          end
-
-          begin
             result = super(app, **options, &block)
           ensure
             state = ::LogStruct::Integrations::Puma::STATE
+            # Emit pending started log if we haven't yet
             if state[:handler_pending_started] && !state[:started_emitted]
               begin
                 ::LogStruct::Integrations::Puma.emit_started!
@@ -458,6 +468,13 @@ module LogStruct
               ensure
                 state[:handler_pending_started] = false
               end
+            end
+            # Emit shutdown log when server stops
+            # This runs right after Rack::Handler::Puma.run returns, before at_exit
+            begin
+              ::LogStruct::Integrations::Puma.emit_shutdown!("server stopped")
+            rescue => e
+              ::LogStruct::Integrations::Puma.handle_integration_error(e)
             end
           end
 

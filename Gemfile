@@ -36,6 +36,7 @@ group :test do
   gem "climate_control", "~> 1.2"
   gem "thor"
   gem "json_schemer"
+  gem "puma"
 end
 
 # Development and linting tools that may have higher Ruby version requirements
