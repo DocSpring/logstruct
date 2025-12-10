@@ -13,7 +13,7 @@ AllCops:
   SuggestExtensions:
     rubocop-rails: false
   Exclude:
-    - node_modules/**/*
+    - '**/node_modules/**/*'
     - public/**/*
     - vendor/**/*
     - tmp/**/*
@@ -23,6 +23,8 @@ AllCops:
     - sorbet/rbi/annotations/**/*
     - rails_test_app/logstruct_test_app/**/*
     - bin/**/* # Exclude bundler-generated binstubs
+    - terraform-provider-logstruct/**/*
+    - docs/**/*
 
 Layout/MultilineHashKeyLineBreaks:
   Enabled: true
@@ -85,6 +87,7 @@ Sorbet/StrictSigil:
     - 'sorbet/**/*'
     - 'rails_test_app/**/*.rb'
     - 'scripts/**/*.rb'
+    - 'lib/log_struct/debug.rb' # Must have no sorbet-runtime dependency
   SuggestedStrictness: strict
 
 Sorbet/ForbidUntypedStructProps:

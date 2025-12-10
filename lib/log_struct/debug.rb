@@ -1,4 +1,4 @@
-# typed: strict
+# typed: false
 # frozen_string_literal: true
 
 module LogStruct
@@ -7,6 +7,9 @@ module LogStruct
   # LogStruct cannot use itself for internal debugging (circular dependency),
   # so this module provides a simple, direct logging mechanism that bypasses
   # both LogStruct and SemanticLogger entirely.
+  #
+  # IMPORTANT: This module must have NO external dependencies (including sorbet-runtime)
+  # because it's loaded before any other LogStruct files.
   #
   # ## Environment Variables
   #
@@ -32,37 +35,27 @@ module LogStruct
   #   LogStruct::Debug.log(:puma, "emit_shutdown! called, pid=#{Process.pid}")
   #
   module Debug
-    extend T::Sig
+    TOPICS = %i[
+      formatter
+      lograge
+      puma
+      log_methods
+      setup
+      railtie
+      active_job
+      active_storage
+      shrine
+      sql
+    ].freeze
 
-    TOPICS = T.let(
-      %i[
-        formatter
-        lograge
-        puma
-        log_methods
-        setup
-        railtie
-        active_job
-        active_storage
-        shrine
-        sql
-      ].freeze,
-      T::Array[Symbol]
-    )
-
-    @enabled = T.let(false, T::Boolean)
-    @topics = T.let(nil, T.nilable(T::Array[Symbol]))
-    @file = T.let(nil, T.nilable(File))
-    @mutex = T.let(Mutex.new, Mutex)
-    @initialized = T.let(false, T::Boolean)
+    @enabled = false
+    @topics = nil
+    @file = nil
+    @mutex = Mutex.new
+    @initialized = false
 
     class << self
-      extend T::Sig
-
-      sig { void }
       def initialize!
-        return if @initialized
-
         @mutex.synchronize do
           return if @initialized
 
@@ -88,43 +81,35 @@ module LogStruct
           @initialized = true
 
           if @enabled
-            log(:setup, "Debug logging enabled")
-            log(:setup, "Topics: #{@topics&.join(", ") || "all"}")
-            log(:setup, "Log file: #{ENV["LOGSTRUCT_LOG_FILE"] || "none"}")
+            # Write directly here since we already hold the mutex
+            write_log(:setup, "Debug logging enabled")
+            write_log(:setup, "Topics: #{@topics&.join(", ") || "all"}")
+            write_log(:setup, "Log file: #{ENV["LOGSTRUCT_LOG_FILE"] || "none"}")
           end
         end
       end
 
-      sig { params(topic: Symbol, message: String).void }
       def log(topic, message)
         initialize! unless @initialized
-        return unless enabled?(topic)
-
-        timestamp = Time.now.strftime("%H:%M:%S.%L")
-        line = "[#{timestamp}] [LOGSTRUCT_DEBUG] [#{topic}] #{message}"
+        return unless topic_enabled?(topic)
 
         @mutex.synchronize do
-          @file&.puts(line)
-          warn(line)
+          write_log(topic, message)
         end
       end
 
-      sig { params(topic: Symbol).returns(T::Boolean) }
-      def enabled?(topic)
-        initialize! unless @initialized
+      def topic_enabled?(topic)
         return false unless @enabled
         return true if @topics.nil? || @topics.empty?
 
         @topics.include?(topic)
       end
 
-      sig { returns(T::Boolean) }
       def enabled?
         initialize! unless @initialized
         @enabled
       end
 
-      sig { void }
       def reset!
         @mutex.synchronize do
           @file&.close
@@ -133,6 +118,15 @@ module LogStruct
           @topics = nil
           @initialized = false
         end
+      end
+
+      private
+
+      def write_log(topic, message)
+        timestamp = Time.now.strftime("%H:%M:%S.%L")
+        line = "[#{timestamp}] [LOGSTRUCT_DEBUG] [#{topic}] #{message}"
+        @file&.puts(line)
+        warn(line)
       end
     end
   end

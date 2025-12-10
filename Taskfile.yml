@@ -50,14 +50,22 @@ tasks:
 
   ci:
     desc: Run the full validation workflow
+    cmds:
+      # First: generate files and run tapioca (needed by other tasks)
+      - task: generate
+      - task: ruby:tapioca
+      # Second: parallel checks (typecheck, lint, spellcheck, docs tests)
+      - task: ci:checks
+      # Third: run tests sequentially (ruby then rails to avoid port conflicts)
+      - task: test
+
+  ci:checks:
+    desc: Run parallel CI checks (typecheck, lint, spellcheck, docs tests)
     deps:
-      - generate
       - typecheck
       - lint
       - spellcheck
       - docs:test
-      - test
-      - ruby:tapioca
 
   fix:
     desc: Auto-fix lint issues then run the full validation workflow (replaces scripts/all_write.sh)

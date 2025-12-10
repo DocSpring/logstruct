@@ -25,7 +25,7 @@ class PumaIntegrationUnitTest < Minitest::Test
     PUMA.setup(config)
 
     # Verify sync mode is enabled
-    assert ::SemanticLogger.sync?, "SemanticLogger should be in sync mode after Puma setup"
+    assert_predicate ::SemanticLogger, :sync?, "SemanticLogger should be in sync mode after Puma setup"
   end
 
   def test_process_line_builds_started_log_from_boot_sequence

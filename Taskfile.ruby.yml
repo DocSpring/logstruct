@@ -27,13 +27,15 @@ tasks:
     desc: Run RuboCop
     deps: [generate]
     cmds:
-      - bundle exec ruby bin/rubocop
+      # Specify directories explicitly to avoid traversing node_modules
+      - bundle exec ruby bin/rubocop lib/ test/ scripts/ tools/ rails_test_app/templates/
 
   lint:fix:
     desc: Auto-correct RuboCop offenses
     deps: [generate]
     cmds:
-      - bundle exec ruby bin/rubocop -A
+      # Specify directories explicitly to avoid traversing node_modules
+      - bundle exec ruby bin/rubocop -A lib/ test/ scripts/ tools/ rails_test_app/templates/
 
   check-generated:
     desc: Ensure generated Ruby structs are up to date (CI safe)

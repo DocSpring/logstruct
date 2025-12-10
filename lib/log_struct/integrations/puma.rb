@@ -101,7 +101,11 @@ module LogStruct
             # 3. at_exit runs in a normal context after signal handling completes
             at_exit do
               emit_shutdown!("process exit")
-              $stdout.flush rescue nil
+              begin
+                $stdout.flush
+              rescue
+                nil
+              end
             rescue => e
               handle_integration_error(e)
             end
@@ -359,7 +363,18 @@ module LogStruct
             level: Level::Info,
             timestamp: Time.now
           )
-          LogStruct.info(log)
+          begin
+            LogStruct.info(log)
+          rescue ThreadError, IOError
+            # During shutdown, SemanticLogger may not be able to process logs.
+            # Write JSON directly to stdout as a fallback.
+            data = log.serialize
+            data[:prog] = "Rails"
+            $stdout.write("#{data.to_json}\n")
+          end
+          $stdout.flush
+        rescue => e
+          handle_integration_error(e)
         end
       end
 
@@ -450,7 +465,7 @@ module LogStruct
           end
 
           begin
-            result = super(app, **options, &block)
+            result = super
           ensure
             state = ::LogStruct::Integrations::Puma::STATE
             # Emit pending started log if we haven't yet
