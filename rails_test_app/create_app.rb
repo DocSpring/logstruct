@@ -231,6 +231,7 @@ if !skip_app_creation
 
     # Test gems
     group :test do
+      gem 'minitest', '~> 5.20'
       gem 'minitest-reporters'
       gem 'simplecov'
       gem 'simplecov-json'
