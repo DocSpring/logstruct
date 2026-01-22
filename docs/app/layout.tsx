@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   title: 'LogStruct - Zero-configuration JSON Logging for Ruby on Rails',
   description:
     'Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.',
+  metadataBase: new URL('https://logstruct.com'),
   keywords: [
     'Rails',
     'Ruby',
@@ -35,6 +36,27 @@ export const metadata: Metadata = {
   ],
   icons: {
     icon: [{ url: '/favicon.ico' }, { url: '/favicon.png' }],
+  },
+  openGraph: {
+    title: 'LogStruct - Zero-configuration JSON Logging for Ruby on Rails',
+    description:
+      'Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.',
+    url: 'https://logstruct.com',
+    siteName: 'LogStruct',
+    type: 'website',
+    images: [
+      {
+        url: '/images/og-image.jpg',
+        alt: 'LogStruct',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LogStruct - Zero-configuration JSON Logging for Ruby on Rails',
+    description:
+      'Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.',
+    images: ['/images/og-image.jpg'],
   },
 };
 
