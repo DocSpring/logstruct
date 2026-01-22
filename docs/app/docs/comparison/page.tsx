@@ -134,7 +134,7 @@ function ComparisonTable() {
           logstruct: true,
           lograge: false,
           railsSemanticLogger: true,
-          logstasher: true,
+          logstasher: false,
           logcraft: false,
         },
         {
@@ -150,7 +150,7 @@ function ComparisonTable() {
           logstruct: true,
           lograge: false,
           railsSemanticLogger: true,
-          logstasher: false,
+          logstasher: true,
           logcraft: false,
         },
         {
