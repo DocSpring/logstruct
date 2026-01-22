@@ -129,7 +129,7 @@ end`}</CodeBlock>
         <li>You send custom notifications based on error type</li>
       </ol>
 
-      <EditPageLink path="docs/app/docs/guides/postmark-error-handling/page.tsx" />
+      <EditPageLink />
     </div>
   );
 }

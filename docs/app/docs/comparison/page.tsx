@@ -469,7 +469,7 @@ export default function ComparisonPage() {
         </div>
       </div>
 
-      <EditPageLink path="app/docs/comparison/page.tsx" />
+      <EditPageLink />
     </div>
   );
 }

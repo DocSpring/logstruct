@@ -18,8 +18,8 @@ export function EditPageLink({ path }: EditPageLinkProps) {
     // Handle special case for root paths to avoid double slashes
     (pathname === '/' ? '/docs/app/page.tsx' : `/docs/app${pathname}/page.tsx`);
 
-  // Ensure there are no double slashes in the path
-  const normalizedPath = derivedPath.replace(/\/\//g, '/');
+  // Ensure there are no double slashes in the path and path starts with /
+  const normalizedPath = derivedPath.replace(/\/\//g, '/').replace(/^(?!\/)/, '/');
 
   const githubEditUrl = `https://github.com/DocSpring/logstruct/edit/main${normalizedPath}`;
 
