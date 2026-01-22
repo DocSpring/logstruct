@@ -137,7 +137,7 @@ jobs:
     name: 'Pilot Test: Latest Ruby / Rails'
     runs-on: ubuntu-22.04
     env:
-      RAILS_VERSION: '8.1.1'
+      RAILS_VERSION: 'latest'
       RUBY_VERSION: '4.0.1'
       CI: 'true'
       BUNDLE_WITHOUT: 'development'
@@ -209,6 +209,10 @@ jobs:
           - name: 'Ruby 3.4 / Rails 8.0'
             ruby: '3.4'
             rails: '8.0.4'
+
+          - name: 'Ruby 4.0 / Rails 8.1'
+            ruby: '4.0.1'
+            rails: '8.1.2'
 
           # NOTE: Latest Ruby/Rails is tested in the 'pilot' job above with coverage.
 

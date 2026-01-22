@@ -8,7 +8,7 @@ require "json"
 require "net/http"
 
 # Rails versions we support
-SUPPORTED_MAJOR_MINOR = ["7.0", "7.1", "7.2", "8.0"]
+SUPPORTED_MAJOR_MINOR = ["7.1", "7.2", "8.0", "8.1"]
 
 # Files to update
 CREATE_APP_SCRIPT = File.expand_path("../rails_test_app/create_app.rb", __dir__)
@@ -76,13 +76,7 @@ def update_github_workflow(versions)
   content = File.read(GITHUB_WORKFLOW)
   updated_content = content.dup
 
-  # Update the pilot test Rails version
-  if /RAILS_VERSION:\s*'8\.0[\.\d]*'/.match?(updated_content)
-    updated_content.gsub!(/RAILS_VERSION:\s*'8\.0[\.\d]*'/, "RAILS_VERSION: '#{versions["8.0"]}'")
-    puts "  Updated pilot test Rails version to #{versions["8.0"]}"
-  else
-    puts "  Warning: Could not find RAILS_VERSION for pilot test in test.yml"
-  end
+  puts "  Skipping pilot job Rails version (uses Rails main)"
 
   # Update the matrix versions
   versions.each do |major_minor, version|

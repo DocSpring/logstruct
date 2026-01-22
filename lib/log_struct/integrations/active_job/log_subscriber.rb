@@ -1,6 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "active_support/log_subscriber"
 require_relative "../../enums/source"
 require_relative "../../enums/event"
 require_relative "../../log/active_job"
@@ -10,7 +11,7 @@ module LogStruct
   module Integrations
     module ActiveJob
       # Structured logging for ActiveJob
-      class LogSubscriber < ::ActiveJob::LogSubscriber
+      class LogSubscriber < ::ActiveSupport::LogSubscriber
         extend T::Sig
 
         sig { params(event: ::ActiveSupport::Notifications::Event).void }

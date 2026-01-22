@@ -81,38 +81,40 @@ module LogStruct
             ::Rails.logger.warn(security_log)
 
             [FORBIDDEN_STATUS, IP_SPOOF_HEADERS.dup, [IP_SPOOF_HTML]]
-          rescue ::ActionController::InvalidAuthenticityToken => invalid_auth_token_error
-            # Create a security log for CSRF error
-            security_log = Log::Security::CSRFViolation.new(
-              path: request.path,
-              http_method: request.method,
-              source_ip: request.remote_ip,
-              user_agent: request.user_agent,
-              referer: request.referer,
-              request_id: request.request_id,
-              message: invalid_auth_token_error.message,
-              timestamp: Time.now
-            )
-            LogStruct.error(security_log)
-
-            # Report to error reporting service and/or re-raise
-            context = extract_request_context(env, request)
-            LogStruct.handle_exception(invalid_auth_token_error, source: Source::Security, context: context)
-
-            # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
-            # If we are only logging or reporting these security errors, then return a default response
-            [FORBIDDEN_STATUS, CSRF_HEADERS.dup, [CSRF_HTML]]
           rescue => error
-            # Extract request context for error reporting
-            context = extract_request_context(env, request)
+            if csrf_error?(error)
+              # Create a security log for CSRF error
+              security_log = Log::Security::CSRFViolation.new(
+                path: request.path,
+                http_method: request.method,
+                source_ip: request.remote_ip,
+                user_agent: request.user_agent,
+                referer: request.referer,
+                request_id: request.request_id,
+                message: error.message,
+                timestamp: Time.now
+              )
+              LogStruct.error(security_log)
 
-            # Create and log a structured exception with request context
-            exception_log = Log.from_exception(Source::Rails, error, context)
-            LogStruct.error(exception_log)
+              # Report to error reporting service and/or re-raise
+              context = extract_request_context(env, request)
+              LogStruct.handle_exception(error, source: Source::Security, context: context)
 
-            # Re-raise any standard errors to let Rails or error reporter handle it.
-            # Rails will also log the request details separately
-            raise error
+              # If handle_exception raised an exception then Rails will deal with it (e.g. config.exceptions_app)
+              # If we are only logging or reporting these security errors, then return a default response
+              [FORBIDDEN_STATUS, CSRF_HEADERS.dup, [CSRF_HTML]]
+            else
+              # Extract request context for error reporting
+              context = extract_request_context(env, request)
+
+              # Create and log a structured exception with request context
+              exception_log = Log.from_exception(Source::Rails, error, context)
+              LogStruct.error(exception_log)
+
+              # Re-raise any standard errors to let Rails or error reporter handle it.
+              # Rails will also log the request details separately
+              raise error
+            end
           end
         end
 
@@ -144,6 +146,13 @@ module LogStruct
         rescue => error
           # If we can't extract request context, return minimal info
           {error_extracting_context: error.message}
+        end
+
+        sig { params(error: StandardError).returns(T::Boolean) }
+        def csrf_error?(error)
+          error_name = error.class.name
+          error_name == "ActionController::InvalidAuthenticityToken" ||
+            error_name == "ActionController::InvalidCrossOriginRequest"
         end
 
         sig { params(configured_proxies: T.untyped).returns(T.untyped) }

@@ -6,19 +6,20 @@
 # Silence Ruby warnings early for this process
 ENV["RUBYOPT"] = "-W0"
 rails_version = ENV["RAILS_VERSION"] || "7.0"
+rails_version = "main" if ["latest", "main"].include?(rails_version)
 
 # Map major.minor versions to specific patch versions
 # This mapping will be updated by scripts/update_rails_versions.rb
-if rails_version.count(".") < 2
+if rails_version != "main" && rails_version.count(".") < 2
   latest_version = case rails_version
   when "7.1"
-    "7.1.5.1"  # Updated by update_rails_versions script
+    "7.1.6"  # Updated by update_rails_versions script
   when "7.2"
-    "7.2.2.1"  # Updated by update_rails_versions script
+    "7.2.3"  # Updated by update_rails_versions script
   when "8.0"
-    "8.0.1"  # Updated by update_rails_versions script
+    "8.0.4"  # Updated by update_rails_versions script
   when "8.1"
-    "8.1.0.beta1"  # Pre-release lane
+    "8.1.2"  # Updated by update_rails_versions script
   else
     raise "Unrecognized Rails version #{rails_version}"
   end
@@ -28,6 +29,7 @@ if rails_version.count(".") < 2
 end
 
 def install_rails_if_missing(version)
+  return if version == "main"
   # Robust detection using RubyGems API
   begin
     if Gem::Specification.find_all_by_name("rails", version).any?
@@ -116,7 +118,11 @@ clean_env["PATH"] = path_parts.join(File::PATH_SEPARATOR)
 skip_app_creation = ENV["SKIP_APP_CREATION"] == "true"
 
 # Extract major and minor version for migrations and load_defaults
-@rails_major_minor = (rails_version.split(".")[0..1] || []).join(".")
+@rails_major_minor = if rails_version == "main"
+  "8.2"
+else
+  (rails_version.split(".")[0..1] || []).join(".")
+end
 
 # Create directories
 FileUtils.mkdir_p(RAILS_APP_DIR)
@@ -148,7 +154,9 @@ if !skip_app_creation
 
   # Use version selector underscore to pick the exact rails generator version.
   # Run in a temporary empty dir to avoid Rails app loader picking up our repo.
-  rails_cmd = ["rails", "_#{rails_version}_", "new", RAILS_APP_DIR,
+  rails_cmd = ["rails"]
+  rails_cmd << "_#{rails_version}_" unless rails_version == "main"
+  rails_cmd += ["new", RAILS_APP_DIR,
     "--force", "--skip-bundle",
     "--skip-git", "--skip-keeps", "--skip-action-cable",
     "--skip-sprockets", "--skip-javascript", "--skip-hotwire",
@@ -172,7 +180,14 @@ if !skip_app_creation
   gemfile_content = File.read(gemfile_path)
 
   # Ensure Rails gem version matches the requested rails_version
-  gemfile_content.gsub!(/^\s*gem\s+"rails".*$/, "gem \"rails\", \"~> #{rails_version}\"")
+  if rails_version == "main"
+    gemfile_content.gsub!(
+      /^\s*gem\s+"rails".*$/,
+      "gem \"rails\", github: \"rails/rails\", branch: \"main\""
+    )
+  else
+    gemfile_content.gsub!(/^\s*gem\s+"rails".*$/, "gem \"rails\", \"~> #{rails_version}\"")
+  end
 
   # Do not force a Ruby version in the generated app; CI matrix will pick Ruby
 

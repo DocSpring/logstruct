@@ -496,12 +496,16 @@ module LogStruct
         # This method only supports ::ActiveRecord::Base for now
         case name
         when "::ActiveRecord::Base"
-          original = defined?(::ActiveRecord::Base) ? ::ActiveRecord::Base : nil
-          had_const = defined?(::ActiveRecord::Base)
-
-          if defined?(::ActiveRecord)
-          else
+          had_active_record = Object.const_defined?(:ActiveRecord)
+          unless had_active_record
             Object.const_set(:ActiveRecord, Module.new)
+          end
+
+          had_const = ::ActiveRecord.const_defined?(:Base, false)
+          original = had_const ? ::ActiveRecord::Base : nil
+
+          if had_const
+            ::ActiveRecord.send(:remove_const, :Base)
           end
           ::ActiveRecord.const_set(:Base, value)
 
@@ -510,10 +514,16 @@ module LogStruct
           begin
             yield
           ensure
+            if ::ActiveRecord.const_defined?(:Base, false)
+              ::ActiveRecord.send(:remove_const, :Base)
+            end
+
             if had_const && original
               ::ActiveRecord.const_set(:Base, original)
-            elsif defined?(::ActiveRecord::Base)
-              ::ActiveRecord.send(:remove_const, :Base)
+            end
+
+            unless had_active_record
+              Object.send(:remove_const, :ActiveRecord)
             end
           end
         else
