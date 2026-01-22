@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       RAILS_VERSION: '8.1.1'
-      RUBY_VERSION: '3.4.7'
+      RUBY_VERSION: '4.0.1'
       CI: 'true'
       BUNDLE_WITHOUT: 'development'
     steps:
@@ -148,10 +148,10 @@ jobs:
       - name: Remove Gemfile.lock for variable Ruby/Rails versions
         run: rm -f Gemfile.lock
 
-      - name: Setup Ruby 3.4.7
+      - name: Setup Ruby 4.0.1
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.4.7'
+          ruby-version: '4.0.1'
           bundler-cache: true
 
       # Coverage: /coverage
@@ -200,14 +200,17 @@ jobs:
         include:
           - name: 'Ruby 3.3 / Rails 7.1'
             ruby: '3.3'
-            rails: '7.1.5.1'
+            rails: '7.1.6'
 
           - name: 'Ruby 3.4 / Rails 7.2'
             ruby: '3.4'
-            rails: '7.2.2.1'
+            rails: '7.2.3'
 
-          # NOTE: Latest Ruby/Rails is tested in the 'pilot' job above
-          # (runs first to fail fast before running the full matrix)
+          - name: 'Ruby 3.4 / Rails 8.0'
+            ruby: '3.4'
+            rails: '8.0.4'
+
+          # NOTE: Latest Ruby/Rails is tested in the 'pilot' job above with coverage.
 
     env:
       RAILS_VERSION: ${{ matrix.rails }}
