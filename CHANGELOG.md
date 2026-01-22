@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.9] - 2026-01-23
+
+### Changed
+
 - **Fix**: ActiveJob integration handles Rails main event reporter subscribers
 - **Fix**: Rack error handler avoids deprecated CSRF exception class on Rails main
 - **CI**: Added Rails main daily integration run and updated Rails test matrix (7.1.6, 7.2.3, 8.0.4, 8.1.2)
