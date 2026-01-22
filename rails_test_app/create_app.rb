@@ -29,7 +29,25 @@ if rails_version != "main" && rails_version.count(".") < 2
 end
 
 def install_rails_if_missing(version)
-  return if version == "main"
+  if version == "main"
+    begin
+      versions = Gem::Specification.find_all_by_name("rails").map(&:version)
+    rescue => e
+      warn "Warning: gem spec check failed (#{e}). Falling back to shell check."
+      versions = []
+      if system("gem list -i rails")
+        versions = [Gem::Version.new("0.0.0")]
+      end
+    end
+
+    latest = versions.max
+    return if latest && latest >= Gem::Version.new("8.0.0")
+
+    puts "Rails not found or too old. Installing latest release..."
+    system("gem install rails --no-document") || abort("Failed to install Rails")
+    return
+  end
+
   # Robust detection using RubyGems API
   begin
     if Gem::Specification.find_all_by_name("rails", version).any?
@@ -52,6 +70,15 @@ def install_rails_if_missing(version)
 end
 
 install_rails_if_missing(rails_version)
+
+def rails_supports_skip_kamal?(clean_env)
+  stdout, stderr, status = Open3.capture3(clean_env, "rails", "new", "--help")
+  return false unless status.success?
+
+  stdout.include?("--skip-kamal") || stderr.include?("--skip-kamal")
+rescue Errno::ENOENT
+  false
+end
 
 # Fix for Rails 7.0 compatibility with concurrent-ruby
 # (Have to run this before bundler/setup)
@@ -82,6 +109,7 @@ end
 $VERBOSE = nil
 require "fileutils"
 require "erb"
+require "open3"
 
 # Make the rails_version available as an instance variable for the ERB templates
 @rails_version = rails_version
@@ -162,7 +190,8 @@ if !skip_app_creation
     "--skip-sprockets", "--skip-javascript", "--skip-hotwire",
     "--skip-jbuilder", "--skip-asset-pipeline", "--skip-bootsnap",
     "--api", "-T"]
-  rails_cmd << "--skip-kamal" if @rails_major_minor.start_with?("8.")
+  skip_kamal = @rails_major_minor.start_with?("8.") && rails_supports_skip_kamal?(clean_env)
+  rails_cmd << "--skip-kamal" if skip_kamal
   require "tmpdir"
   Dir.mktmpdir("logstruct_rails_new_") do |tmpdir|
     Dir.chdir(tmpdir) do
