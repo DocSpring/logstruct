@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.8] - 2026-01-22
+
+- **Fix**: Lograge custom options now appear in request logs
+- **Fix**: Request logs include request metadata fields (request_id, source_ip, user_agent, referer, host, content_type, accept)
+- **Docs**: Documented Lograge custom options and request metadata fields
+
 ## [0.1.7] - 2025-12-06
 
 - **Fix**: Puma server detection now uses `$PROGRAM_NAME` instead of checking `defined?(::Puma::Server)` which was unreliable

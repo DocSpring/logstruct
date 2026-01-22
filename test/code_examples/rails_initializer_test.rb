@@ -62,7 +62,8 @@ module LogStruct
 
           # Add custom fields to lograge output
           config.integrations.lograge_custom_options = ->(event, _) {
-            params = event.payload[:params].except(*Rails.application.config.filter_parameters)
+            params = event.payload[:params]
+            params = params&.except(*Rails.application.config.filter_parameters)
             {
               # Add request_id for correlation across logs
               request_id: event.payload[:headers]&.[]("X-Request-Id") || SecureRandom.uuid,
