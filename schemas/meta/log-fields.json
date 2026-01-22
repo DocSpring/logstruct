@@ -6,6 +6,7 @@
     "LogFieldName": {
       "type": "string",
       "enum": [
+        "Accept",
         "Action",
         "ActiveConnections",
         "Adapter",
@@ -23,6 +24,7 @@
         "Checksum",
         "ClientIp",
         "ConnectionPoolSize",
+        "ContentType",
         "Context",
         "Controller",
         "CronKey",
@@ -47,6 +49,7 @@
         "FinishedAt",
         "Format",
         "From",
+        "Host",
         "HttpMethod",
         "JobClass",
         "JobId",

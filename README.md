@@ -52,6 +52,7 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 - `ActiveSupport::TaggedLogging` is patched to support both Hashes and Strings (only when LogStruct is enabled)
 - `ActionMailer::Base` includes error handling and event logging modules
 - We configure `Lograge` for request logging
+- Lograge request logs include request metadata (request_id, source_ip, user_agent, referer, host, content_type, accept) and custom fields from `lograge_custom_options`
 - A Rack middleware is inserted to catch and log errors, including security violations (IP spoofing, CSRF, blocked hosts, etc.)
 - Structured logging is set up for ActiveJob, Sidekiq, Shrine, etc.
 - Rails `config.filter_parameters` are merged into LogStruct's filters and then cleared (to avoid double filtering). Configure sensitive keys via `LogStruct.config.filters`.

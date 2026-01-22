@@ -86,7 +86,17 @@ module LogStruct
       private
 
       # Extract a LogStruct from the various places it might be stored in a SemanticLogger::Log
-      sig { params(log: ::SemanticLogger::Log).returns(T.nilable(LogStruct::Log::Interfaces::CommonFields)) }
+      sig do
+        params(log: ::SemanticLogger::Log).returns(
+          T.nilable(
+            T.any(
+              LogStruct::Log::Interfaces::CommonFields,
+              LogStruct::Log::Interfaces::PublicCommonFields,
+              T::Struct
+            )
+          )
+        )
+      end
       def extract_logstruct(log)
         # Check payload first (most common path for structured logging)
         if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(LogStruct::Log::Interfaces::CommonFields)
@@ -94,6 +104,10 @@ module LogStruct
         end
 
         if log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
+          return log.payload
+        end
+
+        if log.payload.is_a?(LogStruct::Log::Interfaces::PublicCommonFields)
           return log.payload
         end
 
@@ -106,7 +120,7 @@ module LogStruct
         if log.payload.is_a?(Hash) && log.payload[:payload].is_a?(T::Struct)
           struct = log.payload[:payload]
           if struct.respond_to?(:source) && struct.respond_to?(:event)
-            return T.unsafe(struct)
+            return struct
           end
         end
 

@@ -33,6 +33,9 @@ module LogStruct
       UserAgent = new(:user_agent)
       Referer = new(:referer)
       RequestId = new(:request_id)
+      Host = new(:host)
+      ContentType = new(:content_type)
+      Accept = new(:accept)
 
       # HTTP-specific fields
       Format = new(:format)

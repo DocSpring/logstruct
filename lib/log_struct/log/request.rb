@@ -44,6 +44,14 @@ module LogStruct
       const :view, T.nilable(Float), default: nil
       const :database, T.nilable(Float), default: nil
       const :params, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
+      const :host, T.nilable(String), default: nil
+      const :content_type, T.nilable(String), default: nil
+      const :accept, T.nilable(String), default: nil
+
+      # Additional data
+      include LogStruct::Log::Interfaces::AdditionalDataField
+      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+      include LogStruct::Log::Shared::MergeAdditionalDataFields
 
       # Request fields (optional)
       include LogStruct::Log::Interfaces::RequestFields
@@ -70,6 +78,9 @@ module LogStruct
         h[LogField::View] = view unless view.nil?
         h[LogField::Database] = database unless database.nil?
         h[LogField::Params] = params unless params.nil?
+        h[LogField::Host] = host unless host.nil?
+        h[LogField::ContentType] = content_type unless content_type.nil?
+        h[LogField::Accept] = accept unless accept.nil?
         h
       end
     end

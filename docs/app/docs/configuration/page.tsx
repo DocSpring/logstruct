@@ -233,6 +233,12 @@ end`}
       </p>
 
       <RubyCodeExample name="lograge_custom_options" />
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
+        Custom options are merged into the request log output at the top level. LogStruct also
+        captures request metadata like <code>request_id</code>, <code>source_ip</code>,
+        <code>user_agent</code>, <code>referer</code>, <code>host</code>, <code>content_type</code>,
+        and <code>accept</code> automatically when present.
+      </p>
 
       <HeadingWithAnchor id="custom-string-scrubbing">Custom String Scrubbing</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">

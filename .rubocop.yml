@@ -13,11 +13,18 @@ AllCops:
   SuggestExtensions:
     rubocop-rails: false
   Exclude:
-    - node_modules/**/*
+    - '**/node_modules/**/*'
     - public/**/*
     - vendor/**/*
     - tmp/**/*
+    - coverage/**/*
+    - coverage_rails/**/*
+    - docs/public/**/*
     - docspring/**/*
+    - convox_racks_terraform/**/*
+    - terraform-aws-logstruct/**/*
+    - terraform-example/**/*
+    - terraform-provider-logstruct/**/*
     - sorbet/rbi/dsl/**/*
     - sorbet/rbi/gems/**/*
     - sorbet/rbi/annotations/**/*

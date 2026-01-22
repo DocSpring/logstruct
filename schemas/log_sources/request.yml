@@ -4,6 +4,7 @@ consts:
   source: Source::Rails
 
 add_request_fields: true
+additional_data: true
 
 events:
   Request:
@@ -17,3 +18,6 @@ events:
       View: Float
       Database: Float
       Params: 'T::Hash[Symbol, T.untyped]'
+      Host: String
+      ContentType: String
+      Accept: String
