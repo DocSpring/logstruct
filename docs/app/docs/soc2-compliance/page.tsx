@@ -242,7 +242,7 @@ export default function SOC2CompliancePage() {
       </ul>
 
       <Callout type="info">
-        <strong>Need help with SOC 2?</strong> LogStruct is used by companies undergoing SOC 2
+        <strong>Need help with SOC 2?</strong> LogStruct is used by companies that have passed SOC 2
         audits. If you have any questions or concerns about compliance, please{' '}
         <a
           href="https://github.com/DocSpring/logstruct/issues"
