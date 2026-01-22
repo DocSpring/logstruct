@@ -134,7 +134,7 @@ jobs:
           cd docs && pnpm test
 
   pilot:
-    name: 'Pilot Test: Ruby 3.4.7 / Rails 8.1.1'
+    name: 'Pilot Test: Latest Ruby / Rails'
     runs-on: ubuntu-22.04
     env:
       RAILS_VERSION: '8.1.1'
