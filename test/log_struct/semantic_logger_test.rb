@@ -220,5 +220,56 @@ module LogStruct
         ::SemanticLogger.flush  # Flush to ensure output is written
       end
     end
+
+    test "FormatterProxy responds to call method for Logger compatibility" do
+      formatter = LogStruct::SemanticLogger::FormatterProxy.new
+
+      # FormatterProxy must implement the standard Logger formatter interface
+      assert_respond_to formatter, :call
+      assert_respond_to formatter, :current_tags
+
+      # call method should accept standard Logger formatter arguments
+      time = Time.now
+      result = formatter.call("INFO", time, "TestProgram", "Test message")
+
+      # Should return a string
+      assert_kind_of String, result
+      assert_includes result, "Test message"
+    end
+
+    test "FormatterProxy works with standard Ruby Logger" do
+      # This test ensures FormatterProxy can be used as a formatter for Ruby's Logger
+      # which is important for Rails/ActiveSupport compatibility (logger 1.7.0+)
+      io = StringIO.new
+      stdlib_logger = ::Logger.new(io)
+
+      # Assign FormatterProxy as the formatter (simulates what Rails might do)
+      stdlib_logger.formatter = LogStruct::SemanticLogger::FormatterProxy.new
+
+      # Should not raise an error when logging
+      assert_nothing_raised do
+        stdlib_logger.info("Test message from stdlib logger")
+      end
+
+      # Output should contain the message
+      output = io.string
+
+      assert_includes output, "Test message from stdlib logger"
+    end
+
+    test "FormatterProxy call method handles nil and empty messages" do
+      formatter = LogStruct::SemanticLogger::FormatterProxy.new
+      time = Time.now
+
+      # Should handle nil message
+      result = formatter.call("INFO", time, nil, nil)
+
+      assert_kind_of String, result
+
+      # Should handle empty string message
+      result = formatter.call("DEBUG", time, "prog", "")
+
+      assert_kind_of String, result
+    end
   end
 end

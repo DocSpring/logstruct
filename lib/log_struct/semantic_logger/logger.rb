@@ -148,7 +148,9 @@ module LogStruct
     end
 
     # Proxy object to provide ActiveJob-compatible formatter interface
-    class FormatterProxy
+    # Also implements the standard Logger formatter interface (call method)
+    # for compatibility with Ruby's Logger (especially logger gem 1.7.0+)
+    class FormatterProxy < ::Logger::Formatter
       extend T::Sig
 
       sig { returns(T::Array[T.any(String, Symbol)]) }
