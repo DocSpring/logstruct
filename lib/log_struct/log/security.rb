@@ -20,7 +20,6 @@ module LogStruct
         const :source_ip, T.nilable(String), default: nil
         const :user_agent, T.nilable(String), default: nil
         const :referer, T.nilable(String), default: nil
-        const :request_id, T.nilable(String), default: nil
 
         Kwargs = T.type_alias do
           {
@@ -28,8 +27,7 @@ module LogStruct
             http_method: T.nilable(String),
             source_ip: T.nilable(String),
             user_agent: T.nilable(String),
-            referer: T.nilable(String),
-            request_id: T.nilable(String)
+            referer: T.nilable(String)
           }
         end
 
@@ -40,8 +38,7 @@ module LogStruct
             http_method: http_method,
             source_ip: source_ip,
             user_agent: user_agent,
-            referer: referer,
-            request_id: request_id
+            referer: referer
           }
         end
       end

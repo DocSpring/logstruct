@@ -101,6 +101,12 @@ module LogStruct
           headers = event.payload[:headers]
           return if headers.blank?
 
+          # Rails' ActionDispatch::RequestId middleware stores request_id in headers
+          # Only set if not already present in payload (payload takes precedence)
+          if options[:request_id].blank? && headers["action_dispatch.request_id"].present?
+            options[:request_id] = headers["action_dispatch.request_id"]
+          end
+
           options[:user_agent] = headers["HTTP_USER_AGENT"]
           options[:referer] = headers["HTTP_REFERER"]
           options[:content_type] = headers["CONTENT_TYPE"]
@@ -144,7 +150,6 @@ module LogStruct
             view: view,
             database: db,
             params: params,
-            request_id: normalized_data[:request_id]&.to_s,
             source_ip: normalized_data[:source_ip]&.to_s,
             user_agent: normalized_data[:user_agent]&.to_s,
             referer: normalized_data[:referer]&.to_s,

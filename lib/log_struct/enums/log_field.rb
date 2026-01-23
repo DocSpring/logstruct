@@ -32,7 +32,7 @@ module LogStruct
       SourceIp = new(:source_ip)
       UserAgent = new(:user_agent)
       Referer = new(:referer)
-      RequestId = new(:request_id)
+      RequestId = new(:req_id)
       Host = new(:host)
       ContentType = new(:content_type)
       Accept = new(:accept)

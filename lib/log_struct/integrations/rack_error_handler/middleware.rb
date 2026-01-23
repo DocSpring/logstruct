@@ -71,7 +71,6 @@ module LogStruct
               http_method: env["REQUEST_METHOD"],
               user_agent: env["HTTP_USER_AGENT"],
               referer: env["HTTP_REFERER"],
-              request_id: request.request_id,
               message: ip_spoof_error.message,
               client_ip: env["HTTP_CLIENT_IP"],
               x_forwarded_for: env["HTTP_X_FORWARDED_FOR"],
@@ -90,7 +89,6 @@ module LogStruct
                 source_ip: request.remote_ip,
                 user_agent: request.user_agent,
                 referer: request.referer,
-                request_id: request.request_id,
                 message: error.message,
                 timestamp: Time.now
               )
@@ -137,7 +135,6 @@ module LogStruct
         def extract_request_context(env, request = nil)
           request ||= ::ActionDispatch::Request.new(env)
           {
-            request_id: request.request_id,
             path: request.path,
             method: request.method,
             user_agent: request.user_agent,

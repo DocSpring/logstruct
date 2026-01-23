@@ -71,8 +71,7 @@ module LogStruct
             ["HttpMethod", "String"],
             ["SourceIp", "String"],
             ["UserAgent", "String"],
-            ["Referer", "String"],
-            ["RequestId", "String"]
+            ["Referer", "String"]
           ]
           req_fields.each do |name, type|
             base_fields << FieldSpec.new(enum_name: name, prop_name: LogStruct::Codegen.snake_case(name), type: type, sorbet_type: LogStruct::Codegen.type_to_sorbet(type), required: false)

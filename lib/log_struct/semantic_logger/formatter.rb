@@ -79,6 +79,15 @@ module LogStruct
           )
           @logstruct_formatter.call(log.level, log.time, log.name, plain_log)
         end
+
+        # Add request_id from named_tags if present
+        request_id = log.named_tags[:request_id]
+        if request_id
+          data = JSON.parse(json)
+          data["req_id"] = request_id
+          json = data.to_json
+        end
+
         # SemanticLogger appenders typically add their own newline. Avoid double newlines by stripping ours.
         json.end_with?("\n") ? json.chomp : json
       end

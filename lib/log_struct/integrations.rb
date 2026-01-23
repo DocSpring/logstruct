@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "integrations/integration_interface"
+require_relative "integrations/request_context"
 require_relative "integrations/active_job"
 require_relative "integrations/active_record"
 require_relative "integrations/rack_error_handler"
@@ -77,6 +78,7 @@ module LogStruct
 
     sig { params(config: LogStruct::Configuration).void }
     def self.setup_middleware_integrations(config)
+      Integrations::RequestContext.setup(config)
       Integrations::HostAuthorization.setup(config) if config.integrations.enable_host_authorization
       Integrations::RackErrorHandler.setup(config) if config.integrations.enable_rack_error_handler
     end

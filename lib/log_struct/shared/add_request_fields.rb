@@ -20,7 +20,6 @@ module LogStruct
           hash[LogField::SourceIp.serialize] = source_ip if source_ip
           hash[LogField::UserAgent.serialize] = user_agent if user_agent
           hash[LogField::Referer.serialize] = referer if referer
-          hash[LogField::RequestId.serialize] = request_id if request_id
         end
       end
     end

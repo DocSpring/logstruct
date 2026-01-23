@@ -96,7 +96,6 @@ module LogStruct
 
         log = @formatter.call(data)
 
-        assert_equal "req-123", log.request_id
         assert_equal "10.0.0.1", log.source_ip
         assert_equal "TestAgent/1.0", log.user_agent
         assert_equal "example.test", log.host
@@ -106,6 +105,7 @@ module LogStruct
         additional_data = T.must(log.additional_data)
 
         assert_equal "abc-123", additional_data[:user_id]
+        # request_id is now handled by SemanticLogger named_tags, not stored on struct or in additional_data
         refute additional_data.key?(:request_id)
         refute additional_data.key?(:extra_nil)
 
@@ -139,6 +139,46 @@ module LogStruct
         assert_equal "TestAgent/2.0", options[:user_agent]
         assert_equal "application/json", options[:content_type]
         assert_equal "application/json", options[:accept]
+      end
+
+      def test_extracts_request_id_from_action_dispatch_header
+        event = ActiveSupport::Notifications::Event.new(
+          "process_action.action_controller",
+          Time.now.to_f,
+          Time.now.to_f,
+          "event-id",
+          {
+            host: "example.test",
+            headers: {
+              "action_dispatch.request_id" => "abc-123-request-id",
+              "HTTP_USER_AGENT" => "TestAgent/1.0"
+            }
+          }
+        )
+
+        options = LogStruct::Integrations::Lograge.lograge_default_options(event)
+
+        assert_equal "abc-123-request-id", options[:request_id]
+      end
+
+      def test_prefers_payload_request_id_over_header
+        # If request_id is in both payload and headers, prefer payload
+        event = ActiveSupport::Notifications::Event.new(
+          "process_action.action_controller",
+          Time.now.to_f,
+          Time.now.to_f,
+          "event-id",
+          {
+            request_id: "payload-request-id",
+            headers: {
+              "action_dispatch.request_id" => "header-request-id"
+            }
+          }
+        )
+
+        options = LogStruct::Integrations::Lograge.lograge_default_options(event)
+
+        assert_equal "payload-request-id", options[:request_id]
       end
     end
   end

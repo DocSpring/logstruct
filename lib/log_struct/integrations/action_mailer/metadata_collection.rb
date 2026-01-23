@@ -54,12 +54,6 @@ module LogStruct
           end
           log_data[:tags] = tags if tags.present?
 
-          # Get request_id from ActionDispatch if available
-          if ::ActionDispatch::Request.respond_to?(:current_request_id) &&
-              T.unsafe(::ActionDispatch::Request).current_request_id.present?
-            log_data[:request_id] = T.unsafe(::ActionDispatch::Request).current_request_id
-          end
-
           # Get job_id from ActiveJob if available
           if defined?(::ActiveJob::Logging) && ::ActiveJob::Logging.respond_to?(:job_id) &&
               T.unsafe(::ActiveJob::Logging).job_id.present?

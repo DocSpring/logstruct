@@ -29,10 +29,6 @@ module LogStruct
         sig { abstract.returns(T.nilable(String)) }
         def referer
         end
-
-        sig { abstract.returns(T.nilable(String)) }
-        def request_id
-        end
       end
     end
   end

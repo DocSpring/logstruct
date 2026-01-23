@@ -34,7 +34,6 @@ module LogStruct
         const :source_ip, T.nilable(String), default: nil
         const :user_agent, T.nilable(String), default: nil
         const :referer, T.nilable(String), default: nil
-        const :request_id, T.nilable(String), default: nil
 
         # Event-specific fields
         const :message, T.nilable(String), default: nil
@@ -60,7 +59,6 @@ module LogStruct
           h[LogField::SourceIp] = source_ip unless source_ip.nil?
           h[LogField::UserAgent] = user_agent unless user_agent.nil?
           h[LogField::Referer] = referer unless referer.nil?
-          h[LogField::RequestId] = request_id unless request_id.nil?
           h[LogField::Message] = message unless message.nil?
           h
         end

@@ -81,4 +81,37 @@ class RequestLoggingTest < ActionDispatch::IntegrationTest
     assert_equal "test_basic", parsed["action"], "Must have action field"
     assert_equal "/logging/basic", parsed["path"], "Must have correct path"
   end
+
+  def test_all_logs_during_request_have_request_id
+    get "/logging/basic"
+
+    assert_response :success
+
+    ::SemanticLogger.flush
+    @log_output.rewind
+    output = @log_output.read.to_s
+
+    # Parse all JSON log lines
+    json_logs = output.lines.filter_map do |line|
+      JSON.parse(line) if line.strip.start_with?("{")
+    rescue JSON::ParserError
+      nil
+    end
+
+    assert_operator json_logs.size, :>=, 1, "Expected at least 1 JSON log line"
+
+    # Find the request log to get the request_id
+    request_log = json_logs.find { |log| log["evt"] == "request" }
+
+    assert request_log, "Expected a request log"
+
+    request_id = request_log["req_id"]
+
+    assert request_id, "Request log must have req_id"
+
+    # All logs during the request should have the same req_id
+    json_logs.each do |log|
+      assert_equal request_id, log["req_id"], "All logs must have req_id. Log missing it: #{log.inspect}"
+    end
+  end
 end
