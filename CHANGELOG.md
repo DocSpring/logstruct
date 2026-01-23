@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.10] - 2026-01-23
+
+### Added
+
+- **Feature**: `request_id` now appears on all logs during a request, not just the request log
+
 ## [0.1.9] - 2026-01-23
 
 ### Changed
