@@ -45,27 +45,6 @@ module LogStruct
         payload.source_enum.gsub("::", ".")
       end
 
-      sig { params(sorbet: String).returns(String) }
-      def self.ts_type(sorbet)
-        case sorbet
-        when "String" then "string"
-        when "Integer" then "number"
-        when "Float" then "number"
-        when "Time" then "string"
-        when "T::Boolean" then "boolean"
-        when "T::Hash[Symbol, T.untyped]" then "Record<string, unknown>"
-        when "T::Hash[String, T.untyped]" then "Record<string, unknown>"
-        when "T::Array[String]" then "string[]"
-        when "T::Array[Integer]" then "number[]"
-        when "T::Array[Float]" then "number[]"
-        when "T::Array[T::Boolean]" then "boolean[]"
-        when "T::Array[T.untyped]" then "unknown[]"
-        when "T.any(Integer, String)" then "number | string"
-        when "T.class_of(StandardError)" then "string"
-        else "any"
-        end
-      end
-
       sig { params(name: String).returns(String) }
       def self.snake(name)
         name.gsub(/([A-Z]+)([A-Z][a-z])/, "\\1_\\2")

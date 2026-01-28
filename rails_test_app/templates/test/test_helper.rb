@@ -4,6 +4,8 @@ require "simplecov" unless defined?(SimpleCov)
 require "simplecov-json"
 require "sorbet-runtime"
 require "debug"
+require "open3"
+require "timeout"
 
 unless SimpleCov.running
   SimpleCov.formatters = [
@@ -41,6 +43,20 @@ require "minitest/reporters"
 # Configure colorful test output
 Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
+# Avoid hangs by enforcing per-test timeouts in the Rails test app
+module LogStructMinitestTimeout
+  def run
+    timeout_seconds = ENV.fetch("LOGSTRUCT_TEST_TIMEOUT", "60").to_i
+    return super if timeout_seconds <= 0
+
+    Timeout.timeout(timeout_seconds) { super }
+  rescue Timeout::Error
+    self.fail("Test timed out after #{timeout_seconds}s")
+  end
+end
+
+Minitest::Test.prepend(LogStructMinitestTimeout)
+
 # Configure the test database
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
@@ -56,6 +72,90 @@ class ActiveSupport::TestCase
     end
   end
 end
+
+module LogStructTestHelpers
+  def with_process(env:, cmd:, ready_timeout: 15, ready_matchers: [])
+    lines = []
+    err_lines = []
+
+    Open3.popen3(env, *cmd) do |stdin, stdout, stderr, wait_thr|
+      stdin.close
+      begin
+        wait_for_ready(stdout, lines, ready_timeout, ready_matchers)
+        yield(lines, stdout, stderr, wait_thr)
+      rescue Timeout::Error => e
+        drain_stream(stderr, err_lines, timeout: 2)
+        raise Timeout::Error, "#{e.message}\nOutput: #{lines.join("\n")}\nSTDERR: #{err_lines.join("\n")}"
+      ensure
+        terminate_process(wait_thr, timeout: 10)
+        drain_stream(stdout, lines, timeout: 5)
+        drain_stream(stderr, err_lines, timeout: 5)
+      end
+    end
+
+    [lines, err_lines.join("\n")]
+  end
+
+  def drain_nonblocking(io, lines)
+    loop do
+      chunk = io.read_nonblock(4096)
+      lines.concat(chunk.split("\n").map(&:strip))
+    rescue IO::WaitReadable, EOFError
+      break
+    end
+  end
+
+  def rails_server_env(logstruct_enabled: true, rails_env: "test")
+    {
+      "LOGSTRUCT_ENABLED" => logstruct_enabled ? "true" : "false",
+      "RAILS_ENV" => rails_env,
+      "RAILS_LOG_TO_STDOUT" => "1"
+    }
+  end
+
+  def rails_server_cmd(port)
+    ["bundle", "exec", "rails", "server", "-p", port.to_s]
+  end
+
+  private
+
+  def wait_for_ready(stdout, lines, timeout_seconds, ready_matchers)
+    Timeout.timeout(timeout_seconds) do
+      while (line = stdout.gets)
+        stripped = line.strip
+        lines << stripped
+        break if ready_matchers.any? { |matcher| matcher === stripped || stripped.include?(matcher.to_s) }
+      end
+    end
+  end
+
+  def drain_stream(io, lines, timeout:)
+    Timeout.timeout(timeout) do
+      while (line = io.gets)
+        lines << line.strip
+      end
+    end
+  rescue Timeout::Error
+    nil
+  end
+
+  def terminate_process(wait_thr, timeout:)
+    Process.kill("TERM", wait_thr.pid)
+    begin
+      Timeout.timeout(timeout) { wait_thr.value }
+    rescue Timeout::Error
+      begin
+        Process.kill("KILL", wait_thr.pid)
+      rescue Errno::ESRCH
+        nil
+      end
+    end
+  rescue Errno::ESRCH
+    nil
+  end
+end
+
+ActiveSupport::TestCase.include(LogStructTestHelpers)
 
 # Ensure LogStruct is enabled and emits JSON in tests across Rails versions
 begin

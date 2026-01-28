@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "../../enums/level"
+require_relative "common_field_base"
 
 module LogStruct
   module Log
@@ -12,17 +13,7 @@ module LogStruct
 
         interface!
 
-        sig { abstract.returns(Level) }
-        def level
-        end
-
-        sig { abstract.returns(Time) }
-        def timestamp
-        end
-
-        sig { abstract.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-        def serialize(strict = true)
-        end
+        include CommonFieldBase
       end
     end
   end

@@ -44,6 +44,7 @@ mswin
 nilability
 nilable
 nonblock
+nonblocking
 optparse
 parseable
 pentester

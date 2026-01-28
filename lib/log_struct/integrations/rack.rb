@@ -4,6 +4,7 @@
 require "rack"
 require "action_dispatch/middleware/show_exceptions"
 require_relative "rack/error_handling_middleware"
+require_relative "rack_setup"
 
 module LogStruct
   module Integrations
@@ -15,12 +16,11 @@ module LogStruct
       # Set up Rack middleware for structured error logging
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return nil unless config.enabled
-        return nil unless config.integrations.enable_rack_error_handler
+        return nil unless RackSetup.enabled?(config)
 
         # Add structured logging middleware for security violations and errors
         # Need to insert after ShowExceptions to catch IP spoofing errors
-        ::Rails.application.middleware.insert_after(
+        RackSetup.insert_after(
           ::ActionDispatch::ShowExceptions,
           Integrations::RackErrorHandler::Middleware
         )

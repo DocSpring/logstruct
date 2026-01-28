@@ -4,6 +4,7 @@
 require_relative "../../enums/source"
 require_relative "../../enums/event"
 require_relative "../../enums/level"
+require_relative "common_field_base"
 
 module LogStruct
   module Log
@@ -14,24 +15,14 @@ module LogStruct
 
         interface!
 
+        include CommonFieldBase
+
         sig { abstract.returns(Source) }
         def source
         end
 
         sig { abstract.returns(Event) }
         def event
-        end
-
-        sig { abstract.returns(Level) }
-        def level
-        end
-
-        sig { abstract.returns(Time) }
-        def timestamp
-        end
-
-        sig { abstract.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-        def serialize(strict = true)
         end
       end
     end

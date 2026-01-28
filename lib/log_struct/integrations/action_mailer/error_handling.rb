@@ -150,38 +150,8 @@ module LogStruct
 
           # Report to error reporting service if requested
           if report
-            # Get message if available
-            mailer_message = respond_to?(:message) ? message : nil
-
-            # Prepare universal mailer fields
-            message_data = {}
-            MetadataCollection.add_message_metadata(self, message_data)
-
-            # Prepare app-specific context data
             context_data = {recipients: recipients(error)}
-            MetadataCollection.add_context_metadata(self, context_data)
-
-            # Extract email fields
-            to = mailer_message&.to
-            from = mailer_message&.from&.first
-            subject = mailer_message&.subject
-            message_id = extract_message_id_from_mailer(self)
-
-            # Create ActionMailer-specific error struct
-            exception_data = Log::ActionMailer::Error.new(
-              to: to,
-              from: from,
-              subject: subject,
-              message_id: message_id,
-              mailer_class: self.class.to_s,
-              mailer_action: respond_to?(:action_name) ? action_name&.to_s : nil,
-              attachment_count: message_data[:attachment_count],
-              error_class: error.class,
-              message: error.message,
-              backtrace: error.backtrace,
-              additional_data: context_data.presence,
-              timestamp: Time.now
-            )
+            exception_data = build_exception_data(error, Level::Error, context_data)
 
             # Log the exception with structured data
             LogStruct.error(exception_data)
@@ -202,29 +172,32 @@ module LogStruct
         # Log a notification event that can be picked up by external systems
         sig { params(error: StandardError).void }
         def log_notification_event(error)
-          # Get message if available
-          mailer_message = respond_to?(:message) ? message : nil
-
-          # Prepare universal mailer fields
-          message_data = {}
-          MetadataCollection.add_message_metadata(self, message_data)
-
-          # Prepare app-specific context data
           context_data = {
             mailer: self.class.to_s,
             action: action_name&.to_s,
             recipients: recipients(error)
           }
+          exception_data = build_exception_data(error, Level::Info, context_data)
+
+          # Log the error at info level since it's not a critical error
+          LogStruct.info(exception_data)
+        end
+
+        sig { params(error: StandardError, level: Level, context_data: T::Hash[Symbol, T.untyped]).returns(Log::ActionMailer::Error) }
+        def build_exception_data(error, level, context_data)
+          mailer_message = respond_to?(:message) ? message : nil
+
+          message_data = {}
+          MetadataCollection.add_message_metadata(self, message_data)
+
           MetadataCollection.add_context_metadata(self, context_data)
 
-          # Extract email fields
           to = mailer_message&.to
           from = mailer_message&.from&.first
           subject = mailer_message&.subject
           message_id = extract_message_id_from_mailer(self)
 
-          # Create ActionMailer-specific error struct
-          exception_data = Log::ActionMailer::Error.new(
+          Log::ActionMailer::Error.new(
             to: to,
             from: from,
             subject: subject,
@@ -237,11 +210,8 @@ module LogStruct
             backtrace: error.backtrace,
             additional_data: context_data.presence,
             timestamp: Time.now,
-            level: Level::Info
+            level: level
           )
-
-          # Log the error at info level since it's not a critical error
-          LogStruct.info(exception_data)
         end
 
         sig { params(error: StandardError).returns(String) }

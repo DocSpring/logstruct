@@ -34,6 +34,20 @@ module LogStruct
       class << self
         extend T::Sig
 
+        sig { params(env: T.untyped).returns(String) }
+        def relative_env_path(env)
+          abs = env.filename
+          begin
+            if defined?(::Rails) && ::Rails.respond_to?(:root) && ::Rails.root
+              Pathname.new(abs).relative_path_from(Pathname.new(::Rails.root.to_s)).to_s
+            else
+              abs
+            end
+          rescue
+            abs
+          end
+        end
+
         sig { void }
         def subscribe!
           # Guard against double subscription
@@ -47,16 +61,7 @@ module LogStruct
             LogStruct::Log::Dotenv.new
             event = ::ActiveSupport::Notifications::Event.new(*args)
             env = event.payload[:env]
-            abs = env.filename
-            file = begin
-              if defined?(::Rails) && ::Rails.respond_to?(:root) && ::Rails.root
-                Pathname.new(abs).relative_path_from(Pathname.new(::Rails.root.to_s)).to_s
-              else
-                abs
-              end
-            rescue
-              abs
-            end
+            file = relative_env_path(env)
 
             ts = event.time ? Time.at(event.time) : Time.now
             LogStruct.info(Log::Dotenv::Load.new(file: file, timestamp: ts))
@@ -134,16 +139,7 @@ module LogStruct
         instrumenter.subscribe("load.dotenv") do |*args|
           event = ::ActiveSupport::Notifications::Event.new(*args)
           env = event.payload[:env]
-          abs = env.filename
-          file = begin
-            if defined?(::Rails) && ::Rails.respond_to?(:root) && ::Rails.root
-              Pathname.new(abs).relative_path_from(Pathname.new(::Rails.root.to_s)).to_s
-            else
-              abs
-            end
-          rescue
-            abs
-          end
+          file = relative_env_path(env)
           ts = event.time ? Time.at(event.time) : Time.now
           LogStruct::BootBuffer.add(Log::Dotenv::Load.new(file: file, timestamp: ts))
         rescue => e

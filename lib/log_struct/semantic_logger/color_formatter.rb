@@ -62,44 +62,11 @@ module LogStruct
       def call(log, logger)
         # Handle LogStruct types specially with colorization
         if log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
-          # Get the LogStruct formatted JSON
-          logstruct_json = @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
-
-          # Parse and colorize it
-          begin
-            parsed_data = T.let(JSON.parse(logstruct_json), T::Hash[String, T.untyped])
-            colorized_json = colorize_json(parsed_data)
-
-            # Use SemanticLogger's prefix formatting but with our colorized content
-            prefix = format("%<time>s %<level>s [%<process>s] %<name>s -- ",
-              time: format_time(log.time),
-              level: format_level(log.level),
-              process: log.process_info,
-              name: format_name(log.name))
-
-            "#{prefix}#{colorized_json}\n"
-          rescue JSON::ParserError
-            # Fallback to standard formatting
-            super
-          end
+          formatted = format_logstruct_payload(log)
+          formatted if formatted
         elsif log.payload.is_a?(Hash) || log.payload.is_a?(T::Struct)
-          # Process hashes through our formatter then colorize
-          begin
-            logstruct_json = @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
-            parsed_data = T.let(JSON.parse(logstruct_json), T::Hash[String, T.untyped])
-            colorized_json = colorize_json(parsed_data)
-
-            prefix = format("%<time>s %<level>s [%<process>s] %<name>s -- ",
-              time: format_time(log.time),
-              level: format_level(log.level),
-              process: log.process_info,
-              name: format_name(log.name))
-
-            "#{prefix}#{colorized_json}\n"
-          rescue JSON::ParserError
-            # Fallback to standard formatting
-            super
-          end
+          formatted = format_logstruct_payload(log)
+          formatted if formatted
         else
           # For plain messages, use SemanticLogger's default colorization
           super
@@ -137,6 +104,24 @@ module LogStruct
           .gsub(/: (\d+\.?\d*)/, ": " + colorize_text('\1', :number))
           .gsub(/: (true|false)/, ": " + colorize_text('\1', :bool))
           .gsub(": null", ": " + colorize_text("null", :nil))
+      end
+
+      sig { params(log: ::SemanticLogger::Log).returns(T.nilable(String)) }
+      def format_logstruct_payload(log)
+        logstruct_json = @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
+
+        parsed_data = T.let(JSON.parse(logstruct_json), T::Hash[String, T.untyped])
+        colorized_json = colorize_json(parsed_data)
+
+        prefix = format("%<time>s %<level>s [%<process>s] %<name>s -- ",
+          time: format_time(log.time),
+          level: format_level(log.level),
+          process: log.process_info,
+          name: format_name(log.name))
+
+        "#{prefix}#{colorized_json}\n"
+      rescue JSON::ParserError
+        nil
       end
 
       # Add ANSI color codes to text

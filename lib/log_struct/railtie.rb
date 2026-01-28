@@ -46,16 +46,7 @@ module LogStruct
       next unless is_server
       begin
         require "log_struct/log/puma"
-        port = T.let(nil, T.nilable(String))
-        ARGV.each_with_index do |arg, idx|
-          if arg == "-p" || arg == "--port"
-            port = ARGV[idx + 1]
-            break
-          elsif arg.start_with?("--port=")
-            port = arg.split("=", 2)[1]
-            break
-          end
-        end
+        port = LogStruct::Integrations::Puma.port_from_argv(ARGV)
         started = LogStruct::Log::Puma::Start.new(
           mode: "single",
           environment: (defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil,

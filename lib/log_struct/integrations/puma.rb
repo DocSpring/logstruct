@@ -50,16 +50,7 @@ module LogStruct
           if ARGV.include?("server")
             # Emit deterministic boot/started events based on CLI args
             begin
-              port = T.let(nil, T.nilable(String))
-              ARGV.each_with_index do |arg, idx|
-                if arg == "-p" || arg == "--port"
-                  port = ARGV[idx + 1]
-                  break
-                elsif arg.start_with?("--port=")
-                  port = arg.split("=", 2)[1]
-                  break
-                end
-              end
+              port = port_from_argv(ARGV)
               si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
               si[:pid] ||= Process.pid
               si[:environment] ||= ((defined?(::Rails) && ::Rails.respond_to?(:env)) ? ::Rails.env : nil)
@@ -175,6 +166,18 @@ module LogStruct
           }
         end
 
+        sig { params(argv: T::Array[String]).returns(T.nilable(String)) }
+        def port_from_argv(argv)
+          argv.each_with_index do |arg, idx|
+            if arg == "-p" || arg == "--port"
+              return argv[idx + 1]
+            elsif arg.start_with?("--port=")
+              return arg.split("=", 2)[1]
+            end
+          end
+          nil
+        end
+
         sig { params(line: String).returns(T::Boolean) }
         def process_line(line)
           l = line.to_s.strip
@@ -243,16 +246,7 @@ module LogStruct
             # Fallback: if no listening address captured yet, infer from ARGV
             if T.cast(si[:listening], T::Array[T.untyped]).empty?
               begin
-                port = T.let(nil, T.untyped)
-                ARGV.each_with_index do |arg, idx|
-                  if arg == "-p" || arg == "--port"
-                    port = ARGV[idx + 1]
-                    break
-                  elsif arg.start_with?("--port=")
-                    port = arg.split("=", 2)[1]
-                    break
-                  end
-                end
+                port = port_from_argv(ARGV)
                 if port
                   si[:listening] << "tcp://127.0.0.1:#{port}"
                 end

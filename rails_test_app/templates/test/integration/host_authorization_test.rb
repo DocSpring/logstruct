@@ -20,24 +20,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     # Should return 403 Forbidden
     assert_response :forbidden
 
-    # Ensure all logs are flushed from buffers
-    ::SemanticLogger.flush
-
-    # Read all logged lines
-    @io.rewind
-    lines = @io.read.to_s.split("\n").map(&:strip).reject(&:empty?)
-
-    # Parse JSON logs
-    parsed_logs = lines.filter_map { |l|
-      begin
-        JSON.parse(l)
-      rescue
-        nil
-      end
-    }
-
-    # Find blocked host logs
-    blocked_host_logs = parsed_logs.select { |log| log["evt"] == "blocked_host" }
+    blocked_host_logs = blocked_host_logs_from_output
 
     assert_equal 1, blocked_host_logs.size, "Expected exactly one blocked host log entry"
 
@@ -59,24 +42,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     # Should return 200 OK
     assert_response :success
 
-    # Ensure all logs are flushed from buffers
-    ::SemanticLogger.flush
-
-    # Read all logged lines
-    @io.rewind
-    lines = @io.read.to_s.split("\n").map(&:strip).reject(&:empty?)
-
-    # Parse JSON logs
-    parsed_logs = lines.filter_map { |l|
-      begin
-        JSON.parse(l)
-      rescue
-        nil
-      end
-    }
-
-    # Find blocked host logs
-    blocked_host_logs = parsed_logs.select { |log| log["evt"] == "blocked_host" }
+    blocked_host_logs = blocked_host_logs_from_output
 
     assert_equal 0, blocked_host_logs.size, "Should not log blocked host for allowed hosts"
   end
@@ -87,24 +53,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
 
     assert_response :forbidden
 
-    # Ensure all logs are flushed from buffers
-    ::SemanticLogger.flush
-
-    # Read all logged lines
-    @io.rewind
-    lines = @io.read.to_s.split("\n").map(&:strip).reject(&:empty?)
-
-    # Parse JSON logs
-    parsed_logs = lines.filter_map { |l|
-      begin
-        JSON.parse(l)
-      rescue
-        nil
-      end
-    }
-
-    # Find blocked host logs
-    blocked_host_logs = parsed_logs.select { |log| log["evt"] == "blocked_host" }
+    blocked_host_logs = blocked_host_logs_from_output
 
     assert_equal 1, blocked_host_logs.size
 
@@ -119,5 +68,23 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "malicious.example.com", log_entry["blocked_host"]
     assert_equal "/health", log_entry["path"]
     assert_equal "GET", log_entry["method"]
+  end
+
+  private
+
+  def parsed_logs_from_output
+    ::SemanticLogger.flush
+
+    @io.rewind
+    lines = @io.read.to_s.split("\n").map(&:strip).reject(&:empty?)
+    lines.filter_map do |line|
+      JSON.parse(line)
+    rescue
+      nil
+    end
+  end
+
+  def blocked_host_logs_from_output
+    parsed_logs_from_output.select { |log| log["evt"] == "blocked_host" }
   end
 end

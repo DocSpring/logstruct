@@ -4,6 +4,7 @@
 require "rack"
 require "action_dispatch/middleware/show_exceptions"
 require_relative "rack_error_handler/middleware"
+require_relative "rack_setup"
 
 module LogStruct
   module Integrations
@@ -15,12 +16,11 @@ module LogStruct
       # Set up Rack middleware for structured error logging
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
-        return nil unless config.enabled
-        return nil unless config.integrations.enable_rack_error_handler
+        return nil unless RackSetup.enabled?(config)
 
         # Add structured logging middleware for security violations and errors
         # Need to insert before RemoteIp to catch IP spoofing errors it raises
-        ::Rails.application.middleware.insert_before(
+        RackSetup.insert_before(
           ::ActionDispatch::RemoteIp,
           Integrations::RackErrorHandler::Middleware
         )

@@ -325,18 +325,7 @@ module LogStruct
           {sql: "CREATE TABLE test (id INT)", expected: "CREATE"}
         ]
 
-        logged_events = []
-        LogStruct.stub(:info, ->(log) { logged_events << log }) do
-          test_cases.each do |test_case|
-            simulate_sql_notification(sql: test_case[:sql])
-          end
-        end
-
-        assert_equal test_cases.size, logged_events.size
-
-        test_cases.each_with_index do |test_case, index|
-          assert_equal test_case[:expected], logged_events[index].operation_type
-        end
+        assert_sql_attribute(test_cases, :operation_type)
       end
 
       test "extracts table names correctly" do
@@ -353,18 +342,7 @@ module LogStruct
           {sql: "UPDATE table1 SET col = (SELECT col FROM table2)", expected: ["table1", "table2"]}
         ]
 
-        logged_events = []
-        LogStruct.stub(:info, ->(log) { logged_events << log }) do
-          test_cases.each do |test_case|
-            simulate_sql_notification(sql: test_case[:sql])
-          end
-        end
-
-        assert_equal test_cases.size, logged_events.size
-
-        test_cases.each_with_index do |test_case, index|
-          assert_equal test_case[:expected], logged_events[index].table_names
-        end
+        assert_sql_attribute(test_cases, :table_names)
       end
 
       test "handles exceptions gracefully during event processing" do
@@ -528,6 +506,23 @@ module LogStruct
           end
         else
           raise ArgumentError, "stub_const only supports ::ActiveRecord::Base"
+        end
+      end
+
+      private
+
+      def assert_sql_attribute(test_cases, attribute)
+        logged_events = []
+        LogStruct.stub(:info, ->(log) { logged_events << log }) do
+          test_cases.each do |test_case|
+            simulate_sql_notification(sql: test_case[:sql])
+          end
+        end
+
+        assert_equal test_cases.size, logged_events.size
+
+        test_cases.each_with_index do |test_case, index|
+          assert_equal test_case[:expected], logged_events[index].public_send(attribute)
         end
       end
     end

@@ -10,20 +10,8 @@ class BootLogsIntegrationTest < ActiveSupport::TestCase
       "RAILS_ENV" => "test",
       "RAILS_LOG_TO_STDOUT" => "1"
     }
-    cmd = ["bundle", "exec", "rails", "runner", "puts LogStruct.enabled?"]
 
-    stdout_str, stderr_str, status = Open3.capture3(env, *cmd)
-
-    assert_predicate status, :success?, "rails runner failed: #{stderr_str}"
-    output = stdout_str.to_s
-
-    refute_empty output, "Expected some output from rails runner"
-
-    lines = output.split("\n").map(&:strip).reject(&:empty?)
-    lines.reject! do |line|
-      line.start_with?("Coverage report generated", "Line Coverage:", "Branch Coverage:")
-    end
-    # Ensure the last non-empty line is 'true'
+    lines = runner_output_lines(env)
     last_line = lines.last
 
     assert_equal "true", last_line, "Expected final line to be 'true'"
@@ -52,19 +40,8 @@ class BootLogsIntegrationTest < ActiveSupport::TestCase
       "RAILS_ENV" => "development",
       "RAILS_LOG_TO_STDOUT" => "1"
     }
-    cmd = ["bundle", "exec", "rails", "runner", "puts LogStruct.enabled?"]
 
-    stdout_str, stderr_str, status = Open3.capture3(env, *cmd)
-
-    assert_predicate status, :success?, "rails runner failed: #{stderr_str}"
-    output = stdout_str.to_s
-
-    refute_empty output, "Expected some output from rails runner"
-
-    lines = output.split("\n").map(&:strip).reject(&:empty?)
-    lines.reject! do |line|
-      line.start_with?("Coverage report generated", "Line Coverage:", "Branch Coverage:")
-    end
+    lines = runner_output_lines(env)
     last_line = lines.last
 
     assert_equal "false", last_line, "Expected final line to be 'false'"
@@ -79,5 +56,23 @@ class BootLogsIntegrationTest < ActiveSupport::TestCase
     assert_equal 2, dotenv_lines.size, "Expected two original dotenv lines"
     assert dotenv_lines.any? { |l| l.include?("Set ") }, "Expected a 'Set ...' line"
     assert dotenv_lines.any? { |l| l.include?("Loaded ") }, "Expected a 'Loaded ...' line"
+  end
+
+  private
+
+  def runner_output_lines(env)
+    cmd = ["bundle", "exec", "rails", "runner", "puts LogStruct.enabled?"]
+    stdout_str, stderr_str, status = Open3.capture3(env, *cmd)
+
+    assert_predicate status, :success?, "rails runner failed: #{stderr_str}"
+    output = stdout_str.to_s
+
+    refute_empty output, "Expected some output from rails runner"
+
+    lines = output.split("\n").map(&:strip).reject(&:empty?)
+    lines.reject! do |line|
+      line.start_with?("Coverage report generated", "Line Coverage:", "Branch Coverage:")
+    end
+    lines
   end
 end

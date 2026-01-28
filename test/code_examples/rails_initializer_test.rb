@@ -81,20 +81,7 @@ module LogStruct
         # END CODE EXAMPLE: rails_initializer
         # ----------------------------------------------------------
 
-        # Test in development environment
-        Rails.env = ActiveSupport::StringInquirer.new("development")
-        LogStruct.configure do |config|
-          config.enabled = !Rails.env.test?
-
-          # Configure error handling based on environment
-          if Rails.env.production?
-            config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-            config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-          else
-            config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Raise
-            config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Raise
-          end
-        end
+        configure_logstruct_for_env("development")
 
         # Verify proper configuration for development
         assert LogStruct.configuration.enabled
@@ -104,11 +91,23 @@ module LogStruct
           LogStruct.configuration.error_handling_modes.logstruct_errors
 
         # Test in production environment
-        Rails.env = ActiveSupport::StringInquirer.new("production")
+        configure_logstruct_for_env("production")
+
+        # Verify proper configuration for production
+        assert LogStruct.configuration.enabled
+        assert_equal LogStruct::ErrorHandlingMode::Report,
+          LogStruct.configuration.error_handling_modes.security_errors
+        assert_equal LogStruct::ErrorHandlingMode::Log,
+          LogStruct.configuration.error_handling_modes.logstruct_errors
+      end
+
+      private
+
+      def configure_logstruct_for_env(env_name)
+        Rails.env = ActiveSupport::StringInquirer.new(env_name)
         LogStruct.configure do |config|
           config.enabled = !Rails.env.test?
 
-          # Configure error handling based on environment
           if Rails.env.production?
             config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
             config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
@@ -117,13 +116,6 @@ module LogStruct
             config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Raise
           end
         end
-
-        # Verify proper configuration for production
-        assert LogStruct.configuration.enabled
-        assert_equal LogStruct::ErrorHandlingMode::Report,
-          LogStruct.configuration.error_handling_modes.security_errors
-        assert_equal LogStruct::ErrorHandlingMode::Log,
-          LogStruct.configuration.error_handling_modes.logstruct_errors
       end
     end
   end
