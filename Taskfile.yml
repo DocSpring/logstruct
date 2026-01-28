@@ -41,6 +41,12 @@ tasks:
     cmds:
       - scripts/spellcheck.sh
 
+  jscpd:
+    desc: Detect copy/paste duplication
+    deps: [prettier:deps]
+    cmds:
+      - pnpm exec jscpd . --exitCode 1
+
   test:
     desc: Run Ruby unit tests, Rails integration tests, and merge coverage
     cmds:
