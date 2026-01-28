@@ -89,6 +89,9 @@ jobs:
       - name: Sorbet (Typecheck)
         run: scripts/typecheck.sh
 
+      - name: jscpd (Duplicate Code Detection)
+        run: pnpm exec jscpd .
+
   docs:
     name: 'Next.js Site Tests'
     runs-on: ubuntu-22.04
