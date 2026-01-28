@@ -10,6 +10,7 @@ end
 require_relative "../../log/good_job"
 require_relative "../../enums/event"
 require_relative "../../enums/level"
+require_relative "../event_time"
 
 module LogStruct
   module Integrations
@@ -43,7 +44,7 @@ module LogStruct
           payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
           job = payload[:job]
           base_fields = build_base_fields(job, payload)
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
 
           logger.info(Log::GoodJob::Enqueue.new(
             **base_fields.to_kwargs,
@@ -61,7 +62,7 @@ module LogStruct
           job = payload[:job]
           execution = payload[:execution] || payload[:good_job_execution]
           base_fields = build_base_fields(job, payload)
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
 
           logger.info(Log::GoodJob::Start.new(
             **base_fields.to_kwargs,
@@ -82,8 +83,8 @@ module LogStruct
           payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
           job = payload[:job]
           base_fields = build_base_fields(job, payload)
-          start_ts = event.time ? Time.at(event.time) : Time.now
-          end_ts = event.end ? Time.at(event.end) : Time.now
+          start_ts = EventTime.coerce_event_time(event.time)
+          end_ts = EventTime.coerce_event_time(event.end)
 
           logger.info(Log::GoodJob::Finish.new(
             **base_fields.to_kwargs,
@@ -103,7 +104,7 @@ module LogStruct
           job = payload[:job]
           execution = payload[:execution] || payload[:good_job_execution]
           exception = payload[:exception] || payload[:error]
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
           base_fields = build_base_fields(job, payload)
 
           logger.error(Log::GoodJob::Error.new(
@@ -125,7 +126,7 @@ module LogStruct
           payload = T.let(event.payload, T::Hash[Symbol, T.untyped])
           job = payload[:job]
           base_fields = build_base_fields(job, payload)
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
 
           logger.info(Log::GoodJob::Schedule.new(
             **base_fields.to_kwargs,

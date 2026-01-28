@@ -6,6 +6,7 @@ require_relative "../../enums/source"
 require_relative "../../enums/event"
 require_relative "../../log/active_job"
 require_relative "../../log/error"
+require_relative "../event_time"
 
 module LogStruct
   module Integrations
@@ -17,7 +18,7 @@ module LogStruct
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def enqueue(event)
           job = T.cast(event.payload[:job], ::ActiveJob::Base)
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
           base_fields = build_base_fields(job)
           logger.info(Log::ActiveJob::Enqueue.new(
             **base_fields.to_kwargs,
@@ -28,7 +29,7 @@ module LogStruct
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def enqueue_at(event)
           job = T.cast(event.payload[:job], ::ActiveJob::Base)
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
           base_fields = build_base_fields(job)
           logger.info(Log::ActiveJob::Schedule.new(
             **base_fields.to_kwargs,
@@ -46,10 +47,8 @@ module LogStruct
             # Log the exception with the job context
             log_exception(exception, job, event)
           else
-            start_float = event.time
-            end_float = event.end
-            ts = start_float ? Time.at(start_float) : Time.now
-            finished_at = end_float ? Time.at(end_float) : Time.now
+            ts = EventTime.coerce_event_time(event.time)
+            finished_at = EventTime.coerce_event_time(event.end)
             base_fields = build_base_fields(job)
             logger.info(Log::ActiveJob::Finish.new(
               **base_fields.to_kwargs,
@@ -63,7 +62,7 @@ module LogStruct
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def perform_start(event)
           job = T.cast(event.payload[:job], ::ActiveJob::Base)
-          ts = event.time ? Time.at(event.time) : Time.now
+          ts = EventTime.coerce_event_time(event.time)
           started_at = ts
           attempt = job.executions
           base_fields = build_base_fields(job)

@@ -41,7 +41,8 @@ module ActiveSupport
           hash = T.unsafe(data).serialize
           tags.present? ? hash.merge(tags: tags) : hash
         else
-          tags.present? ? {message: data.to_s, tags: tags} : {message: data.to_s}
+          base = {LogStruct::LogField::Message.serialize => data.to_s}
+          tags.present? ? base.merge(tags: tags) : base
         end
 
         # Delegate to LogStruct::Formatter for JSON serialization with filtering

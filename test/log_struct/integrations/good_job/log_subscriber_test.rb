@@ -106,6 +106,34 @@ module LogStruct
           assert_equal "success", log["result"]
         end
 
+        test "converts monotonic event times to wall clock" do
+          clear_log_buffer(@log_output)
+
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          finish_time = start_time + 0.25
+          event_data = create_test_event({
+            job: create_mock_job("CompletedJob", "job_789", "default"),
+            execution: create_mock_execution(executions: 1),
+            duration: 0.25,
+            result: "success"
+          },
+            start_time: start_time,
+            finish_time: finish_time)
+
+          @subscriber.finish(event_data)
+          ::SemanticLogger.flush
+
+          output = @log_output.string
+          log = JSON.parse(output.lines.first.strip)
+
+          now = ::Time.now
+          ts = ::Time.iso8601(log["ts"])
+          finished_at = ::Time.iso8601(log["finished_at"])
+
+          assert_in_delta now.to_f, ts.to_f, 5.0
+          assert_in_delta now.to_f, finished_at.to_f, 5.0
+        end
+
         test "error event creates proper log entry" do
           clear_log_buffer(@log_output)
 
@@ -240,10 +268,10 @@ module LogStruct
 
         private
 
-        def create_test_event(payload_data)
-          start = Time.now.to_f
+        def create_test_event(payload_data, start_time: nil, finish_time: nil)
           duration = payload_data[:duration] || 0.0
-          finish = start + duration
+          start = start_time || Time.now.to_f
+          finish = finish_time || start + duration
           ActiveSupport::Notifications::Event.new(
             "good_job.test",
             start,

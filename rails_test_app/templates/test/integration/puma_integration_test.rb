@@ -3,6 +3,7 @@
 require "test_helper"
 require "open3"
 require "timeout"
+require "net/http"
 
 class PumaIntegrationTest < ActiveSupport::TestCase
   # Test that running `puma` directly (without `rails server`) auto-enables LogStruct
@@ -167,6 +168,120 @@ class PumaIntegrationTest < ActiveSupport::TestCase
       assert_equal "puma", shutdown["src"]
       assert_equal "info", shutdown["lvl"]
       assert_kind_of Integer, shutdown["pid"]
+    end
+  end
+
+  def test_puma_cluster_mode_emits_request_logs
+    port = 32125
+    env = {
+      "RAILS_ENV" => "test",
+      "RAILS_LOG_TO_STDOUT" => "1",
+      "LOGSTRUCT_ENABLED" => "true",
+      "SECRET_KEY_BASE" => "test_secret_key_base_for_production_mode_1234567890"
+    }
+    cmd = ["bundle", "exec", "puma", "-p", port.to_s, "-e", "test", "-w", "2", "--preload"]
+
+    Open3.popen3(env, *cmd) do |stdin, stdout, stderr, wait_thr|
+      stdin.close
+      lines = T.let([], T::Array[String])
+      err_lines = T.let([], T::Array[String])
+      mutex = Mutex.new
+      ready = T.let(false, T::Boolean)
+      handle_line = lambda do |stripped|
+        should_parse = T.let(false, T::Boolean)
+        mutex.synchronize do
+          lines << stripped
+          if stripped.include?("Listening on")
+            ready = true
+          elsif stripped.start_with?("{")
+            should_parse = true
+          end
+        end
+        return unless should_parse
+
+        begin
+          data = JSON.parse(stripped)
+        rescue JSON::ParserError
+          data = nil
+        end
+
+        return unless data.is_a?(Hash)
+
+        mutex.synchronize do
+          if data["src"] == "puma" && data["evt"] == "start"
+            ready = true
+          end
+        end
+      end
+
+      stdout_thread = Thread.new do
+        while (line = stdout.gets)
+          stripped = line.strip
+          handle_line.call(stripped)
+        end
+      end
+
+      stderr_thread = Thread.new do
+        while (line = stderr.gets)
+          stripped = line.strip
+          mutex.synchronize { err_lines << stripped }
+          handle_line.call(stripped)
+        end
+      end
+
+      begin
+        Timeout.timeout(20) do
+          loop do
+            break if mutex.synchronize { ready }
+            sleep 0.05
+          end
+        end
+
+        response = Net::HTTP.get_response(URI("http://127.0.0.1:#{port}/logging/request"))
+
+        assert_equal "200", response.code
+
+        found = T.let(false, T::Boolean)
+        Timeout.timeout(10) do
+          loop do
+            snapshot = mutex.synchronize { lines.dup }
+            snapshot.each do |entry|
+              next unless entry.start_with?("{")
+              begin
+                data = JSON.parse(entry)
+              rescue JSON::ParserError
+                next
+              end
+              if data["evt"] == "request" && data["path"] == "/logging/request"
+                found = true
+                break
+              end
+            end
+            break if found
+            sleep 0.05
+          end
+        end
+
+        unless found
+          stdout_output = mutex.synchronize { lines.join("\n") }
+          stderr_output = mutex.synchronize { err_lines.join("\n") }
+
+          flunk("Expected request log from cluster-mode puma. STDOUT:\n#{stdout_output}\nSTDERR:\n#{stderr_output}")
+        end
+      ensure
+        begin
+          Process.kill("TERM", wait_thr.pid)
+        rescue Errno::ESRCH
+          nil
+        end
+        begin
+          Timeout.timeout(10) { wait_thr.value }
+        rescue Timeout::Error
+          nil
+        end
+        stdout_thread.join(2)
+        stderr_thread.join(2)
+      end
     end
   end
 end

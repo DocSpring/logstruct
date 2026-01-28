@@ -17,10 +17,13 @@ module LogStruct
         sig { params(env: T.untyped).returns(T.untyped) }
         def call(env)
           request = ::ActionDispatch::Request.new(env)
-          ::SemanticLogger.push_named_tags(request_id: request.request_id)
+          request_id = request.request_id
+          Thread.current[:logstruct_request_id] = request_id
+          ::SemanticLogger.push_named_tags(request_id: request_id)
           @app.call(env)
         ensure
           ::SemanticLogger.pop_named_tags
+          Thread.current[:logstruct_request_id] = nil
         end
       end
     end

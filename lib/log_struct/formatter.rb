@@ -190,6 +190,10 @@ module LogStruct
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = level_enum # Set level from severity parameter
       data[:prog] = progname if progname.present?
+      request_id = Thread.current[:logstruct_request_id]
+      if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
+        data[:req_id] = request_id
+      end
 
       generate_json(data)
     end

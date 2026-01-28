@@ -36,7 +36,10 @@ module LogStruct
 
         output = @output.string
 
-        assert_includes output, "message"
+        parsed = parse_first_json(output)
+
+        assert_equal "Test message", parsed["msg"]
+        refute parsed.key?("message")
       end
 
       def test_passes_through_hash_data_when_enabled
@@ -128,6 +131,19 @@ module LogStruct
           "Output must NOT have symbol :tags key")
       end
 
+      def test_includes_request_id_from_thread_local
+        LogStruct.config.enabled = true
+        Thread.current[:logstruct_request_id] = "req-123"
+
+        @tagged_logger.info("Test message")
+
+        parsed = parse_first_json(@output.string)
+
+        assert_equal "req-123", parsed["req_id"]
+      ensure
+        Thread.current[:logstruct_request_id] = nil
+      end
+
       def test_tagged_output_is_not_ruby_hash_inspect_format
         LogStruct.config.enabled = true
 
@@ -148,6 +164,20 @@ module LogStruct
         refute_match(/\{message:.*tags:/,
           output,
           "Must NOT output {message: ..., tags: ...} Ruby inspect format")
+
+        parsed = parse_first_json(output)
+
+        assert_equal "Rendered SubmissionSerializer with Attributes (14.12ms)", parsed["msg"]
+        refute parsed.key?("message")
+      end
+
+      private
+
+      def parse_first_json(output)
+        line = output.lines.find { |log_line| log_line.strip.start_with?("{") }
+
+        assert line, "Expected JSON log output, got: #{output}"
+        JSON.parse(line)
       end
     end
   end

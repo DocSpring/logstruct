@@ -116,6 +116,13 @@ module LogStruct
               ev = T.unsafe(::Object.const_get("Puma::Events"))
               ev.prepend(EventsPatch)
             end
+            if puma_mod&.const_defined?(:Cluster)
+              cluster_mod = T.cast(puma_mod.const_get(:Cluster), Module)
+              if cluster_mod.const_defined?(:Worker)
+                worker_class = T.cast(cluster_mod.const_get(:Worker), T::Class[T.anything])
+                worker_class.prepend(ClusterWorkerPatch)
+              end
+            end
             # Patch Rack::Handler::Puma.run to emit lifecycle logs using options
             if ::Object.const_defined?(:Rack)
               rack_mod = T.unsafe(::Object.const_get(:Rack))
@@ -386,6 +393,20 @@ module LogStruct
         def log(str)
           consumed = ::LogStruct::Integrations::Puma.process_line(str)
           super unless consumed
+        end
+      end
+
+      module ClusterWorkerPatch
+        extend T::Sig
+
+        sig { returns(T.untyped) }
+        def run
+          begin
+            ::SemanticLogger.reopen
+          rescue => e
+            ::LogStruct::Integrations::Puma.handle_integration_error(e)
+          end
+          super
         end
       end
 
