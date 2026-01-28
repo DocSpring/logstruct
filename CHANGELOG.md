@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.11] - 2026-01-28
+
+### Changed
+
+- **Dev**: Added jscpd task/config and refactored repeated helpers in tests and codegen
+
+### Fixed
+
+- **Fix**: Restore request logs in Puma cluster mode by reopening SemanticLogger in forked workers
+- **Fix**: Normalize ActiveJob and GoodJob timestamps to real wall clock time
+- **Fix**: Tagged logging now emits `msg` instead of `message` for AMS-style logs
+
 ## [0.1.10] - 2026-01-23
 
 ### Added
