@@ -55,7 +55,7 @@ module LogStruct
 
     def test_report_error_with_sentry_error_fallback
       # Skip if Sentry is not defined
-      skip "Sentry is not available" unless defined?(::Sentry)
+      raise "Sentry is not available" unless defined?(::Sentry)
 
       # Create a log mock to verify LogStruct.error was called correctly
       log_mock = Minitest::Mock.new

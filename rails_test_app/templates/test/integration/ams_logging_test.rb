@@ -16,7 +16,7 @@ class AmsLoggingTest < ActionDispatch::IntegrationTest
   # This test reproduces the production bug where AMS logs look like:
   # [active_model_serializers] {message: "Rendered SubmissionSerializer...", tags: ["active_model_serializers"]}
   def test_ams_logs_are_not_ruby_hash_inspect_format
-    skip "AMS not available" unless defined?(::ActiveModelSerializers)
+    raise "AMS not available" unless defined?(::ActiveModelSerializers)
 
     # Trigger an AMS serialization by rendering a serialized response
     # (Need to add an endpoint that uses AMS)
@@ -57,7 +57,7 @@ class AmsLoggingTest < ActionDispatch::IntegrationTest
   end
 
   def test_ams_logs_do_not_pollute_with_default_format
-    skip "AMS not available" unless defined?(::ActiveModelSerializers)
+    raise "AMS not available" unless defined?(::ActiveModelSerializers)
 
     # Capture both SemanticLogger output and stdout
     original_stdout = $stdout

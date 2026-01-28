@@ -272,6 +272,7 @@ if !skip_app_creation
     gem "benchmark"
     gem "dotenv-rails"
     gem "shrine", "~> 3.6"
+    gem "active_model_serializers", "~> 0.10.16"
 
     # Test gems
     group :test do
@@ -300,8 +301,6 @@ if !skip_app_creation
     end
     integration_gems << ahoy_line if ahoy_line
 
-    # ActiveModelSerializers works across 7.x/8.x
-    integration_gems << "gem \"active_model_serializers\", \"~> 0.10.13\""
   end
 
   unless integration_gems.empty?
