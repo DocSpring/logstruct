@@ -76,4 +76,40 @@ class AmsLoggingTest < ActionDispatch::IntegrationTest
       stdout_output,
       "AMS default log format should not appear in stdout")
   end
+
+  def test_ams_logs_adapter_class_name_not_serialized_output
+    raise "AMS not available" unless defined?(::ActiveModelSerializers)
+
+    get "/logging/ams"
+
+    ::SemanticLogger.flush
+    @log_output.rewind
+    output = @log_output.read.to_s
+
+    # Find the AMS log line
+    ams_lines = output.lines.select { |line| line.include?('"msg":"ams.render"') }
+
+    assert_predicate ams_lines, :any?, "Expected to find ams.render log line, got:\n#{output}"
+
+    ams_line = ams_lines.first
+    parsed = JSON.parse(ams_line)
+
+    # serializer should be the class name
+    assert_equal "UserSerializer",
+      parsed["serializer"],
+      "Expected serializer to be 'UserSerializer', got: #{parsed["serializer"]}"
+
+    # adapter should be the adapter CLASS NAME, not serialized output
+    adapter = parsed["adapter"]
+
+    assert_kind_of String, adapter, "adapter should be a string"
+    assert_match(/^ActiveModelSerializers::Adapter::/,
+      adapter,
+      "adapter should be an AMS adapter class name like 'ActiveModelSerializers::Adapter::Attributes', got: #{adapter.inspect}")
+
+    # MUST NOT contain serialized user data (the bug we're fixing)
+    refute_includes adapter,
+      "AMS Test User",
+      "adapter field MUST NOT contain serialized output"
+  end
 end

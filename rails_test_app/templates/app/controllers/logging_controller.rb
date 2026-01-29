@@ -145,6 +145,12 @@ class LoggingController < ApplicationController
     render json: {status: "ok", message: "Stack-safe error handling test completed"}
   end
 
+  # AMS serialization - triggers ActiveModelSerializers instrumentation
+  def test_ams_serialization
+    user = User.create!(name: "AMS Test User", email: "ams@example.com")
+    render json: user, serializer: UserSerializer
+  end
+
   # Shrine file upload - triggers Shrine instrumentation logging
   def test_shrine_upload
     document = Document.create_with_shrine_file(

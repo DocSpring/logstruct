@@ -31,8 +31,8 @@ module LogStruct
           LogStruct.info(
             LogStruct::Log::ActiveModelSerializers.new(
               message: "ams.render",
-              serializer: serializer&.to_s,
-              adapter: adapter&.to_s,
+              serializer: serializer&.name,
+              adapter: adapter&.class&.name,
               resource_class: resource&.class&.name,
               duration_ms: duration_ms,
               timestamp: started

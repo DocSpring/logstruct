@@ -22,17 +22,25 @@ module LogStruct
       test "subscribes to AMS notifications and emits structured log" do
         logs = []
         LogStruct.stub(:info, ->(log) { logs << log }) do
-          serializer = Class.new do
-            def self.to_s
+          serializer_class = Class.new do
+            def self.name
               "UserSerializer"
             end
           end
+
+          adapter_class = Class.new do
+            def self.name
+              "ActiveModelSerializers::Adapter::Json"
+            end
+          end
+          adapter_instance = adapter_class.new
+
           resource = OpenStruct.new(id: 1)
 
           ActiveSupport::Notifications.instrument(
             "render.active_model_serializers",
-            serializer: serializer,
-            adapter: :json,
+            serializer: serializer_class,
+            adapter: adapter_instance,
             resource: resource
           ) { sleep 0.001 }
         end
@@ -47,7 +55,7 @@ module LogStruct
         assert_equal "generate", json["evt"]
         assert_equal "ams.render", json["msg"]
         assert_equal "UserSerializer", json["serializer"]
-        assert_equal "json", json["adapter"]
+        assert_equal "ActiveModelSerializers::Adapter::Json", json["adapter"]
         assert_equal "OpenStruct", json["resource_class"]
         assert_in_delta 0.0, json["duration_ms"], 50.0
       end
