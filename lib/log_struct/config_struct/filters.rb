@@ -88,11 +88,32 @@ module LogStruct
       # Default: false
       prop :mac_addresses, T::Boolean, default: false
 
+      # Default regex pattern for matching sensitive keys.
+      # Matches keys containing: password, token, secret, auth, cred
+      # Also matches specific key patterns: api_key, secret_key, private_key, access_key, encryption_key
+      # Examples: access_token, api_key, auth_header, credentials
+      # Uses start/end of string or underscore/hyphen boundaries to prevent
+      # false positives like "keyboard" or "turkey" (which contain "key" mid-word)
+      # Note: "key" alone is too broad (matches cron_key, primary_key), so we only match
+      # specific sensitive key patterns
+      DEFAULT_SENSITIVE_KEY_PATTERN = T.let(
+        /(^|[_-])(password|token|secret|auth|cred)([_-]|$)|(^|[_-])(api|secret|private|access|encryption)_key([_-]|$)/i,
+        Regexp
+      )
+
       # Additional filter matchers built from Rails filter_parameters entries that aren't simple symbols.
       # Each matcher receives the key (String) and optional value, returning true when the pair should be filtered.
+      # By default, includes a regex matcher for common sensitive key patterns.
       prop :filter_matchers,
         T::Array[FilterMatcher],
-        factory: -> { [] }
+        factory: -> {
+          [
+            FilterMatcher.new(
+              callable: ->(key, _value) { DEFAULT_SENSITIVE_KEY_PATTERN.match?(key) },
+              label: "default_sensitive_pattern"
+            )
+          ]
+        }
     end
   end
 end

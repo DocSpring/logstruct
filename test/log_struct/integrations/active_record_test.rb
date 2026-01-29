@@ -293,6 +293,58 @@ module LogStruct
         assert_includes T.must(log).bind_params, 123
       end
 
+      test "filters JWT tokens in bind parameters" do
+        LogStruct.config.integrations.sql_log_bind_params = true
+        setup_activerecord_for_test
+
+        # Real-looking JWT token (header.payload.signature format, starts with "ey")
+        # cspell:disable-next-line
+        jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+        logged_events = []
+        LogStruct.stub(:info, ->(log) { logged_events << log }) do
+          simulate_sql_notification(
+            binds: [jwt_token, "normal_value"],
+            type_casted_binds: [jwt_token, "normal_value"]
+          )
+        end
+
+        assert_equal 1, logged_events.size
+        log = T.let(logged_events.first, T.nilable(LogStruct::Log::SQL))
+
+        assert_not_nil log
+
+        # JWT token should be filtered
+        assert_includes T.must(log).bind_params, "[FILTERED]"
+        # Normal value should pass through
+        assert_includes T.must(log).bind_params, "normal_value"
+      end
+
+      test "filters Bearer tokens in bind parameters" do
+        LogStruct.config.integrations.sql_log_bind_params = true
+        setup_activerecord_for_test
+
+        bearer_token = "Bearer abc123def456"
+
+        logged_events = []
+        LogStruct.stub(:info, ->(log) { logged_events << log }) do
+          simulate_sql_notification(
+            binds: [bearer_token, "safe_value"],
+            type_casted_binds: [bearer_token, "safe_value"]
+          )
+        end
+
+        assert_equal 1, logged_events.size
+        log = T.let(logged_events.first, T.nilable(LogStruct::Log::SQL))
+
+        assert_not_nil log
+
+        # Bearer token should be filtered
+        assert_includes T.must(log).bind_params, "[FILTERED]"
+        # Safe value should pass through
+        assert_includes T.must(log).bind_params, "safe_value"
+      end
+
       test "excludes bind parameters when disabled" do
         LogStruct.config.integrations.sql_log_bind_params = false
         setup_activerecord_for_test

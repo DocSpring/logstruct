@@ -281,6 +281,12 @@ module LogStruct
         return true if value.match?(/\A[A-Za-z0-9+\/]{20,}={0,2}\z/)  # Base64
         return true if value.match?(/(password|secret|token|key|auth)/i)
 
+        # Filter JWT tokens (header.payload.signature format, starts with "ey")
+        return true if value.match?(/\Aey[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\z/)
+
+        # Filter Bearer tokens
+        return true if value.match?(/\ABearer\s+/i)
+
         false
       end
     end
