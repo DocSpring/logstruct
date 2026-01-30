@@ -278,23 +278,8 @@ module LogStruct
           Object.const_set(:NoLogArgsJob, job_class)
 
           begin
-            # Create a mock job where job.class returns the actual job class
-            # rubocop:disable Sorbet/ConstantsFromStrings
-            klass = Object.const_get(:NoLogArgsJob)
-            # rubocop:enable Sorbet/ConstantsFromStrings
-            job = create_mock_job_with_class(klass, "job_123", "default")
-            event_data = create_test_event({
-              job: job,
-              duration: 0.1
-            })
+            log = run_enqueue_with_job_class(:NoLogArgsJob)
 
-            @subscriber.enqueue(event_data)
-            ::SemanticLogger.flush
-
-            output = @log_output.string
-            log = JSON.parse(output.lines.first.strip)
-
-            # Arguments should not be present when log_arguments? returns false
             refute log.key?("arguments")
           ensure
             Object.send(:remove_const, :NoLogArgsJob)
@@ -333,23 +318,8 @@ module LogStruct
           Object.const_set(:LogArgsJob, job_class)
 
           begin
-            # Create a mock job where job.class returns the actual job class
-            # rubocop:disable Sorbet/ConstantsFromStrings
-            klass = Object.const_get(:LogArgsJob)
-            # rubocop:enable Sorbet/ConstantsFromStrings
-            job = create_mock_job_with_class(klass, "job_123", "default")
-            event_data = create_test_event({
-              job: job,
-              duration: 0.1
-            })
+            log = run_enqueue_with_job_class(:LogArgsJob)
 
-            @subscriber.enqueue(event_data)
-            ::SemanticLogger.flush
-
-            output = @log_output.string
-            log = JSON.parse(output.lines.first.strip)
-
-            # Arguments should be present when log_arguments? returns true
             assert log.key?("arguments")
             assert_equal ["arg1", "arg2"], log["arguments"]
           ensure
@@ -399,6 +369,18 @@ module LogStruct
             mock.define_singleton_method(key) { value }
           end
           mock
+        end
+
+        # Run an enqueue event with a job class that has log_arguments? method and return the parsed log
+        def run_enqueue_with_job_class(job_class)
+          # rubocop:disable Sorbet/ConstantsFromStrings
+          klass = Object.const_get(job_class)
+          # rubocop:enable Sorbet/ConstantsFromStrings
+          job = create_mock_job_with_class(klass, "job_123", "default")
+          event_data = create_test_event({job: job, duration: 0.1})
+          @subscriber.enqueue(event_data)
+          ::SemanticLogger.flush
+          JSON.parse(@log_output.string.lines.first.strip)
         end
 
         def create_mock_execution(attributes = {})
