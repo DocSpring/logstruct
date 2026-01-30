@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.12] - 2026-01-30
+
+### Added
+
+- **Security**: Default regex filter matchers for sensitive keys (password, token, secret, auth, cred, api_key, etc.)
+- **Security**: Job argument filtering for GoodJob/ActiveJob - respects `log_arguments?` class method
+- **Security**: SQL bind parameter filtering now detects JWT tokens and Bearer tokens
+
+### Fixed
+
+- **Security**: Reserved keys (src, evt, lvl, ts) in `additional_data` are now protected from being overwritten
+- **CI**: Fixed Ruby 4.0 bundler security error on GitHub Actions (world-writable gem directory)
+
 ## [0.1.11] - 2026-01-28
 
 ### Changed
