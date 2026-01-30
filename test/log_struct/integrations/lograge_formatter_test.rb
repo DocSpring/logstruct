@@ -180,6 +180,41 @@ module LogStruct
 
         assert_equal "payload-request-id", options[:request_id]
       end
+
+      def test_additional_data_cannot_overwrite_reserved_keys
+        # Reserved keys are: src, evt, lvl, ts
+        data = {
+          method: "GET",
+          path: "/users",
+          status: 200,
+          duration: 12.34,
+          # These should be in additional_data but NOT overwrite the real values
+          src: "attacker",
+          evt: "spoofed",
+          lvl: "fake",
+          ts: "2000-01-01T00:00:00Z"
+        }
+
+        exceptions_reported = []
+        LogStruct.stub(:handle_exception, ->(exc, source:) { exceptions_reported << [exc, source] }) do
+          log = @formatter.call(data)
+          json_hash = log.serialize
+
+          # Reserved keys should retain their real values
+          assert_equal "rails", json_hash[:src]
+          assert_equal "request", json_hash[:evt]
+          assert_equal "info", json_hash[:lvl]
+          refute_equal "2000-01-01T00:00:00Z", json_hash[:ts]
+        end
+
+        # Should have reported 4 exceptions (one for each reserved key attempted)
+        assert_equal 4, exceptions_reported.size
+        exceptions_reported.each do |exc, source|
+          assert_kind_of ArgumentError, exc
+          assert_match(/additional_data attempted to overwrite reserved key/, exc.message)
+          assert_equal LogStruct::Source::Internal, source
+        end
+      end
     end
   end
 end

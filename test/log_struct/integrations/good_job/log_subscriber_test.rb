@@ -266,6 +266,67 @@ module LogStruct
           assert_nil wait_time
         end
 
+        test "respects log_arguments? when job class opts out" do
+          clear_log_buffer(@log_output)
+
+          # Create a job class that opts out of logging arguments
+          job_class = Class.new do
+            def self.log_arguments?
+              false
+            end
+          end
+          Object.const_set(:NoLogArgsJob, job_class)
+
+          begin
+            log = run_enqueue_with_job_class(:NoLogArgsJob)
+
+            refute log.key?("arguments")
+          ensure
+            Object.send(:remove_const, :NoLogArgsJob)
+          end
+        end
+
+        test "logs arguments by default when job class does not define log_arguments?" do
+          clear_log_buffer(@log_output)
+
+          # Standard job without log_arguments? defined - should log arguments
+          job = create_mock_job("StandardJob", "job_123", "default")
+          event_data = create_test_event({
+            job: job,
+            duration: 0.1
+          })
+
+          @subscriber.enqueue(event_data)
+          ::SemanticLogger.flush
+
+          output = @log_output.string
+          log = JSON.parse(output.lines.first.strip)
+
+          # Arguments should be present by default
+          assert log.key?("arguments")
+          assert_equal ["arg1", "arg2"], log["arguments"]
+        end
+
+        test "logs arguments when job class log_arguments? returns true" do
+          clear_log_buffer(@log_output)
+
+          job_class = Class.new do
+            def self.log_arguments?
+              true
+            end
+          end
+          Object.const_set(:LogArgsJob, job_class)
+
+          begin
+            log = run_enqueue_with_job_class(:LogArgsJob)
+
+            assert log.key?("arguments")
+            assert_equal ["arg1", "arg2"], log["arguments"]
+          ensure
+            Object.send(:remove_const, :LogArgsJob)
+          end
+        end
+
         private
 
         def create_test_event(payload_data, start_time: nil, finish_time: nil)
@@ -291,6 +352,35 @@ module LogStruct
             scheduled_at: nil,
             enqueue_caller_location: nil
           }.merge(extra_attributes))
+        end
+
+        # Create a mock job where job.class returns the actual job class (for testing log_arguments?)
+        def create_mock_job_with_class(klass, job_id, queue_name, extra_attributes = {})
+          mock = Object.new
+          mock.define_singleton_method(:class) { klass }
+          mock.define_singleton_method(:job_class) { klass.name }
+          mock.define_singleton_method(:job_id) { job_id }
+          mock.define_singleton_method(:queue_name) { queue_name }
+          mock.define_singleton_method(:arguments) { ["arg1", "arg2"] }
+          mock.define_singleton_method(:priority) { 0 }
+          mock.define_singleton_method(:scheduled_at) { nil }
+          mock.define_singleton_method(:enqueue_caller_location) { nil }
+          extra_attributes.each do |key, value|
+            mock.define_singleton_method(key) { value }
+          end
+          mock
+        end
+
+        # Run an enqueue event with a job class that has log_arguments? method and return the parsed log
+        def run_enqueue_with_job_class(job_class)
+          # rubocop:disable Sorbet/ConstantsFromStrings
+          klass = Object.const_get(job_class)
+          # rubocop:enable Sorbet/ConstantsFromStrings
+          job = create_mock_job_with_class(klass, "job_123", "default")
+          event_data = create_test_event({job: job, duration: 0.1})
+          @subscriber.enqueue(event_data)
+          ::SemanticLogger.flush
+          JSON.parse(@log_output.string.lines.first.strip)
         end
 
         def create_mock_execution(attributes = {})

@@ -148,9 +148,19 @@ module LogStruct
             job_id: job&.job_id,
             job_class: job&.job_class,
             queue_name: job&.queue_name&.to_sym,
-            arguments: job&.arguments,
+            arguments: safe_arguments(job),
             executions: execution&.executions
           )
+        end
+
+        # Respect log_arguments? setting on job classes (consistent with ActiveJob behavior).
+        # Arguments are logged by default but can be opted-out per job class.
+        # When logged, sensitive keys are filtered by Formatter.process_values.
+        sig { params(job: T.untyped).returns(T.nilable(T::Array[T.untyped])) }
+        def safe_arguments(job)
+          return nil unless job
+          return job.arguments unless job.class.respond_to?(:log_arguments?)
+          job.class.log_arguments? ? job.arguments : nil
         end
 
         # Calculate wait time from job creation to execution start

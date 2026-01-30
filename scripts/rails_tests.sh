@@ -75,6 +75,10 @@ export RUBYOPT="-W0"
 # Set CI=true so LogStruct is enabled for integration tests
 export CI=true
 
+# Install gems locally to avoid issues with world-writable system gem directories on CI
+# (Ruby 4.0 bundler rejects reinstalling gems in world-writable directories for security)
+export BUNDLE_PATH="$TEST_APP_DIR/vendor/bundle"
+
 # Install gems for the test app under the selected Ruby
 bundle install
 

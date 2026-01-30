@@ -132,6 +132,9 @@ clean_env = {
   "BUNDLER_SETUP" => nil,
   "GEM_HOME" => nil,
   "GEM_PATH" => nil,
+  # Install gems locally to avoid issues with world-writable system gem directories on CI
+  # (Ruby 4.0 bundler rejects reinstalling gems in world-writable directories for security)
+  "BUNDLE_PATH" => File.join(RAILS_APP_DIR, "vendor", "bundle"),
   # Silence noisy warnings from duplicate gems during generator execution
   "RUBYOPT" => "-W0"
 }

@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-rake coverage:merge
+bundle exec rake coverage:merge

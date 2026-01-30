@@ -103,5 +103,51 @@ module LogStruct
 
       assert_equal Integer, s5[:_class]
     end
+
+    test "default regex filter matcher catches common sensitive key patterns" do
+      # Reset config to use fresh defaults (with default filter_matchers)
+      LogStruct.configuration = LogStruct::Configuration.new
+
+      # Should filter keys containing sensitive patterns with word boundaries
+      assert ParamFilters.should_filter_key?(:access_token)
+      assert ParamFilters.should_filter_key?(:refresh_token)
+      assert ParamFilters.should_filter_key?(:api_key)
+      assert ParamFilters.should_filter_key?(:private_key)
+      assert ParamFilters.should_filter_key?(:secret_key)
+      assert ParamFilters.should_filter_key?(:access_key)
+      assert ParamFilters.should_filter_key?(:encryption_key)
+      assert ParamFilters.should_filter_key?(:client_secret)
+      assert ParamFilters.should_filter_key?(:auth_header)
+      assert ParamFilters.should_filter_key?(:auth_token)
+      assert ParamFilters.should_filter_key?(:credentials)
+      assert ParamFilters.should_filter_key?(:password_hash)
+
+      # Case insensitive
+      assert ParamFilters.should_filter_key?(:ACCESS_TOKEN)
+      assert ParamFilters.should_filter_key?(:Api_Key)
+    end
+
+    test "default regex filter matcher does not match false positives" do
+      # Reset config to use fresh defaults (with default filter_matchers)
+      LogStruct.configuration = LogStruct::Configuration.new
+
+      # Word boundaries should prevent these false positives
+      refute ParamFilters.should_filter_key?(:keyboard)
+      refute ParamFilters.should_filter_key?(:turkey)
+      refute ParamFilters.should_filter_key?(:monkey)
+      refute ParamFilters.should_filter_key?(:hockey)
+      refute ParamFilters.should_filter_key?(:credenza)
+
+      # "key" alone is too broad - these should NOT be filtered
+      refute ParamFilters.should_filter_key?(:cron_key)
+      refute ParamFilters.should_filter_key?(:primary_key)
+      refute ParamFilters.should_filter_key?(:foreign_key)
+      refute ParamFilters.should_filter_key?(:unique_key)
+
+      # Normal fields should not be filtered
+      refute ParamFilters.should_filter_key?(:username)
+      refute ParamFilters.should_filter_key?(:email_address)
+      refute ParamFilters.should_filter_key?(:first_name)
+    end
   end
 end
