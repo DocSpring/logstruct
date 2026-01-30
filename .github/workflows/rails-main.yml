@@ -9,6 +9,8 @@ jobs:
   rails-main:
     name: Rails main integration tests
     runs-on: ubuntu-22.04
+    env:
+      RUBY_VERSION: '4.0.1'
     steps:
       - uses: actions/checkout@v4
 
