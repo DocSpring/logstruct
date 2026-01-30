@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Remove Gemfile.lock for variable Ruby/Rails versions
+        run: rm -f Gemfile.lock
+
       - name: Setup Ruby 4.0.1
         uses: ruby/setup-ruby@v1
         with:
