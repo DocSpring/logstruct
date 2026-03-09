@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "lograge", ">= 0.11"
-  spec.add_dependency "rails", ">= 7.1"
+  spec.add_dependency "railties", ">= 7.1"
   spec.add_dependency "semantic_logger", "~> 4.15"
   spec.add_dependency "sorbet-runtime", ">= 0.5"
 

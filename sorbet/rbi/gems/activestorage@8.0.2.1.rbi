@@ -10,7 +10,6 @@ class ActiveRecord::Base
   include ::ActiveModel::AttributeAssignment
   include ::ActiveModel::Access
   include ::ActiveModel::Serialization
-  extend ::CarrierWave::Mount
 
   # source://activesupport/8.0.2.1/lib/active_support/callbacks.rb#69
   def __callbacks; end
@@ -2459,9 +2458,6 @@ class ActiveStorage::BaseController < ::ActionController::Base
   def _layout(lookup_context, formats, keys); end
 
   class << self
-    # source://actionpack/8.0.2.1/lib/action_dispatch/routing/route_set.rb#612
-    def _routes; end
-
     private
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
@@ -2475,12 +2471,6 @@ class ActiveStorage::BaseController < ::ActionController::Base
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
     def __class_attr_etag_with_template_digest=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
@@ -2517,12 +2507,6 @@ class ActiveStorage::Blobs::ProxyController < ::ActiveStorage::BaseController
     def __class_attr___callbacks=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
@@ -2548,12 +2532,6 @@ class ActiveStorage::Blobs::RedirectController < ::ActiveStorage::BaseController
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
     def __class_attr___callbacks=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
@@ -2596,12 +2574,6 @@ class ActiveStorage::DirectUploadsController < ::ActiveStorage::BaseController
     private
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
@@ -2637,12 +2609,6 @@ class ActiveStorage::DiskController < ::ActiveStorage::BaseController
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
     def __class_attr___callbacks=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
@@ -3242,12 +3208,6 @@ class ActiveStorage::Representations::BaseController < ::ActiveStorage::BaseCont
     def __class_attr___callbacks=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
@@ -3278,12 +3238,6 @@ class ActiveStorage::Representations::ProxyController < ::ActiveStorage::Represe
     def __class_attr___callbacks=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
@@ -3301,12 +3255,6 @@ class ActiveStorage::Representations::RedirectController < ::ActiveStorage::Repr
 
   class << self
     private
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
-    def __class_attr_helpers_path; end
-
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
-    def __class_attr_helpers_path=(new_value); end
 
     # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
     def __class_attr_middleware_stack; end

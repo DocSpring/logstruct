@@ -6,3 +6,4 @@
 --ignore=reference/
 --ignore=rails_test_app/
 --enable-experimental-requires-ancestor
+--suppress-payload-superclass-redefinition-for=Net::IMAP::CommandData
