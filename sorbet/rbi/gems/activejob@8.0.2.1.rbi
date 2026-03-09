@@ -189,7 +189,6 @@ class ActiveJob::Base
   include ::ActiveJob::Logging
   include ::ActiveJob::Timezones
   include ::ActiveJob::Translation
-  include ::Bugsnag::Rails::ActiveJob
   include ::Sidekiq::Job::Options
   include ::ActiveJob::TestHelper::TestQueueAdapter
   extend ::ActiveJob::Core::ClassMethods

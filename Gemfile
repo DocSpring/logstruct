@@ -11,9 +11,22 @@ unless ENV["RUBY_VERSION"]
   ruby File.read(File.expand_path(".ruby-version", __dir__)).strip
 end
 
-# Use a stable Rails for gem development/test environment.
+# Use a stable Railties for gem development/test environment.
 # Rails version for the generated test app is controlled by RAILS_VERSION in rails_tests.
-gem "rails", "~> 8.0.2.1", require: false
+gem "railties", "~> 8.0.2.1", require: false
+
+# Individual Rails components needed for testing integrations
+gem "activesupport", "~> 8.0.2.1", require: false
+gem "actionpack", "~> 8.0.2.1", require: false
+gem "actionview", "~> 8.0.2.1", require: false
+gem "activemodel", "~> 8.0.2.1", require: false
+gem "activerecord", "~> 8.0.2.1", require: false
+gem "activejob", "~> 8.0.2.1", require: false
+gem "actionmailer", "~> 8.0.2.1", require: false
+gem "activestorage", "~> 8.0.2.1", require: false
+gem "actioncable", "~> 8.0.2.1", require: false
+gem "actiontext", "~> 8.0.2.1", require: false
+gem "globalid", "~> 1.2", require: false
 
 # Add these gems to silence Ruby 3.4+ warnings
 gem "bigdecimal"
