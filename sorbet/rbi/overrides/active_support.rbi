@@ -6,7 +6,6 @@ module ActiveSupport
     def tagged(tags, &blk); end
   end
 
-
   module Notifications
     class Event
       sig { returns(String) }
