@@ -6,10 +6,6 @@ module ActiveSupport
     def tagged(tags, &blk); end
   end
 
-  class BroadcastLogger
-    sig { params(tags: T.untyped, blk: T.proc.returns(T.untyped)).returns(T.untyped) }
-    def tagged(tags, &blk); end
-  end
 
   module Notifications
     class Event
