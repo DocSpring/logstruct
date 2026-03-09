@@ -3,7 +3,7 @@ PATH
   specs:
     logstruct (0.1.12)
       lograge (>= 0.11)
-      rails (>= 7.1)
+      railties (>= 7.1)
       semantic_logger (~> 4.15)
       sorbet-runtime (>= 0.5)
 
