@@ -4,6 +4,13 @@
 require "test_helper"
 
 class LoggingIntegrationTest < ActionDispatch::IntegrationTest
+  # Rails assigns ActiveSupport::LogSubscriber.logger once during boot, so log
+  # subscribers (Lograge, Active Record, Action Controller) write to that
+  # reference rather than looking up Rails.logger on each event.
+  def test_log_subscribers_use_the_logstruct_logger
+    assert_kind_of LogStruct::SemanticLogger::Logger, ActiveSupport::LogSubscriber.logger
+  end
+
   # Basic test to ensure the Rails app is working
   def test_healthcheck_works
     get "/health"

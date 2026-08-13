@@ -7,7 +7,15 @@ require "debug"
 require "open3"
 require "timeout"
 
-unless SimpleCov.running
+# SimpleCov >= 1.0 replaced the `running` accessor with `active_session?`
+simplecov_started =
+  if SimpleCov.respond_to?(:active_session?)
+    SimpleCov.active_session?
+  else
+    SimpleCov.running
+  end
+
+unless simplecov_started
   SimpleCov.formatters = [
     SimpleCov::Formatter::HTMLFormatter,
     SimpleCov::Formatter::JSONFormatter
@@ -19,7 +27,12 @@ unless SimpleCov.running
     gem_path = File.expand_path("../../../../", __FILE__)
     SimpleCov.root(gem_path)
 
-    add_filter "rails_test_app"
+    # SimpleCov >= 1.0 deprecated `add_filter` in favor of `skip`
+    if SimpleCov.respond_to?(:skip)
+      SimpleCov.skip "rails_test_app"
+    else
+      SimpleCov.add_filter "rails_test_app"
+    end
 
     coverage_dir "coverage_rails"
 
