@@ -356,7 +356,12 @@ unless File.read(boot_path).include?("LOGSTRUCT_SIMPLECOV_BOOT")
         SimpleCov.start do
           root_path = File.expand_path('../../..', __dir__)
           coverage_dir File.join(root_path, 'coverage_rails')
-          add_filter '/rails_test_app/'
+          # SimpleCov >= 1.0 deprecated `add_filter` in favor of `skip`
+          if SimpleCov.respond_to?(:skip)
+            SimpleCov.skip '/rails_test_app/'
+          else
+            SimpleCov.add_filter '/rails_test_app/'
+          end
           enable_coverage :branch
           primary_coverage :branch
         end

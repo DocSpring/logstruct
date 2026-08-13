@@ -221,6 +221,12 @@ module LogStruct
         # Replace Rails.logger
         Rails.logger = logger
 
+        # Rails assigns ActiveSupport::LogSubscriber.logger once during boot
+        # (in the active_support.set_log_subscriber_logger initializer), so log
+        # subscribers such as Lograge keep writing to the original boot logger
+        # unless this reference is updated along with Rails.logger.
+        ActiveSupport::LogSubscriber.logger = logger
+
         # Also replace various component loggers
         ActiveRecord::Base.logger = logger if defined?(ActiveRecord::Base)
         ActionController::Base.logger = logger if defined?(ActionController::Base)
