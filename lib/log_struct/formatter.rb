@@ -49,14 +49,16 @@ module LogStruct
       StringScrubber.scrub(string)
     end
 
+    MAX_RECURSION_DEPTH = 20
+
     # The mask Rails' parameter filter puts in place of filtered values
     RAILS_FILTERED_MASK = "[FILTERED]"
 
     sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
     def process_values(arg, recursion_depth: 0)
-      # Prevent infinite recursion in case any args have circular references
-      # or are too deeply nested. Just return args.
-      return arg if recursion_depth > 20
+      # Circular references and deeply nested values stop here. Values below this depth
+      # would skip filtering and scrubbing, so they're summarized instead of logged.
+      return summarize_unprocessed_value(arg) if recursion_depth > MAX_RECURSION_DEPTH
 
       case arg
       when Hash
@@ -114,7 +116,45 @@ module LogStruct
         recursion_depth: recursion_depth
       }
       LogStruct.handle_exception(e, source: Source::Internal, context: context)
-      arg
+      summarize_unprocessed_value(arg)
+    end
+
+    # Like deep_symbolize_keys, but stops at the depth where process_values stops, so that
+    # circular references don't recurse forever.
+    sig { params(value: T.untyped, recursion_depth: Integer).returns(T.untyped) }
+    def symbolize_keys(value, recursion_depth: 0)
+      return value if recursion_depth > MAX_RECURSION_DEPTH
+
+      case value
+      when Hash
+        value.each_with_object({}) do |(key, nested_value), result|
+          symbol_key = key.respond_to?(:to_sym) ? key.to_sym : key
+          result[symbol_key] = symbolize_keys(nested_value, recursion_depth: recursion_depth + 1)
+        end
+      when Array
+        value.map { |item| symbolize_keys(item, recursion_depth: recursion_depth + 1) }
+      else
+        value
+      end
+    end
+
+    # Describes a value without filtering, scrubbing or serializing it, so that values which
+    # couldn't be processed are never logged raw. Hashes and arrays are not serialized because
+    # they may contain circular references.
+    sig { params(arg: T.untyped).returns(T.untyped) }
+    def summarize_unprocessed_value(arg)
+      case arg
+      when Hash
+        {_filtered: {_class: arg.class.name, _keys_count: arg.size}}
+      when Array
+        {_filtered: {_class: arg.class.name, _count: arg.size}}
+      when String
+        {_filtered: {_class: arg.class.name, _bytes: arg.bytesize}}
+      when Numeric, Symbol, TrueClass, FalseClass, NilClass
+        arg
+      else
+        {_filtered: {_class: arg.class.name}}
+      end
     end
 
     sig { params(log_value: T.untyped, time: Time).returns(T::Hash[Symbol, T.untyped]) }
@@ -126,11 +166,11 @@ module LogStruct
 
       when T::Struct
         # Default T::Struct.serialize methods returns a hash with string keys, so convert them to symbols
-        log_value.serialize.deep_symbolize_keys
+        symbolize_keys(log_value.serialize)
 
       when Hash
         # Use hash as is and convert string keys to symbols
-        log_value.dup.deep_symbolize_keys
+        symbolize_keys(log_value)
 
       else
         # Create a Plain log with the message as a string and serialize it with symbol keys

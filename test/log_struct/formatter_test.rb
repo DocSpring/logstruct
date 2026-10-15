@@ -231,6 +231,54 @@ module LogStruct
       assert_equal 2, result[:hash2][:b]
     end
 
+    def test_filters_and_scrubs_values_nested_past_the_depth_limit
+      deep = {password: "hunter2", note: "a@b.com", items: [1, 2, 3]}
+      22.times { deep = {n: deep} }
+
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "deep", ctx: deep})
+
+      assert_not_includes log_line, "hunter2"
+      assert_not_includes log_line, "a@b.com"
+      JSON.parse(log_line)
+    end
+
+    def test_summarizes_each_type_past_the_depth_limit
+      too_deep = 21
+
+      assert_equal({_filtered: {_class: "Hash", _keys_count: 2}},
+        @formatter.process_values({a: 1, b: 2}, recursion_depth: too_deep))
+      assert_equal({_filtered: {_class: "Array", _count: 3}},
+        @formatter.process_values([1, 2, 3], recursion_depth: too_deep))
+      assert_equal({_filtered: {_class: "String", _bytes: 7}},
+        @formatter.process_values("a@b.com", recursion_depth: too_deep))
+      assert_equal 42, @formatter.process_values(42, recursion_depth: too_deep)
+      assert_nil @formatter.process_values(nil, recursion_depth: too_deep)
+    end
+
+    def test_logs_circular_hashes_without_raising
+      circular = {name: "loop"}
+      circular[:self] = circular
+
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "circular", ctx: circular})
+
+      assert_equal "loop", JSON.parse(log_line).dig("ctx", "name")
+    end
+
+    def test_does_not_log_raw_values_when_processing_fails
+      exploding_hash = Class.new(Hash) do
+        def each(*)
+          raise "boom"
+        end
+      end.new
+      exploding_hash[:password] = "hunter2"
+
+      LogStruct.stub(:handle_exception, nil) do
+        result = @formatter.process_values(exploding_hash)
+
+        assert_equal({_filtered: {_class: exploding_hash.class.name, _keys_count: 1}}, result)
+      end
+    end
+
     def test_keeps_values_rails_already_filtered
       result = @formatter.process_values({password: "[FILTERED]", secret_answer: "blue"})
 
