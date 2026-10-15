@@ -134,31 +134,28 @@ class ShrineLoggingTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_shrine_default_log_format_is_suppressed
-    # Capture STDOUT to check for Shrine's default log format
-    # Shrine's default format looks like: "Upload (0ms) – {storage: :store, ...}"
-    original_stdout = $stdout
-    stdout_capture = StringIO.new
-    $stdout = stdout_capture
+  def test_shrine_default_log_subscriber_does_not_log_events
+    # config/initializers/shrine.rb loads the instrumentation plugin with Shrine's default
+    # log subscriber, which writes lines like "Upload (0ms) – {storage: :store, ...}"
+    shrine_log = StringIO.new
+    original_logger = Shrine.logger
+    Shrine.logger = Logger.new(shrine_log)
 
     get "/logging/shrine_upload"
 
     assert_response :success
+    refute_match(/(Upload|Metadata|Open|Download|Exists|Delete) \(\d+ms\) –/, shrine_log.string)
+  ensure
+    Shrine.logger = original_logger
+  end
+
+  def test_shrine_logger_writes_json
+    Shrine.warn("test warning")
 
     ::SemanticLogger.flush
-    $stdout = original_stdout
-    stdout_capture.rewind
-    stdout_output = stdout_capture.read.to_s
+    line = @log_output.string.lines.find { |l| l.include?("test warning") }
 
-    # Shrine's default log format should NOT appear
-    refute_match(/Upload \(\d+ms\) – \{/,
-      stdout_output,
-      "Shrine's default log format should not appear in stdout")
-    refute_match(/Metadata \(\d+ms\) – \{/,
-      stdout_output,
-      "Shrine's default metadata format should not appear in stdout")
-    refute_match(/Open \(\d+ms\) – \{/,
-      stdout_output,
-      "Shrine's default open format should not appear in stdout")
+    assert line, "Expected the Shrine warning in the LogStruct output:\n#{@log_output.string}"
+    assert_equal "SHRINE WARNING: test warning", JSON.parse(line)["msg"]
   end
 end
