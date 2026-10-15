@@ -58,33 +58,24 @@ module LogStruct
     # LogStruct's own fields, which some filters don't apply to at the top of a line
     LOG_FIELD_KEYS = T.let(LogField.values.map(&:serialize).to_set.freeze, T::Set[T.untyped])
 
-    sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
-    def process_values(arg, recursion_depth: 0)
+    sig { params(arg: T.untyped, recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T.untyped) }
+    def process_values(arg, recursion_depth: 0, ancestors: {}.compare_by_identity)
       # Circular references and deeply nested values stop here. Values below this depth
       # would skip filtering and scrubbing, so they're summarized instead of logged.
-      return summarize_unprocessed_value(arg) if recursion_depth > MAX_RECURSION_DEPTH
+      return summarize_unprocessed_value(arg) if recursion_depth > MAX_RECURSION_DEPTH || ancestors.key?(arg)
 
       case arg
-      when Hash
-        result = {}
-
-        # Process each key-value pair
-        arg.each do |key, value|
-          logstruct_field = recursion_depth == 0 && LOG_FIELD_KEYS.include?(key)
-          # Check if this key should be filtered at any depth
-          result[key] = if !ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field)
-            process_values(value, recursion_depth: recursion_depth + 1)
-          elsif value == RAILS_FILTERED_MASK
-            # Rails' parameter filter has already replaced the value
-            value
+      when Hash, Array
+        ancestors[arg] = true
+        begin
+          if arg.is_a?(Hash)
+            process_hash(arg, recursion_depth: recursion_depth, ancestors: ancestors)
           else
-            {_filtered: ParamFilters.summarize_json_attribute(key, value)}
+            process_array(arg, recursion_depth: recursion_depth, ancestors: ancestors)
           end
+        ensure
+          ancestors.delete(arg)
         end
-
-        result
-      when Array
-        process_array(arg, recursion_depth: recursion_depth)
       when GlobalID::Identification
         begin
           arg.to_global_id
@@ -109,9 +100,12 @@ module LogStruct
         scrub_string(arg)
       when Time
         arg.iso8601(3)
-      else
-        # Any other type (e.g. Symbol, Integer, Float, Boolean etc.)
+      when Numeric, Symbol, TrueClass, FalseClass, NilClass
         arg
+      else
+        # Structs, ActionController::Parameters and other objects: filter and scrub what
+        # to_json would write
+        process_values(arg.as_json, recursion_depth: recursion_depth + 1, ancestors: ancestors)
       end
     rescue => e
       # Report error through LogStruct's framework
@@ -124,20 +118,46 @@ module LogStruct
       summarize_unprocessed_value(arg)
     end
 
-    # Like deep_symbolize_keys, but stops at the depth where process_values stops, so that
-    # circular references don't recurse forever.
-    sig { params(value: T.untyped, recursion_depth: Integer).returns(T.untyped) }
-    def symbolize_keys(value, recursion_depth: 0)
-      return value if recursion_depth > MAX_RECURSION_DEPTH
+    sig { params(hash: T::Hash[T.untyped, T.untyped], recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T::Hash[T.untyped, T.untyped]) }
+    def process_hash(hash, recursion_depth:, ancestors:)
+      result = {}
+
+      hash.each do |key, value|
+        logstruct_field = recursion_depth == 0 && LOG_FIELD_KEYS.include?(key)
+        # Check if this key should be filtered at any depth
+        result[key] = if !ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field)
+          process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors)
+        elsif value == RAILS_FILTERED_MASK
+          # Rails' parameter filter has already replaced the value
+          value
+        else
+          {_filtered: ParamFilters.summarize_json_attribute(key, value)}
+        end
+      end
+
+      result
+    end
+
+    # Like deep_symbolize_keys, but stops at circular references and at the depth where
+    # process_values stops, leaving those values for process_values to summarize
+    sig { params(value: T.untyped, recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T.untyped) }
+    def symbolize_keys(value, recursion_depth: 0, ancestors: {}.compare_by_identity)
+      return value if recursion_depth > MAX_RECURSION_DEPTH || ancestors.key?(value)
 
       case value
       when Hash
-        value.each_with_object({}) do |(key, nested_value), result|
+        ancestors[value] = true
+        result = value.each_with_object({}) do |(key, nested_value), symbolized|
           symbol_key = key.respond_to?(:to_sym) ? key.to_sym : key
-          result[symbol_key] = symbolize_keys(nested_value, recursion_depth: recursion_depth + 1)
+          symbolized[symbol_key] = symbolize_keys(nested_value, recursion_depth: recursion_depth + 1, ancestors: ancestors)
         end
+        ancestors.delete(value)
+        result
       when Array
-        value.map { |item| symbolize_keys(item, recursion_depth: recursion_depth + 1) }
+        ancestors[value] = true
+        result = value.map { |item| symbolize_keys(item, recursion_depth: recursion_depth + 1, ancestors: ancestors) }
+        ancestors.delete(value)
+        result
       else
         value
       end
@@ -254,18 +274,18 @@ module LogStruct
       "#{data.to_json}\n"
     end
 
-    sig { params(array: T::Array[T.untyped], recursion_depth: Integer).returns(T::Array[T.untyped]) }
-    def process_array(array, recursion_depth:)
+    sig { params(array: T::Array[T.untyped], recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T::Array[T.untyped]) }
+    def process_array(array, recursion_depth:, ancestors:)
       return [] if array.empty?
 
       if looks_like_backtrace_array?(array)
-        array.map { |value| process_values(value, recursion_depth: recursion_depth + 1) }
+        array.map { |value| process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors) }
       else
         processed = []
         array.each_with_index do |value, index|
           break if index >= 10
 
-          processed << process_values(value, recursion_depth: recursion_depth + 1)
+          processed << process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors)
         end
 
         if array.size > 10

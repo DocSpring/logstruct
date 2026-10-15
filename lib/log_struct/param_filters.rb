@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "digest"
+require "json"
 require_relative "hash_utils"
 require_relative "config_struct/filters"
 require_relative "enums/source"
@@ -90,7 +91,10 @@ module LogStruct
         }
 
         # Only add byte size if no sensitive keys are present
-        summary[:_bytes] = hash.to_json.bytesize unless has_sensitive_keys
+        unless has_sensitive_keys
+          bytes = json_bytesize(hash)
+          summary[:_bytes] = bytes if bytes
+        end
 
         summary
       end
@@ -100,11 +104,24 @@ module LogStruct
       def summarize_array(array)
         return {_class: "Array", _empty: true} if array.empty?
 
-        {
+        summary = {
           _class: Array,
-          _count: array.size,
-          _bytes: array.to_json.bytesize
+          _count: array.size
         }
+        bytes = json_bytesize(array)
+        summary[:_bytes] = bytes if bytes
+
+        summary
+      end
+
+      # The size of a filtered Hash or Array as JSON. JSON.generate stops at its nesting limit,
+      # which a circular reference reaches, and writes other objects with to_s instead of walking
+      # their attributes. nil when the value can't be written as JSON.
+      sig { params(value: T.any(T::Hash[T.untyped, T.untyped], T::Array[T.untyped])).returns(T.nilable(Integer)) }
+      def json_bytesize(value)
+        ::JSON.generate(value).bytesize
+      rescue ::JSON::NestingError, ::JSON::GeneratorError
+        nil
       end
 
       private
