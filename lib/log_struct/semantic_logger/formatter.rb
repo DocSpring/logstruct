@@ -80,11 +80,13 @@ module LogStruct
           @logstruct_formatter.call(log.level, log.time, log.name, plain_log)
         end
 
-        # Add request_id from named_tags if present
+        # Add the request ID and the running Sidekiq job's context from named_tags
         request_id = log.named_tags[:request_id]
-        if request_id
+        sidekiq_context = log.named_tags[:sidekiq_context]
+        if request_id || sidekiq_context
           data = JSON.parse(json)
-          data["req_id"] = request_id
+          data["req_id"] = request_id if request_id
+          data["ctx"] ||= sidekiq_context if sidekiq_context
           json = data.to_json
         end
 

@@ -29,6 +29,23 @@ module LogStruct
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber)
       end
+
+      test "lines logged while a job runs include the job's ID and class" do
+        job_hash = {"jid" => "abc123", "class" => "Sidekiq::ActiveJob::Wrapper", "wrapped" => "HardJob"}
+
+        Sidekiq::JobContextMiddleware.new.call(nil, job_hash, "default") do
+          LogStruct::SemanticLogger::Logger.new("Rails").info("Rendering PDF")
+        end
+        LogStruct::SemanticLogger::Logger.new("Rails").info("After the job")
+        ::SemanticLogger.flush
+
+        lines = @io.string.lines.map { |line| JSON.parse(line) }
+        inside = lines.find { |line| line["msg"] == "Rendering PDF" }
+        after = lines.find { |line| line["msg"] == "After the job" }
+
+        assert_equal({"jid" => "abc123", "class" => "HardJob"}, T.must(inside)["ctx"])
+        assert_nil T.must(after)["ctx"]
+      end
     end
   end
 end

@@ -81,7 +81,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'Sidekiq',
         description:
-          'The Sidekiq integration configures structured JSON logging for Sidekiq worker and client logs, maintaining consistent format with other logs.',
+          'The Sidekiq integration configures structured JSON logging for Sidekiq worker and client logs, maintaining consistent format with other logs. Every line logged while a job runs includes the job ID and class in ctx.jid and ctx.class.',
       };
 
     case LogType.GOODJOB:

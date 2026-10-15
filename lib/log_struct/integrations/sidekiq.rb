@@ -6,7 +6,10 @@ begin
 rescue LoadError
   # Sidekiq gem is not available, integration will be skipped
 end
-require_relative "sidekiq/logger" if defined?(::Sidekiq)
+if defined?(::Sidekiq)
+  require_relative "sidekiq/logger"
+  require_relative "sidekiq/job_context_middleware"
+end
 
 module LogStruct
   module Integrations
@@ -25,6 +28,11 @@ module LogStruct
         # Configure Sidekiq server (worker) to use our logger
         ::Sidekiq.configure_server do |sidekiq_config|
           sidekiq_config.logger = LogStruct::Integrations::Sidekiq::Logger.new("Sidekiq-Server")
+
+          # First in the chain, so lines logged by other middleware include the job too
+          sidekiq_config.server_middleware do |chain|
+            chain.prepend LogStruct::Integrations::Sidekiq::JobContextMiddleware
+          end
         end
 
         # Configure Sidekiq client (Rails app) to use our logger
