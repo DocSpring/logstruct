@@ -31,6 +31,16 @@ module LogStruct
         assert_includes ActiveRecord.singleton_class.included_modules, IntegrationInterface
       end
 
+      test "turns off Rails' verbose query logs" do
+        stub_const("::ActiveRecord::Base", Class.new) do
+          ::ActiveRecord.verbose_query_logs = true
+
+          ActiveRecord.setup(LogStruct.config)
+
+          refute ::ActiveRecord.verbose_query_logs
+        end
+      end
+
       test "returns early when SQL logging is disabled" do
         LogStruct.config.integrations.enable_sql_logging = false
         result = ActiveRecord.setup(LogStruct.config)
@@ -53,7 +63,7 @@ module LogStruct
       test "subscribes to sql.active_record notifications when properly configured" do
         # First create the ActiveRecord module if it doesn't exist
         unless defined?(::ActiveRecord)
-          Object.const_set(:ActiveRecord, Module.new)
+          Object.const_set(:ActiveRecord, fake_active_record_module)
         end
 
         # Then set ActiveRecord::Base
@@ -456,7 +466,7 @@ module LogStruct
       def setup_activerecord_for_test
         # Create ActiveRecord::Base for this test
         unless defined?(::ActiveRecord)
-          Object.const_set(:ActiveRecord, Module.new)
+          Object.const_set(:ActiveRecord, fake_active_record_module)
         end
         unless defined?(::ActiveRecord::Base)
           ::ActiveRecord.const_set(:Base, Class.new)
@@ -528,7 +538,7 @@ module LogStruct
         when "::ActiveRecord::Base"
           had_active_record = Object.const_defined?(:ActiveRecord)
           unless had_active_record
-            Object.const_set(:ActiveRecord, Module.new)
+            Object.const_set(:ActiveRecord, fake_active_record_module)
           end
 
           had_const = ::ActiveRecord.const_defined?(:Base, false)
@@ -562,6 +572,15 @@ module LogStruct
       end
 
       private
+
+      # Stands in for the ActiveRecord module, with the settings LogStruct changes
+      def fake_active_record_module
+        Module.new do
+          class << self
+            attr_accessor :verbose_query_logs
+          end
+        end
+      end
 
       def assert_sql_attribute(test_cases, attribute)
         logged_events = []
