@@ -46,6 +46,19 @@ module LogStruct
         assert_equal({"jid" => "abc123", "class" => "HardJob"}, T.must(inside)["ctx"])
         assert_nil T.must(after)["ctx"]
       end
+
+      test "a logged Hash's own ctx keeps its keys and gains the job's" do
+        job_hash = {"jid" => "abc123", "class" => "HardJob"}
+
+        Sidekiq::JobContextMiddleware.new.call(nil, job_hash, "default") do
+          LogStruct::SemanticLogger::Logger.new("Rails").info({msg: "Rendering PDF", ctx: {template_id: "tpl_1"}})
+        end
+        ::SemanticLogger.flush
+
+        line = JSON.parse(T.must(@io.string.lines.last))
+
+        assert_equal({"jid" => "abc123", "class" => "HardJob", "template_id" => "tpl_1"}, line["ctx"])
+      end
     end
   end
 end
