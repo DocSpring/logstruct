@@ -15,6 +15,57 @@ module LogStruct
         extend T::Sig
         extend ActiveSupport::Concern
 
+        # Marks an error the mailer's handler logged and re-raised, so the class handler doesn't log it again
+        LOGGED_ERROR_IVAR = :@_logstruct_mailer_error_logged
+
+        # ActionMailer::MailDeliveryJob passes errors to the mailer class (`handle_exception`), which
+        # looks the rescue_from handlers up on the class, so the handlers are defined there too.
+        # (ActiveSupport::Concern extends the class with ClassMethods when it's included or prepended.)
+        module ClassMethods
+          extend T::Sig
+
+          # Just log the error without reporting or retrying
+          sig { params(ex: StandardError).void }
+          def log_and_ignore_error(ex)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: false, reraise: false)
+          end
+
+          # Log and report to error service, but doesn't reraise
+          sig { params(ex: StandardError).void }
+          def log_and_report_error(ex)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: false)
+          end
+
+          # Log, report to error service, and reraise for retry
+          sig { params(ex: StandardError).void }
+          def log_and_reraise_error(ex)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: true)
+          end
+        end
+
+        # Errors that reach the class handler from the delivery itself were logged (and reported)
+        # by the mailer's handler before it re-raised them for the job to retry
+        sig { params(mailer_class: T.untyped, error: StandardError, report: T::Boolean, reraise: T::Boolean).void }
+        def self.handle_mailer_class_error(mailer_class, error, report:, reraise:)
+          unless error.instance_variable_get(LOGGED_ERROR_IVAR)
+            message = if reraise
+              "#{error.class}: Email delivery error, will retry. Error message: #{error.message}"
+            else
+              "#{error.class}: Cannot send email. Error message: #{error.message}"
+            end
+            LogStruct.error(Log::ActionMailer::Error.new(
+              mailer_class: mailer_class.to_s,
+              error_class: error.class,
+              message: message,
+              backtrace: error.backtrace,
+              level: Level::Error
+            ))
+            LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}) if report
+          end
+
+          Kernel.raise error if reraise
+        end
+
         sig { returns(T.nilable(T::Boolean)) }
         attr_accessor :logstruct_mail_failed
 
@@ -166,7 +217,10 @@ module LogStruct
           end
 
           # Re-raise the error if requested
-          Kernel.raise error if reraise
+          if reraise
+            error.instance_variable_set(LOGGED_ERROR_IVAR, true) unless error.frozen?
+            Kernel.raise error
+          end
         end
 
         # Log a notification event that can be picked up by external systems
