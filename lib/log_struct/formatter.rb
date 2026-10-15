@@ -7,6 +7,7 @@ require "json"
 require "globalid"
 require_relative "enums/source"
 require_relative "enums/event"
+require_relative "enums/log_field"
 require_relative "string_scrubber"
 require_relative "log"
 require_relative "param_filters"
@@ -54,6 +55,9 @@ module LogStruct
     # The mask Rails' parameter filter puts in place of filtered values
     RAILS_FILTERED_MASK = "[FILTERED]"
 
+    # LogStruct's own fields, which some filters don't apply to at the top of a line
+    LOG_FIELD_KEYS = T.let(LogField.values.map(&:serialize).to_set.freeze, T::Set[T.untyped])
+
     sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
     def process_values(arg, recursion_depth: 0)
       # Circular references and deeply nested values stop here. Values below this depth
@@ -66,8 +70,9 @@ module LogStruct
 
         # Process each key-value pair
         arg.each do |key, value|
+          logstruct_field = recursion_depth == 0 && LOG_FIELD_KEYS.include?(key)
           # Check if this key should be filtered at any depth
-          result[key] = if !ParamFilters.should_filter_key?(key, value)
+          result[key] = if !ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field)
             process_values(value, recursion_depth: recursion_depth + 1)
           elsif value == RAILS_FILTERED_MASK
             # Rails' parameter filter has already replaced the value

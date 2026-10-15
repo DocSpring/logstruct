@@ -89,6 +89,30 @@ export default function FilteringSensitiveDataPage() {
 :credit_card, :ssn, :social_security`}
       </CodeBlock>
 
+      <HeadingWithAnchor id="rails-filter-parameters" level={3}>
+        Rails filter_parameters
+      </HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        LogStruct also filters the keys in your app&apos;s <code>config.filter_parameters</code>,
+        and matches them the way Rails does: a Symbol or String matches any key that contains it,
+        ignoring case (<code>:passw</code> filters <code>user_password</code>), and a Regexp is
+        matched as it is. Rails matches entries with a dot (
+        <code>&quot;credit_card.code&quot;</code>) against the path of a nested request parameter.
+        LogStruct checks one key at a time, so it only filters a key that contains the whole entry.
+        Partial matches don&apos;t apply to the names of LogStruct&apos;s own fields at the top of a
+        line, so Rails&apos; default <code>:_key</code> doesn&apos;t filter <code>cron_key</code>.
+        Exact names and Regexps do. Rails&apos; list is left in place, so{' '}
+        <code>request.filtered_parameters</code> and{' '}
+        <code>ActiveRecord::Base.filter_attributes</code> keep working, and values Rails has already
+        replaced are logged as <code>[FILTERED]</code>.
+      </p>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        Filter blocks (<code>{'->(key, value) { ... }'}</code>) get copies of the key and value, as
+        they do in Rails. LogStruct filters a key when its block returns a truthy value or changes
+        the String it was given (Rails&apos; blocks mask a value by changing it in place). A block
+        that takes Rails&apos; third argument, the request&apos;s parameters, gets an empty Hash.
+      </p>
+
       <HeadingWithAnchor id="email-hashing" level={3}>
         Email Hashing for Request Tracing
       </HeadingWithAnchor>

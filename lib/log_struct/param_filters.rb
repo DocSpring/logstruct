@@ -13,9 +13,10 @@ module LogStruct
     class << self
       extend T::Sig
 
-      # Check if a key should be filtered based on our defined sensitive keys
-      sig { params(key: T.untyped, value: T.untyped).returns(T::Boolean) }
-      def should_filter_key?(key, value = nil)
+      # Check if a key should be filtered based on our defined sensitive keys.
+      # logstruct_field: the key is one of LogStruct's own fields at the top of a line.
+      sig { params(key: T.untyped, value: T.untyped, logstruct_field: T::Boolean).returns(T::Boolean) }
+      def should_filter_key?(key, value = nil, logstruct_field: false)
         filters = LogStruct.config.filters
         normalized_key = key.to_s
         normalized_symbol = normalized_key.downcase.to_sym
@@ -23,6 +24,8 @@ module LogStruct
         return true if filters.filter_keys.include?(normalized_symbol)
 
         filters.filter_matchers.any? do |matcher|
+          next false if logstruct_field && !matcher.matches_logstruct_fields
+
           matcher.matches?(normalized_key, value)
         rescue => e
           handle_filter_matcher_error(e, matcher, normalized_key)

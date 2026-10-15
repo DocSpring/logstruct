@@ -15,6 +15,7 @@ defn
 demodulize
 docspring
 dotenv
+duplicable
 Dotenv
 ESRCH
 Fanout
