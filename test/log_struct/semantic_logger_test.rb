@@ -36,6 +36,16 @@ module LogStruct
       stdout&.close!
     end
 
+    test "logs only to STDOUT when RAILS_LOG_TO_STDOUT is set" do
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+      end
+
+      assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
+    ensure
+      ::SemanticLogger.clear_appenders!
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush

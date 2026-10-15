@@ -176,8 +176,9 @@ module LogStruct
           )
         end
 
-        # Add file appender if Rails has a log path configured (normal Rails behavior)
-        if app.config.paths["log"].first
+        # Add file appender if Rails has a log path configured (normal Rails behavior), unless
+        # RAILS_LOG_TO_STDOUT says to log to STDOUT instead: in a container the file only fills the disk
+        if app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
           ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,
