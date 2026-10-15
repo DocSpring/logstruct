@@ -86,7 +86,6 @@ module LogStruct
 
           symbol_filters = T.let([], T::Array[Symbol])
           matchers = T.let([], T::Array[ConfigStruct::FilterMatcher])
-          leftovers = T.let([], T::Array[T.untyped])
 
           rails_filter_params.each do |entry|
             matcher = build_filter_matcher(entry)
@@ -97,11 +96,7 @@ module LogStruct
             end
 
             normalized_symbol = normalize_filter_symbol(entry)
-            if normalized_symbol
-              symbol_filters << normalized_symbol
-            else
-              leftovers << entry
-            end
+            symbol_filters << normalized_symbol if normalized_symbol
           end
 
           if symbol_filters.any?
@@ -116,8 +111,6 @@ module LogStruct
               config.filters.filter_matchers << matcher unless existing
             end
           end
-
-          replace_filter_parameters(rails_filter_params, leftovers)
         end
 
         private
@@ -249,12 +242,6 @@ module LogStruct
         sig { params(filter: T.untyped).returns(Integer) }
         def arity_for_filter(filter)
           filter.respond_to?(:arity) ? filter.arity : 2
-        end
-
-        sig { params(filter_params: T::Array[T.untyped], leftovers: T::Array[T.untyped]).void }
-        def replace_filter_parameters(filter_params, leftovers)
-          filter_params.clear
-          filter_params.concat(leftovers)
         end
 
         sig { params(error: StandardError, filter: T.untyped, key: String).void }

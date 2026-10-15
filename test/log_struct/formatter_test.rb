@@ -231,6 +231,12 @@ module LogStruct
       assert_equal 2, result[:hash2][:b]
     end
 
+    def test_keeps_values_rails_already_filtered
+      result = @formatter.process_values({password: "[FILTERED]", secret_answer: "blue"})
+
+      assert_equal "[FILTERED]", result[:password]
+    end
+
     def test_generate_json
       data = {key: "value"}
 

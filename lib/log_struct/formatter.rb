@@ -49,6 +49,9 @@ module LogStruct
       StringScrubber.scrub(string)
     end
 
+    # The mask Rails' parameter filter puts in place of filtered values
+    RAILS_FILTERED_MASK = "[FILTERED]"
+
     sig { params(arg: T.untyped, recursion_depth: Integer).returns(T.untyped) }
     def process_values(arg, recursion_depth: 0)
       # Prevent infinite recursion in case any args have circular references
@@ -62,12 +65,13 @@ module LogStruct
         # Process each key-value pair
         arg.each do |key, value|
           # Check if this key should be filtered at any depth
-          result[key] = if ParamFilters.should_filter_key?(key, value)
-            # Filter the value
-            {_filtered: ParamFilters.summarize_json_attribute(key, value)}
-          else
-            # Process the value normally
+          result[key] = if !ParamFilters.should_filter_key?(key, value)
             process_values(value, recursion_depth: recursion_depth + 1)
+          elsif value == RAILS_FILTERED_MASK
+            # Rails' parameter filter has already replaced the value
+            value
+          else
+            {_filtered: ParamFilters.summarize_json_attribute(key, value)}
           end
         end
 

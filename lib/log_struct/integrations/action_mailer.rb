@@ -28,26 +28,15 @@ module LogStruct
         return nil unless config.enabled
         return nil unless config.integrations.enable_actionmailer
 
-        # Silence default ActionMailer logs (we use our own structured logging)
-        # This is required because we replace the logging using our own callbacks
-        if defined?(::ActionMailer::Base)
-          ::ActionMailer::Base.logger = ::Logger.new(File::NULL)
-        end
-
-        # Register our custom observers and handlers
-        # Registering these at the class level means all mailers will use them
+        # Register our custom observers and handlers on all mailers. The hook runs right away
+        # if ActionMailer::Base is already loaded.
         ActiveSupport.on_load(:action_mailer) do
+          # Silence default ActionMailer logs (we use our own structured logging)
+          T.unsafe(self).logger = ::Logger.new(File::NULL)
+
           prepend LogStruct::Integrations::ActionMailer::EventLogging
           prepend LogStruct::Integrations::ActionMailer::ErrorHandling
           prepend LogStruct::Integrations::ActionMailer::MetadataCollection
-        end
-
-        # If ActionMailer::Base is already loaded, the on_load hooks won't run
-        # So we need to apply the modules directly
-        if defined?(::ActionMailer::Base)
-          ::ActionMailer::Base.prepend(LogStruct::Integrations::ActionMailer::EventLogging)
-          ::ActionMailer::Base.prepend(LogStruct::Integrations::ActionMailer::ErrorHandling)
-          ::ActionMailer::Base.prepend(LogStruct::Integrations::ActionMailer::MetadataCollection)
         end
 
         true

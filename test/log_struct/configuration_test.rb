@@ -116,18 +116,11 @@ module LogStruct
 
       # Set up mock filter parameters with a mix of symbols and strings
       filter_params = [:credit_card, "ssn", :password, "existing_key"]
-      clear_called = T.let(false, T::Boolean)
 
       # Define necessary methods on our mock
       mock_config.define_singleton_method(:filter_parameters) { filter_params }
       mock_config.define_singleton_method(:respond_to?) do |method_name|
         method_name.to_sym == :filter_parameters || super(method_name)
-      end
-
-      # Add a clear method to the filter_parameters array
-      filter_params.define_singleton_method(:clear) do
-        clear_called = true
-        filter_params.replace([])
       end
 
       # Set up mock Rails.application
@@ -153,9 +146,8 @@ module LogStruct
         assert_equal 1, LogStruct.config.filters.filter_keys.count(:existing_key)
         assert_equal 5, LogStruct.config.filters.filter_keys.size
 
-        # Verify Rails filter parameters were cleared
-        assert_empty filter_params
-        assert clear_called, "filter_parameters.clear should have been called"
+        # Rails keeps its own list for filtered_parameters, filter_attributes, etc.
+        assert_equal [:credit_card, "ssn", :password, "existing_key"], filter_params
       end
 
       # Restore original filter keys
@@ -168,10 +160,6 @@ module LogStruct
 
       regex_filter = /\Aapi_/i
       filter_params = [regex_filter]
-
-      filter_params.define_singleton_method(:clear) do
-        T.unsafe(self).replace([])
-      end
 
       mock_config = T.unsafe(Object.new)
       mock_config.define_singleton_method(:filter_parameters) { filter_params }
@@ -193,6 +181,7 @@ module LogStruct
       end
 
       assert ParamFilters.should_filter_key?("api_token"), "regex-based Rails filters should continue filtering keys"
+      assert_equal [regex_filter], filter_params
     ensure
       LogStruct.config.filters.filter_keys = T.must(original_filter_keys)
       LogStruct.config.filters.filter_matchers = T.must(original_matchers)
