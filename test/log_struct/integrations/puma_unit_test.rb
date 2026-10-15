@@ -65,6 +65,37 @@ class PumaIntegrationUnitTest < Minitest::Test
     refute PUMA.process_line("unrecognized line")
   end
 
+  # Stands in for Puma::ErrorLogger, which writes "<time> Rack app ("GET /path?query" - (ip)): error"
+  class FakeErrorLogger
+    attr_reader :written
+
+    def info(options = {})
+      (@written ||= []) << options
+    end
+
+    prepend LogStruct::Integrations::Puma::ErrorLoggerPatch
+  end
+
+  FakeRequest = Struct.new(:env)
+
+  def test_request_errors_are_logged_as_structured_lines_without_the_query_string
+    logged = []
+    error = RuntimeError.new("boom")
+    request = FakeRequest.new({"REQUEST_METHOD" => "GET", "REQUEST_PATH" => "/submissions/abc", "QUERY_STRING" => "token=secret"})
+    error_logger = FakeErrorLogger.new
+
+    LogStruct.stub(:error, ->(log) { logged << log }) do
+      error_logger.info(error: error, req: request, text: "Rack app")
+    end
+
+    assert_nil error_logger.written, "Puma's plain text line was written too"
+    log = logged.fetch(0)
+
+    assert_equal [LogStruct::Source::Puma, RuntimeError, "boom"], [log.source, log.error_class, log.message]
+    assert_equal({context: "Rack app", method: "GET", path: "/submissions/abc"}, log.additional_data)
+    refute_includes log.serialize.to_s, "token=secret"
+  end
+
   private
 
   def feed_boot_lines

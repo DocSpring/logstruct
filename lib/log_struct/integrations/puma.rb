@@ -103,6 +103,9 @@ module LogStruct
             if puma_mod&.const_defined?(:LogWriter)
               T.unsafe(::Object.const_get("Puma::LogWriter")).prepend(LogWriterPatch)
             end
+            if puma_mod&.const_defined?(:ErrorLogger)
+              T.unsafe(::Object.const_get("Puma::ErrorLogger")).prepend(ErrorLoggerPatch)
+            end
             if puma_mod&.const_defined?(:Events)
               ev = T.unsafe(::Object.const_get("Puma::Events"))
               ev.prepend(EventsPatch)
@@ -376,6 +379,33 @@ module LogStruct
         def info(msg)
           consumed = ::LogStruct::Integrations::Puma.process_line(msg)
           super unless consumed
+        end
+      end
+
+      # Puma::ErrorLogger writes request errors (an exception the app didn't handle, a malformed
+      # request, an SSL error) as plain text to STDERR, with the request's query string. Log them
+      # as structured lines, with the method and path but not the query string, which LogStruct
+      # can't filter there.
+      module ErrorLoggerPatch
+        extend T::Sig
+
+        sig { params(options: T::Hash[Symbol, T.untyped]).returns(T.untyped) }
+        def info(options = {})
+          error = options[:error]
+          # Log::Error only takes a StandardError
+          return super unless error.is_a?(StandardError)
+
+          env = options[:req]&.env
+          details = {
+            context: options[:text],
+            method: env&.dig("REQUEST_METHOD"),
+            path: env && (env["REQUEST_PATH"] || env["PATH_INFO"])
+          }.compact
+          ::LogStruct.error(::LogStruct::Log.from_exception(::LogStruct::Source::Puma, error, details))
+          nil
+        rescue => e
+          ::LogStruct::Integrations::Puma.handle_integration_error(e)
+          super
         end
       end
 
