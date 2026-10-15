@@ -65,22 +65,29 @@ module LogStruct
         true
       end
 
+      @thread_error_handler = T.let(nil, T.nilable(T.proc.params(exception: StandardError).void))
+
       # Configure GoodJob to use LogStruct's structured logger
       sig { void }
       def self.configure_logger
         return unless defined?(::GoodJob)
 
-        # Use direct reference to avoid const_get - GoodJob is guaranteed to be defined here
-        goodjob_module = T.unsafe(GoodJob)
+        # Not GoodJob, which here is this module
+        goodjob_module = ::GoodJob
 
         # Replace GoodJob.logger with our structured logger if GoodJob is available
         if goodjob_module.respond_to?(:logger=)
           goodjob_module.logger = LogStruct::Integrations::GoodJob::Logger.new("GoodJob")
         end
 
-        # Configure error handling for thread errors if GoodJob supports it
+        # Log thread errors, after calling the handler the app set (GoodJob's README sets one
+        # to report them to an error tracker). Setting up again keeps the one handler.
         if goodjob_module.respond_to?(:on_thread_error=)
-          goodjob_module.on_thread_error = ->(exception) do
+          app_handler = goodjob_module.on_thread_error
+          return if app_handler&.equal?(@thread_error_handler)
+
+          @thread_error_handler = ->(exception) do
+            app_handler&.call(exception)
             log_entry = LogStruct::Log::GoodJob::Error.new(
               error_class: exception.class.name,
               error_message: exception.message,
@@ -90,6 +97,7 @@ module LogStruct
             )
             goodjob_module.logger.error(log_entry)
           end
+          goodjob_module.on_thread_error = @thread_error_handler
         end
       end
 
