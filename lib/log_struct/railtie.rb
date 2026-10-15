@@ -65,10 +65,6 @@ module LogStruct
           process_id: Process.pid,
           listening_addresses: port ? ["tcp://127.0.0.1:#{port}"] : nil
         )
-        begin
-          warn("[logstruct] puma lifecycle init")
-        rescue
-        end
         LogStruct.info(started)
 
         at_exit do
