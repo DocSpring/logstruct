@@ -16,4 +16,14 @@ module GoodJob
     sig { params(handler: T.nilable(T.proc.params(exception: StandardError).void)).void }
     def on_thread_error=(handler); end
   end
+
+  class CLI
+    class << self
+      sig { returns(T.nilable(T::Boolean)) }
+      def within_exe?; end
+
+      sig { params(value: T.nilable(T::Boolean)).void }
+      def log_to_stdout=(value); end
+    end
+  end
 end

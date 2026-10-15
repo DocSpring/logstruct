@@ -78,6 +78,12 @@ module LogStruct
         # Replace GoodJob.logger with our structured logger if GoodJob is available
         if goodjob_module.respond_to?(:logger=)
           goodjob_module.logger = LogStruct::Integrations::GoodJob::Logger.new("GoodJob")
+
+          # GoodJob's executable adds a plain text STDOUT logger unless GoodJob.logger already writes
+          # to STDOUT, which it can't tell for this logger
+          if defined?(::GoodJob::CLI) && ::GoodJob::CLI.respond_to?(:log_to_stdout=)
+            ::GoodJob::CLI.log_to_stdout = false
+          end
         end
 
         # Log thread errors, after calling the handler the app set (GoodJob's README sets one

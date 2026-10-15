@@ -7,6 +7,13 @@ require "log_struct/integrations/good_job/logger"
 module LogStruct
   module Integrations
     class GoodJobTest < ActiveSupport::TestCase
+      # Stands in for GoodJob::CLI
+      class FakeGoodJobCLI
+        class << self
+          attr_accessor :log_to_stdout
+        end
+      end
+
       setup do
         @original_config = LogStruct.config
         LogStruct.configuration = LogStruct::Configuration.new
@@ -66,6 +73,7 @@ module LogStruct
           GoodJob.send(:configure_logger)
 
           assert_instance_of GoodJob::Logger, fake.logger
+          assert_same false, FakeGoodJobCLI.log_to_stdout, "GoodJob's executable shouldn't add a plain text STDOUT logger"
           logged = []
           fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
             fake.on_thread_error.call(RuntimeError.new("boom"))
@@ -107,6 +115,8 @@ module LogStruct
             attr_accessor :logger, :on_thread_error
           end
         end
+        FakeGoodJobCLI.log_to_stdout = nil
+        fake.const_set(:CLI, FakeGoodJobCLI)
         Object.const_set(:GoodJob, fake)
         yield fake
       ensure
