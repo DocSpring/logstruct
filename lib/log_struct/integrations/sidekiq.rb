@@ -18,6 +18,8 @@ module LogStruct
       extend T::Sig
       extend IntegrationInterface
 
+      @original_logger = T.let(nil, T.untyped)
+
       # Set up Sidekiq structured logging
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
@@ -25,10 +27,9 @@ module LogStruct
         return nil unless config.enabled
         return nil unless config.integrations.enable_sidekiq
 
-        # Configure Sidekiq server (worker) to use our logger
-        ::Sidekiq.configure_server do |sidekiq_config|
-          sidekiq_config.logger = LogStruct::Integrations::Sidekiq::Logger.new("Sidekiq-Server")
+        configure_logger
 
+        ::Sidekiq.configure_server do |sidekiq_config|
           # First in the chain, so lines logged by other middleware include the job too
           sidekiq_config.server_middleware do |chain|
             chain.prepend LogStruct::Integrations::Sidekiq::JobContextMiddleware
@@ -37,12 +38,39 @@ module LogStruct
           replace_default_error_handler(sidekiq_config)
         end
 
-        # Configure Sidekiq client (Rails app) to use our logger
-        ::Sidekiq.configure_client do |sidekiq_config|
-          sidekiq_config.logger = LogStruct::Integrations::Sidekiq::Logger.new("Sidekiq-Client")
-        end
-
         true
+      end
+
+      # Use LogStruct's logger for Sidekiq's own lines. The Railtie calls this as soon as it replaces
+      # Rails.logger, before config/initializers run, because an initializer that configures Sidekiq
+      # (connecting to Redis, setting up a fetcher) logs with Sidekiq's logger straight away.
+      sig { void }
+      def self.configure_logger
+        return unless defined?(::Sidekiq)
+
+        current = sidekiq_logger_config.logger
+        return if current.is_a?(LogStruct::Integrations::Sidekiq::Logger)
+
+        @original_logger = current
+        name = ::Sidekiq.server? ? "Sidekiq-Server" : "Sidekiq-Client"
+        sidekiq_logger_config.logger = LogStruct::Integrations::Sidekiq::Logger.new(name)
+      end
+
+      # Put Sidekiq's own logger back, when an initializer turned LogStruct or this integration off
+      # after configure_logger ran
+      sig { void }
+      def self.restore_logger
+        return unless defined?(::Sidekiq)
+        return if @original_logger.nil?
+
+        sidekiq_logger_config.logger = @original_logger
+        @original_logger = nil
+      end
+
+      # Sidekiq 7 keeps the logger on its default configuration, Sidekiq 6 on the module
+      sig { returns(T.untyped) }
+      def self.sidekiq_logger_config
+        ::Sidekiq.respond_to?(:default_configuration) ? ::Sidekiq.default_configuration : ::Sidekiq
       end
 
       # Sidekiq's default error handler logs three lines for each failed job: the job (with its
@@ -92,7 +120,7 @@ module LogStruct
         T.proc.params(error: Exception, context: T::Hash[T.untyped, T.untyped], config: T.untyped).void
       )
 
-      private_class_method :replace_default_error_handler, :log_job_error
+      private_class_method :sidekiq_logger_config, :replace_default_error_handler, :log_job_error
     end
   end
 end

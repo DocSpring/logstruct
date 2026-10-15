@@ -17,6 +17,9 @@ module LogStruct
 
       # Use SemanticLogger for powerful logging features
       LogStruct::SemanticLogger::Setup.configure_semantic_logger(app)
+
+      # Initializers that configure Sidekiq log with its logger while config/initializers run
+      Integrations::Sidekiq.configure_logger if LogStruct.config.integrations.enable_sidekiq
     end
 
     # Set up integrations after config/initializers, so that the settings in
@@ -29,6 +32,9 @@ module LogStruct
         LogStruct::SemanticLogger::Setup.configure_semantic_logger(app) unless LogStruct::SemanticLogger::Setup.configured?
       elsif LogStruct::SemanticLogger::Setup.configured?
         LogStruct::SemanticLogger::Setup.restore_rails_logger(app)
+      end
+      unless LogStruct.enabled? && LogStruct.config.integrations.enable_sidekiq
+        Integrations::Sidekiq.restore_logger
       end
 
       next unless LogStruct.enabled?
