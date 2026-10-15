@@ -59,6 +59,12 @@ module LogStruct
         # Replace GoodJob's logger with our structured logger
         configure_logger
 
+        # GoodJob applies config.good_job in an after_initialize block, so an app that sets
+        # `on_thread_error` there (as GoodJob's README does) replaces the handler set above
+        if defined?(::Rails) && ::Rails.application && !::Rails.application.initialized?
+          ::Rails.application.config.after_initialize { configure_thread_error_handler }
+        end
+
         # Subscribe to GoodJob's ActiveSupport notifications
         subscribe_to_notifications
 
@@ -86,8 +92,18 @@ module LogStruct
           end
         end
 
-        # Log thread errors, after calling the handler the app set (GoodJob's README sets one
-        # to report them to an error tracker). Setting up again keeps the one handler.
+        configure_thread_error_handler
+      end
+
+      # Log thread errors, after calling the handler the app set (GoodJob's README sets one
+      # to report them to an error tracker). Setting up again keeps the one handler.
+      sig { void }
+      def self.configure_thread_error_handler
+        return unless defined?(::GoodJob)
+
+        # Not GoodJob, which here is this module
+        goodjob_module = ::GoodJob
+
         if goodjob_module.respond_to?(:on_thread_error=)
           app_handler = goodjob_module.on_thread_error
           return if app_handler&.equal?(@thread_error_handler)
@@ -117,6 +133,7 @@ module LogStruct
       end
 
       private_class_method :configure_logger
+      private_class_method :configure_thread_error_handler
       private_class_method :subscribe_to_notifications
     end
   end

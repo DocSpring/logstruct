@@ -84,6 +84,30 @@ module LogStruct
         end
       end
 
+      test "still logs thread errors when GoodJob applies the app's on_thread_error after initialization" do
+        with_fake_goodjob do |fake|
+          after_initialize = []
+          ::Rails.application.stub(:initialized?, false) do
+            ::Rails.application.config.stub(:after_initialize, ->(&block) { after_initialize << block }) do
+              GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) }
+            end
+          end
+
+          # What GoodJob's own after_initialize does with config.good_job.on_thread_error
+          reported = []
+          fake.on_thread_error = ->(exception) { reported << exception.message }
+          after_initialize.each(&:call)
+
+          logged = []
+          fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
+            fake.on_thread_error.call(RuntimeError.new("boom"))
+          end
+
+          assert_equal ["boom"], reported
+          assert_equal ["boom"], logged
+        end
+      end
+
       test "subscribe_to_notifications method exists and is private" do
         assert_includes GoodJob.private_methods, :subscribe_to_notifications
       end
