@@ -143,6 +143,17 @@ module LogStruct
       assert_includes secondary_output, "Test broadcast message"
     end
 
+    test "broadcast_to ignores SemanticLogger loggers, which share its appenders" do
+      sidekiq_logger = LogStruct::Integrations::Sidekiq::Logger.new("Sidekiq-Server")
+
+      @logger.broadcast_to(sidekiq_logger)
+      @logger.info("Written once")
+      ::SemanticLogger.flush
+
+      assert_empty @logger.broadcasts
+      assert_equal 1, @io.string.scan("Written once").size
+    end
+
     test "stop_broadcasting_to removes logger from broadcasts" do
       secondary_io = StringIO.new
       secondary_logger = Logger.new(secondary_io)
