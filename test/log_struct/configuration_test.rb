@@ -105,6 +105,49 @@ module LogStruct
       end
     end
 
+    def test_enabled_environments_set_in_an_initializer_apply
+      ClimateControl.modify LOGSTRUCT_ENABLED: nil do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.config.enabled_environments = [:test, :production]
+          LogStruct.set_enabled_from_rails_env!
+
+          LogStruct.config.enabled_environments = [:production]
+          LogStruct.apply_initializer_settings!
+
+          refute LogStruct.config.enabled
+        end
+      end
+    end
+
+    def test_enabled_set_in_an_initializer_wins_over_enabled_environments
+      ClimateControl.modify LOGSTRUCT_ENABLED: nil do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.config.enabled_environments = [:production]
+          LogStruct.set_enabled_from_rails_env!
+
+          LogStruct.config.enabled = true
+          LogStruct.config.enabled_environments = [:staging]
+          LogStruct.apply_initializer_settings!
+
+          assert LogStruct.config.enabled
+        end
+      end
+    end
+
+    def test_logstruct_enabled_wins_over_settings_from_an_initializer
+      ClimateControl.modify LOGSTRUCT_ENABLED: "true" do
+        Rails.stub(:env, ActiveSupport::StringInquirer.new("test")) do
+          LogStruct.set_enabled_from_rails_env!
+
+          LogStruct.config.enabled = false
+          LogStruct.config.enabled_environments = [:production]
+          LogStruct.apply_initializer_settings!
+
+          assert LogStruct.config.enabled
+        end
+      end
+    end
+
     def test_merge_rails_filter_parameters_matches_keys_the_way_rails_does
       filter_params = [:passw, "Card_Number", :_key]
 

@@ -10,7 +10,8 @@ require_relative "integrations"
 module LogStruct
   # Railtie to integrate with Rails
   class Railtie < ::Rails::Railtie
-    # Configure early, right after logger initialization
+    # Replace the logger as soon as Rails creates it, so boot-time logs and anything that keeps
+    # a reference to Rails.logger use LogStruct's logger
     initializer "logstruct.configure_logger", after: :initialize_logger do |app|
       next unless LogStruct.enabled?
 
@@ -18,23 +19,28 @@ module LogStruct
       LogStruct::SemanticLogger::Setup.configure_semantic_logger(app)
     end
 
-    # Setup all integrations after logger setup is complete
-    initializer "logstruct.setup", before: :build_middleware_stack do |app|
+    # Set up integrations after config/initializers, so that the settings in
+    # config/initializers/logstruct.rb and filter_parameters added by other initializers apply
+    initializer "logstruct.setup", after: :load_config_initializers, before: :build_middleware_stack do |app|
+      # An initializer may have changed `enabled` or `enabled_environments` after the logger was
+      # (or wasn't) replaced
+      LogStruct.apply_initializer_settings!
+      if LogStruct.enabled?
+        LogStruct::SemanticLogger::Setup.configure_semantic_logger(app) unless LogStruct::SemanticLogger::Setup.configured?
+      elsif LogStruct::SemanticLogger::Setup.configured?
+        LogStruct::SemanticLogger::Setup.restore_rails_logger(app)
+      end
+
       next unless LogStruct.enabled?
 
       # Merge Rails filter parameters into our filters
       LogStruct.merge_rails_filter_parameters!
 
-      # Set up non-middleware integrations first
       Integrations.setup_integrations(stage: :non_middleware)
-
-      # Note: Host allowances are managed by the test app itself.
     end
 
-    # Setup middleware integrations during Rails configuration (before middleware stack is built)
-    # Must be done in the Railtie class body, not in an initializer
-    initializer "logstruct.configure_middleware", before: :build_middleware_stack do |app|
-      # This runs before middleware stack is frozen, so we can configure it
+    # Add middleware before the middleware stack is built
+    initializer "logstruct.configure_middleware", after: "logstruct.setup", before: :build_middleware_stack do |app|
       next unless LogStruct.enabled?
 
       Integrations.setup_integrations(stage: :middleware)

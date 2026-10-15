@@ -33,8 +33,8 @@ module LogStruct
         LogStruct::Integrations::Dotenv.intercept_logger_setter!
       end
 
-      # Decide which set of boot logs to emit after user initializers
-      railtie.initializer "logstruct.resolve_boot_logs", after: :load_config_initializers do
+      # Decide which set of boot logs to emit once `enabled` is final
+      railtie.initializer "logstruct.resolve_boot_logs", after: "logstruct.setup" do
         LogStruct::Integrations::Dotenv.resolve_boot_logs!
       end
     end

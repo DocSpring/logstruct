@@ -62,6 +62,23 @@ module LogStruct
     module Setup
       extend T::Sig
 
+      # Load hooks for the framework components whose loggers LogStruct replaces
+      COMPONENT_LOAD_HOOKS = T.let(
+        %i[active_record action_controller action_mailer active_job action_view action_cable].freeze,
+        T::Array[Symbol]
+      )
+
+      # The logger LogStruct installed, and the loggers it replaced
+      @logger = T.let(nil, T.nilable(LogStruct::SemanticLogger::Logger))
+      @original_rails_logger = T.let(nil, T.untyped)
+      @original_log_subscriber_logger = T.let(nil, T.untyped)
+      @original_app_logger = T.let(nil, T.untyped)
+
+      sig { returns(T::Boolean) }
+      def self.configured?
+        !@logger.nil?
+      end
+
       # Configures SemanticLogger as the primary logging engine for the Rails application
       #
       # This method replaces Rails' default logger with SemanticLogger, providing:
@@ -217,6 +234,10 @@ module LogStruct
       def self.replace_rails_logger(app)
         # Create new SemanticLogger instance
         logger = LogStruct::SemanticLogger::Logger.new("Rails")
+        @logger = logger
+        @original_rails_logger = Rails.logger
+        @original_log_subscriber_logger = ActiveSupport::LogSubscriber.logger
+        @original_app_logger = app.config.logger
 
         # Replace Rails.logger
         Rails.logger = logger
@@ -231,15 +252,35 @@ module LogStruct
         # classes: loading them this early would apply their on_load hooks before the app's
         # initializers run, e.g. ActiveRecord would copy an empty filter_parameters into
         # filter_attributes.
-        ActiveSupport.on_load(:active_record) { T.unsafe(self).logger = logger }
-        ActiveSupport.on_load(:action_controller) { T.unsafe(self).logger = logger }
-        ActiveSupport.on_load(:action_mailer) { T.unsafe(self).logger = logger }
-        ActiveSupport.on_load(:active_job) { T.unsafe(self).logger = logger }
-        ActiveSupport.on_load(:action_view) { T.unsafe(self).logger = logger }
-        ActiveSupport.on_load(:action_cable) { T.unsafe(self).logger = logger }
+        COMPONENT_LOAD_HOOKS.each do |hook|
+          ActiveSupport.on_load(hook) { T.unsafe(self).logger = logger }
+        end
 
         # Store reference in app config
         app.config.logger = logger
+      end
+
+      # Puts back the loggers that replace_rails_logger replaced. Used when an initializer
+      # disables LogStruct after the logger was replaced at boot.
+      sig { params(app: T.untyped).void }
+      def self.restore_rails_logger(app)
+        logger = @logger
+        return unless logger
+
+        original_logger = @original_rails_logger
+        Rails.logger = original_logger
+        ActiveSupport::LogSubscriber.logger = @original_log_subscriber_logger
+        app.config.logger = @original_app_logger
+
+        # These hooks run after the ones that installed LogStruct's logger, including for
+        # components that are already loaded
+        COMPONENT_LOAD_HOOKS.each do |hook|
+          ActiveSupport.on_load(hook) do
+            T.unsafe(self).logger = original_logger if T.unsafe(self).logger.equal?(logger)
+          end
+        end
+
+        @logger = nil
       end
     end
   end
