@@ -4,6 +4,7 @@
 require "test_helper"
 require "log_struct/semantic_logger/formatter"
 require "log_struct/semantic_logger/logger"
+require "tempfile"
 
 module LogStruct
   class SemanticLoggerTest < ActiveSupport::TestCase
@@ -14,6 +15,25 @@ module LogStruct
 
     teardown do
       teardown_isolated_logger
+    end
+
+    test "writes to STDOUT without buffering" do
+      # Like STDOUT when it's a pipe or a file
+      stdout = Tempfile.new("stdout")
+      stdout.sync = false
+      saved_stdout = $stdout
+      $stdout = stdout
+
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+      end
+
+      assert stdout.sync
+    ensure
+      # Remove the appenders writing to it before closing it; teardown puts back the others
+      ::SemanticLogger.clear_appenders!
+      $stdout = saved_stdout
+      stdout&.close!
     end
 
     test "logs plain messages through SemanticLogger" do

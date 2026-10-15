@@ -138,6 +138,11 @@ module LogStruct
         # Determine output destination
         io = determine_output(app)
 
+        # Ruby buffers STDOUT when it isn't a terminal, so in a container lines waited until the buffer
+        # filled or the process exited. (GoodJob's executable only syncs STDOUT when it writes its own
+        # text logs there.)
+        io.sync = true if io.equal?($stdout)
+
         if Rails.env.development?
           if config.prefer_json_in_development
             # Default to production-style JSON in development when enabled
