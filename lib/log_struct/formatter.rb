@@ -81,13 +81,14 @@ module LogStruct
           arg.to_global_id
         rescue
           begin
-            case arg
-            when ActiveRecord::Base
-              "#{arg.class}(##{arg.id})"
+            object = T.cast(arg, Object)
+            # Active Record is optional
+            if defined?(::ActiveRecord::Base) && object.is_a?(::ActiveRecord::Base)
+              "#{object.class}(##{object.id})"
             else
               # For non-ActiveRecord objects that failed to_global_id, try to get a string representation
               # If this also fails, we want to catch it and return the error placeholder
-              String(T.cast(arg, Object))
+              String(object)
             end
           rescue => e
             LogStruct.handle_exception(e, source: Source::Internal)
