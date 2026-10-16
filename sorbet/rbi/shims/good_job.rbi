@@ -18,7 +18,10 @@ module GoodJob
   end
 
   # Logs GoodJob's notifications as text
-  class LogSubscriber; end
+  class LogSubscriber
+    sig { params(progname: T.untyped, tags: T::Array[T.untyped], block: T.nilable(T.proc.returns(String))).void }
+    def error(progname = nil, tags: [], &block); end
+  end
 
   class CLI
     class << self

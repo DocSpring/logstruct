@@ -68,17 +68,21 @@ module LogStruct
         # Subscribe to GoodJob's ActiveSupport notifications
         subscribe_to_notifications
 
-        silence_thread_error_lines
+        compact_error_lines
 
         true
       end
 
-      # GoodJob calls `on_thread_error` for every error its job and timer tasks raise, then sends the
-      # finished_job_task and finished_timer_task notifications. GoodJob::LogSubscriber logs those as
-      # "GoodJob error: ..." text with the whole backtrace in the message (over 10KB). The thread error
-      # handler already logs each error as a structured line, so these methods log nothing.
-      module SilenceThreadErrorLines
+      # GoodJob::LogSubscriber logs errors as text with the whole backtrace in the message (over 10KB).
+      # GoodJob calls `on_thread_error` for every error its job and timer tasks raise, and the thread
+      # error handler logs each one as a structured line, so finished_job_task and finished_timer_task
+      # log nothing. The notifier only calls `on_thread_error` after repeated connection errors, so its
+      # errors (and systemd's) are still logged, without the backtrace.
+      module CompactErrorLines
         extend T::Sig
+        extend T::Helpers
+
+        requires_ancestor { ::GoodJob::LogSubscriber }
 
         sig { params(_event: T.untyped).void }
         def finished_timer_task(_event)
@@ -86,6 +90,22 @@ module LogStruct
 
         sig { params(_event: T.untyped).void }
         def finished_job_task(_event)
+        end
+
+        sig { params(event: T.untyped).void }
+        def notifier_notify_error(event)
+          exception = event.payload[:error]
+          return unless exception
+
+          error { "Notifier errored: #{exception.class}: #{exception}" }
+        end
+
+        sig { params(event: T.untyped).void }
+        def systemd_watchdog_error(event)
+          exception = event.payload[:error]
+          return unless exception
+
+          error { "Error pinging systemd: #{exception.class}: #{exception}" }
         end
       end
 
@@ -142,14 +162,14 @@ module LogStruct
         end
       end
 
-      # Only when the thread error handler logs these errors instead
+      # Only when the thread error handler logs thread errors instead
       sig { void }
-      def self.silence_thread_error_lines
+      def self.compact_error_lines
         return unless defined?(::GoodJob::LogSubscriber)
         return unless ::GoodJob.respond_to?(:on_thread_error=)
 
         log_subscriber = ::GoodJob::LogSubscriber
-        log_subscriber.prepend(SilenceThreadErrorLines) unless log_subscriber.ancestors.include?(SilenceThreadErrorLines)
+        log_subscriber.prepend(CompactErrorLines) unless log_subscriber.ancestors.include?(CompactErrorLines)
       end
 
       # Subscribe to GoodJob's ActiveSupport notifications
@@ -162,7 +182,7 @@ module LogStruct
       end
 
       private_class_method :configure_logger
-      private_class_method :silence_thread_error_lines
+      private_class_method :compact_error_lines
       private_class_method :configure_thread_error_handler
       private_class_method :subscribe_to_notifications
     end

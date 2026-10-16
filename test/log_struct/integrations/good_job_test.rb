@@ -129,9 +129,9 @@ module LogStruct
         end
       end
 
-      test "GoodJob's own text lines for thread errors are left to the thread error handler" do
+      test "GoodJob's own error lines have no backtrace, and thread errors are left to the thread error handler" do
         with_fake_goodjob do |fake|
-          # Like GoodJob::LogSubscriber: these two only log errors, as text with the backtrace in the message
+          # Like GoodJob::LogSubscriber: it logs errors as text with the whole backtrace in the message
           log_subscriber = Class.new do
             attr_reader :lines
 
@@ -143,19 +143,35 @@ module LogStruct
 
             def finished_job_task(event) = @lines << [:job, event]
 
+            def notifier_notify_error(event) = error { "Notifier errored: #{event.payload[:error].backtrace}" }
+
+            def systemd_watchdog_error(event) = error { "Error pinging systemd: #{event.payload[:error].backtrace}" }
+
             def scheduler_create_pool(event) = @lines << [:pool, event]
+
+            def error(progname = nil, tags: [], &block) = @lines << [:error, block ? yield : progname]
           end
           fake.const_set(:LogSubscriber, log_subscriber)
 
           2.times { GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) } }
 
+          error = IOError.new("connection lost")
+          error.set_backtrace(["lib/good_job/notifier.rb:1:in 'listen'"])
+          event = Struct.new(:payload).new({error: error})
           subscriber = log_subscriber.new
-          subscriber.finished_timer_task(:event)
-          subscriber.finished_job_task(:event)
+          subscriber.finished_timer_task(event)
+          subscriber.finished_job_task(event)
+          subscriber.notifier_notify_error(event)
+          subscriber.systemd_watchdog_error(event)
           subscriber.scheduler_create_pool(:event)
 
-          assert_equal [[:pool, :event]], subscriber.lines
-          assert_equal 1, log_subscriber.ancestors.count(GoodJob::SilenceThreadErrorLines)
+          assert_equal [
+            [:error, "Notifier errored: IOError: connection lost"],
+            [:error, "Error pinging systemd: IOError: connection lost"],
+            [:pool, :event]
+          ],
+            subscriber.lines
+          assert_equal 1, log_subscriber.ancestors.count(GoodJob::CompactErrorLines)
         end
       end
 
