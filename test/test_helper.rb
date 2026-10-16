@@ -114,20 +114,33 @@ class ActiveSupport::TestCase
   setup do
     TEST_LOG_IO.truncate(0)
     TEST_LOG_IO.rewind
-    @saved_filter_keys = T.let(LogStruct.config.filters.filter_keys.dup, T.nilable(T::Array[Symbol]))
-    @saved_filter_matchers = T.let(LogStruct.config.filters.filter_matchers.dup,
-      T.nilable(T::Array[LogStruct::ConfigStruct::FilterMatcher]))
-    @saved_error_reporting_handler = T.let(LogStruct.config.error_reporting_handler,
-      T.nilable(LogStruct::Handlers::ErrorReporter))
+    # Each test gets its own copy of the configuration: tests change filters in place and set
+    # handlers, scrubbers, salts and error handling modes (the code examples do), which later
+    # tests would otherwise see
+    @saved_configuration = T.let(LogStruct.configuration, T.nilable(LogStruct::Configuration))
+    LogStruct.configuration = deep_copy_configuration(LogStruct.configuration)
   end
 
-  # Tests change the filters in place and set error reporting handlers (the code examples do), so
-  # later tests would see them. Runs after each test class's own teardown has put back the
-  # configuration it replaced.
+  # Runs after each test class's own teardown has put back the configuration it replaced
   teardown do
-    LogStruct.config.filters.filter_keys = T.must(@saved_filter_keys)
-    LogStruct.config.filters.filter_matchers = T.must(@saved_filter_matchers)
-    LogStruct.config.error_reporting_handler = @saved_error_reporting_handler
+    LogStruct.configuration = T.must(@saved_configuration)
+  end
+
+  sig { params(value: T.untyped).returns(T.untyped) }
+  def deep_copy_configuration(value)
+    case value
+    when T::Struct
+      copy = value.dup
+      value.class.props.each_key do |name|
+        ivar = :"@#{name}"
+        copy.instance_variable_set(ivar, deep_copy_configuration(value.instance_variable_get(ivar)))
+      end
+      copy
+    when Array then value.map { |item| deep_copy_configuration(item) }
+    when Hash then value.to_h { |key, item| [key, deep_copy_configuration(item)] }
+    when String then value.dup
+    else value
+    end
   end
 
   # Helper method for tests that need to capture and parse log output

@@ -15,9 +15,6 @@ module LogStruct
         extend T::Sig
         extend ActiveSupport::Concern
 
-        # Marks an error the mailer's handler logged and re-raised, so the class handler doesn't log it again
-        LOGGED_ERROR_IVAR = :@_logstruct_mailer_error_logged
-
         # ActionMailer::MailDeliveryJob passes errors to the mailer class (`handle_exception`), which
         # looks the rescue_from handlers up on the class, so the handlers are defined there too.
         # (ActiveSupport::Concern extends the class with ClassMethods when it's included or prepended.)
@@ -43,26 +40,28 @@ module LogStruct
           end
         end
 
-        # Errors that reach the class handler from the delivery itself were logged (and reported)
-        # by the mailer's handler before it re-raised them for the job to retry
+        # An error that reaches the class handler from the delivery itself was logged (and reported)
+        # by the mailer's handler, which let it through: it re-raised it for the job to retry, or
+        # LogStruct.handle_exception raised it (Raise mode). It's raised again, without logging it
+        # twice, so the job fails as deliver_now would.
         sig { params(mailer_class: T.untyped, error: StandardError, report: T::Boolean, reraise: T::Boolean).void }
         def self.handle_mailer_class_error(mailer_class, error, report:, reraise:)
-          unless error.instance_variable_get(LOGGED_ERROR_IVAR)
-            message = if reraise
-              "#{error.class}: Email delivery error, will retry. Error message: #{error.message}"
-            else
-              "#{error.class}: Cannot send email. Error message: #{error.message}"
-            end
-            LogStruct.error(Log::ActionMailer::Error.new(
-              mailer_class: mailer_class.to_s,
-              error_class: error.class,
-              message: message,
-              backtrace: error.backtrace,
-              level: Level::Error
-            ))
-            if report
-              LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}, log: false)
-            end
+          Kernel.raise error if LogStruct::LoggedErrors.logged?(error)
+
+          message = if reraise
+            "#{error.class}: Email delivery error, will retry. Error message: #{error.message}"
+          else
+            "#{error.class}: Cannot send email. Error message: #{error.message}"
+          end
+          LogStruct.error(Log::ActionMailer::Error.new(
+            mailer_class: mailer_class.to_s,
+            error_class: error.class,
+            message: message,
+            backtrace: error.backtrace,
+            level: Level::Error
+          ))
+          if report
+            LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}, log: false)
           end
 
           Kernel.raise error if reraise
@@ -182,7 +181,7 @@ module LogStruct
           log_structured_error(self, error, message)
           # The mailer class handler gets the error if it's raised from here (re-raised, or raised by
           # LogStruct.handle_exception in Raise mode), and mustn't log or report it again
-          error.instance_variable_set(LOGGED_ERROR_IVAR, true) unless error.frozen?
+          LogStruct::LoggedErrors.mark(error)
 
           # Handle notifications and reporting
           handle_error_notifications(error, notify, report, reraise)

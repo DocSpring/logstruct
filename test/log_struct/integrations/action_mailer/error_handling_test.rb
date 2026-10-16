@@ -35,6 +35,10 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
     rescue_from DeliveryFailed, with: :log_and_ignore_error
   end
 
+  class ReportingMailer < FailingMailer
+    rescue_from DeliveryFailed, with: :log_and_report_error
+  end
+
   setup do
     @orig_logger = ::Rails.logger
     @buf = StringIO.new
@@ -137,6 +141,26 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
 
     assert_empty @reported
     assert_equal 1, error_lines.size
+  end
+
+  # In Raise mode handle_exception raises, so log_and_report_error lets the error through. The job
+  # must fail as deliver_now does, not swallow it at the mailer class.
+  test "in Raise mode, log_and_report_error fails a delivery job as deliver_now raises" do
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Raise
+
+    assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(ReportingMailer, :notice).deliver_now }
+    assert_raises(DeliveryFailed) { deliver_through_job(ReportingMailer) }
+
+    assert_equal 2, error_lines.size, "One line per delivery"
+  end
+
+  # Only the mailer's own handler marks an error for the class handler to raise again
+  test "the class handler ignores an error each time it's given it" do
+    error = DeliveryFailed.new("Couldn't load the email's record")
+
+    2.times { IgnoringMailer.handle_exception(error) }
+
+    assert_equal 2, error_lines.size
   end
 
   private

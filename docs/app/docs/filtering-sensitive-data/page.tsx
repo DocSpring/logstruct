@@ -28,7 +28,9 @@ export default function FilteringSensitiveDataPage() {
         Mail delivery jobs (<code>deliver_later</code>) are logged with only the mailer, the mail
         and the delivery method as their arguments. A mail&apos;s own arguments can be secrets with
         no key to filter on, such as the tokens Devise passes to its confirmation, password reset
-        and invitation emails.
+        and invitation emails. This applies while the ActiveJob integration is on and the delivery
+        job is <code>ActionMailer::MailDeliveryJob</code> or a subclass of it. With the integration
+        off, Rails&apos; own job logs include the arguments.
       </p>
 
       <HeadingWithAnchor id="how-parameter-filtering-works" level={3}>
