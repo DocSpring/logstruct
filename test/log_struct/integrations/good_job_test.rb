@@ -64,7 +64,7 @@ module LogStruct
         assert_includes GoodJob.private_methods, :configure_logger
       end
 
-      test "replaces GoodJob's logger and logs thread errors after the app's own handler" do
+      test "replaces GoodJob's logger, and logs thread errors as well as passing them to the app's handler" do
         with_fake_goodjob do |fake|
           reported = []
           fake.on_thread_error = ->(exception) { reported << exception.message }
@@ -76,7 +76,7 @@ module LogStruct
           assert_same false, FakeGoodJobCLI.log_to_stdout, "GoodJob's executable shouldn't add a plain text STDOUT logger"
           logged = []
           fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
-            fake.on_thread_error.call(RuntimeError.new("boom"))
+            fake._on_thread_error(RuntimeError.new("boom"))
           end
 
           assert_equal ["boom"], reported
@@ -92,7 +92,7 @@ module LogStruct
 
           error = RuntimeError.new("boom")
           error.set_backtrace(["app/jobs/example_job.rb:3:in 'perform'"])
-          fake.on_thread_error.call(error)
+          fake._on_thread_error(error)
           ::SemanticLogger.flush
 
           lines = io.string.lines.map { |line| JSON.parse(line) }
@@ -105,23 +105,18 @@ module LogStruct
         teardown_isolated_logger
       end
 
-      test "still logs thread errors when GoodJob applies the app's on_thread_error after initialization" do
+      # In a Rails app, GoodJob's engine sets config.good_job.on_thread_error in an after_initialize
+      # block that runs after LogStruct's setup
+      test "logs thread errors when the app sets its handler after LogStruct's setup" do
         with_fake_goodjob do |fake|
-          after_initialize = []
-          ::Rails.application.stub(:initialized?, false) do
-            ::Rails.application.config.stub(:after_initialize, ->(&block) { after_initialize << block }) do
-              GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) }
-            end
-          end
+          2.times { GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) } }
 
-          # What GoodJob's own after_initialize does with config.good_job.on_thread_error
           reported = []
           fake.on_thread_error = ->(exception) { reported << exception.message }
-          after_initialize.each(&:call)
 
           logged = []
           fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
-            fake.on_thread_error.call(RuntimeError.new("boom"))
+            fake._on_thread_error(RuntimeError.new("boom"))
           end
 
           assert_equal ["boom"], reported
@@ -204,6 +199,11 @@ module LogStruct
         fake = Module.new do
           class << self
             attr_accessor :logger, :on_thread_error
+
+            # Like GoodJob: every thread error goes through here
+            def _on_thread_error(exception)
+              on_thread_error.call(exception) if on_thread_error.respond_to?(:call)
+            end
           end
         end
         FakeGoodJobCLI.log_to_stdout = nil

@@ -59,12 +59,6 @@ module LogStruct
         # Replace GoodJob's logger with our structured logger
         configure_logger
 
-        # GoodJob applies config.good_job in an after_initialize block, so an app that sets
-        # `on_thread_error` there (as GoodJob's README does) replaces the handler set above
-        if defined?(::Rails) && ::Rails.application && !::Rails.application.initialized?
-          ::Rails.application.config.after_initialize { configure_thread_error_handler }
-        end
-
         # Subscribe to GoodJob's ActiveSupport notifications
         subscribe_to_notifications
 
@@ -109,7 +103,20 @@ module LogStruct
         end
       end
 
-      @thread_error_handler = T.let(nil, T.nilable(T.proc.params(exception: StandardError).void))
+      # Logs each thread error as a structured line, then calls the handler the app set as
+      # `on_thread_error` (GoodJob's README sets one to report errors to an error tracker). Every
+      # GoodJob component passes its thread errors to `GoodJob._on_thread_error`, so this works
+      # whenever the app sets its handler: GoodJob's engine applies config.good_job.on_thread_error
+      # after LogStruct's setup.
+      module LogThreadErrors
+        extend T::Sig
+
+        sig { params(exception: StandardError).void }
+        def _on_thread_error(exception)
+          LogStruct::Integrations::GoodJob.log_thread_error(exception)
+          super
+        end
+      end
 
       # Configure GoodJob to use LogStruct's structured logger
       sig { void }
@@ -133,40 +140,36 @@ module LogStruct
         configure_thread_error_handler
       end
 
-      # Log thread errors, after calling the handler the app set (GoodJob's README sets one
-      # to report them to an error tracker). Setting up again keeps the one handler.
       sig { void }
       def self.configure_thread_error_handler
         return unless defined?(::GoodJob)
 
         # Not GoodJob, which here is this module
-        goodjob_module = ::GoodJob
+        goodjob_singleton = ::GoodJob.singleton_class
+        return unless goodjob_singleton.method_defined?(:_on_thread_error)
 
-        if goodjob_module.respond_to?(:on_thread_error=)
-          app_handler = goodjob_module.on_thread_error
-          return if app_handler&.equal?(@thread_error_handler)
-
-          @thread_error_handler = ->(exception) do
-            app_handler&.call(exception)
-            log_entry = LogStruct::Log::GoodJob::Error.new(
-              error_class: exception.class.name,
-              error_message: exception.message,
-              backtrace: exception.backtrace,
-              level: LogStruct::Level::Error,
-              process_id: ::Process.pid,
-              thread_id: Thread.current.object_id.to_s(36)
-            )
-            goodjob_module.logger.error(log_entry)
-          end
-          goodjob_module.on_thread_error = @thread_error_handler
-        end
+        goodjob_singleton.prepend(LogThreadErrors) unless goodjob_singleton.ancestors.include?(LogThreadErrors)
       end
 
-      # Only when the thread error handler logs thread errors instead
+      sig { params(exception: StandardError).void }
+      def self.log_thread_error(exception)
+        ::GoodJob.logger.error(
+          LogStruct::Log::GoodJob::Error.new(
+            error_class: exception.class.name || exception.class.to_s,
+            error_message: exception.message,
+            backtrace: exception.backtrace,
+            level: LogStruct::Level::Error,
+            process_id: ::Process.pid,
+            thread_id: Thread.current.object_id.to_s(36)
+          )
+        )
+      end
+
+      # Only when LogThreadErrors logs thread errors instead
       sig { void }
       def self.compact_error_lines
         return unless defined?(::GoodJob::LogSubscriber)
-        return unless ::GoodJob.respond_to?(:on_thread_error=)
+        return unless ::GoodJob.singleton_class.ancestors.include?(LogThreadErrors)
 
         log_subscriber = ::GoodJob::LogSubscriber
         log_subscriber.prepend(CompactErrorLines) unless log_subscriber.ancestors.include?(CompactErrorLines)

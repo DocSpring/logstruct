@@ -15,6 +15,10 @@ module GoodJob
 
     sig { params(handler: T.nilable(T.proc.params(exception: StandardError).void)).void }
     def on_thread_error=(handler); end
+
+    # Every GoodJob component passes its thread errors here; it calls on_thread_error
+    sig { params(exception: StandardError).void }
+    def _on_thread_error(exception); end
   end
 
   # Logs GoodJob's notifications as text
