@@ -7,17 +7,17 @@
 module FilterByLine
   module ClassMethods
     extend T::Helpers
+    requires_ancestor { Module }
 
     def runnable_methods
       methods = super
 
       # Get the target line from the environment
       line = ENV["LINE"]&.to_i
-      return methods unless line && T.unsafe(self).name.include?("Test")
+      return methods unless line && name&.include?("Test")
 
       methods.select do |method_name|
-        # Couldn't figure out how to get typechecking to pass for #instance_method
-        method = T.unsafe(self).instance_method(method_name)
+        method = instance_method(method_name)
         source_location = method.source_location
         # If source location doesn't contain line info, include the method
         next true unless source_location

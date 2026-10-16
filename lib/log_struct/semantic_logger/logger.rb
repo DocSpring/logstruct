@@ -107,11 +107,11 @@ module LogStruct
       # Support for tagged logging
       sig { params(tags: T.untyped, block: T.proc.returns(T.untyped)).returns(T.untyped) }
       def tagged(*tags, &block)
-        # Convert tags to array and pass individually to avoid splat issues
         tag_array = tags.flatten
         if tag_array.empty?
           super(&block)
         else
+          # Sorbet can't check a splat of an Array whose size it doesn't know
           super(*T.unsafe(tag_array), &block)
         end
       end

@@ -264,7 +264,7 @@ module LogStruct
 
         sig { params(error: StandardError).returns(String) }
         def recipients(error)
-          # Extract recipient info if available
+          # Some delivery errors (Postmark's, for example) have the recipients
           if error.respond_to?(:recipients) && T.unsafe(error).recipients.present?
             T.unsafe(error).recipients.join(", ")
           else

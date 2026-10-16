@@ -1,6 +1,6 @@
 ---
 description: Working with Sorbet and Rails constants
-globs: 
+globs:
 alwaysApply: true
 ---
 - `T::Sig` is not available globally, we must extend it whenever we need it (we're building a library, not an application.)
@@ -13,7 +13,7 @@ alwaysApply: true
 
 - Use Sorbet type annotations for all methods
 - Ensure all files have the appropriate `# typed:` annotation
-- **NEVER use `T.unsafe` calls**. Instead, properly type your code or use appropriate type assertions with `T.let` or `T.cast` when absolutely necessary.
+- Use `T.unsafe` only in the cases listed in AGENTS.md (Code Style), with a comment saying why. Properly type your code first, or use `T.let` or `T.cast`.
 - `T.untyped` is generally ok for Hash values when they come from unknown sources.
 - When dealing with external libraries, create proper type signatures or use extension methods rather than resorting to `T.unsafe`.
 - **NEVER use `class.name`** anywhere - this is a Sorbet quirk that hides the `name` method from all base classes. Prefer just using Classes themselves as the type. `"#{class}"` will automatically call `.to_s`. Similarly, `to_json` will automatically call `.to_s` - but you can call `.to_s` manually if you really need it.
@@ -32,7 +32,7 @@ end
 
 # BAD
 SomeGem.configure do
-  T.unsafe(self).add_option "value"  # NEVER do this!
+  T.unsafe(self).add_option "value"  # use T.bind instead
 end
 ```
 

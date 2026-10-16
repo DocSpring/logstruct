@@ -211,7 +211,7 @@ module LogStruct
     end
 
     def test_reporter_accepts_callable
-      calls = []
+      calls = T.let([], T::Array[T::Hash[Symbol, T.untyped]])
       custom_reporter = lambda do |error, context, source|
         calls << {
           error: error,
@@ -230,7 +230,7 @@ module LogStruct
       MultiErrorReporter.report_error(@exception, @context)
 
       assert_equal 1, calls.size
-      payload = T.unsafe(calls).first
+      payload = T.must(calls.first)
 
       assert_equal @exception, payload[:error]
       assert_equal @context, payload[:context]
@@ -253,6 +253,7 @@ module LogStruct
 
     def test_setting_invalid_reporter_raises
       error = assert_raises(TypeError) do
+        # Not a reporter, on purpose
         MultiErrorReporter.reporter = T.unsafe(Object.new)
       end
 

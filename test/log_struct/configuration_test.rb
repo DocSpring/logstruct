@@ -525,9 +525,9 @@ module LogStruct
     private
 
     def with_rails_filter_parameters(filter_params, &block)
-      mock_config = T.unsafe(Object.new)
+      mock_config = Object.new
       mock_config.define_singleton_method(:filter_parameters) { filter_params }
-      mock_app = T.unsafe(Object.new)
+      mock_app = Object.new
       mock_app.define_singleton_method(:config) { mock_config }
       LogStruct.config.filters.filter_keys = []
 

@@ -108,11 +108,11 @@ class LoggingController < ApplicationController
   def test_context
     # TODO: Fix types for the tagged method
     # Test Rails' built-in tagged logging
-    T.unsafe(Rails.logger).tagged("REQUEST_ID_123", "USER_456") do
+    Rails.logger.tagged("REQUEST_ID_123", "USER_456") do
       Rails.logger.info("Message with tags")
 
       # Nested tags
-      T.unsafe(Rails.logger).tagged("NESTED") do
+      Rails.logger.tagged("NESTED") do
         Rails.logger.warn("Message with nested tags")
       end
     end

@@ -44,7 +44,7 @@ module LogStruct
     # The formatter produces consistent, parseable JSON that includes:
     # - Standard log fields (timestamp, level, message, logger name)
     # - LogStruct-specific fields (source, event, context)
-    # - SemanticLogger metadata (process ID, thread ID, tags)
+    # - The request ID and the running Sidekiq job's context, from SemanticLogger's named tags
     # - Application-specific payload data
     #
     # This combination provides the performance benefits of SemanticLogger with

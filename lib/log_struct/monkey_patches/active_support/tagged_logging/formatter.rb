@@ -31,14 +31,13 @@ module ActiveSupport
         # Preserve original Rails behavior when LogStruct is disabled
         return super unless ::LogStruct.enabled?
 
-        # Get current tags
-        tags = T.unsafe(self).respond_to?(:current_tags) ? current_tags : (Thread.current[:activesupport_tagged_logging_tags] || [])
+        tags = current_tags
 
         # Add tags to data as hash entry (not text prefix)
         data_with_tags = if data.is_a?(Hash)
           tags.present? ? data.merge(tags: tags) : data
         elsif data.is_a?(::LogStruct::Log::Interfaces::CommonFields) || (data.is_a?(T::Struct) && data.respond_to?(:serialize))
-          hash = T.unsafe(data).serialize
+          hash = data.serialize
           tags.present? ? hash.merge(tags: tags) : hash
         else
           base = {LogStruct::LogField::Message.serialize => data.to_s}

@@ -51,6 +51,8 @@ module LogStruct
 
     module ServerCommandSilencer
       extend T::Sig
+      extend T::Helpers
+      requires_ancestor { Object }
 
       sig { params(args: T.untyped, block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }
       def perform(*args, &block)
@@ -105,9 +107,9 @@ module LogStruct
 
       sig { returns(String) }
       def lookup_executable
-        return "rails" unless T.unsafe(self).respond_to?(:executable, true)
+        return "rails" unless respond_to?(:executable, true)
 
-        T.cast(T.unsafe(self).send(:executable), String)
+        T.cast(send(:executable), String)
       rescue
         "rails"
       end
