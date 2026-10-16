@@ -117,13 +117,17 @@ class ActiveSupport::TestCase
     @saved_filter_keys = T.let(LogStruct.config.filters.filter_keys.dup, T.nilable(T::Array[Symbol]))
     @saved_filter_matchers = T.let(LogStruct.config.filters.filter_matchers.dup,
       T.nilable(T::Array[LogStruct::ConfigStruct::FilterMatcher]))
+    @saved_error_reporting_handler = T.let(LogStruct.config.error_reporting_handler,
+      T.nilable(LogStruct::Handlers::ErrorReporter))
   end
 
-  # Tests change the filters in place, so later tests would see them. Runs after each test
-  # class's own teardown has put back the configuration it replaced.
+  # Tests change the filters in place and set error reporting handlers (the code examples do), so
+  # later tests would see them. Runs after each test class's own teardown has put back the
+  # configuration it replaced.
   teardown do
     LogStruct.config.filters.filter_keys = T.must(@saved_filter_keys)
     LogStruct.config.filters.filter_matchers = T.must(@saved_filter_matchers)
+    LogStruct.config.error_reporting_handler = @saved_error_reporting_handler
   end
 
   # Helper method for tests that need to capture and parse log output

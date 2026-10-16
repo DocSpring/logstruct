@@ -60,7 +60,9 @@ module LogStruct
               backtrace: error.backtrace,
               level: Level::Error
             ))
-            LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}) if report
+            if report
+              LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}, log: false)
+            end
           end
 
           Kernel.raise error if reraise
@@ -178,6 +180,9 @@ module LogStruct
 
           # Use structured error logging
           log_structured_error(self, error, message)
+          # The mailer class handler gets the error if it's raised from here (re-raised, or raised by
+          # LogStruct.handle_exception in Raise mode), and mustn't log or report it again
+          error.instance_variable_set(LOGGED_ERROR_IVAR, true) unless error.frozen?
 
           # Handle notifications and reporting
           handle_error_notifications(error, notify, report, reraise)
@@ -199,28 +204,18 @@ module LogStruct
           # Log a notification event if requested
           log_notification_event(error) if notify
 
-          # Report to error reporting service if requested
+          # Report to error reporting service if requested. The structured error line is already logged.
           if report
-            context_data = {recipients: recipients(error)}
-            exception_data = build_exception_data(error, Level::Error, context_data)
-
-            # Log the exception with structured data
-            LogStruct.error(exception_data)
-
-            # Call the error handler with flat context for compatibility
             context = {
               mailer_class: self.class.to_s,
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }
-            LogStruct.handle_exception(error, source: Source::Mailer, context: context)
+            LogStruct.handle_exception(error, source: Source::Mailer, context: context, log: false)
           end
 
           # Re-raise the error if requested
-          if reraise
-            error.instance_variable_set(LOGGED_ERROR_IVAR, true) unless error.frozen?
-            Kernel.raise error
-          end
+          Kernel.raise error if reraise
         end
 
         # Log a notification event that can be picked up by external systems
