@@ -61,6 +61,28 @@ module LogStruct
           assert_equal "Job failed", log["msg"]
         end
 
+        test "logs a LogStruct log entry as it is" do
+          clear_log_buffer(@io)
+
+          @logger.error(
+            Log::GoodJob::Error.new(
+              error_class: "RuntimeError",
+              error_message: "boom",
+              level: Level::Error,
+              process_id: Process.pid,
+              thread_id: "abc"
+            )
+          )
+          @logger.info({evt: "custom", note: "hash"})
+          ::SemanticLogger.flush
+
+          lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+          assert_equal 2, lines.length
+          assert_equal %w[error error RuntimeError boom], lines[0].values_at("evt", "lvl", "error_class", "error_message")
+          assert_equal %w[custom hash], lines[1].values_at("evt", "note")
+        end
+
         test "extracts job context from thread local variables" do
           clear_log_buffer(@io)
 

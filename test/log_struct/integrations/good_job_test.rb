@@ -84,6 +84,27 @@ module LogStruct
         end
       end
 
+      test "a thread error is one structured error line from GoodJob's logger" do
+        io = setup_isolated_logger
+        with_fake_goodjob do |fake|
+          GoodJob.send(:configure_logger)
+          clear_log_buffer(io)
+
+          error = RuntimeError.new("boom")
+          error.set_backtrace(["app/jobs/example_job.rb:3:in 'perform'"])
+          fake.on_thread_error.call(error)
+          ::SemanticLogger.flush
+
+          lines = io.string.lines.map { |line| JSON.parse(line) }
+
+          assert_equal 1, lines.length
+          assert_equal %w[job error error RuntimeError boom],
+            lines[0].values_at("src", "evt", "lvl", "error_class", "error_message")
+        end
+      ensure
+        teardown_isolated_logger
+      end
+
       test "still logs thread errors when GoodJob applies the app's on_thread_error after initialization" do
         with_fake_goodjob do |fake|
           after_initialize = []

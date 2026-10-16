@@ -132,6 +132,7 @@ module LogStruct
               error_class: exception.class.name,
               error_message: exception.message,
               backtrace: exception.backtrace,
+              level: LogStruct::Level::Error,
               process_id: ::Process.pid,
               thread_id: Thread.current.object_id.to_s(36)
             )
