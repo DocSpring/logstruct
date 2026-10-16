@@ -91,6 +91,8 @@ module LogStruct
       Priority = new(:priority)
       CronKey = new(:cron_key)
       ErrorMessage = new(:error_message)
+      # What the integration was doing when the error happened, e.g. Sidekiq's "Job raised exception"
+      ErrorContext = new(:error_context)
       Result = new(:result)
       EnqueueCaller = new(:enqueue_caller)
 

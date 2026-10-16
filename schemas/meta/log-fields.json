@@ -36,6 +36,7 @@
         "EnqueueCaller",
         "Environment",
         "ErrorClass",
+        "ErrorContext",
         "ErrorMessage",
         "Event",
         "ExceptionExecutions",

@@ -119,7 +119,10 @@ module LogStruct
 
         assert_equal ["error", "warn"], [line["evt"], line["lvl"]]
         assert_equal ["ArgumentError", "Template not found"], [line["error_class"], line["msg"]]
-        assert_equal ["abc123", "HardJob", "default", 2], [line["jid"], line["job_class"], line["queue"], line["retry_count"]]
+        # The job's ID and class are in ctx, as on the lines logged while the job ran
+        assert_equal({"jid" => "abc123", "class" => "HardJob"}, line["ctx"])
+        assert_equal ["Job raised exception", "default", 2], [line["error_context"], line["queue_name"], line["retry_count"]]
+        refute line.key?("jid")
         refute_includes @io.string, "secret@example.com"
       end
 

@@ -239,6 +239,7 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.Priority]: (gen: RandomGen) => gen.randomInt(0, 100),
   [LogField.Vars]: (_gen: RandomGen) => ['API_KEY'],
   [LogField.ErrorMessage]: (_gen: RandomGen) => 'Something failed',
+  [LogField.ErrorContext]: (_gen: RandomGen) => 'Job raised exception',
   [LogField.ProcessId]: SampleHelpers.processId,
   [LogField.Snapshot]: (_gen: RandomGen) => true,
   [LogField.Context]: (_gen: RandomGen) => ({ ctx: 'demo' }),

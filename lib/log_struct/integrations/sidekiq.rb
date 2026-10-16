@@ -86,6 +86,8 @@ module LogStruct
         handlers.unshift(JOB_ERROR_HANDLER)
       end
 
+      # The line has the job's ID and class in ctx, like the lines logged while the job ran (Sidekiq
+      # calls its error handlers after the job's middleware has finished).
       sig { params(error: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def self.log_job_error(error, context)
         job = context[:job]
@@ -93,26 +95,26 @@ module LogStruct
 
         # LogStruct's ActiveJob integration already logs the errors of ActiveJob jobs
         return if job&.key?("wrapped") && LogStruct.config.integrations.enable_activejob
+        error_context = context[:context]
 
-        details = {
-          context: context[:context],
-          jid: job&.dig("jid"),
-          job_class: job && (job["wrapped"] || job["class"]),
-          queue: job&.dig("queue"),
+        line = Log::Sidekiq::Error.new(
+          error_class: error.class,
+          message: error.message,
+          backtrace: error.backtrace,
+          error_context: error_context&.to_s,
+          queue_name: job&.dig("queue")&.to_s,
           retry_count: job&.dig("retry_count")
-        }.compact
-
-        if error.is_a?(StandardError)
-          ::Rails.logger.warn(Log.from_exception(Source::Sidekiq, error, details))
-        else
-          # Log::Error only takes a StandardError; Sidekiq also reports others (e.g. NoMemoryError)
-          ::Rails.logger.warn(Log::Sidekiq.new(
-            level: Level::Warn,
-            event: Event::Error,
-            message: "#{error.class.name}: #{error.message}",
-            context: details
-          ))
+        )
+        if job.nil?
+          ::Rails.logger.warn(line)
+          return
         end
+
+        job_context = {
+          jid: job["jid"],
+          class: job["display_class"] || job["wrapped"] || job["class"]
+        }.compact
+        ::SemanticLogger.named_tagged(sidekiq_context: job_context) { ::Rails.logger.warn(line) }
       end
 
       JOB_ERROR_HANDLER = T.let(
