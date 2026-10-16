@@ -88,7 +88,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'GoodJob',
         description:
-          "The GoodJob integration logs GoodJob's own messages and its thread errors as structured lines. GoodJob's jobs are logged by the ActiveJob integration.",
+          "The GoodJob integration logs GoodJob's own messages and its thread errors as structured lines (GoodJob 3.0 or later). GoodJob's jobs are logged by the ActiveJob integration.",
       };
 
     case LogType.SQL:

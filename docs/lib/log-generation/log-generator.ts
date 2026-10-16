@@ -171,16 +171,7 @@ export class LogGenerator extends RandomDataGenerator {
         }
 
         case LogType.GOODJOB: {
-          switch (
-            evt ??
-            this.sample([Event.Enqueue, Event.Start, Event.Finish, Event.Error, Event.Log])
-          ) {
-            case Event.Enqueue:
-              return GoodJob.GoodJobEnqueue.random(this).serialize();
-            case Event.Start:
-              return GoodJob.GoodJobStart.random(this).serialize();
-            case Event.Finish:
-              return GoodJob.GoodJobFinish.random(this).serialize();
+          switch (evt ?? this.sample([Event.Error, Event.Log])) {
             case Event.Error:
               return GoodJob.GoodJobError.random(this).serialize();
             default:

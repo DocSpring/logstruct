@@ -25,37 +25,6 @@ events:
       Priority:
         type: Integer
         required: false
-  Enqueue:
-    fields:
-      DurationMs: Float
-      ScheduledAt:
-        type: Time
-        required: false
-      EnqueueCaller:
-        type: String
-        required: false
-
-  Start:
-    fields:
-      ProcessId: Integer
-      ThreadId: String
-      WaitMs:
-        type: Float
-        required: false
-      ScheduledAt:
-        type: Time
-        required: false
-
-  Finish:
-    fields:
-      DurationMs: Float
-      FinishedAt: Time
-      ProcessId: Integer
-      ThreadId: String
-      Result:
-        type: String
-        required: false
-
   Error:
     fields:
       ErrorClass: String
@@ -70,15 +39,4 @@ events:
         required: false
       Backtrace:
         type: 'T::Array[String]'
-        required: false
-
-  Schedule:
-    fields:
-      DurationMs: Float
-      ScheduledAt: Time
-      Priority:
-        type: Integer
-        required: false
-      CronKey:
-        type: String
         required: false

@@ -113,7 +113,7 @@
 
 - GoodJob:
   - Log type: `lib/log_struct/log/good_job.rb`
-  - Integration: `lib/log_struct/integrations/good_job.rb` (+ `logger.rb`, `log_subscriber.rb`)
+  - Integration: `lib/log_struct/integrations/good_job.rb` (+ `logger.rb`)
   - Toggle: `enable_goodjob`
 - SQL (ActiveRecord):
   - Log type: `lib/log_struct/log/sql.rb`
