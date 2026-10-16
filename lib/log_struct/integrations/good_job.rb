@@ -52,19 +52,15 @@ module LogStruct
       end
 
       # GoodJob::LogSubscriber logs errors as text with the whole backtrace in the message (over 10KB).
-      # GoodJob calls `on_thread_error` for every error its job and timer tasks raise, and the thread
-      # error handler logs each one as a structured line, so finished_job_task and finished_timer_task
-      # log nothing. The notifier only calls `on_thread_error` after repeated connection errors, so its
-      # errors (and systemd's) are still logged, without the backtrace.
+      # GoodJob passes every error its job tasks raise, every systemd watchdog error and every notifier
+      # error except connection errors to `on_thread_error`, which LogThreadErrors logs as a structured
+      # line, so GoodJob's own lines for those are off. The notifier passes connection errors on only
+      # once they repeat, so its line for them is kept, without the backtrace.
       module CompactErrorLines
         extend T::Sig
         extend T::Helpers
 
         requires_ancestor { ::GoodJob::LogSubscriber }
-
-        sig { params(_event: T.untyped).void }
-        def finished_timer_task(_event)
-        end
 
         sig { params(_event: T.untyped).void }
         def finished_job_task(_event)
@@ -74,16 +70,13 @@ module LogStruct
         def notifier_notify_error(event)
           exception = event.payload[:error]
           return unless exception
+          return unless LogStruct::Integrations::GoodJob.notifier_connection_error?(exception)
 
           error { "Notifier errored: #{exception.class}: #{exception}" }
         end
 
-        sig { params(event: T.untyped).void }
-        def systemd_watchdog_error(event)
-          exception = event.payload[:error]
-          return unless exception
-
-          error { "Error pinging systemd: #{exception.class}: #{exception}" }
+        sig { params(_event: T.untyped).void }
+        def systemd_watchdog_error(_event)
         end
       end
 
@@ -91,11 +84,12 @@ module LogStruct
       # `on_thread_error` (GoodJob's README sets one to report errors to an error tracker). Every
       # GoodJob component passes its thread errors to `GoodJob._on_thread_error`, so this works
       # whenever the app sets its handler: GoodJob's engine applies config.good_job.on_thread_error
-      # after LogStruct's setup.
+      # after LogStruct's setup. GoodJob passes any Exception its handled_exceptions setting lets
+      # through, not only StandardErrors.
       module LogThreadErrors
         extend T::Sig
 
-        sig { params(exception: StandardError).void }
+        sig { params(exception: Exception).void }
         def _on_thread_error(exception)
           LogStruct::Integrations::GoodJob.log_thread_error(exception)
           super
@@ -135,8 +129,12 @@ module LogStruct
         goodjob_singleton.prepend(LogThreadErrors) unless goodjob_singleton.ancestors.include?(LogThreadErrors)
       end
 
-      sig { params(exception: StandardError).void }
+      # A failed job's exception was already logged by the ActiveJob integration, with the job's
+      # ID and class, so it isn't logged again here
+      sig { params(exception: Exception).void }
       def self.log_thread_error(exception)
+        return if LogStruct::LoggedErrors.logged?(exception)
+
         ::GoodJob.logger.error(
           LogStruct::Log::GoodJob::Error.new(
             error_class: exception.class.name || exception.class.to_s,
@@ -147,6 +145,17 @@ module LogStruct
             thread_id: Thread.current.object_id.to_s(36)
           )
         )
+      end
+
+      # The errors GoodJob's notifier holds back until they repeat (GoodJob::Notifier::CONNECTION_ERRORS)
+      sig { params(exception: Exception).returns(T::Boolean) }
+      def self.notifier_connection_error?(exception)
+        return true unless defined?(::GoodJob::Notifier::CONNECTION_ERRORS)
+
+        ::GoodJob::Notifier::CONNECTION_ERRORS.any? do |error_name|
+          error_class = error_name.safe_constantize
+          error_class.is_a?(Class) && exception.is_a?(error_class)
+        end
       end
 
       # Only when LogThreadErrors logs thread errors instead

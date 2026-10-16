@@ -23,7 +23,7 @@ module LogStruct
     sig do
       params(
         source: Source,
-        ex: StandardError,
+        ex: Exception,
         additional_data: T::Hash[T.any(String, Symbol), T.untyped],
         timestamp: Time
       ).returns(LogStruct::Log::Error)

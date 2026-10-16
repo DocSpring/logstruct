@@ -61,6 +61,33 @@ module LogStruct
           assert_equal "2905", parse_first_log(@log_output)["provider_job_id"]
         end
 
+        # GoodJob passes the same exception to on_thread_error, and shouldn't log it again
+        test "marks the exceptions it logs" do
+          error = RuntimeError.new("boom")
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          event = build_event("perform.active_job", start_time, start_time + 0.1, {job: TestActiveJob.new, exception_object: error})
+
+          refute LogStruct::LoggedErrors.logged?(error)
+          @subscriber.perform(event)
+
+          assert LogStruct::LoggedErrors.logged?(error)
+        end
+
+        # perform_now lets any Exception through
+        test "logs a failed job's exception that isn't a StandardError" do
+          clear_log_buffer(@log_output)
+          error = NotImplementedError.new("not yet")
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          event = build_event("perform.active_job", start_time, start_time + 0.1, {job: TestActiveJob.new, exception_object: error})
+
+          @subscriber.perform(event)
+          ::SemanticLogger.flush
+
+          log = parse_first_log(@log_output)
+
+          assert_equal %w[job error NotImplementedError], log.values_at("src", "evt", "error_class")
+        end
+
         private
 
         def build_event(name, start_time, finish_time, payload)

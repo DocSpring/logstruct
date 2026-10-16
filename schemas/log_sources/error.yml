@@ -9,7 +9,7 @@ additional_data: true
 events:
   Error:
     fields:
-      ErrorClass: 'T.class_of(StandardError)'
+      ErrorClass: 'T.class_of(Exception)'
       Message: String
       Backtrace:
         type: 'T::Array[String]'
