@@ -8,29 +8,17 @@ rescue LoadError
 end
 
 require_relative "good_job/logger" if defined?(::GoodJob)
-require_relative "good_job/log_subscriber" if defined?(::GoodJob)
 
 module LogStruct
   module Integrations
     # GoodJob integration for structured logging
     #
-    # GoodJob is a PostgreSQL-based ActiveJob backend that provides reliable,
-    # scalable job processing for Rails applications. This integration provides
-    # structured logging for all GoodJob operations.
+    # GoodJob is a PostgreSQL-based ActiveJob backend. Its jobs are logged by the ActiveJob
+    # integration (enqueued, started, finished, failed), so this integration covers GoodJob itself:
     #
-    # ## Features:
-    # - Structured logging for job execution lifecycle
-    # - Error tracking and retry logging
-    # - Performance metrics and timing data
-    # - Database operation logging
-    # - Thread and process tracking
-    # - Custom GoodJob logger with LogStruct formatting
-    #
-    # ## Integration Points:
-    # - Replaces GoodJob.logger with LogStruct-compatible logger
-    # - Subscribes to GoodJob's ActiveSupport notifications
-    # - Captures job execution events, errors, and performance metrics
-    # - Logs database operations and connection information
+    # - Replaces GoodJob.logger with a LogStruct logger, so GoodJob's own messages are JSON lines
+    # - Logs each thread error as a structured error line, then calls the app's `on_thread_error`
+    # - Stops GoodJob's own log subscriber logging those errors again with the whole backtrace
     #
     # ## Configuration:
     # The integration is automatically enabled when GoodJob is detected and
@@ -45,8 +33,7 @@ module LogStruct
 
       # Set up GoodJob structured logging
       #
-      # This method configures GoodJob to use LogStruct's structured logging
-      # by replacing the default logger and subscribing to job events.
+      # This method replaces GoodJob's logger and logs its thread errors as structured lines.
       #
       # @param config [LogStruct::Configuration] The LogStruct configuration
       # @return [Boolean, nil] Returns true if setup was successful, nil if skipped
@@ -58,9 +45,6 @@ module LogStruct
 
         # Replace GoodJob's logger with our structured logger
         configure_logger
-
-        # Subscribe to GoodJob's ActiveSupport notifications
-        subscribe_to_notifications
 
         compact_error_lines
 
@@ -175,19 +159,9 @@ module LogStruct
         log_subscriber.prepend(CompactErrorLines) unless log_subscriber.ancestors.include?(CompactErrorLines)
       end
 
-      # Subscribe to GoodJob's ActiveSupport notifications
-      sig { void }
-      def self.subscribe_to_notifications
-        return unless defined?(::GoodJob)
-
-        # Subscribe to our custom log subscriber for GoodJob events
-        LogStruct::Integrations::GoodJob::LogSubscriber.attach_to :good_job
-      end
-
       private_class_method :configure_logger
       private_class_method :compact_error_lines
       private_class_method :configure_thread_error_handler
-      private_class_method :subscribe_to_notifications
     end
   end
 end

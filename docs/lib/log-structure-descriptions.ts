@@ -31,7 +31,7 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
     'Request blocked by ActionDispatch::HostAuthorization (host not on the allowed list)',
   CSRFViolation: 'Request rejected due to a CSRF token violation',
   IPSpoof: 'Request rejected because the IP address spoofing check failed',
-  GoodJob: 'For GoodJob background job lifecycle events',
+  GoodJob: "For GoodJob's own log lines and thread errors",
   Log: 'Structured GoodJob log output captured from the worker process',
   SQL: 'For ActiveRecord SQL query events and performance metrics',
   ActiveModelSerializers:

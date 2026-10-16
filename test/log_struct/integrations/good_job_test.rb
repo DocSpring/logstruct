@@ -109,7 +109,7 @@ module LogStruct
       # block that runs after LogStruct's setup
       test "logs thread errors when the app sets its handler after LogStruct's setup" do
         with_fake_goodjob do |fake|
-          2.times { GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) } }
+          2.times { GoodJob.setup(LogStruct.config) }
 
           reported = []
           fake.on_thread_error = ->(exception) { reported << exception.message }
@@ -148,7 +148,7 @@ module LogStruct
           end
           fake.const_set(:LogSubscriber, log_subscriber)
 
-          2.times { GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) } }
+          2.times { GoodJob.setup(LogStruct.config) }
 
           error = IOError.new("connection lost")
           error.set_backtrace(["lib/good_job/notifier.rb:1:in 'listen'"])
@@ -168,10 +168,6 @@ module LogStruct
             subscriber.lines
           assert_equal 1, log_subscriber.ancestors.count(GoodJob::CompactErrorLines)
         end
-      end
-
-      test "subscribe_to_notifications method exists and is private" do
-        assert_includes GoodJob.private_methods, :subscribe_to_notifications
       end
 
       test "integration is included in automatic setup" do
