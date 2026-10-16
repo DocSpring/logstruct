@@ -85,8 +85,19 @@ module LogStruct
             executions: job.executions,
             # Backends use Strings or Integers (SolidQueue uses its job row ID)
             provider_job_id: job.provider_job_id&.to_s,
-            arguments: ((job.class.respond_to?(:log_arguments?) && job.class.log_arguments?) ? job.arguments : nil)
+            arguments: logged_arguments(job)
           )
+        end
+
+        # ActionMailer's delivery job carries the mail's own arguments, which can be secrets: Devise passes its
+        # confirmation, password reset and invitation tokens as plain strings, which no key-based filter can find.
+        # For a mail, log the mailer, the mail and the delivery method only.
+        sig { params(job: ::ActiveJob::Base).returns(T.nilable(T::Array[T.untyped])) }
+        def logged_arguments(job)
+          return nil unless job.class.respond_to?(:log_arguments?) && job.class.log_arguments?
+          return job.arguments.first(3) if defined?(::ActionMailer::MailDeliveryJob) && job.is_a?(::ActionMailer::MailDeliveryJob)
+
+          job.arguments
         end
 
         # perform_now lets any Exception through, not only StandardErrors

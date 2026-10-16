@@ -24,6 +24,12 @@ export default function FilteringSensitiveDataPage() {
         other structured data based on key names. When a sensitive key is detected, the actual value
         is replaced with metadata instead.
       </p>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        Mail delivery jobs (<code>deliver_later</code>) are logged with only the mailer, the mail
+        and the delivery method as their arguments. A mail&apos;s own arguments can be secrets with
+        no key to filter on, such as the tokens Devise passes to its confirmation, password reset
+        and invitation emails.
+      </p>
 
       <HeadingWithAnchor id="how-parameter-filtering-works" level={3}>
         How Parameter Filtering Works
