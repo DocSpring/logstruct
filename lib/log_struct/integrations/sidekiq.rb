@@ -90,11 +90,13 @@ module LogStruct
       # calls its error handlers after the job's middleware has finished).
       sig { params(error: Exception, context: T::Hash[T.untyped, T.untyped]).void }
       def self.log_job_error(error, context)
+        # LogStruct's ActiveJob integration logs the errors it sees an ActiveJob job raise. An
+        # error raised before ActiveJob ran the job (a job class a deploy removed, say) is logged
+        # here.
+        return if LogStruct::LoggedErrors.logged?(error)
+
         job = context[:job]
         job = nil unless job.is_a?(Hash)
-
-        # LogStruct's ActiveJob integration already logs the errors of ActiveJob jobs
-        return if job&.key?("wrapped") && LogStruct.config.integrations.enable_activejob
         error_context = context[:context]
 
         line = Log::Sidekiq::Error.new(

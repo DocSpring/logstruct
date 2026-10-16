@@ -126,12 +126,31 @@ module LogStruct
         refute_includes @io.string, "secret@example.com"
       end
 
-      test "ActiveJob jobs' errors are left to the ActiveJob integration" do
+      test "an ActiveJob job's error that ActiveJob didn't log is logged" do
+        sidekiq_config = ::Sidekiq::Config.new
+        sidekiq_config.logger = Sidekiq::Logger.new("Sidekiq-Server")
+        Sidekiq.send(:replace_default_error_handler, sidekiq_config)
+        # e.g. the job's class was removed in a deploy, so ActiveJob couldn't deserialize it
+        error = NameError.new("uninitialized constant RemovedJob")
+        job = {"jid" => "def456", "class" => "Sidekiq::ActiveJob::Wrapper", "wrapped" => "RemovedJob", "queue" => "default"}
+
+        sidekiq_config.error_handlers.each { |handler| handler.call(error, {context: "Job raised exception", job: job}, sidekiq_config) }
+        ::SemanticLogger.flush
+
+        line = T.must(sidekiq_lines.first)
+
+        assert_equal ["error", "NameError"], [line["evt"], line["error_class"]]
+        assert_equal({"jid" => "def456", "class" => "RemovedJob"}, line["ctx"])
+      end
+
+      test "errors the ActiveJob integration logged aren't logged again" do
         sidekiq_config = ::Sidekiq::Config.new
         Sidekiq.send(:replace_default_error_handler, sidekiq_config)
         job = {"jid" => "abc123", "class" => "Sidekiq::ActiveJob::Wrapper", "wrapped" => "HardJob"}
+        error = ArgumentError.new("boom")
+        LogStruct::LoggedErrors.mark(error)
 
-        sidekiq_config.error_handlers.each { |handler| handler.call(ArgumentError.new("boom"), {job: job}, sidekiq_config) }
+        sidekiq_config.error_handlers.each { |handler| handler.call(error, {job: job}, sidekiq_config) }
         ::SemanticLogger.flush
 
         assert_empty sidekiq_lines
