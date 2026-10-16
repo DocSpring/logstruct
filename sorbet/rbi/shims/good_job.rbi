@@ -17,6 +17,9 @@ module GoodJob
     def on_thread_error=(handler); end
   end
 
+  # Logs GoodJob's notifications as text
+  class LogSubscriber; end
+
   class CLI
     class << self
       sig { returns(T.nilable(T::Boolean)) }

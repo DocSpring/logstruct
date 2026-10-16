@@ -68,7 +68,25 @@ module LogStruct
         # Subscribe to GoodJob's ActiveSupport notifications
         subscribe_to_notifications
 
+        silence_thread_error_lines
+
         true
+      end
+
+      # GoodJob calls `on_thread_error` for every error its job and timer tasks raise, then sends the
+      # finished_job_task and finished_timer_task notifications. GoodJob::LogSubscriber logs those as
+      # "GoodJob error: ..." text with the whole backtrace in the message (over 10KB). The thread error
+      # handler already logs each error as a structured line, so these methods log nothing.
+      module SilenceThreadErrorLines
+        extend T::Sig
+
+        sig { params(_event: T.untyped).void }
+        def finished_timer_task(_event)
+        end
+
+        sig { params(_event: T.untyped).void }
+        def finished_job_task(_event)
+        end
       end
 
       @thread_error_handler = T.let(nil, T.nilable(T.proc.params(exception: StandardError).void))
@@ -123,6 +141,16 @@ module LogStruct
         end
       end
 
+      # Only when the thread error handler logs these errors instead
+      sig { void }
+      def self.silence_thread_error_lines
+        return unless defined?(::GoodJob::LogSubscriber)
+        return unless ::GoodJob.respond_to?(:on_thread_error=)
+
+        log_subscriber = ::GoodJob::LogSubscriber
+        log_subscriber.prepend(SilenceThreadErrorLines) unless log_subscriber.ancestors.include?(SilenceThreadErrorLines)
+      end
+
       # Subscribe to GoodJob's ActiveSupport notifications
       sig { void }
       def self.subscribe_to_notifications
@@ -133,6 +161,7 @@ module LogStruct
       end
 
       private_class_method :configure_logger
+      private_class_method :silence_thread_error_lines
       private_class_method :configure_thread_error_handler
       private_class_method :subscribe_to_notifications
     end

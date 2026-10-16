@@ -108,6 +108,36 @@ module LogStruct
         end
       end
 
+      test "GoodJob's own text lines for thread errors are left to the thread error handler" do
+        with_fake_goodjob do |fake|
+          # Like GoodJob::LogSubscriber: these two only log errors, as text with the backtrace in the message
+          log_subscriber = Class.new do
+            attr_reader :lines
+
+            def initialize
+              @lines = []
+            end
+
+            def finished_timer_task(event) = @lines << [:timer, event]
+
+            def finished_job_task(event) = @lines << [:job, event]
+
+            def scheduler_create_pool(event) = @lines << [:pool, event]
+          end
+          fake.const_set(:LogSubscriber, log_subscriber)
+
+          2.times { GoodJob.stub(:subscribe_to_notifications, nil) { GoodJob.setup(LogStruct.config) } }
+
+          subscriber = log_subscriber.new
+          subscriber.finished_timer_task(:event)
+          subscriber.finished_job_task(:event)
+          subscriber.scheduler_create_pool(:event)
+
+          assert_equal [[:pool, :event]], subscriber.lines
+          assert_equal 1, log_subscriber.ancestors.count(GoodJob::SilenceThreadErrorLines)
+        end
+      end
+
       test "subscribe_to_notifications method exists and is private" do
         assert_includes GoodJob.private_methods, :subscribe_to_notifications
       end
