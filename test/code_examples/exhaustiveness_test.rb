@@ -23,6 +23,31 @@ module LogStruct
         )
       end
 
+      def test_integration_settings_are_exhaustive
+        block = extract_example_block("integration_settings")
+        props = props_from_struct(File.join(ROOT, "lib", "log_struct", "config_struct", "integrations.rb"))
+          .reject { |p| p.start_with?("enable_") }
+
+        assert_props_present!(
+          block: block,
+          props: props,
+          prefixes: ["config.integrations."],
+          hint: "config.integrations.NAME_HERE = ..."
+        )
+      end
+
+      # The configuration page's examples between them show every top-level setting
+      def test_top_level_settings_are_exhaustive
+        handlers_file = File.join(ROOT, "test", "code_examples", "configure_handlers_test.rb")
+        block = [
+          *%w[environment_configuration enable_in_development logger_settings].map { |id| extract_example_block(id) },
+          *%w[custom_string_scrubber error_reporting_handler].map { |id| extract_example_block(id, file: handlers_file) }
+        ].join("\n")
+        props = props_from_struct(File.join(ROOT, "lib", "log_struct", "configuration.rb"))
+
+        assert_props_present!(block: block, props: props, prefixes: ["config."], hint: "config.NAME_HERE = ...")
+      end
+
       def test_filter_configuration_is_exhaustive
         block = extract_example_block("filter_configuration")
         props = props_from_struct(File.join(ROOT, "lib", "log_struct", "config_struct", "filters.rb"))
@@ -62,19 +87,19 @@ module LogStruct
 
       private
 
-      def extract_example_block(id)
-        content = File.read(EXAMPLE_FILE)
+      def extract_example_block(id, file: EXAMPLE_FILE)
+        content = File.read(file)
         begin_marker = /\bBEGIN CODE EXAMPLE:\s*#{Regexp.escape(id)}\b/
         end_marker = /\bEND CODE EXAMPLE:\s*#{Regexp.escape(id)}\b/
 
         start_idx = content.index(begin_marker)
 
-        assert start_idx, "BEGIN marker for #{id} not found in #{EXAMPLE_FILE}"
+        assert start_idx, "BEGIN marker for #{id} not found in #{file}"
         after_start = T.must(content[start_idx..])
 
         end_idx = T.must(after_start).index(end_marker)
 
-        assert end_idx, "END marker for #{id} not found in #{EXAMPLE_FILE}"
+        assert end_idx, "END marker for #{id} not found in #{file}"
 
         T.must(after_start)[0...end_idx]
       end

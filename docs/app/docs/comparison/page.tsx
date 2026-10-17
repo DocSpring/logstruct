@@ -3,6 +3,8 @@ import React from 'react';
 import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 
+// cspell:words Logstasher Logcraft Resque Stasher
+
 type FeatureValue = boolean | string | { partial: boolean; tooltip: string };
 
 interface FeatureItem {
@@ -27,13 +29,21 @@ function ComparisonTable() {
         {
           name: 'Structured JSON logging',
           logstruct: true,
-          lograge: true,
+          lograge: {
+            partial: true,
+            tooltip:
+              'Request lines only, with its Json or Logstash formatter. The default format is key=value.',
+          },
           railsSemanticLogger: true,
-          logstasher: true,
+          logstasher: {
+            partial: true,
+            tooltip:
+              'JSON for the Rails events it subscribes to and for LogStasher.info calls, in its own file. Rails.logger lines stay text.',
+          },
           logcraft: true,
         },
         {
-          name: 'Type-safe log structures (Sorbet)',
+          name: 'Typed log lines (Sorbet structs), including your own',
           logstruct: true,
           lograge: false,
           railsSemanticLogger: false,
@@ -41,21 +51,27 @@ function ComparisonTable() {
           logcraft: false,
         },
         {
-          name: 'Zero configuration',
-          logstruct: true,
+          name: 'Works without configuration',
+          logstruct: {
+            partial: true,
+            tooltip:
+              'On in tests, and in production for servers and workers (Puma, Sidekiq, GoodJob, ...) but not Rake tasks. Off in the console. Development is opt-in (LOGSTRUCT_ENABLED=true). SQL lines are off by default.',
+          },
           lograge: false,
           railsSemanticLogger: {
             partial: true,
-            tooltip: 'Requires manual configuration for many features',
+            tooltip:
+              'Works with no configuration, but writes text to log/<env>.log. JSON needs an appender with formatter: :json.',
           },
-          logstasher: {
+          logstasher: false,
+          logcraft: {
             partial: true,
-            tooltip: 'Requires configuration for non-default behaviors',
+            tooltip:
+              'No initializer, but its README asks you to remove the logging settings Rails generates in production.rb.',
           },
-          logcraft: true,
         },
         {
-          name: 'Request log formatting',
+          name: 'Single-line request logs',
           logstruct: true,
           lograge: true,
           railsSemanticLogger: true,
@@ -64,7 +80,11 @@ function ComparisonTable() {
         },
         {
           name: 'Multiple output destinations',
-          logstruct: true,
+          logstruct: {
+            partial: true,
+            tooltip:
+              "STDOUT in production, STDOUT and Rails' log file in development, the log file in test. Semantic Logger appenders your app adds in an initializer are kept, but LogStruct has no setting of its own for more outputs.",
+          },
           lograge: false,
           railsSemanticLogger: true,
           logstasher: false,
@@ -72,7 +92,11 @@ function ComparisonTable() {
         },
         {
           name: 'Colorized console output',
-          logstruct: true,
+          logstruct: {
+            partial: true,
+            tooltip:
+              'Development only, and opt-in: set prefer_json_in_development = false. LogStruct is off in the Rails console.',
+          },
           lograge: false,
           railsSemanticLogger: true,
           logstasher: false,
@@ -84,24 +108,31 @@ function ComparisonTable() {
       category: 'Security & Privacy',
       items: [
         {
-          name: 'Advanced parameter filtering',
+          name: 'Filtering sensitive keys in every line',
           logstruct: true,
           lograge: {
             partial: true,
-            tooltip: 'Uses Rails default filtering',
+            tooltip:
+              "Logs no params and drops the query string. Params you add with custom_options are already filtered by Rails' filter_parameters.",
           },
           railsSemanticLogger: {
             partial: true,
-            tooltip: 'Uses Rails default filtering',
+            tooltip:
+              "Request params and SQL binds use Rails' filter_parameters. Other values are written as given.",
           },
           logstasher: {
             partial: true,
-            tooltip: 'Uses Rails default filtering',
+            tooltip:
+              "Request params (opt-in) are filtered by Rails' filter_parameters. The path keeps its query string.",
           },
-          logcraft: { partial: true, tooltip: 'Uses Rails default filtering' },
+          logcraft: {
+            partial: true,
+            tooltip:
+              "Request params and path are filtered by Rails' filter_parameters, and you can log only listed params. SQL binds aren't filtered.",
+          },
         },
         {
-          name: 'Email/SSN scrubbing in strings',
+          name: 'Scrubbing emails, card numbers and tokens inside strings',
           logstruct: true,
           lograge: false,
           railsSemanticLogger: false,
@@ -109,15 +140,7 @@ function ComparisonTable() {
           logcraft: false,
         },
         {
-          name: 'Security event logging',
-          logstruct: true,
-          lograge: false,
-          railsSemanticLogger: false,
-          logstasher: false,
-          logcraft: false,
-        },
-        {
-          name: 'CSRF/IP spoofing detection logs',
+          name: 'Security lines (CSRF failures, IP spoofing, blocked hosts)',
           logstruct: true,
           lograge: false,
           railsSemanticLogger: false,
@@ -130,23 +153,7 @@ function ComparisonTable() {
       category: 'Integrations',
       items: [
         {
-          name: 'Sidekiq integration',
-          logstruct: true,
-          lograge: false,
-          railsSemanticLogger: true,
-          logstasher: false,
-          logcraft: false,
-        },
-        {
-          name: 'GoodJob integration',
-          logstruct: true,
-          lograge: false,
-          railsSemanticLogger: false,
-          logstasher: false,
-          logcraft: false,
-        },
-        {
-          name: 'ActionMailer integration',
+          name: 'ActiveJob',
           logstruct: true,
           lograge: false,
           railsSemanticLogger: true,
@@ -154,39 +161,64 @@ function ComparisonTable() {
           logcraft: false,
         },
         {
-          name: 'ActiveStorage integration',
+          name: 'Sidekiq',
           logstruct: true,
           lograge: false,
-          railsSemanticLogger: false,
+          railsSemanticLogger: true,
           logstasher: false,
-          logcraft: false,
-        },
-        {
-          name: 'CarrierWave/Shrine support',
-          logstruct: true,
-          lograge: false,
-          railsSemanticLogger: false,
-          logstasher: false,
-          logcraft: false,
-        },
-        {
-          name: 'ActiveRecord SQL logging',
-          logstruct: true,
-          lograge: false,
-          railsSemanticLogger: {
+          logcraft: {
             partial: true,
-            tooltip: 'Less structured and limited filtering',
+            tooltip: 'Through the separate logcraft-sidekiq gem.',
           },
+        },
+        {
+          name: 'GoodJob',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: false,
           logstasher: false,
           logcraft: false,
         },
         {
-          name: 'Error reporter integration',
+          name: 'ActionMailer',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: true,
+          logstasher: true,
+          logcraft: false,
+        },
+        {
+          name: 'ActiveStorage',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: false,
+          logstasher: false,
+          logcraft: false,
+        },
+        {
+          name: 'CarrierWave and Shrine',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: false,
+          logstasher: false,
+          logcraft: false,
+        },
+        {
+          name: 'ActiveRecord SQL lines',
+          logstruct: true,
+          lograge: false,
+          railsSemanticLogger: true,
+          logstasher: true,
+          logcraft: true,
+        },
+        {
+          name: 'Error reporting (Sentry, Bugsnag, Rollbar, Honeybadger)',
           logstruct: true,
           lograge: false,
           railsSemanticLogger: {
             partial: true,
-            tooltip: 'Limited error context and formatting',
+            tooltip:
+              "Semantic Logger's Sentry, Bugsnag and Honeybadger appenders send error lines to those services, once you add them.",
           },
           logstasher: false,
           logcraft: false,
@@ -197,31 +229,23 @@ function ComparisonTable() {
       category: 'Developer Experience',
       items: [
         {
-          name: 'Tagged logging support',
-          logstruct: true,
-          lograge: true,
-          railsSemanticLogger: true,
-          logstasher: true,
-          logcraft: true,
-        },
-        {
-          name: 'Performance metrics',
-          logstruct: true,
-          lograge: true,
-          railsSemanticLogger: true,
-          logstasher: true,
-          logcraft: true,
-        },
-        {
-          name: 'Custom log classes',
+          name: 'Tags (logger.tagged, config.log_tags)',
           logstruct: true,
           lograge: false,
-          railsSemanticLogger: false,
-          logstasher: false,
-          logcraft: false,
+          railsSemanticLogger: true,
+          logstasher: {
+            partial: true,
+            tooltip:
+              "Its own events have a tags array (LogStasher.info(msg, tags: [...])). Tags from logger.tagged and config.log_tags aren't in them.",
+          },
+          logcraft: {
+            partial: true,
+            tooltip:
+              'No tags. within_log_context adds key-value fields to every line logged in a block.',
+          },
         },
         {
-          name: 'Terraform export',
+          name: 'Terraform provider for CloudWatch metric filters (checks src/evt pairs)',
           logstruct: true,
           lograge: false,
           railsSemanticLogger: false,
@@ -252,57 +276,66 @@ function ComparisonTable() {
 
   return (
     <div>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-neutral-200 dark:border-neutral-800">
-            <th className="text-left py-4 px-3 text-sm font-semibold">Feature</th>
-            <th className="text-center py-4 px-2 text-sm font-semibold bg-purple-50 dark:bg-purple-950/20">
-              LogStruct
-            </th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">
-              Rails
-              <br />
-              Semantic
-              <br />
-              Logger
-            </th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">Lograge</th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">Logstasher</th>
-            <th className="text-center py-4 px-2 text-sm font-semibold">Logcraft</th>
-          </tr>
-        </thead>
-        <tbody>
-          {features.map((category) => (
-            <React.Fragment key={category.category}>
-              <tr className="bg-neutral-50 dark:bg-neutral-900">
-                <td
-                  colSpan={6}
-                  className="py-2 px-3 font-semibold text-xs uppercase tracking-wide text-neutral-600 dark:text-neutral-300"
-                >
-                  {category.category}
-                </td>
-              </tr>
-              {category.items.map((feature) => (
-                <tr
-                  key={`${category.category}-${feature.name}`}
-                  className="border-b border-neutral-100 dark:border-neutral-900"
-                >
-                  <td className="py-2 px-3 text-sm">{feature.name}</td>
-                  <td className="py-2 px-2 text-center bg-purple-50 dark:bg-purple-950/20">
-                    {renderCell(feature.logstruct)}
+      {/* Seven columns don't fit a phone: the table scrolls sideways instead of the page */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-neutral-200 dark:border-neutral-800">
+              <th className="text-left py-4 px-3 text-sm font-semibold">Feature</th>
+              <th className="text-center py-4 px-2 text-sm font-semibold bg-purple-50 dark:bg-purple-950/20">
+                LogStruct
+              </th>
+              <th className="text-center py-4 px-2 text-sm font-semibold">
+                Rails
+                <br />
+                Semantic
+                <br />
+                Logger
+              </th>
+              <th className="text-center py-4 px-2 text-sm font-semibold">Lograge</th>
+              <th className="text-center py-4 px-2 text-sm font-semibold">Logstasher</th>
+              <th className="text-center py-4 px-2 text-sm font-semibold">Logcraft</th>
+            </tr>
+          </thead>
+          <tbody>
+            {features.map((category) => (
+              <React.Fragment key={category.category}>
+                <tr className="bg-neutral-50 dark:bg-neutral-900">
+                  <td
+                    colSpan={6}
+                    className="py-2 px-3 font-semibold text-xs uppercase tracking-wide text-neutral-600 dark:text-neutral-300"
+                  >
+                    {category.category}
                   </td>
-                  <td className="py-2 px-2 text-center">
-                    {renderCell(feature.railsSemanticLogger)}
-                  </td>
-                  <td className="py-2 px-2 text-center">{renderCell(feature.lograge)}</td>
-                  <td className="py-2 px-2 text-center">{renderCell(feature.logstasher)}</td>
-                  <td className="py-2 px-2 text-center">{renderCell(feature.logcraft)}</td>
                 </tr>
-              ))}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+                {category.items.map((feature) => (
+                  <tr
+                    key={`${category.category}-${feature.name}`}
+                    className="border-b border-neutral-100 dark:border-neutral-900"
+                  >
+                    <td className="py-2 px-3 text-sm">{feature.name}</td>
+                    <td className="py-2 px-2 text-center bg-purple-50 dark:bg-purple-950/20">
+                      {renderCell(feature.logstruct)}
+                    </td>
+                    <td className="py-2 px-2 text-center">
+                      {renderCell(feature.railsSemanticLogger)}
+                    </td>
+                    <td className="py-2 px-2 text-center">{renderCell(feature.lograge)}</td>
+                    <td className="py-2 px-2 text-center">{renderCell(feature.logstasher)}</td>
+                    <td className="py-2 px-2 text-center">{renderCell(feature.logcraft)}</td>
+                  </tr>
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-4">
+        A check means the gem documents or implements the feature, a dash that it partly does (hover
+        over the dash for what&apos;s there), and a cross that it doesn&apos;t. Checked in October
+        2026 against each gem&apos;s latest release: Rails Semantic Logger 5.2.0 (with Semantic
+        Logger 5.1.0), Lograge 0.15.1, Logstasher 3.0.0 and Logcraft 2.3.
+      </p>
     </div>
   );
 }
@@ -315,7 +348,7 @@ export default function ComparisonPage() {
           Comparison with Other Logging Gems
         </HeadingWithAnchor>
         <p className="text-lg text-neutral-600 dark:text-neutral-300 mt-4">
-          How LogStruct compares to other popular Rails logging solutions.
+          How LogStruct compares with four other Rails logging gems.
         </p>
       </div>
 
@@ -341,11 +374,24 @@ export default function ComparisonPage() {
           >
             Rails Semantic Logger
           </a>{' '}
-          bridges Semantic Logger with Rails, providing automatic integration with Rails components.
-          It replaces various Rails loggers and adds request logging similar to Lograge. While it
-          offers good Rails integration, it lacks the type safety, advanced filtering, and security
-          features that LogStruct provides. The configuration can also be complex for teams wanting
-          specific behaviors.
+          replaces Rails&apos; logger with Semantic Logger, so Rails, the app and gems such as
+          Sidekiq, SolidQueue, Resque, Delayed Job and Mongoid log through it. It turns Rails&apos;
+          request logs into one &quot;Completed&quot; line and has its own log subscribers for
+          ActiveRecord, ActionMailer, ActiveJob and ActionView. Semantic Logger writes on a
+          background thread to any number of appenders (files, STDOUT, Elasticsearch, Splunk,
+          CloudWatch Logs, Sentry, Bugsnag and others), as text, color or JSON. With no
+          configuration it writes text to <code>log/&lt;env&gt;.log</code>, and to STDOUT under{' '}
+          <code>rails server</code>. It supports tags and named tags, and has test helpers for
+          Minitest and RSpec. Request params and SQL binds go through Rails&apos;{' '}
+          <code>filter_parameters</code>; other values are written as given.
+        </p>
+        <p>
+          LogStruct writes its lines through Semantic Logger too (the <code>semantic_logger</code>{' '}
+          gem, not <code>rails_semantic_logger</code>), with its own JSON formatter. Both replace
+          Rails&apos; logger, so an app uses one or the other. LogStruct writes to STDOUT in
+          production and development, plus Rails&apos; log file in development and test, and adds
+          typed lines, filtering and scrubbing of every line, security lines and error handling
+          modes.
         </p>
       </div>
 
@@ -370,11 +416,16 @@ export default function ComparisonPage() {
             >
               Lograge
             </a>{' '}
-            is the original Rails request log tamer. It transforms Rails&apos; verbose, multi-line
-            request logs into single-line structured logs. It&apos;s lightweight, focused, and does
-            one thing exceptionally well: cleaning up request logs. LogStruct actually uses Lograge
-            under the hood for request log processing, then enhances it with type safety and
-            advanced filtering.
+            replaces Rails&apos; multi-line request and view logs with one line per request (and one
+            per Action Cable event). The default format is <code>key=value</code>; JSON, Logstash,
+            Graylog2, LTSV and other formatters are options. Other log lines are left as they are.
+            It logs no params unless you add them with <code>custom_options</code>, and it&apos;s
+            off until you set <code>config.lograge.enabled = true</code>.
+          </p>
+          <p>
+            LogStruct depends on Lograge and uses it to build its request lines, which are then
+            filtered and scrubbed like every other line. The Hash a{' '}
+            <code>lograge_custom_options</code> proc returns is merged into the request line.
           </p>
         </div>
 
@@ -398,10 +449,20 @@ export default function ComparisonPage() {
             >
               Logstasher
             </a>{' '}
-            is designed specifically for Logstash integration, formatting logs in Logstash&apos;s
-            expected JSON format. It includes basic request logging and some ActiveSupport
-            notifications. While it works well for ELK stack users, it lacks the comprehensive
-            filtering, type safety, and broad integration support that LogStruct offers.
+            writes Logstash JSON events for requests, mailer deliveries, ActiveJob jobs and view
+            renders (and SQL queries, if you turn them on) to its own file,{' '}
+            <code>log/logstash_&lt;env&gt;.log</code> by default, or to another logger. The
+            app&apos;s own <code>Rails.logger</code> lines stay in Rails&apos; text log.{' '}
+            <code>LogStasher.info</code> and the other level methods log the app&apos;s own events
+            with tags (its logger&apos;s level is WARN unless you set{' '}
+            <code>config.logstasher.log_level</code>), and <code>LogStasher.watch</code> adds data
+            from any ActiveSupport notification to the request&apos;s event. It&apos;s off until you
+            set <code>config.logstasher.enabled = true</code>.
+          </p>
+          <p>
+            LogStruct writes every line, the app&apos;s own included, as JSON (to STDOUT in
+            production), and has Sidekiq, GoodJob, ActiveStorage, CarrierWave and Shrine
+            integrations.
           </p>
         </div>
 
@@ -425,46 +486,69 @@ export default function ComparisonPage() {
             >
               Logcraft
             </a>{' '}
-            is a newer gem that provides structured logging with good defaults for Rails
-            applications. It focuses on simplicity and includes request logging and basic
-            integrations. However, it lacks the advanced security features, type safety, and
-            comprehensive third-party integrations that LogStruct provides.
+            sets <code>Rails.logger</code>, and every logger made with <code>Logcraft.logger</code>,
+            to write JSON to STDOUT, without an initializer. It replaces Rails&apos; request logs
+            with one access log line per request, logs unhandled errors on one line, and writes SQL
+            queries as JSON at debug level. <code>within_log_context</code> adds fields to every
+            line logged in a block, and <code>global_context</code> to every line. It includes RSpec
+            matchers for log output. Sidekiq support is a separate gem,{' '}
+            <code>logcraft-sidekiq</code>. The README on its main branch describes Logcraft 3, which
+            isn&apos;t released yet.
+          </p>
+          <p>
+            LogStruct also writes JSON to STDOUT in production. It adds typed lines, filtering of
+            every line (not only request params), scrubbing, security lines and integrations for
+            jobs, mailers and file uploads.
           </p>
         </div>
 
-        <HeadingWithAnchor id="why-logstruct" level={2}>
-          Why Choose LogStruct?
+        <HeadingWithAnchor id="what-logstruct-adds" level={2}>
+          What LogStruct Adds
         </HeadingWithAnchor>
         <div className="space-y-4 text-neutral-600 dark:text-neutral-300">
-          <p>
-            LogStruct combines the best features of all these gems while adding unique capabilities:
-          </p>
+          <p>LogStruct builds on Semantic Logger and Lograge, and adds:</p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>
-              <strong>Type Safety:</strong> The only logging gem with full Sorbet type checking
-              support
+              <strong>Typed lines:</strong> each integration&apos;s lines are Sorbet structs with
+              typed fields, and you can define your own.
             </li>
             <li>
-              <strong>Security First:</strong> Advanced filtering and scrubbing that goes beyond
-              basic parameter filtering
+              <strong>Filtering:</strong> sensitive keys are filtered in every line, not only in
+              request params, using LogStruct&apos;s key list and Rails&apos;{' '}
+              <code>filter_parameters</code>. Values of <code>email</code> and{' '}
+              <code>email_address</code> keys are replaced with a hash.
             </li>
             <li>
-              <strong>True Zero Configuration:</strong> Works perfectly out of the box with
-              sensible, production-ready defaults
+              <strong>Scrubbing:</strong> inside strings, emails are replaced with a hash, and card
+              numbers, phone numbers, SSNs, URL passwords, sensitive URL query params and{' '}
+              <code>Bearer</code> and <code>Basic</code> credentials are masked. IP and MAC address
+              scrubbing is opt-in.
             </li>
             <li>
-              <strong>Comprehensive Integrations:</strong> Supports more third-party gems than any
-              other solution
+              <strong>Security lines:</strong> CSRF failures, IP spoofing errors and blocked hosts.
             </li>
             <li>
-              <strong>DevOps Friendly:</strong> Terraform export for infrastructure-as-code metrics
-              and alarms
+              <strong>Error handling modes:</strong> for each kind of error (Sorbet type errors,
+              security errors, LogStruct&apos;s own errors and the rest), you choose whether to log
+              it, report it to your error reporter or raise it, or to raise it only in development
+              and test.
+            </li>
+            <li>
+              <strong>Integrations:</strong> ActiveJob, Sidekiq, GoodJob, ActionMailer,
+              ActiveStorage, CarrierWave, Shrine, SQL queries (opt-in), Puma, Ahoy,
+              ActiveModelSerializers, dotenv-rails, host authorization and Sorbet&apos;s error
+              handlers.
+            </li>
+            <li>
+              <strong>Terraform provider:</strong> it checks <code>src</code>/<code>evt</code> pairs
+              at plan time and builds the CloudWatch filter patterns for metric filters.
             </li>
           </ul>
           <p>
-            If you&apos;re starting a new Rails application or looking to upgrade your logging
-            infrastructure, LogStruct provides the most complete, secure, and developer-friendly
-            solution available.
+            What it doesn&apos;t do: it has no setting for other log destinations (it writes to
+            STDOUT in production and development, plus Rails&apos; log file in development and
+            test), it&apos;s off in development unless you set <code>LOGSTRUCT_ENABLED=true</code>,
+            and it&apos;s off in the Rails console.
           </p>
         </div>
       </div>

@@ -52,9 +52,11 @@ export default function Home() {
                 Zero-config structured logging for Ruby on Rails
               </h1>
               <p className="text-lg text-neutral-600 dark:text-neutral-300 my-10">
-                LogStruct is a new way to add type-safe, SOC 2 compliant, and DevOps friendly JSON
-                logs to any Ruby on Rails application. Just add the gem to your Gemfile and your
-                Rails app will print JSON logs that are easy to search, filter, and visualize.
+                LogStruct adds typed JSON logs to Ruby on Rails apps, and filters sensitive data out
+                of them, which helps you meet SOC 2&apos;s logging requirements. Add the gem to your
+                Gemfile, and in production your app writes JSON lines that are easy to search,
+                filter, and turn into dashboards. To see them in development, start your server with{' '}
+                <code>LOGSTRUCT_ENABLED=true</code>.
               </p>
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
@@ -128,8 +130,8 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Type-safe with Sorbet</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                LogStruct is fully type-checked with Sorbet. Your logs are guaranteed to have the
-                correct structure and valid data.
+                Every built-in log line is a Sorbet struct. A field with the wrong type raises in
+                development and test, and is reported in production.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -137,11 +139,12 @@ export default function Home() {
                 <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                   <FilterX className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
                 </div>
-                <h3 className="text-xl font-semibold">Advanced Filtering and Scrubbing</h3>
+                <h3 className="text-xl font-semibold">Filtering and Scrubbing</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Automatically redact sensitive information like emails, credit cards, passwords,
-                IPs, and SSNs from your log output.
+                Values under sensitive keys (passwords, tokens, API keys) are replaced, and emails
+                (hashed), card numbers, phone numbers and SSNs are scrubbed from strings. IP and MAC
+                address scrubbing is opt-in.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -149,12 +152,12 @@ export default function Home() {
                 <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                   <Puzzle className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
                 </div>
-                <h3 className="text-xl font-semibold">Integrates with Everything</h3>
+                <h3 className="text-xl font-semibold">Integrations</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Integrates with ActiveJob, ActionMailer, ActiveStorage, Lograge, Sidekiq,
-                Carrierwave, and more to provide consistent structured logging. (Open a PR to add
-                support for your favorite gem!)
+                Structured lines for requests (Lograge), ActiveJob, ActionMailer, Sidekiq, GoodJob,
+                Puma, ActiveStorage, Shrine, CarrierWave and more. (Open a PR to add support for
+                your favorite gem!)
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -165,8 +168,8 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Error Reporting</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Smart and configurable error handling behaviors. Automatic error reporting
-                integration with Sentry, Bugsnag, Rollbar, and Honeybadger.
+                Choose whether each kind of error is raised, logged or reported. Reports go to
+                Sentry, Bugsnag, Rollbar, Honeybadger or your own reporter.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -177,9 +180,9 @@ export default function Home() {
                 <h3 className="text-xl font-semibold">Cloud-Ready</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Compatible with AWS CloudWatch, Google Cloud Logging, and other cloud monitoring
-                services that can filter and parse JSON log data. LogStruct provides Terraform types
-                so your IaC config is always type-safe and up-to-date.
+                Works with AWS CloudWatch, Datadog, Grafana and other services that parse JSON logs.
+                A Terraform provider checks the source and event names in your CloudWatch metric
+                filters when you plan.
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -187,11 +190,12 @@ export default function Home() {
                 <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700">
                   <Tag className="h-5 w-5 text-neutral-700 dark:text-neutral-300" />
                 </div>
-                <h3 className="text-xl font-semibold">Tagged Logging</h3>
+                <h3 className="text-xl font-semibold">Request and Job Context</h3>
               </div>
               <p className="text-neutral-600 dark:text-neutral-300">
-                Add tags to your logs for better querying and aggregation. Perfect for tracking
-                requests, background jobs, or custom workflows.
+                Every line logged during a request has its request ID. Tags from{' '}
+                <code>logger.tagged</code> and <code>config.log_tags</code> are written in each
+                line, and Sidekiq lines include the job&apos;s context.
               </p>
             </div>
           </div>
@@ -278,16 +282,16 @@ export default function Home() {
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
               <h3 className="mb-4 text-xl font-semibold">Do I need to use Sorbet?</h3>
               <p className="text-neutral-600 dark:text-neutral-300">
-                No, you can use LogStruct even if you don&apos;t use Sorbet. You can use the regular
-                Rails logger as usual without worrying about Sorbet types.{' '}
+                No. Log with the regular Rails logger as usual.{' '}
                 <a href="https://sorbet.org/docs/runtime">
                   <code>sorbet-runtime</code>
                 </a>{' '}
-                is a dependency, but you can even{' '}
+                is a dependency, and if your app has its own Sorbet signatures, LogStruct handles
+                their runtime type errors too, as{' '}
                 <Link href="/docs/configuration/#error-handling-configuration">
-                  configure LogStruct to completely ignore type-checking errors.
+                  <code>type_checking_errors</code>
                 </Link>{' '}
-                (Not recommended!)
+                says (raise in development and test, log and report in production).
               </p>
             </div>
             <div className="rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
@@ -350,8 +354,8 @@ export default function Home() {
                 >
                   Logcraft
                 </a>
-                . LogStruct focuses on powerful filtering and scrubbing, structured error handling,
-                and type‑safety across integrations. See the{' '}
+                . LogStruct focuses on filtering and scrubbing, structured error handling, and typed
+                lines for each integration. See the{' '}
                 <Link href="/docs/comparison" className="underline">
                   comparison page
                 </Link>{' '}
