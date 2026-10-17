@@ -143,6 +143,53 @@ jobs:
         run: |
           cd docs && pnpm test
 
+  docs_build:
+    name: 'Next.js Site Build'
+    # The production build the deploy runs, with this run's coverage report: tests and type checks pass on
+    # pages that fail to prerender
+    needs: [pilot]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        with:
+          ruby-version: '.ruby-version'
+          bundler-cache: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          version: 10.18.3
+
+      - name: Setup Node with the pnpm cache
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: docs/pnpm-lock.yaml
+
+      - name: Install docs dependencies
+        run: cd docs && pnpm install --frozen-lockfile
+
+      - name: Download this run's coverage report
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: coverage-ruby-rails-latest
+          path: docs/public/coverage/
+
+      - name: Generate YARD documentation
+        run: bundle exec yard doc --output-dir=docs/public/yard
+
+      - name: Export TypeScript types from LogStruct
+        run: scripts/generate_structs.rb
+
+      - name: Build the site
+        run: cd docs && pnpm run build
+
   pilot:
     name: 'Pilot Test: Latest Ruby / Rails'
     runs-on: ubuntu-22.04
