@@ -40,7 +40,9 @@ module LogStruct
     end
 
     # For text that writes an error's whole chain (its causes too): each message in it that quotes a params parser's
-    # input, with what to write instead. Longest first, since an error's message can contain its cause's.
+    # input, with what to write instead. Longest first, since an error's message can contain its cause's. An error
+    # raised without a message (Rack's and Rails' depth limits) has its class name as its message, which quotes
+    # nothing and is also the text's label for its class, so it stays.
     sig { params(error: Exception).returns(T::Array[[String, String]]) }
     def self.replacements(error)
       pairs = T.let([], T::Array[[String, String]])
@@ -49,12 +51,17 @@ module LogStruct
       while current && !seen.key?(current)
         seen[current] = true
         message, cause_message = messages(current)
-        pairs << [current.message, message] if message != current.message
+        pairs << [current.message, message] if message != current.message && !default_message?(current)
         cause = current.cause
-        pairs << [cause.message, CAUSE_MESSAGE_LEFT_OUT] if cause && cause_message.nil?
+        pairs << [cause.message, CAUSE_MESSAGE_LEFT_OUT] if cause && cause_message.nil? && !default_message?(cause)
         current = cause
       end
       pairs.reject { |quoted, _| quoted.empty? }.uniq.sort_by { |quoted, _| -quoted.length }
+    end
+
+    sig { params(error: Exception).returns(T::Boolean) }
+    def self.default_message?(error)
+      error.message == error.class.name
     end
 
     sig { params(error: Exception).returns(T::Boolean) }

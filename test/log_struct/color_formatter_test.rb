@@ -196,6 +196,22 @@ module LogStruct
       assert_not_includes @io.string, "synthetic-raw-secret"
     end
 
+    test "a params error raised without a message keeps its class name in the colored output" do
+      error = assert_raises(ActionController::BadRequest) do
+        Rack::Utils.parse_nested_query("a" + "[a]" * 200 + "=1")
+      rescue RangeError => e
+        raise ActionController::BadRequest, "Invalid query parameters: #{e.message}"
+      end
+      cause_class = error.cause&.class&.name
+
+      LogStruct::SemanticLogger::Logger.new("TestLogger").error("Search failed", error)
+      ::SemanticLogger.flush
+
+      assert_includes @io.string, "ActionController::BadRequest: Invalid query parameters"
+      assert_includes @io.string, "Cause: #{cause_class}: #{cause_class}"
+      assert_not_includes @io.string, LogStruct::ParamsErrors::CAUSE_MESSAGE_LEFT_OUT
+    end
+
     test "a color map changes only the colors it names" do
       io = StringIO.new
       clear_test_appenders
