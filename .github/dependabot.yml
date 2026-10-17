@@ -1,9 +1,12 @@
 version: 2
+# Version updates wait 7 days after a release (security updates don't)
 updates:
   - package-ecosystem: bundler
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -12,6 +15,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -20,6 +25,8 @@ updates:
     directory: /docs
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -28,6 +35,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       minor-and-patch:
         update-types: [minor, patch]
