@@ -48,9 +48,15 @@ module LogStruct
         scrub_text(super)
       end
 
+      # SemanticLogger's text for the exception and its causes, without the input a params parser quoted
       sig { returns(T.untyped) }
       def exception
-        scrub_text(super)
+        text = super
+        error = log.exception
+        if text.is_a?(String) && error.is_a?(Exception)
+          ParamsErrors.replacements(error).each { |quoted, logged| text = text.gsub(quoted, logged) }
+        end
+        scrub_text(text)
       end
 
       sig { returns(T.untyped) }

@@ -23,6 +23,7 @@ module LogStruct
     # Rails' message for a ParseError
     PARSE_ERROR_MESSAGE = "Error occurred while parsing request parameters"
     PARAMS_ERROR_MESSAGE = "Invalid request parameters"
+    CAUSE_MESSAGE_LEFT_OUT = "(left out: it quotes the request's input)"
 
     # The message and the cause's message to log for an error, without the input a params parser quoted
     sig { params(error: Exception).returns([String, T.nilable(String)]) }
@@ -36,6 +37,24 @@ module LogStruct
       else
         [error.message, cause&.message]
       end
+    end
+
+    # For text that writes an error's whole chain (its causes too): each message in it that quotes a params parser's
+    # input, with what to write instead. Longest first, since an error's message can contain its cause's.
+    sig { params(error: Exception).returns(T::Array[[String, String]]) }
+    def self.replacements(error)
+      pairs = T.let([], T::Array[[String, String]])
+      seen = T.let({}.compare_by_identity, T::Hash[Exception, TrueClass])
+      current = T.let(error, T.nilable(Exception))
+      while current && !seen.key?(current)
+        seen[current] = true
+        message, cause_message = messages(current)
+        pairs << [current.message, message] if message != current.message
+        cause = current.cause
+        pairs << [cause.message, CAUSE_MESSAGE_LEFT_OUT] if cause && cause_message.nil?
+        current = cause
+      end
+      pairs.reject { |quoted, _| quoted.empty? }.uniq.sort_by { |quoted, _| -quoted.length }
     end
 
     sig { params(error: Exception).returns(T::Boolean) }

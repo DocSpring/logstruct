@@ -96,6 +96,28 @@ module LogStruct
       assert_equal ["app/jobs/sync_job.rb:3:in 'perform'"], lines.first["backtrace"]
     end
 
+    test "a params error's line leaves out the input its parser quoted" do
+      rack_error = assert_raises(Rack::Utils::InvalidParameterError) do
+        Rack::Utils.parse_nested_query("password=%zz-synthetic-raw-secret")
+      end
+      bad_request = assert_raises(ActionController::BadRequest) do
+        raise rack_error
+      rescue Rack::Utils::InvalidParameterError => e
+        raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
+      end
+      clear_log_buffer(@io)
+
+      @logger.error(bad_request)
+      @logger.error("Import failed", rack_error)
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal [["Invalid request parameters", nil], ["Import failed", "Invalid request parameters"]],
+        lines.map { |line| line.values_at("msg", "error_message") }
+      assert_not_includes @io.string, "synthetic-raw-secret"
+    end
+
     test "settings from config/initializers apply to the logger set up before them" do
       LogStruct.config.prefer_json_in_development = false
       before = ::SemanticLogger.appenders.to_a

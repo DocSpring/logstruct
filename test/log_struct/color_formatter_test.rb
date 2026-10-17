@@ -181,6 +181,21 @@ module LogStruct
       assert_includes result, "42"
     end
 
+    test "a params error's colored exception and causes leave out the input its parser quoted" do
+      parse_error = assert_raises(ActionDispatch::Http::Parameters::ParseError) do
+        JSON.parse('{"password":synthetic-raw-secret}')
+      rescue JSON::ParserError
+        raise ActionDispatch::Http::Parameters::ParseError, "Error occurred while parsing request parameters"
+      end
+
+      LogStruct::SemanticLogger::Logger.new("TestLogger").error("Sign-in failed", parse_error)
+      ::SemanticLogger.flush
+
+      assert_includes @io.string, "Error occurred while parsing request parameters"
+      assert_includes @io.string, "JSON::ParserError: (left out: it quotes the request's input)"
+      assert_not_includes @io.string, "synthetic-raw-secret"
+    end
+
     test "a color map changes only the colors it names" do
       io = StringIO.new
       clear_test_appenders

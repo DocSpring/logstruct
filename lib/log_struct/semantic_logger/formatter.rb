@@ -3,6 +3,7 @@
 
 require "semantic_logger"
 require_relative "../formatter"
+require_relative "../params_errors"
 
 module LogStruct
   module SemanticLogger
@@ -72,11 +73,13 @@ module LogStruct
         message = log.message
         logged_message = (message.is_a?(String) && !message.empty?) ? message : nil
         payload = log.payload
+        # Without the input a params parser quoted
+        exception_message = ParamsErrors.messages(exception).first
         LogStruct::Log::Error.new(
           source: Source::App,
           error_class: exception.class,
-          message: logged_message || exception.message,
-          error_message: logged_message ? exception.message : nil,
+          message: logged_message || exception_message,
+          error_message: logged_message ? exception_message : nil,
           backtrace: exception.backtrace,
           additional_data: payload.is_a?(Hash) ? without_reserved_keys(payload) : nil,
           timestamp: log.time
