@@ -282,9 +282,9 @@ function ComparisonTable() {
                   {category.category}
                 </td>
               </tr>
-              {category.items.map((feature, index) => (
+              {category.items.map((feature) => (
                 <tr
-                  key={`${category.category}-${index}`}
+                  key={`${category.category}-${feature.name}`}
                   className="border-b border-neutral-100 dark:border-neutral-900"
                 >
                   <td className="py-2 px-3 text-sm">{feature.name}</td>
