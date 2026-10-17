@@ -95,6 +95,29 @@ module LogStruct
       assert_equal ["app/jobs/sync_job.rb:3:in 'perform'"], lines.first["backtrace"]
     end
 
+    test "logs only to STDOUT in production" do
+      ::SemanticLogger.clear_appenders!
+      Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+      end
+
+      assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
+      assert_equal 1, ::SemanticLogger.appenders.size
+    ensure
+      ::SemanticLogger.clear_appenders!
+    end
+
+    test "logs to the log file too in test" do
+      ::SemanticLogger.clear_appenders!
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: nil) do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+      end
+
+      assert_equal 1, ::SemanticLogger.appenders.count { |appender| appender.is_a?(::SemanticLogger::Appender::File) }
+    ensure
+      ::SemanticLogger.clear_appenders!
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush
