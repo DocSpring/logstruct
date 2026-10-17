@@ -44,7 +44,7 @@ const CustomTooltip = ({
   // For debugging - remove in production
   // console.log('Theme info:', { theme, resolvedTheme, isDarkFromClass, isDark });
 
-  if (active && payload && payload.length) {
+  if (active && payload?.length) {
     return (
       <div
         className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}
@@ -117,19 +117,19 @@ const COLORS = {
 
 // Re-export recharts components
 export {
-  Chart,
-  LineChart,
-  Line,
-  AreaChart,
   Area,
-  BarChart,
+  AreaChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Chart,
+  COLORS,
+  ComposedChart,
+  CustomTooltip,
+  Legend,
+  Line,
+  LineChart,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ComposedChart,
-  COLORS,
-  CustomTooltip,
 };

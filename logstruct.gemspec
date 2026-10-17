@@ -21,14 +21,20 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"] = "https://github.com/DocSpring/logstruct"
   spec.metadata["changelog_uri"] = "#{spec.metadata["source_code_uri"]}/blob/main/CHANGELOG.md"
 
-  # Specify which files should be added to the gem when it is released.
-  spec.files = Dir[
-    "lib/**/*",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE",
-    "*.gemspec",
-  ]
+  # Specify which files should be added to the gem when it is released: only files committed to git, so a
+  # local build can't pick up untracked files. Without git (an unpacked gem), it falls back to Dir.
+  patterns = ["lib/**/*", "README.md", "CHANGELOG.md", "LICENSE", "*.gemspec"]
+  tracked_files = begin
+    output = IO.popen(%w[git ls-files -z], chdir: __dir__, err: File::NULL, &:read)
+    output.split("\x0") if $?.success?
+  rescue Errno::ENOENT
+    nil
+  end
+  spec.files = if tracked_files
+    tracked_files.select { |file| patterns.any? { |pattern| File.fnmatch?(pattern, file, File::FNM_PATHNAME) } }
+  else
+    Dir[*patterns].select { |file| File.file?(file) }
+  end
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]

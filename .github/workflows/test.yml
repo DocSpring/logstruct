@@ -7,32 +7,37 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '.ruby-version'
           # Install all gems (both test and development)
           bundler-cache: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 10.18.3
 
       - name: Enable pnpm cache
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: pnpm
@@ -96,26 +101,28 @@ jobs:
     name: 'Next.js Site Tests'
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '.ruby-version'
           bundler-cache: true
 
       - name: Setup Node.js (docs)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 10.18.3
 
       - name: Enable pnpm cache (docs)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: pnpm
@@ -136,6 +143,53 @@ jobs:
         run: |
           cd docs && pnpm test
 
+  docs_build:
+    name: 'Next.js Site Build'
+    # The production build the deploy runs, with this run's coverage report: tests and type checks pass on
+    # pages that fail to prerender
+    needs: [pilot]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        with:
+          ruby-version: '.ruby-version'
+          bundler-cache: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          version: 10.18.3
+
+      - name: Setup Node with the pnpm cache
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: docs/pnpm-lock.yaml
+
+      - name: Install docs dependencies
+        run: cd docs && pnpm install --frozen-lockfile
+
+      - name: Download this run's coverage report
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: coverage-ruby-rails-latest
+          path: docs/public/coverage/
+
+      - name: Generate YARD documentation
+        run: bundle exec yard doc --output-dir=docs/public/yard
+
+      - name: Export TypeScript types from LogStruct
+        run: scripts/generate_structs.rb
+
+      - name: Build the site
+        run: cd docs && pnpm run build
+
   pilot:
     name: 'Pilot Test: Latest Ruby / Rails'
     runs-on: ubuntu-22.04
@@ -145,14 +199,16 @@ jobs:
       CI: 'true'
       BUNDLE_WITHOUT: 'development'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # Remove Gemfile.lock since we're changing Ruby and Rails versions
       - name: Remove Gemfile.lock for variable Ruby/Rails versions
         run: rm -f Gemfile.lock
 
       - name: Setup Ruby 4.0.1
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '4.0.1'
           bundler-cache: true
@@ -166,7 +222,7 @@ jobs:
         run: scripts/rails_tests.sh
 
       - name: Upload raw coverage directories
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: success()
         with:
           name: raw-coverage-ruby-rails-latest
@@ -185,7 +241,7 @@ jobs:
 
       # Save merged coverage data as an artifact for deploy workflow
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: success()
         with:
           name: coverage-ruby-rails-latest
@@ -226,14 +282,16 @@ jobs:
       BUNDLE_WITHOUT: 'development'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # Remove Gemfile.lock since we're changing Ruby and Rails versions
       - name: Remove Gemfile.lock for variable Ruby/Rails versions
         run: rm -f Gemfile.lock
 
       - name: Setup Ruby ${{ matrix.ruby }}
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
@@ -249,12 +307,25 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '.ruby-version'
 
       - name: Boot an app that only bundles railties and actionpack
         run: scripts/railties_smoke_test.sh
+
+  deploy_docs:
+    name: Deploy the site
+    needs: [lint, docs, docs_build, matrix, railties_only]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-docs.yml

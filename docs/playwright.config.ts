@@ -11,7 +11,7 @@ const config: PlaywrightTestConfig = {
     env: { PORT: String(PORT) },
   },
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: `http://127.0.0.1:${PORT}`,
     headless: true,
   },
   testDir: 'e2e/playwright',
