@@ -53,19 +53,15 @@ module LogStruct
       include Sorbet::SerializeSymbolKeys
 
       # Keys that should be filtered in nested structures such as request params and job arguments.
-      # A filtered value is replaced by a summary of it:
+      # A filtered value is replaced by a summary of it, with no length (which would say how long a
+      # secret is):
       #
-      # { _filtered: {
-      #     _class: "Hash",                # Class of the filtered value
-      #     _bytes: 1234,                  # Length as JSON (Hashes without sensitive keys, and Arrays)
-      #     _keys_count: 3,                # Number of keys in the hash
-      #     _keys: [:key1, :key2, :key3],  # First 10 keys in the hash
-      #   }
-      # }
+      # { _filtered: { _class: "Hash", _keys_count: 3, _keys: [:key1, :key2, :key3] } }  # first 10 keys
+      # { _filtered: { _class: "Array", _count: 2 } }
+      # { _filtered: { _class: "String" } }  # plus its _hash for filter_keys_with_hashes
       #
-      # A filtered String has only its _class (no length), plus its _hash for filter_keys_with_hashes.
-      #
-      # Names are matched by their words, so :api_key also filters apiKey and X-Api-Key.
+      # A key matches when its name, or its words joined by underscores (KeyWords.normalize), equal an
+      # entry: :api_key also filters apiKey and X-Api-Key, but not api_key_id.
       #
       # Default: [:password, :password_confirmation, :pass, :pw, :token, :secret, :credentials, :auth,
       #           :authentication, :authorization, :credit_card, :ssn, :social_security]
@@ -80,8 +76,8 @@ module LogStruct
           ]
         }
 
-      # Keys where string values should include a hash (see hash_salt).
-      # Useful for tracing emails across requests (e.g. sign in, sign up) while protecting privacy.
+      # Keys that are filtered like filter_keys, and whose String values also get a _hash in their summary
+      # (see hash_salt), so lines about the same person can be followed without logging the address.
       # Default: [:email, :email_address]
       prop :filter_keys_with_hashes,
         T::Array[Symbol],
@@ -139,9 +135,10 @@ module LogStruct
 
       # Default pattern for sensitive keys, matched against a key's words joined by underscores
       # (KeyWords.normalize: apiKey, api-key and API_KEY are all "api_key"):
-      # - these words anywhere in the key: password, passwd, passphrase, pwd, token, secret, auth,
-      #   authorization, authentication, cred, credential, cookie, session, jwt, bearer, otp, cvv, cvc,
-      #   ssn, crypt, crypted (and their plurals): access_token, newPassword, Set-Cookie, HTTP_AUTHORIZATION
+      # - these words anywhere in the key: password, passwd, passphrase, passcode, pwd, token, secret, auth,
+      #   authorization, authentication, cred, credential, cookie, session, jwt, bearer, otp, apikey, cvv,
+      #   cvc, ssn, social_security, social_security_number, credit_card, card_number, crypt, crypted (and
+      #   their plurals): access_token, newPassword, Set-Cookie, HTTP_AUTHORIZATION, credit_card_number
       # - api_key, secret_key, private_key, access_key, encryption_key, signing_key, master_key: X-Api-Key
       # - signature, sig, salt and certificate as the last word: X-Amz-Signature (but not signature_field_id)
       # Matching whole words avoids false positives like "keyboard", "author" or "cron_key".

@@ -7,14 +7,13 @@ require_relative "../configuration"
 
 module LogStruct
   module Concerns
-    # Concern for handling errors according to configured modes
+    # LogStruct.configure, whether LogStruct is on in this process, and merging Rails' filter_parameters
     module Configuration
       module ClassMethods
         extend T::Sig
 
         CONSOLE_COMMAND_ARGS = T.let(["console", "c"].freeze, T::Array[String])
         EMPTY_ARGV = T.let([].freeze, T::Array[String])
-        CI_FALSE_VALUES = T.let(["false", "0", "no"].freeze, T::Array[String])
         RAILS_PATTERNS_LABEL = "Rails filter_parameters"
         RAILS_REGEXPS_LABEL = "Rails filter_parameters (Regexps)"
         RAILS_PATHS_LABEL = "Rails filter_parameters (paths)"
@@ -51,22 +50,13 @@ module LogStruct
 
         sig { void }
         def set_enabled_from_rails_env!
-          # Set enabled based on current Rails environment and the LOGSTRUCT_ENABLED env var.
-          # Precedence:
-          # 1. Check if LOGSTRUCT_ENABLED env var is defined (not an empty string)
-          #    - Sets enabled=true only when value is "true", "yes", "1", etc.
-          #    - Sets enabled=false when value is any other value
-          # 2. Otherwise, check if current Rails environment is in enabled_environments
-          #    AND one of: Rails::Server is defined, OR test environment with CI=true
-          #    BUT NOT Rails::Console (to exclude interactive console)
-          # 3. Otherwise, leave as config.enabled (defaults to true)
-
-          # Then check if LOGSTRUCT_ENABLED env var is set
+          # 1. When LOGSTRUCT_ENABLED is set, it decides: on for true, t, yes, y or 1, off for anything else.
+          # 2. Otherwise LogStruct is on when the Rails environment is in enabled_environments, the process
+          #    isn't a console, and it's a server (server_process?) or runs in the test environment.
           env_var_enabled = enabled_from_env_var
           config.enabled = if env_var_enabled.nil?
             is_console = console_process?
             is_server = server_process?
-            ci_build?
             in_enabled_env = config.enabled_environments.include?(::Rails.env.to_sym)
 
             in_enabled_env && !is_console && (is_server || ::Rails.env.test?)
@@ -208,17 +198,6 @@ module LogStruct
           T.let(strings, T::Array[String])
         rescue NameError
           EMPTY_ARGV
-        end
-
-        sig { returns(T::Boolean) }
-        def ci_build?
-          value = ENV["CI"]
-          return false if value.nil?
-
-          normalized = value.strip.downcase
-          return false if normalized.empty?
-
-          !CI_FALSE_VALUES.include?(normalized)
         end
 
         # Rails matches Symbols and Strings as case-insensitive substrings (:passw filters
