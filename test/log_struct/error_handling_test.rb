@@ -20,6 +20,22 @@ class ErrorHandlingTest < Minitest::Test
     assert_equal LogStruct::ErrorHandlingMode::Log, mode
   end
 
+  def test_a_params_error_the_app_logs_leaves_out_the_input_the_parser_quoted
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Log
+    params_error = assert_raises(Rack::Utils::InvalidParameterError) do
+      Rack::Utils.parse_nested_query("password=%zz-synthetic-raw-secret")
+    end
+    unrelated = RuntimeError.new("Export failed for report 12")
+    lines = []
+
+    LogStruct.stub(:error, ->(line) { lines << line }) do
+      LogStruct.handle_exception(params_error, source: LogStruct::Source::App)
+      LogStruct.handle_exception(unrelated, source: LogStruct::Source::App)
+    end
+
+    assert_equal ["Invalid request parameters", "Export failed for report 12"], lines.map(&:message)
+  end
+
   def test_handle_exception_ignore
     LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Ignore
     error = RuntimeError.new("ignore me")
