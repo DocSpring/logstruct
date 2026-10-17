@@ -191,18 +191,7 @@ module LogStruct
     # Bytes that aren't valid UTF-8 become U+FFFD.
     sig { params(string: String).returns(String) }
     def valid_utf8(string)
-      return string if string.ascii_only? || (string.encoding == Encoding::UTF_8 && string.valid_encoding?)
-
-      utf8 = if string.encoding == Encoding::BINARY || string.encoding == Encoding::US_ASCII
-        string.dup.force_encoding(Encoding::UTF_8)
-      else
-        begin
-          string.encode(Encoding::UTF_8)
-        rescue EncodingError
-          string.dup.force_encoding(Encoding::UTF_8)
-        end
-      end
-      utf8.valid_encoding? ? utf8 : utf8.scrub
+      StringScrubber.valid_utf8(string)
     end
 
     # A String or Symbol key as valid UTF-8 (symbolize_keys makes Symbols of binary String keys)
@@ -277,7 +266,7 @@ module LogStruct
       when Array
         {_filtered: {_class: arg.class.name, _count: arg.size}}
       when String
-        {_filtered: {_class: arg.class.name, _bytes: arg.bytesize}}
+        {_filtered: {_class: arg.class.name}}
       when Numeric, Symbol, TrueClass, FalseClass, NilClass
         arg
       else

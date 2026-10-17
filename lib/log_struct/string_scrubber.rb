@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "base64"
+
 require "uri"
 require_relative "hash_utils"
 require_relative "param_filters"
@@ -29,7 +31,15 @@ module LogStruct
       SENSITIVE_QUERY_PARAMS = T.let(["code"].freeze, T::Array[String])
       QUERY_PARAM_REPLACEMENT = "[FILTERED]"
 
-      EMAIL_REGEX = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i
+      # Letters and digits of any script (an accented name, a domain in another alphabet)
+      EMAIL_REGEX = /(?<![\p{L}\p{N}._%+-])[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.\p{L}{2,}(?![\p{L}\p{N}])/
+      # A whole String that is an email address
+      WHOLE_EMAIL_REGEX = /\A#{EMAIL_REGEX}\z/
+
+      # The credentials after Bearer or Basic, as in an Authorization header. A Bearer token has at least 16
+      # characters, and Basic credentials must decode to user:password, so "Bearer token" and "Basic plan" stay.
+      AUTHORIZATION_CREDENTIALS_REGEX = %r{\b(Bearer|Basic)(\s+)([A-Za-z0-9\-._~+/]+=*)}i
+      AUTHORIZATION_CREDENTIALS_REPLACEMENT = "[FILTERED]"
 
       # 13 to 19 digits, written together, in fours (4111 1111 1111 1111, with a 19-digit card's last
       # three) or in American Express and Diners Club groups (3782 822463 10005). Numbers that fail
@@ -65,8 +75,11 @@ module LogStruct
       def scrub(string)
         return string if string.empty?
 
-        string = string.to_s.dup
+        # The scrubbers match letters of any script, which needs valid UTF-8
+        string = valid_utf8(string.to_s).dup
         config = LogStruct.config.filters
+
+        scrub_authorization_credentials!(string) if config.authorization_credentials
 
         # Sensitive params in URLs' query strings
         scrub_query_params!(string) if config.url_query_params && string.include?("?")
@@ -79,10 +92,7 @@ module LogStruct
 
         # Emails
         if config.email_addresses
-          string.gsub!(EMAIL_REGEX) do |email|
-            email_hash = HashUtils.hash_value(email)
-            "[EMAIL:#{email_hash}]"
-          end
+          string.gsub!(EMAIL_REGEX) { |email| "[EMAIL:#{value_hash(email)}]" }
         end
 
         # Credit card numbers
@@ -111,6 +121,31 @@ module LogStruct
         string
       end
 
+      # The hash of a value (HashUtils.hash_value). Email addresses are hashed in lowercase, so an address has
+      # one hash however it's written, and the same hash under a filtered key as in a scrubbed string.
+      sig { params(value: String).returns(String) }
+      def value_hash(value)
+        HashUtils.hash_value(WHOLE_EMAIL_REGEX.match?(value) ? value.downcase : value)
+      end
+
+      # A String as valid UTF-8: binary and other encodings are converted, and bytes that aren't valid
+      # become U+FFFD
+      sig { params(string: String).returns(String) }
+      def valid_utf8(string)
+        return string if string.ascii_only? || (string.encoding == Encoding::UTF_8 && string.valid_encoding?)
+
+        utf8 = if string.encoding == Encoding::BINARY || string.encoding == Encoding::US_ASCII
+          string.dup.force_encoding(Encoding::UTF_8)
+        else
+          begin
+            string.encode(Encoding::UTF_8)
+          rescue EncodingError
+            string.dup.force_encoding(Encoding::UTF_8)
+          end
+        end
+        utf8.valid_encoding? ? utf8 : utf8.scrub
+      end
+
       # A Hash key or a Symbol, scrubbed like a String unless it's a plain identifier (user_id,
       # createdAt). Returns it unchanged, or the scrubbed String when scrubbing changed it.
       sig { params(name: T.untyped).returns(T.untyped) }
@@ -133,6 +168,31 @@ module LogStruct
       end
 
       private
+
+      # Bearer tokens and Basic credentials (Authorization: Bearer eyJ... becomes Bearer [FILTERED])
+      sig { params(string: String).void }
+      def scrub_authorization_credentials!(string)
+        return unless string.match?(/bearer|basic/i)
+
+        string.gsub!(AUTHORIZATION_CREDENTIALS_REGEX) do |match|
+          scheme = T.must(Regexp.last_match(1))
+          credentials = T.must(Regexp.last_match(3))
+          if authorization_credentials?(scheme, credentials)
+            "#{scheme}#{Regexp.last_match(2)}#{AUTHORIZATION_CREDENTIALS_REPLACEMENT}"
+          else
+            match
+          end
+        end
+      end
+
+      sig { params(scheme: String, credentials: String).returns(T::Boolean) }
+      def authorization_credentials?(scheme, credentials)
+        return credentials.length >= 16 if scheme.casecmp?("bearer")
+
+        credentials.length >= 8 && Base64.strict_decode64(credentials).include?(":")
+      rescue ArgumentError
+        false
+      end
 
       # Replaces the values of query params whose names would be filtered as keys
       # (/reset?token=abc&page=2 becomes /reset?token=[FILTERED]&page=2)

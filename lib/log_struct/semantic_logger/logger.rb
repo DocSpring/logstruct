@@ -104,7 +104,9 @@ module LogStruct
       sig { params(msg: String).returns(T.self_type) }
       def <<(msg)
         info(msg)
-        @broadcasts.each { |logger| logger << msg if logger.respond_to?(:<<) }
+        # Scrubbed, like the messages broadcast by the log methods
+        text = StringScrubber.scrub(msg)
+        @broadcasts.each { |logger| logger << text if logger.respond_to?(:<<) }
         self
       end
     end

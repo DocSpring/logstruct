@@ -88,3 +88,5 @@ unwritable
 FFFD
 signm
 SIGUSR
+apikey
+apikeys

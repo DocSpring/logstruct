@@ -270,7 +270,7 @@ module LogStruct
         @formatter.process_values({a: 1, b: 2}, recursion_depth: too_deep))
       assert_equal({_filtered: {_class: "Array", _count: 3}},
         @formatter.process_values([1, 2, 3], recursion_depth: too_deep))
-      assert_equal({_filtered: {_class: "String", _bytes: 7}},
+      assert_equal({_filtered: {_class: "String"}},
         @formatter.process_values("a@b.com", recursion_depth: too_deep))
       assert_equal 42, @formatter.process_values(42, recursion_depth: too_deep)
       assert_nil @formatter.process_values(nil, recursion_depth: too_deep)
@@ -315,13 +315,27 @@ module LogStruct
       refute result.dig("token", "_filtered").key?("_bytes")
     end
 
-    def test_filtered_summaries_have_the_json_size_of_plain_values
-      log_line = @formatter.call(@severity, @time, @progname, {msg: "sizes", password: ["ab", 1], token: {a: "b"}})
+    def test_filtered_summaries_leave_out_how_big_the_values_are
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "sizes", password: ["hunter2"], creds: {value: "hunter2"}})
 
       result = JSON.parse(log_line)
 
-      assert_equal ["ab", 1].to_json.bytesize, result.dig("password", "_filtered", "_bytes")
-      assert_equal({a: "b"}.to_json.bytesize, result.dig("token", "_filtered", "_bytes"))
+      assert_equal({"_class" => "Array", "_count" => 1}, result.dig("password", "_filtered"))
+      assert_equal({"_class" => "Hash", "_keys_count" => 1, "_keys" => ["value"]}, result.dig("creds", "_filtered"))
+    end
+
+    def test_an_email_has_one_hash_under_a_key_and_in_text_however_its_written
+      log_line = @formatter.call(@severity,
+        @time,
+        @progname,
+        {msg: "Signed up User@Example.com", email: "user@example.com", note: "from USER@example.COM"})
+
+      result = JSON.parse(log_line)
+      email_hash = result.dig("email", "_filtered", "_hash")
+
+      assert_match(/\A\h{12}\z/, email_hash)
+      assert_equal "Signed up [EMAIL:#{email_hash}]", result["msg"]
+      assert_equal "from [EMAIL:#{email_hash}]", result["note"]
     end
 
     def test_logs_a_value_shared_by_two_keys_in_full_each_time

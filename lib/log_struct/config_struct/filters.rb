@@ -111,6 +111,12 @@ module LogStruct
       # Default: true
       prop :url_query_params, T::Boolean, default: true
 
+      # Scrub the credentials after Bearer and Basic in strings (an Authorization header's value,
+      # logged as text): Bearer tokens of 16 or more characters, and Basic credentials that decode to
+      # user:password
+      # Default: true
+      prop :authorization_credentials, T::Boolean, default: true
+
       # Filter credit card numbers
       # Default: true
       prop :credit_card_numbers, T::Boolean, default: true
@@ -140,7 +146,7 @@ module LogStruct
       # - signature, sig, salt and certificate as the last word: X-Amz-Signature (but not signature_field_id)
       # Matching whole words avoids false positives like "keyboard", "author" or "cron_key".
       DEFAULT_SENSITIVE_KEY_PATTERN = T.let(
-        /(?:\A|_)(?:passwords?|passwd|passphrases?|pwd|tokens?|secrets?|auth|authorization|authentication|creds?|credentials?|cookies?|sessions?|jwts?|bearer|otps?|cvv|cvc|ssn|crypt|crypted)(?:_|\z)|(?:\A|_)(?:api|secret|private|access|encryption|signing|master)_keys?(?:_|\z)|(?:\A|_)(?:signature|sig|salt|certificate)s?\z/,
+        /(?:\A|_)(?:passwords?|passwd|passphrases?|passcodes?|pwd|tokens?|secrets?|auth|authorization|authentication|creds?|credentials?|cookies?|sessions?|jwts?|bearer|otps?|apikeys?|cvv|cvc|ssn|social_security(?:_numbers?)?|credit_cards?|card_numbers?|crypt|crypted)(?:_|\z)|(?:\A|_)(?:api|secret|private|access|encryption|signing|master)_keys?(?:_|\z)|(?:\A|_)(?:signature|sig|salt|certificate)s?\z/,
         Regexp
       )
 

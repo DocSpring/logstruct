@@ -321,10 +321,13 @@ module LogStruct
 
       @logger.info("Signed in as ada@example.com")
       @logger.warn { "Card 4111111111111111 declined" }
+      @logger << "Reset sent to grace@example.com"
 
       assert_includes secondary_io.string, "Signed in as [EMAIL:"
       assert_includes secondary_io.string, "Card [CREDIT_CARD] declined"
+      assert_includes secondary_io.string, "Reset sent to [EMAIL:"
       assert_not_includes secondary_io.string, "ada@example.com"
+      assert_not_includes secondary_io.string, "grace@example.com"
     end
 
     test "broadcast_to ignores SemanticLogger loggers, which share its appenders" do

@@ -52,6 +52,37 @@ module LogStruct
       assert_match(/\[EMAIL:[a-f0-9]+\].*\[EMAIL:[a-f0-9]+\]/, result)
     end
 
+    # cspell:ignore martínez martí exämple
+    def test_scrub_email_addresses_in_any_script
+      %w[linda.martínez@gmail.com zoë@example.com jose@exämple.com].each do |email|
+        result = StringScrubber.scrub("Sent to #{email}.")
+
+        assert_match(/\ASent to \[EMAIL:\h+\]\.\z/, result, email)
+      end
+    end
+
+    def test_an_email_has_the_same_hash_in_any_case
+      assert_equal StringScrubber.scrub("user@example.com"), StringScrubber.scrub("User@Example.COM")
+    end
+
+    def test_scrub_strings_with_invalid_utf8
+      binary = "From caf\xC3\xA9@example.com \xFF".b
+
+      assert_match(/\AFrom \[EMAIL:\h+\] \uFFFD\z/, StringScrubber.scrub(binary))
+    end
+
+    def test_scrub_bearer_tokens_and_basic_credentials
+      basic = Base64.strict_encode64("admin:hunter2")
+
+      assert_equal "Authorization: Bearer [FILTERED]",
+        StringScrubber.scrub("Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjF9.sig")
+      assert_equal "Retried with basic [FILTERED] after a 401", StringScrubber.scrub("Retried with basic #{basic} after a 401")
+      # Short words after them, and base64 without user:password, stay
+      assert_equal "Send a Bearer token, or Basic auth on the Basic plan",
+        StringScrubber.scrub("Send a Bearer token, or Basic auth on the Basic plan")
+      assert_equal "Basic aGVsbG8gd29ybGQ=", StringScrubber.scrub("Basic aGVsbG8gd29ybGQ=")
+    end
+
     def test_scrub_url_passwords
       # Test with a URL containing a password
       # cspell:ignore mydb
@@ -206,13 +237,14 @@ module LogStruct
           phone_numbers: false,
           ssns: false,
           ip_addresses: false,
-          mac_addresses: false
+          mac_addresses: false,
+          authorization_credentials: false
         )
       )
       LogStruct.configuration = test_config
 
       # Test with sensitive data
-      input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567"
+      input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567, Bearer abcdefghijklmnopqrstuvwxyz"
       result = StringScrubber.scrub(input)
 
       # Verify nothing was filtered
