@@ -24,12 +24,13 @@ module LogStruct
       # cspell:ignore Fuser Asecret
       ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&])+(%40)}i
       URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]\2'
-      # A URL's user info that a cut string ends in, where the cut can separate the password from the @ that
-      # closes it. Everything after the user's colon goes: the password can contain an @ of its own (p@ss).
+      # A URL's user info that runs past what the scrubbers saw of a long string, where the cut can separate the
+      # password from the @ that closes it. Everything after the user's colon goes: the password can contain an
+      # @ of its own (p@ss).
       CUT_URL_PASSWORD_REGEX = %r{(//[^\s/:@]*:)[^\s/"'<>]*\z}
       CUT_ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&"'<>])*\z}i
       CUT_URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]'
-      # Basic credentials that a cut string ends in: a cut token doesn't decode, so it can't be checked
+      # Basic credentials that run past what the scrubbers saw: a cut token doesn't decode, so it can't be checked
       CUT_BASIC_CREDENTIALS_REGEX = %r{\b(Basic\s+)[A-Za-z0-9+/]+=*\z}i
 
       # A URL's query string, for the sensitive params in it
@@ -138,9 +139,10 @@ module LogStruct
         string
       end
 
-      # The end of a scrubbed string that was cut. The scrubbers saw only part of a value the cut runs through, so
-      # a URL password separated from its closing @ (which URL_PASSWORD_REGEX needs) and Basic credentials cut
-      # short (which no longer decode) are replaced, however long they were.
+      # The end of the part of a long string the scrubbers saw (Formatter#scrub_limited_string). They saw only the
+      # start of a value that runs past it, so a URL password separated from its closing @ (which
+      # URL_PASSWORD_REGEX needs) and Basic credentials cut short (which no longer decode) are replaced, however
+      # long they were.
       sig { params(string: String).returns(String) }
       def scrub_cut_end(string)
         filters = LogStruct.config.filters

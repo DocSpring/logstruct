@@ -212,14 +212,23 @@ module LogStruct
     # The scrubbers see a little more than a cut string keeps, so data at the cut is scrubbed whole
     SCRUB_MARGIN_BYTES = 256
 
-    # A string scrubbed, and cut to limits.max_string_bytes
+    # A string scrubbed, and cut to limits.max_string_bytes. The scrubbers see its first max_string_bytes plus
+    # SCRUB_MARGIN_BYTES: a value running past that was only partly seen, so scrub_cut_end replaces it if it can
+    # be a credential.
     sig { params(string: String).returns(String) }
     def scrub_limited_string(string)
       max_bytes = LogStruct.config.limits.max_string_bytes
       return scrub_string(string) if string.bytesize <= max_bytes
 
-      scrubbed = scrub_string(string.byteslice(0, max_bytes + SCRUB_MARGIN_BYTES).to_s.scrub(""))
-      kept = StringScrubber.scrub_cut_end(scrubbed.byteslice(0, max_bytes).to_s.scrub(""))
+      seen_bytes = max_bytes + SCRUB_MARGIN_BYTES
+      scrubbed = scrub_string(string.byteslice(0, seen_bytes).to_s.scrub(""))
+      if string.bytesize > seen_bytes
+        scrubbed = StringScrubber.scrub_cut_end(scrubbed)
+      elsif scrubbed.bytesize <= max_bytes
+        # The scrubbers saw all of it, and their replacements made it short enough
+        return scrubbed
+      end
+      kept = scrubbed.byteslice(0, max_bytes).to_s.scrub("")
       "#{kept}... (cut from #{string.bytesize} bytes)"
     end
 

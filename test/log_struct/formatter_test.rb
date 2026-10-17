@@ -573,6 +573,21 @@ module LogStruct
       assert_includes value, "Basic [FILTERED]"
     end
 
+    def test_leaves_values_the_scrubbers_saw_whole_at_the_cut
+      LogStruct.config.limits.max_string_bytes = 100
+      # The cut is right after "plan", and the scrubbers saw the words after it
+      prose = "#{"x" * 89} Basic plan#{" usage summary" * 50}"
+      # The scrubbers saw the whole URL, and with its password replaced it's short enough to keep whole
+      url = "#{"x" * 20} https://user:#{"p" * 250}@db.example.com:5432"
+
+      prose_value, url_value = [prose, url].map do |long|
+        JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+      end
+
+      assert_match(/ Basic plan\.\.\. \(cut from/, prose_value)
+      assert_equal "#{"x" * 20} https://user:[PASSWORD]@db.example.com:5432", url_value
+    end
+
     def test_leaves_a_cut_url_without_a_password
       LogStruct.config.limits.max_string_bytes = 100
       long = "#{"a" * 70} https://example.com/#{"b" * 200}"
