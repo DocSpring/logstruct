@@ -34,6 +34,17 @@ class SorbetIntegrationTest < Minitest::Test
     assert_equal [LogStruct::Source::TypeChecking], handled.map(&:last).uniq
   end
 
+  def test_type_errors_have_a_backtrace_from_the_code_that_failed
+    handled = handled_errors do
+      T.let(T.unsafe("one"), Integer) # a wrong type on purpose
+      Typed.new.count(T.unsafe("two")) # a wrong argument on purpose
+    end
+
+    handled.each do |error, _source|
+      assert_match(/\A#{Regexp.escape(__FILE__)}:\d+/, error.backtrace&.first)
+    end
+  end
+
   def test_nothing_is_installed_when_the_integration_is_off
     HANDLERS.each { |name| T::Configuration.send(:"#{name}=", nil) }
     config = LogStruct::Configuration.new
