@@ -25,13 +25,43 @@ env:
   TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
 
 jobs:
+  # Every other job needs this one, so a tag that doesn't match version.rb publishes nothing
   wait_ci:
-    name: Wait for CI success on tag
+    name: Validate the tag and wait for CI success
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read # to read the CI runs for the tagged commit
+    outputs:
+      version: ${{ steps.ver.outputs.version_tag }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Determine version and validate tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="$TAG_NAME"
+          if [[ -z "$TAG" ]]; then
+            TAG="v0.0.0-dryrun"
+            echo "DRY-RUN: Using placeholder tag $TAG" >&2
+          fi
+          VERSION_FROM_TAG="${TAG#v}"
+          VERSION_RB=$(sed -n 's/^ *VERSION *= *"\([^"]*\)".*/\1/p' lib/log_struct/version.rb)
+          echo "version_tag=$VERSION_FROM_TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
+          if [[ -z "$VERSION_RB" ]]; then
+            echo "::error::Couldn't read VERSION from lib/log_struct/version.rb."
+            exit 1
+          fi
+          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
+            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
+            exit 1
+          fi
+
       - name: Wait for CI workflow
         env:
           GH_TOKEN: ${{ github.token }}
@@ -87,28 +117,10 @@ jobs:
         with:
           ruby-version: '.ruby-version'
 
-      - name: Determine version and validate tag
-        id: ver
-        shell: bash
-        run: |
-          TAG="$TAG_NAME"
-          if [[ -z "$TAG" ]]; then
-            TAG="v0.0.0-dryrun"
-            echo "DRY-RUN: Using placeholder tag $TAG" >&2
-          fi
-          VERSION_FROM_TAG="${TAG#v}"
-          VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
-          echo "version_tag=$VERSION_FROM_TAG" >> "$GITHUB_OUTPUT"
-          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
-          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
-            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
-            exit 1
-          fi
-
       - name: Build gem
         id: build
         env:
-          VERSION: ${{ steps.ver.outputs.version_tag }}
+          VERSION: ${{ needs.wait_ci.outputs.version }}
         run: |
           gem build logstruct.gemspec
           ls -la ./*.gem
