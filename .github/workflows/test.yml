@@ -190,6 +190,12 @@ jobs:
       - name: Build the site
         run: cd docs && pnpm run build
 
+      - name: Install Chromium for the site's browser tests
+        run: cd docs && pnpm exec playwright install --with-deps chromium
+
+      - name: Run the site's browser tests
+        run: cd docs && pnpm run e2e
+
   pilot:
     name: 'Pilot Test: Latest Ruby / Rails'
     runs-on: ubuntu-22.04
