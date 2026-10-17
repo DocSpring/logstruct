@@ -90,7 +90,10 @@ module LogStruct
       # ::Logger, ActiveSupport::Logger, test doubles, etc.
       sig { params(logger: T.untyped).returns(T.untyped) }
       def broadcast_to(logger)
-        @broadcasts << logger
+        # Every SemanticLogger logger writes to the same appenders, so broadcasting to one
+        # would write each message twice. Sidekiq's Rails integration broadcasts Rails.logger
+        # to Sidekiq's logger, for example.
+        @broadcasts << logger unless logger.is_a?(::SemanticLogger::Logger)
         logger
       end
 

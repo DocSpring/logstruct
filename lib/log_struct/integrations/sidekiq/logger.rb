@@ -37,7 +37,9 @@ module LogStruct
               message: msg,
               process_id: ::Process.pid,
               thread_id: Sidekiq.tid,
-              context: ::Sidekiq::Context.current || {}
+              # Log a copy: SemanticLogger may still be serializing the struct on its appender
+              # thread when Sidekiq adds :elapsed to the live context after the job finishes.
+              context: (::Sidekiq::Context.current || {}).dup
             )
 
             # Pass the struct to SemanticLogger

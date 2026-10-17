@@ -75,15 +75,49 @@ module LogStruct
       # Parse the first line of JSON output (last line might be empty)
       log = JSON.parse(output.lines.first.strip)
 
-      # Check the payload or direct fields
-      data = log["payload"] || log
+      data = log
 
+      assert_nil log["payload"]
       assert_equal "User login", data["message"]
       assert_equal "test", data["user"]
 
       # Password should be filtered at top level
       assert_kind_of Hash, data["password"], "Password should be filtered into a hash"
       assert data["password"]["_filtered"], "Password should include _filtered summary"
+    end
+
+    test "writes a Hash's own src and evt at the top level" do
+      clear_log_buffer(@io)
+
+      %i[debug info warn error fatal].each do |level|
+        @logger.public_send(level, {src: "rails", evt: "rate_limit", rule: "logins/#{level}"})
+      end
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal %w[logins/debug logins/info logins/warn logins/error logins/fatal], lines.pluck("rule")
+      lines.each do |line|
+        assert_equal "rails", line["src"]
+        assert_equal "rate_limit", line["evt"]
+        assert_nil line["payload"]
+      end
+    end
+
+    test "keeps the line's timestamp and level when a logged Hash sets them" do
+      clear_log_buffer(@io)
+      reported = []
+
+      LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
+        @logger.info({msg: "Posted to Slack", ts: "1700000000.000100", lvl: "debug"})
+        ::SemanticLogger.flush
+      end
+
+      line = JSON.parse(T.must(@io.string.lines.last))
+
+      assert_equal "info", line["lvl"]
+      refute_equal "1700000000.000100", line["ts"]
+      assert_equal ["A logged Hash attempted to set reserved key: ts", "A logged Hash attempted to set reserved key: lvl"], reported.uniq
     end
 
     test "supports tagged logging" do
@@ -141,6 +175,17 @@ module LogStruct
       secondary_output = secondary_io.string
 
       assert_includes secondary_output, "Test broadcast message"
+    end
+
+    test "broadcast_to ignores SemanticLogger loggers, which share its appenders" do
+      sidekiq_logger = LogStruct::Integrations::Sidekiq::Logger.new("Sidekiq-Server")
+
+      @logger.broadcast_to(sidekiq_logger)
+      @logger.info("Written once")
+      ::SemanticLogger.flush
+
+      assert_empty @logger.broadcasts
+      assert_equal 1, @io.string.scan("Written once").size
     end
 
     test "stop_broadcasting_to removes logger from broadcasts" do

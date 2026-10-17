@@ -67,8 +67,10 @@ module LogStruct
         json = if logstruct
           # Use our formatter to process LogStruct types directly
           @logstruct_formatter.call(log.level, log.time, log.name, logstruct)
-        elsif log.payload.is_a?(Hash) || log.payload.is_a?(T::Struct)
-          # Process hashes and T::Structs through our formatter
+        elsif log.payload.is_a?(Hash)
+          # Process hashes through our formatter
+          @logstruct_formatter.call(log.level, log.time, log.name, without_reserved_keys(log.payload))
+        elsif log.payload.is_a?(T::Struct)
           @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
         else
           # For plain messages, create a Plain log entry
@@ -80,11 +82,17 @@ module LogStruct
           @logstruct_formatter.call(log.level, log.time, log.name, plain_log)
         end
 
-        # Add request_id from named_tags if present
+        # Add the request ID and the running Sidekiq job's context from named_tags
         request_id = log.named_tags[:request_id]
-        if request_id
+        sidekiq_context = log.named_tags[:sidekiq_context]
+        if request_id || sidekiq_context
           data = JSON.parse(json)
-          data["req_id"] = request_id
+          data["req_id"] = request_id if request_id
+          if sidekiq_context
+            ctx = data["ctx"]
+            # A logged Hash's own ctx keeps its keys and gains the job's
+            data["ctx"] = ctx.is_a?(Hash) ? sidekiq_context.transform_keys(&:to_s).merge(ctx) : (ctx || sidekiq_context)
+          end
           json = data.to_json
         end
 
@@ -93,6 +101,26 @@ module LogStruct
       end
 
       private
+
+      # A logged Hash may set its own src and evt, but the line's timestamp and level come from the logger
+      HASH_RESERVED_KEYS = T.let(%w[ts lvl].freeze, T::Array[String])
+
+      sig { params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[T.untyped, T.untyped]) }
+      def without_reserved_keys(hash)
+        reserved = hash.keys.select { |key| HASH_RESERVED_KEYS.include?(key.to_s) }
+        return hash if reserved.empty?
+
+        # A copy, since other appenders format the same Hash
+        copy = hash.dup
+        reserved.each do |key|
+          LogStruct.handle_exception(
+            ArgumentError.new("A logged Hash attempted to set reserved key: #{key}"),
+            source: Source::Internal
+          )
+          copy.delete(key)
+        end
+        copy
+      end
 
       # Extract a LogStruct from the various places it might be stored in a SemanticLogger::Log
       sig do
