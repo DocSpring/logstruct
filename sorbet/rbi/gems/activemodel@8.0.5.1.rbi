@@ -1930,7 +1930,7 @@ end
 #   person.changes # => {"name" => ["Bill", "Bob"]}
 #
 # If an attribute is modified in-place then make use of
-# {*_will_change!}[rdoc-label:method-i-2A_will_change-21] to mark that the attribute is changing.
+# {*_will_change!}[rdoc-ref:#*_will_change!] to mark that the attribute is changing.
 # Otherwise \Active \Model can't track changes to in-place attributes. Note
 # that Active Record can detect in-place modifications automatically. You do
 # not need to call <tt>*_will_change!</tt> on Active Record models.
@@ -1955,7 +1955,7 @@ module ActiveModel::Dirty
   # source://activemodel//lib/active_model/dirty.rb#264
   def as_json(options = T.unsafe(nil)); end
 
-  # Dispatch target for {*_changed?}[rdoc-label:method-i-2A_changed-3F] attribute methods.
+  # Dispatch target for {*_changed?}[rdoc-ref:#*_changed?] attribute methods.
   #
   # @return [Boolean]
   #
@@ -1967,19 +1967,19 @@ module ActiveModel::Dirty
   # source://activemodel//lib/active_model/dirty.rb#367
   def attribute_changed_in_place?(attr_name); end
 
-  # Dispatch target for {*_previously_changed?}[rdoc-label:method-i-2A_previously_changed-3F] attribute methods.
+  # Dispatch target for {*_previously_changed?}[rdoc-ref:#*_previously_changed?] attribute methods.
   #
   # @return [Boolean]
   #
   # source://activemodel//lib/active_model/dirty.rb#310
   def attribute_previously_changed?(attr_name, **options); end
 
-  # Dispatch target for {*_previously_was}[rdoc-label:method-i-2A_previously_was] attribute methods.
+  # Dispatch target for {*_previously_was}[rdoc-ref:#*_previously_was] attribute methods.
   #
   # source://activemodel//lib/active_model/dirty.rb#315
   def attribute_previously_was(attr_name); end
 
-  # Dispatch target for {*_was}[rdoc-label:method-i-2A_was] attribute methods.
+  # Dispatch target for {*_was}[rdoc-ref:#*_was] attribute methods.
   #
   # source://activemodel//lib/active_model/dirty.rb#305
   def attribute_was(attr_name); end
@@ -2307,10 +2307,10 @@ class ActiveModel::Error
 
     private
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr_i18n_customize_full_message; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr_i18n_customize_full_message=(new_value); end
   end
 end
@@ -5104,18 +5104,18 @@ ActiveModel::VERSION::STRING = T.let(T.unsafe(nil), String)
 # source://activemodel//lib/active_model/gem_version.rb#12
 ActiveModel::VERSION::TINY = T.let(T.unsafe(nil), Integer)
 
-# source://activemodel//lib/active_model/validations.rb#503
+# source://activemodel//lib/active_model/validations.rb#505
 class ActiveModel::ValidationContext
   # Returns the value of attribute context.
   #
-  # source://activemodel//lib/active_model/validations.rb#504
+  # source://activemodel//lib/active_model/validations.rb#506
   def context; end
 
   # Sets the attribute context
   #
   # @param value the value to set the attribute context to.
   #
-  # source://activemodel//lib/active_model/validations.rb#504
+  # source://activemodel//lib/active_model/validations.rb#506
   def context=(_arg0); end
 end
 
@@ -5130,16 +5130,16 @@ end
 #     puts invalid.model.errors
 #   end
 #
-# source://activemodel//lib/active_model/validations.rb#493
+# source://activemodel//lib/active_model/validations.rb#495
 class ActiveModel::ValidationError < ::StandardError
   # @return [ValidationError] a new instance of ValidationError
   #
-  # source://activemodel//lib/active_model/validations.rb#496
+  # source://activemodel//lib/active_model/validations.rb#498
   def initialize(model); end
 
   # Returns the value of attribute model.
   #
-  # source://activemodel//lib/active_model/validations.rb#494
+  # source://activemodel//lib/active_model/validations.rb#496
   def model; end
 end
 
@@ -5204,10 +5204,10 @@ module ActiveModel::Validations
   #   person.valid? # => false
   #   person.errors # => #<ActiveModel::Errors:0x007fe603816640 @messages={name:["can't be blank"]}>
   #
-  # source://activemodel//lib/active_model/validations.rb#328
+  # source://activemodel//lib/active_model/validations.rb#330
   def errors; end
 
-  # source://activemodel//lib/active_model/validations.rb#372
+  # source://activemodel//lib/active_model/validations.rb#374
   def freeze; end
 
   # Performs the opposite of <tt>valid?</tt>. Returns +true+ if errors were
@@ -5242,7 +5242,7 @@ module ActiveModel::Validations
   #
   # @return [Boolean]
   #
-  # source://activemodel//lib/active_model/validations.rb#408
+  # source://activemodel//lib/active_model/validations.rb#410
   def invalid?(context = T.unsafe(nil)); end
 
   # Hook method defining how an attribute value should be retrieved. By default
@@ -5295,7 +5295,7 @@ module ActiveModel::Validations
   #
   # @return [Boolean]
   #
-  # source://activemodel//lib/active_model/validations.rb#361
+  # source://activemodel//lib/active_model/validations.rb#363
   def valid?(context = T.unsafe(nil)); end
 
   # Runs all the specified validations and returns +true+ if no errors were
@@ -5330,7 +5330,7 @@ module ActiveModel::Validations
   #
   # @return [Boolean]
   #
-  # source://activemodel//lib/active_model/validations.rb#361
+  # source://activemodel//lib/active_model/validations.rb#363
   def validate(context = T.unsafe(nil)); end
 
   # Runs all the validations within the specified context. Returns +true+ if
@@ -5339,7 +5339,7 @@ module ActiveModel::Validations
   # Validations with no <tt>:on</tt> option will run no matter the context. Validations with
   # some <tt>:on</tt> option will only run in the specified context.
   #
-  # source://activemodel//lib/active_model/validations.rb#417
+  # source://activemodel//lib/active_model/validations.rb#419
   def validate!(context = T.unsafe(nil)); end
 
   # Passes the record off to the class or classes specified and allows them
@@ -5398,31 +5398,31 @@ module ActiveModel::Validations
   #   person.valid?(:new)    #=> false
   #   person.valid?(:custom) #=> true
   #
-  # source://activemodel//lib/active_model/validations.rb#454
+  # source://activemodel//lib/active_model/validations.rb#456
   def validation_context; end
 
   private
 
-  # source://activemodel//lib/active_model/validations.rb#463
+  # source://activemodel//lib/active_model/validations.rb#465
   def context_for_validation; end
 
-  # source://activemodel//lib/active_model/validations.rb#467
+  # source://activemodel//lib/active_model/validations.rb#469
   def init_internals; end
 
   # Clean the +Errors+ object if instance is duped.
   #
-  # source://activemodel//lib/active_model/validations.rb#310
+  # source://activemodel//lib/active_model/validations.rb#312
   def initialize_dup(other); end
 
   # @raise [ValidationError]
   #
-  # source://activemodel//lib/active_model/validations.rb#478
+  # source://activemodel//lib/active_model/validations.rb#480
   def raise_validation_error; end
 
-  # source://activemodel//lib/active_model/validations.rb#473
+  # source://activemodel//lib/active_model/validations.rb#475
   def run_validations!; end
 
-  # source://activemodel//lib/active_model/validations.rb#459
+  # source://activemodel//lib/active_model/validations.rb#461
   def validation_context=(context); end
 
   module GeneratedClassMethods
@@ -5622,7 +5622,7 @@ module ActiveModel::Validations::ClassMethods
   #
   # @return [Boolean]
   #
-  # source://activemodel//lib/active_model/validations.rb#282
+  # source://activemodel//lib/active_model/validations.rb#284
   def attribute_method?(attribute); end
 
   # Clears all of the validators and validations.
@@ -5663,12 +5663,12 @@ module ActiveModel::Validations::ClassMethods
   #
   #   Person._validate_callbacks.empty?  # => true
   #
-  # source://activemodel//lib/active_model/validations.rb#246
+  # source://activemodel//lib/active_model/validations.rb#248
   def clear_validators!; end
 
   # Copy validators on inheritance.
   #
-  # source://activemodel//lib/active_model/validations.rb#287
+  # source://activemodel//lib/active_model/validations.rb#289
   def inherited(base); end
 
   # Adds a validation method or block to the class. This is useful when
@@ -5714,7 +5714,8 @@ module ActiveModel::Validations::ClassMethods
   # Note that the return value of validation methods is not relevant.
   # It's not possible to halt the validate callback chain.
   #
-  # Options:
+  # ==== Options
+  #
   # * <tt>:on</tt> - Specifies the contexts where this validation is active.
   #   Runs in all validation contexts by default +nil+. You can pass a symbol
   #   or an array of symbols. (e.g. <tt>on: :create</tt> or
@@ -5725,19 +5726,19 @@ module ActiveModel::Validations::ClassMethods
   #   or an array of symbols. (e.g. <tt>except: :create</tt> or
   #   <tt>except_on: :custom_validation_context</tt> or
   #   <tt>except_on: [:create, :custom_validation_context]</tt>)
-  # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
+  # * <tt>:if</tt> - Specifies a method or proc to call to determine
   #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
-  #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-  #   proc or string should return or evaluate to a +true+ or +false+ value.
-  # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
+  #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method or
+  #   proc should return or evaluate to a +true+ or +false+ value.
+  # * <tt>:unless</tt> - Specifies a method or proc to call to
   #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
   #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-  #   method, proc, or string should return or evaluate to a +true+ or +false+
+  #   method or proc should return or evaluate to a +true+ or +false+
   #   value.
   #
   # NOTE: Calling +validate+ multiple times on the same method will overwrite previous definitions.
   #
-  # source://activemodel//lib/active_model/validations.rb#160
+  # source://activemodel//lib/active_model/validations.rb#162
   def validate(*args, &block); end
 
   # This method is a shortcut to all default validators and any custom
@@ -5883,7 +5884,8 @@ module ActiveModel::Validations::ClassMethods
   #     end
   #   end
   #
-  # Options:
+  # ==== Options
+  #
   # * <tt>:on</tt> - Specifies the contexts where this validation is active.
   #   Runs in all validation contexts by default +nil+. You can pass a symbol
   #   or an array of symbols. (e.g. <tt>on: :create</tt> or
@@ -5906,7 +5908,7 @@ module ActiveModel::Validations::ClassMethods
   #   method, proc, or string should return or evaluate to a +true+ or +false+
   #   value.
   #
-  # source://activemodel//lib/active_model/validations.rb#88
+  # source://activemodel//lib/active_model/validations.rb#89
   def validates_each(*attr_names, &block); end
 
   # Passes the record off to the class or classes specified and allows them
@@ -5999,7 +6001,7 @@ module ActiveModel::Validations::ClassMethods
   #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
   #   #    ]
   #
-  # source://activemodel//lib/active_model/validations.rb#204
+  # source://activemodel//lib/active_model/validations.rb#206
   def validators; end
 
   # List all validators that are being used to validate a specific attribute.
@@ -6018,7 +6020,7 @@ module ActiveModel::Validations::ClassMethods
   #   #       #<ActiveModel::Validations::PresenceValidator:0x007fe604914e60 @attributes=[:name], @options={}>,
   #   #    ]
   #
-  # source://activemodel//lib/active_model/validations.rb#266
+  # source://activemodel//lib/active_model/validations.rb#268
   def validators_on(*attributes); end
 
   private
@@ -6032,11 +6034,11 @@ module ActiveModel::Validations::ClassMethods
   # source://activemodel//lib/active_model/validations/validates.rb#162
   def _validates_default_keys; end
 
-  # source://activemodel//lib/active_model/validations.rb#296
+  # source://activemodel//lib/active_model/validations.rb#298
   def predicate_for_validation_context(context); end
 end
 
-# source://activemodel//lib/active_model/validations.rb#92
+# source://activemodel//lib/active_model/validations.rb#93
 ActiveModel::Validations::ClassMethods::VALID_OPTIONS_FOR_VALIDATE = T.let(T.unsafe(nil), Array)
 
 # source://activemodel//lib/active_model/validations/clusivity.rb#8

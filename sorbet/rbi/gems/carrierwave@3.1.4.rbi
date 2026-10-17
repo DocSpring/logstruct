@@ -5,15 +5,6 @@
 # Please instead update this file by running `bin/tapioca gem carrierwave`.
 
 
-class ActiveRecord::Base
-  include ::ActiveModel::ForbiddenAttributesProtection
-  include ::ActiveModel::AttributeAssignment
-  include ::ActiveModel::Access
-  include ::ActiveModel::Serialization
-  extend ::CarrierWave::Mount
-  extend ::CarrierWave::ActiveRecord
-end
-
 # source://carrierwave//lib/carrierwave.rb#8
 module CarrierWave
   class << self
@@ -69,16 +60,6 @@ module CarrierWave
     # source://carrierwave//lib/carrierwave.rb#12
     def tmp_path=(_arg0); end
   end
-end
-
-# source://carrierwave//lib/carrierwave/orm/activerecord.rb#5
-module CarrierWave::ActiveRecord
-  include ::CarrierWave::Mount
-
-  private
-
-  # source://carrierwave//lib/carrierwave/orm/activerecord.rb#11
-  def mount_base(column, uploader = T.unsafe(nil), options = T.unsafe(nil), &block); end
 end
 
 # source://carrierwave//lib/carrierwave/uploader/cache.rb#11
@@ -793,7 +774,7 @@ class CarrierWave::Mounter
   # source://carrierwave//lib/carrierwave/mounter.rb#107
   def cache_names=(cache_names); end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#184
+  # source://carrierwave//lib/carrierwave/mounter.rb#185
   def clear!; end
 
   # Returns the value of attribute column.
@@ -852,7 +833,7 @@ class CarrierWave::Mounter
   # source://carrierwave//lib/carrierwave/mounter.rb#34
   def remove; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#179
+  # source://carrierwave//lib/carrierwave/mounter.rb#180
   def remove!; end
 
   # source://carrierwave//lib/carrierwave/mounter.rb#170
@@ -860,19 +841,19 @@ class CarrierWave::Mounter
 
   # @return [Boolean]
   #
-  # source://carrierwave//lib/carrierwave/mounter.rb#175
+  # source://carrierwave//lib/carrierwave/mounter.rb#176
   def remove?; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#207
+  # source://carrierwave//lib/carrierwave/mounter.rb#208
   def remove_added; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#199
+  # source://carrierwave//lib/carrierwave/mounter.rb#200
   def remove_previous; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#190
+  # source://carrierwave//lib/carrierwave/mounter.rb#191
   def reset_changes!; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#195
+  # source://carrierwave//lib/carrierwave/mounter.rb#196
   def serialization_column; end
 
   # source://carrierwave//lib/carrierwave/mounter.rb#142
@@ -904,19 +885,19 @@ class CarrierWave::Mounter
 
   private
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#222
+  # source://carrierwave//lib/carrierwave/mounter.rb#223
   def clear_unstaged; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#229
+  # source://carrierwave//lib/carrierwave/mounter.rb#230
   def handle_error; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#217
+  # source://carrierwave//lib/carrierwave/mounter.rb#218
   def option(name); end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#248
+  # source://carrierwave//lib/carrierwave/mounter.rb#249
   def temporary_identifiers; end
 
-  # source://carrierwave//lib/carrierwave/mounter.rb#242
+  # source://carrierwave//lib/carrierwave/mounter.rb#243
   def write_temporary_identifier; end
 
   class << self
@@ -1447,12 +1428,20 @@ class CarrierWave::SanitizedFile
   # source://carrierwave//lib/carrierwave/sanitized_file.rb#283
   def file=(file); end
 
+  # Clients occasionally send more than one MIME type in a single header
+  # (e.g. "image/png; text/html" or "image/png, text/html"). Marcel 2 validates
+  # the declared type against the RFC grammar and rejects such values, so pick
+  # the first media type ourselves before handing it over.
+  #
+  # source://carrierwave//lib/carrierwave/sanitized_file.rb#328
+  def first_declared_content_type(content_type); end
+
   # Guess content type from its file extension. Limit what to be returned to prevent spoofing.
   #
-  # source://carrierwave//lib/carrierwave/sanitized_file.rb#325
+  # source://carrierwave//lib/carrierwave/sanitized_file.rb#333
   def guessed_safe_content_type; end
 
-  # source://carrierwave//lib/carrierwave/sanitized_file.rb#332
+  # source://carrierwave//lib/carrierwave/sanitized_file.rb#340
   def identified_content_type; end
 
   # create the directory if it doesn't exist
@@ -1465,7 +1454,7 @@ class CarrierWave::SanitizedFile
   # source://carrierwave//lib/carrierwave/sanitized_file.rb#307
   def sanitize(name); end
 
-  # source://carrierwave//lib/carrierwave/sanitized_file.rb#349
+  # source://carrierwave//lib/carrierwave/sanitized_file.rb#357
   def with_io(&block); end
 
   class << self
@@ -2952,58 +2941,58 @@ class CarrierWave::Uploader::Base
 
     private
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr__after_callbacks; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr__after_callbacks=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr__before_callbacks; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr__before_callbacks=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr__cache_storage; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr__cache_storage=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr__storage; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr__storage=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr_filename_safeguard_checked; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr_filename_safeguard_checked=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr_processors; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr_processors=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr_version_names; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr_version_names=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr_version_options; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr_version_options=(new_value); end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#15
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#15
     def __class_attr_versions; end
 
-    # source://activesupport/8.0.2.1/lib/active_support/class_attribute.rb#17
+    # source://activesupport/8.0.5.1/lib/active_support/class_attribute.rb#17
     def __class_attr_versions=(new_value); end
   end
 end
@@ -3094,7 +3083,7 @@ module CarrierWave::Uploader::Cache
   # source://carrierwave//lib/carrierwave/uploader/cache.rb#165
   def retrieve_from_cache!(cache_name); end
 
-  # source://activesupport/8.0.2.1/lib/active_support/deprecation/method_wrappers.rb#46
+  # source://activesupport/8.0.5.1/lib/active_support/deprecation/method_wrappers.rb#46
   def sanitized_file(*args, **_arg1, &block); end
 
   protected
@@ -4144,7 +4133,7 @@ module CarrierWave::Uploader::Versions
   #
   # @return [Boolean]
   #
-  # source://activesupport/8.0.2.1/lib/active_support/deprecation/method_wrappers.rb#46
+  # source://activesupport/8.0.5.1/lib/active_support/deprecation/method_wrappers.rb#46
   def version_exists?(*args, **_arg1, &block); end
 
   # === Returns
@@ -4347,62 +4336,6 @@ CarrierWave::Utilities::Uri::PATH_UNSAFE = T.let(T.unsafe(nil), Regexp)
 
 # source://carrierwave//lib/carrierwave/version.rb#2
 CarrierWave::VERSION = T.let(T.unsafe(nil), String)
-
-# == Active Model Presence Validator
-#
-# source://carrierwave//lib/carrierwave/validations/active_model.rb#7
-module CarrierWave::Validations; end
-
-# source://carrierwave//lib/carrierwave/validations/active_model.rb#8
-module CarrierWave::Validations::ActiveModel
-  extend ::ActiveSupport::Concern
-  include ::CarrierWave::Validations::ActiveModel::HelperMethods
-
-  mixes_in_class_methods ::CarrierWave::Validations::ActiveModel::HelperMethods
-end
-
-# source://carrierwave//lib/carrierwave/validations/active_model.rb#29
-class CarrierWave::Validations::ActiveModel::DownloadValidator < ::ActiveModel::EachValidator
-  # source://carrierwave//lib/carrierwave/validations/active_model.rb#31
-  def validate_each(record, attribute, value); end
-end
-
-# source://carrierwave//lib/carrierwave/validations/active_model.rb#38
-module CarrierWave::Validations::ActiveModel::HelperMethods
-  # Makes the record invalid if the remote file couldn't be downloaded
-  #
-  # Accepts the usual parameters for validations in Rails (:if, :unless, etc...)
-  #
-  # source://carrierwave//lib/carrierwave/validations/active_model.rb#65
-  def validates_download_of(*attr_names); end
-
-  # Makes the record invalid if the file couldn't be uploaded due to an integrity error
-  #
-  # Accepts the usual parameters for validations in Rails (:if, :unless, etc...)
-  #
-  # source://carrierwave//lib/carrierwave/validations/active_model.rb#45
-  def validates_integrity_of(*attr_names); end
-
-  # Makes the record invalid if the file couldn't be processed (assuming the process failed
-  # with a CarrierWave::ProcessingError)
-  #
-  # Accepts the usual parameters for validations in Rails (:if, :unless, etc...)
-  #
-  # source://carrierwave//lib/carrierwave/validations/active_model.rb#55
-  def validates_processing_of(*attr_names); end
-end
-
-# source://carrierwave//lib/carrierwave/validations/active_model.rb#20
-class CarrierWave::Validations::ActiveModel::IntegrityValidator < ::ActiveModel::EachValidator
-  # source://carrierwave//lib/carrierwave/validations/active_model.rb#22
-  def validate_each(record, attribute, value); end
-end
-
-# source://carrierwave//lib/carrierwave/validations/active_model.rb#11
-class CarrierWave::Validations::ActiveModel::ProcessingValidator < ::ActiveModel::EachValidator
-  # source://carrierwave//lib/carrierwave/validations/active_model.rb#13
-  def validate_each(record, attribute, value); end
-end
 
 # This module simplifies manipulation with vips by providing a set
 # of convenient helper methods. If you want to use them, you'll need to
