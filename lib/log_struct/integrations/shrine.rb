@@ -16,6 +16,10 @@ module LogStruct
 
       SHRINE_EVENTS = T.let(%i[upload exists download delete metadata open].freeze, T::Array[Symbol])
 
+      # The file name in a Content-Disposition (attachment; filename="..."; filename*=UTF-8''...). A quoted name
+      # can hold a semicolon, and whatever follows a quote (malformed or not) goes too.
+      DISPOSITION_FILENAME_REGEX = /(\bfilename\*?\s*=\s*)(?:"(?:[^"\\]|\\.)*"?)?[^;]*/i
+
       # Set up Shrine structured logging
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
@@ -52,7 +56,7 @@ module LogStruct
               mime_type: metadata["mime_type"]&.to_s,
               size: size.is_a?(Integer) ? size : nil,
               uploader: payload[:uploader]&.to_s,
-              upload_options: payload[:upload_options],
+              upload_options: without_file_names(payload[:upload_options]),
               options: payload[:options],
               duration_ms: event.duration.to_f
             )
@@ -97,6 +101,21 @@ module LogStruct
         ::Shrine.logger = ::SemanticLogger[::Shrine]
 
         true
+      end
+
+      # Upload options with the file names taken out of a Content-Disposition (upload_options:
+      # {content_disposition: ...}, which the upload_options plugin often sets): they can name a person
+      sig { params(options: T.untyped).returns(T.untyped) }
+      def self.without_file_names(options)
+        return options unless options.is_a?(Hash)
+
+        options.to_h do |key, value|
+          if value.is_a?(String) && KeyWords.normalize(key).include?("disposition")
+            [key, value.gsub(DISPOSITION_FILENAME_REGEX, '\1[FILENAME]')]
+          else
+            [key, value]
+          end
+        end
       end
 
       # Prepended to Shrine's default instrumentation log subscriber, so it doesn't log the

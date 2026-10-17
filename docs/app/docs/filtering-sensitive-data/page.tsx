@@ -802,10 +802,11 @@ export default function FilteringSensitiveDataPage() {
         </li>
         <li>
           <strong>File names</strong>: ActiveStorage and Shrine lines have where a file is stored
-          (its key or location), not the name it was uploaded with, which often names a person. A
-          location your uploader builds from a file&apos;s name (and CarrierWave&apos;s paths, which
-          use the uploaded name by default) is logged as it is: scrub it with a{' '}
-          <code>string_scrubbing_handler</code>.
+          (its key or location), not the name it was uploaded with, which often names a person.
+          Shrine&apos;s upload options are logged with the file names taken out of a{' '}
+          <code>content_disposition</code>. A location your uploader builds from a file&apos;s name
+          (and CarrierWave&apos;s paths, which use the uploaded name by default) is logged as it is:
+          scrub it with a <code>string_scrubbing_handler</code>.
         </li>
         <li>
           <strong>Mail delivery job arguments</strong>: a <code>deliver_later</code> job (

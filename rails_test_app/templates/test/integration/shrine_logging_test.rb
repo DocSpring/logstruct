@@ -64,6 +64,18 @@ class ShrineLoggingTest < ActionDispatch::IntegrationTest
     assert_not_includes @log_output.string, "Jane Doe"
   end
 
+  def test_an_upload_line_leaves_out_the_file_name_in_a_content_disposition
+    disposition = %(attachment; filename="Jane Doe lease.pdf"; filename*=UTF-8''Jane%20Doe%20lease.pdf)
+
+    DocumentUploader.upload(StringIO.new("hello"), :store, upload_options: {content_disposition: disposition, cache_control: "private"})
+    ::SemanticLogger.flush
+
+    upload = @log_output.string.lines.map { |line| JSON.parse(line) }.find { |line| line["src"] == "shrine" && line["evt"] == "upload" }
+
+    assert_equal({"content_disposition" => "attachment; filename=[FILENAME]; filename*=[FILENAME]", "cache_control" => "private"}, upload&.fetch("upload_opts"))
+    assert_not_includes @log_output.string, "Jane"
+  end
+
   def test_each_shrine_operation_logs_what_shrine_reports
     uploaded = DocumentUploader.upload(StringIO.new("hello"), :store)
     uploaded.exists?
