@@ -152,7 +152,8 @@ module LogStruct
             params: params,
             source_ip: normalized_data[:source_ip]&.to_s,
             user_agent: normalized_data[:user_agent]&.to_s,
-            referer: normalized_data[:referer]&.to_s,
+            # Without its query, which can carry reset tokens and OAuth codes
+            referer: StringScrubber.without_query(normalized_data[:referer]&.to_s),
             host: normalized_data[:host]&.to_s,
             content_type: normalized_data[:content_type]&.to_s,
             accept: normalized_data[:accept]&.to_s,

@@ -163,6 +163,27 @@ class ActiveStorageTest < ActiveSupport::TestCase
     assert_not_nil delete_log["file_id"]
   end
 
+  test "url logs leave out the signed URL" do
+    document = Document.create_with_file(filename: "url_test.txt", content: "Signed URL content")
+    @log_output.truncate(0)
+    @log_output.rewind
+
+    ActiveStorage::Current.url_options = {host: "files.example.com"}
+    url = document.active_storage_file.blob.url
+
+    url_logs = find_log_entries("url")
+
+    assert_not_empty url_logs, "Expected url logs to be generated"
+    assert_equal document.active_storage_file.blob.key, url_logs.first["file_id"]
+    refute url_logs.first.key?("url")
+    @log_output.rewind
+    log_text = @log_output.read
+
+    assert_not_includes log_text, URI.parse(url).path
+  ensure
+    ActiveStorage::Current.url_options = nil
+  end
+
   test "logs contain expected metadata fields" do
     # Clear the log buffer before the test
     @log_output.truncate(0)

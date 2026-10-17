@@ -112,10 +112,10 @@ module LogStruct
             prefix: event.payload[:prefix]
           )
         when Event::Url
+          # Without the URL: it's signed, and anyone who has it can read the file until it expires
           Log::ActiveStorage::Url.new(
             storage: service_name.to_sym,
-            file_id: event.payload[:key]&.to_s,
-            url: event.payload[:url]
+            file_id: event.payload[:key]&.to_s
           )
         else
           Log::ActiveStorage::Metadata.new(

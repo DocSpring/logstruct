@@ -62,7 +62,7 @@ module LogStruct
             http_method: request.method,
             source_ip: request.ip,
             user_agent: request.user_agent,
-            referer: request.referer,
+            referer: StringScrubber.without_query(request.referer),
             x_forwarded_for: request.x_forwarded_for,
             allowed_hosts: allowed_hosts_array&.empty? ? nil : allowed_hosts_array,
             allow_ip_hosts: allow_ip_hosts_value
