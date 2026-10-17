@@ -141,6 +141,33 @@ module LogStruct
         assert_equal "application/json", options[:accept]
       end
 
+      def test_request_lines_log_the_client_ip_and_host_from_the_request
+        request = ActionDispatch::Request.new(Rack::MockRequest.env_for("https://app.test/dashboard", "REMOTE_ADDR" => "203.0.113.7"))
+        options = LogStruct::Integrations::Lograge.lograge_default_options(request_event(request: request))
+
+        assert_equal ["203.0.113.7", "app.test"], options.values_at(:source_ip, :host)
+
+        options = LogStruct::Integrations::Lograge.lograge_default_options(
+          request_event(request: request, source_ip: "10.0.0.2", host: "other.test")
+        )
+
+        assert_equal ["10.0.0.2", "other.test"], options.values_at(:source_ip, :host)
+      end
+
+      def test_request_lines_log_the_connections_address_when_the_forwarding_headers_disagree
+        env = Rack::MockRequest.env_for(
+          "https://app.test/", "REMOTE_ADDR" => "198.51.100.1", "HTTP_CLIENT_IP" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "2.2.2.2"
+        )
+        request = ActionDispatch::Request.new(env)
+        env["action_dispatch.remote_ip"] = ActionDispatch::RemoteIp::GetIp.new(request, true, ActionDispatch::RemoteIp::TRUSTED_PROXIES)
+
+        assert_raises(ActionDispatch::RemoteIp::IpSpoofAttackError) { ActionDispatch::Request.new(env).remote_ip }
+
+        options = LogStruct::Integrations::Lograge.lograge_default_options(request_event(request: request))
+
+        assert_equal "198.51.100.1", options[:source_ip]
+      end
+
       def test_custom_options_can_return_a_hash_or_change_the_options
         event = ActiveSupport::Notifications::Event.new(
           "process_action.action_controller", Time.now.to_f, Time.now.to_f, "event-id", {user_id: 42, headers: {}}
@@ -241,6 +268,14 @@ module LogStruct
           assert_match(/additional_data attempted to overwrite reserved key/, exc.message)
           assert_equal LogStruct::Source::Internal, source
         end
+      end
+
+      private
+
+      def request_event(payload)
+        ActiveSupport::Notifications::Event.new(
+          "process_action.action_controller", Time.now.to_f, Time.now.to_f, "event-id", {headers: {}}.merge(payload)
+        )
       end
     end
   end

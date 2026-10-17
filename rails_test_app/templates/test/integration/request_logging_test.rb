@@ -95,6 +95,10 @@ class RequestLoggingTest < ActionDispatch::IntegrationTest
     assert_equal "LoggingController", parsed["controller"], "Must have controller field"
     assert_equal "test_basic", parsed["action"], "Must have action field"
     assert_equal "/logging/basic", parsed["path"], "Must have correct path"
+    # Rails' "Started GET" line has the client's address, so the request line has it too. This app
+    # turns on filters.ip_addresses, which scrubs it.
+    assert_equal "[IP]", parsed["source_ip"], "Must have the client's IP, scrubbed"
+    assert_equal "www.example.com", parsed["host"], "Must have the host"
   end
 
   def test_all_logs_during_request_have_request_id

@@ -81,6 +81,7 @@ module LogStruct
             :host,
             :source_ip
           ).compact
+          add_request_address(event.payload[:request], options)
 
           if event.payload[:params].present?
             options[:params] = event.payload[:params].except("controller", "action")
@@ -93,6 +94,21 @@ module LogStruct
           apply_custom_options(event, options)
 
           options
+        end
+
+        # Rails' payload has the request but not its address, which Rails' own "Started GET" line logs.
+        # A payload's own :source_ip and :host (from append_info_to_payload) take precedence.
+        sig { params(request: T.untyped, options: T::Hash[Symbol, T.untyped]).void }
+        def add_request_address(request, options)
+          return unless request.is_a?(::ActionDispatch::Request)
+
+          options[:host] ||= request.host
+          options[:source_ip] ||= begin
+            request.remote_ip
+          rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError
+            # The forwarding headers disagree, so the address the connection came from
+            request.get_header("REMOTE_ADDR")
+          end
         end
 
         # Process headers from the event payload
