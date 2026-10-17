@@ -164,12 +164,6 @@ LOGSTRUCT_ENABLED=false bin/rails test`}
 
       <RubyCodeExample name="integration_settings" />
 
-      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
-        <code>config.integrations.enable_semantic_logger</code> has no effect: LogStruct always
-        writes its lines through SemanticLogger. It&apos;s still accepted so older initializers
-        load, and will be removed in 1.0.
-      </p>
-
       <HeadingWithAnchor id="filtering-sensitive-data">Filtering Sensitive Data</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         Every setting for filtering keys and scrubbing strings, with the defaults where the example

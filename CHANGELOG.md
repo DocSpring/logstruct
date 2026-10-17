@@ -50,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sidekiq**: Lines logged outside a job have no `ctx` (it was `{}`)
 - **Logger settings**: `prefer_json_in_development`, `enable_color_output`, `color_map`, `filter_noisy_loggers` and `local_environments` set in `config/initializers` apply: LogStruct adds its appenders again after the initializers run. Appenders the app added to SemanticLogger there are kept
 - **Development**: `color_map` changes only the colors it names; the others keep their defaults
-- **Config**: `config.integrations.enable_semantic_logger` has no effect. LogStruct always writes through SemanticLogger; the setting is kept so existing configs load
 
 ### Added
 
@@ -78,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GoodJob**: `LogStruct::Integrations::GoodJob::LogSubscriber`, which listened for events GoodJob doesn't send (`enqueue`, `start`, `finish`, `error`, `schedule`), so it never logged anything. GoodJob's jobs are logged by the ActiveJob integration
 - **GoodJob**: the `Log::GoodJob::Enqueue`, `Start`, `Finish` and `Schedule` log types, which only that subscriber built. The Terraform provider's catalog lists only `error` and `log` for GoodJob; ActiveJob's job lines have the same `src` and `evt` as the removed types
 - **ActionMailer**: The mailer metadata that was meant to add the current tags and job ID to a mailer's lines. It asked for methods neither TaggedLogging nor ActiveJob has, so it never added anything
+- **Config**: `config.integrations.enable_semantic_logger`, which did nothing: LogStruct always writes through SemanticLogger. Setting it raises `NoMethodError`
 - **Rack**: `LogStruct::Integrations::Rack`, which nothing loaded and which required a file that doesn't exist
 
 ### Fixed

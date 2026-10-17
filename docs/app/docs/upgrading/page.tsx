@@ -196,8 +196,9 @@ export default function UpgradingPage() {
           <code>Event::Stream</code>.
         </li>
         <li>
-          <code>config.integrations.enable_semantic_logger</code> does nothing. It&apos;s kept so
-          existing configs load; you can remove it.
+          Removed: <code>config.integrations.enable_semantic_logger</code>, which did nothing
+          (LogStruct always writes through SemanticLogger). Remove it from your initializer: setting
+          it raises <code>NoMethodError</code>.
         </li>
       </ul>
 

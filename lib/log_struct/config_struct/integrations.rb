@@ -61,10 +61,6 @@ module LogStruct
       # Default: true
       prop :enable_goodjob, T::Boolean, default: true
 
-      # Has no effect: LogStruct always writes its lines through SemanticLogger.
-      # Kept so configs that set it still load; it will be removed in 1.0.
-      prop :enable_semantic_logger, T::Boolean, default: true
-
       # Enable SQL query logging through ActiveRecord instrumentation
       # Default: false (can be resource intensive)
       prop :enable_sql_logging, T::Boolean, default: false

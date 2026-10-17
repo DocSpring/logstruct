@@ -13,7 +13,6 @@ module LogStruct
         block = extract_example_block("integrations_configuration")
         props = props_from_struct(File.join(ROOT, "lib", "log_struct", "config_struct", "integrations.rb"))
           .select { |p| p.start_with?("enable_") }
-          .reject { |p| p == "enable_semantic_logger" } # has no effect, so the docs leave it out
 
         assert_props_present!(
           block: block,
