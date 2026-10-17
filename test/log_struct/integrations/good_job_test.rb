@@ -78,6 +78,24 @@ module LogStruct
         end
       end
 
+      test "the app's thread error handler runs even if LogStruct's line fails" do
+        with_fake_goodjob do |fake|
+          reported = []
+          handled = []
+          fake.on_thread_error = ->(exception) { reported << exception.message }
+          GoodJob.send(:configure_logger)
+
+          GoodJob.stub(:log_thread_error, ->(_exception) { raise "formatter broke" }) do
+            LogStruct.stub(:handle_exception, ->(error, source:, context:) { handled << [error.message, source, context] }) do
+              fake._on_thread_error(RuntimeError.new("boom"))
+            end
+          end
+
+          assert_equal ["boom"], reported
+          assert_equal [["formatter broke", LogStruct::Source::Internal, {integration: :good_job}]], handled
+        end
+      end
+
       test "a thread error is one structured error line from GoodJob's logger" do
         io = setup_isolated_logger
         with_fake_goodjob do |fake|
