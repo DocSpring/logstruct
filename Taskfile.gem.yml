@@ -18,6 +18,13 @@ tasks:
       - bundle exec rake install:local
 
   release:
-    desc: Create tag and build and push gem to rubygems.org
+    desc: Tag the version in lib/log_struct/version.rb on main and push the tag. The Release workflow publishes it.
     cmds:
-      - bundle exec rake release
+      - |
+        set -euo pipefail
+        version=$(ruby -r ./lib/log_struct/version -e 'print LogStruct::VERSION')
+        if [ "$(git rev-parse --abbrev-ref HEAD)" != main ]; then echo "Release from main"; exit 1; fi
+        git fetch --quiet origin main
+        if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then echo "main isn't origin/main"; exit 1; fi
+        scripts/create_release_tag.sh --push
+        echo "Approve the release environment in the Release workflow to publish v$version."

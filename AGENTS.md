@@ -85,7 +85,8 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 - Build gem: `task gem:build`
 - Install gem locally: `task gem:install`
 - Install gem without network: `task gem:install:local`
-- Release gem to RubyGems: `task gem:release`
+- Release: `task gem:release` tags the version in `lib/log_struct/version.rb` on `main` and pushes the tag. The
+  Release workflow publishes it (below). `bundle exec rake release` refuses: the gem is never pushed from a laptop.
 
 ## Terraform Provider repo in this workspace
 
@@ -100,13 +101,18 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 
 - Workflow: `.github/workflows/release.yml` ("Release Gem + Sync Terraform Provider").
 - Triggers:
-  - Push tag matching `v*` (e.g., `v0.0.1-rc1`, `v0.2.0`).
-  - GitHub Release published.
+  - Push tag matching `v*` (e.g., `v0.0.1-rc1`, `v0.2.0`). Only admins can push `v*` tags (the "Release tags: admins
+    only" ruleset).
   - Manual run (workflow_dispatch) with `dry_run` input.
 - Behavior:
-  - Builds and publishes the Ruby gem to RubyGems (requires `RUBYGEMS_API_KEY`).
-  - Regenerates the provider’s embedded catalog (`scripts/export_provider_catalog.rb`), builds the provider, commits catalog changes, and tags the provider repo with the same version.
-  - Enforces version alignment: the tag `vX.Y.Z` (or RC) must match `lib/log_struct/version.rb` unless run in dry-run.
+  - Waits for CI to pass on the tagged commit, and checks that the tag `vX.Y.Z` (or RC) matches
+    `lib/log_struct/version.rb` (unless run in dry-run).
+  - Builds the gem, and publishes it with RubyGems trusted publishing (an OIDC token exchanged for a short-lived API
+    key). There's no RubyGems API key in the repository.
+  - Regenerates the provider’s embedded catalog (`scripts/export_provider_catalog.rb`), builds the provider, commits
+    catalog changes, and tags the provider repo with the same version.
+  - The publishing jobs run in the `release` environment, which needs an approval, and don't run the repository's
+    code: they get the built gem and the provider changes from the jobs before them.
 
 ## Dry-run mode
 
@@ -121,12 +127,14 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 
 ## Required secrets
 
-- `RUBYGEMS_API_KEY`: API key with permission to publish `logstruct`.
-- `TF_PROVIDER_GITHUB_TOKEN`: PAT with write access to `DocSpring/terraform-provider-logstruct` for syncing/tagging.
+- `TF_PROVIDER_GITHUB_TOKEN` (a `release` environment secret): PAT with write access to
+  `DocSpring/terraform-provider-logstruct` for syncing/tagging.
+- RubyGems needs no secret: the `logstruct` gem has a trusted publisher for this repository's Release workflow and its
+  `release` environment.
 
 # Core Dependencies
 
-This gem requires Rails 7.0+ and will always have access to these core Rails modules:
+This gem requires Ruby 3.3+ and Rails 7.1+, and will always have access to these core Rails modules:
 
 - `::Rails`
 - `::ActiveSupport`
