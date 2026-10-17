@@ -318,3 +318,14 @@ jobs:
 
       - name: Boot an app that only bundles railties and actionpack
         run: scripts/railties_smoke_test.sh
+
+  deploy_docs:
+    name: Deploy the site
+    needs: [lint, docs, docs_build, matrix, railties_only]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-docs.yml
