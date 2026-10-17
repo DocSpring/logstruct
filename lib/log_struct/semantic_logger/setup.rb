@@ -138,6 +138,11 @@ module LogStruct
         # Determine output destination
         io = determine_output(app)
 
+        # Ruby buffers STDOUT when it isn't a terminal, so in a container lines waited until the buffer
+        # filled or the process exited. (GoodJob's executable only syncs STDOUT when it writes its own
+        # text logs there.)
+        io.sync = true if io.equal?($stdout)
+
         if Rails.env.development?
           if config.prefer_json_in_development
             # Default to production-style JSON in development when enabled
@@ -171,8 +176,9 @@ module LogStruct
           )
         end
 
-        # Add file appender if Rails has a log path configured (normal Rails behavior)
-        if app.config.paths["log"].first
+        # Add file appender if Rails has a log path configured (normal Rails behavior), unless
+        # RAILS_LOG_TO_STDOUT says to log to STDOUT instead: in a container the file only fills the disk
+        if app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
           ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,

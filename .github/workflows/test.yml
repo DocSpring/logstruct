@@ -243,3 +243,18 @@ jobs:
 
       - name: Run Rails integration tests
         run: scripts/rails_tests.sh
+
+  railties_only:
+    name: 'Tests: railties without the rest of Rails'
+    needs: [lint]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '.ruby-version'
+
+      - name: Boot an app that only bundles railties and actionpack
+        run: scripts/railties_smoke_test.sh

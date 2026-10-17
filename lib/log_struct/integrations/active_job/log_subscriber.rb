@@ -83,7 +83,8 @@ module LogStruct
             job_class: job.class.to_s,
             queue_name: job.queue_name&.to_sym,
             executions: job.executions,
-            provider_job_id: job.provider_job_id,
+            # Backends use Strings or Integers (SolidQueue uses its job row ID)
+            provider_job_id: job.provider_job_id&.to_s,
             arguments: ((job.class.respond_to?(:log_arguments?) && job.class.log_arguments?) ? job.arguments : nil)
           )
         end

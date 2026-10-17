@@ -47,6 +47,20 @@ module LogStruct
           assert_in_delta now.to_f, finished_at.to_f, 5.0
         end
 
+        test "logs Integer provider job IDs as strings" do
+          clear_log_buffer(@log_output)
+
+          job = TestActiveJob.new
+          job.provider_job_id = 2905
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          event = build_event("perform.active_job", start_time, start_time + 0.1, {job: job})
+
+          @subscriber.perform(event)
+          ::SemanticLogger.flush
+
+          assert_equal "2905", parse_first_log(@log_output)["provider_job_id"]
+        end
+
         private
 
         def build_event(name, start_time, finish_time, payload)
