@@ -19,10 +19,6 @@ base:
 
 events:
   Enqueue:
-    fields:
-      Retries:
-        type: Integer
-        required: false
 
   Schedule:
     fields:
@@ -39,6 +35,39 @@ events:
     fields:
       DurationMs: Float
       FinishedAt: Time
+
+  # retry_on caught the job's exception and enqueued the job again, after wait_ms
+  Retry:
+    fields:
+      ErrorClass:
+        type: 'T.class_of(Exception)'
+        required: false
+      Message:
+        type: String
+        required: false
+      WaitMs:
+        type: Float
+        required: false
+
+  # retry_on caught the exception again after its last attempt
+  RetryStopped:
+    fields:
+      ErrorClass:
+        type: 'T.class_of(Exception)'
+        required: true
+      Message:
+        type: String
+        required: true
+
+  # discard_on caught the job's exception and dropped the job
+  Discard:
+    fields:
+      ErrorClass:
+        type: 'T.class_of(Exception)'
+        required: true
+      Message:
+        type: String
+        required: true
 
   # The job raised an exception
   Error:

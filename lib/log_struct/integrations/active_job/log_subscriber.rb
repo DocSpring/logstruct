@@ -17,25 +17,27 @@ module LogStruct
 
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def enqueue(event)
-          job = T.cast(event.payload[:job], ::ActiveJob::Base)
-          ts = EventTime.coerce_event_time(event.time)
-          base_fields = build_base_fields(job)
-          logger.info(Log::ActiveJob::Enqueue.new(
-            **base_fields.to_kwargs,
-            timestamp: ts
-          ))
+          log_enqueue(event)
         end
 
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def enqueue_at(event)
-          job = T.cast(event.payload[:job], ::ActiveJob::Base)
+          log_enqueue(event)
+        end
+
+        # perform_all_later: a line for each job, as perform_later writes
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
+        def enqueue_all(event)
           ts = EventTime.coerce_event_time(event.time)
-          base_fields = build_base_fields(job)
-          logger.info(Log::ActiveJob::Schedule.new(
-            **base_fields.to_kwargs,
-            scheduled_at: job.scheduled_at,
-            timestamp: ts
-          ))
+          Array(event.payload[:jobs]).each do |job|
+            next unless job.is_a?(::ActiveJob::Base)
+
+            if job.successfully_enqueued?
+              log_enqueued(job, ts)
+            elsif job.enqueue_error
+              log_exception(job.enqueue_error, job)
+            end
+          end
         end
 
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
@@ -45,16 +47,16 @@ module LogStruct
 
           if exception
             # Log the exception with the job context
-            log_exception(exception, job, event)
-          else
-            ts = EventTime.coerce_event_time(event.time)
+            log_exception(exception, job)
+          # An aborted job didn't run: a before_perform callback stopped it
+          elsif !event.payload[:aborted]
             finished_at = EventTime.coerce_event_time(event.end)
             base_fields = build_base_fields(job)
             logger.info(Log::ActiveJob::Finish.new(
               **base_fields.to_kwargs,
               duration_ms: event.duration.to_f,
               finished_at: finished_at,
-              timestamp: ts
+              timestamp: finished_at
             ))
           end
         end
@@ -74,7 +76,76 @@ module LogStruct
           ))
         end
 
+        # retry_on caught the exception and enqueued the job again
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
+        def enqueue_retry(event)
+          job = T.cast(event.payload[:job], ::ActiveJob::Base)
+          # retry_job can be called without an exception or a wait
+          error = event.payload[:error]
+          wait = event.payload[:wait]
+          logger.info(Log::ActiveJob::Retry.new(
+            **build_base_fields(job).to_kwargs,
+            error_class: error&.class,
+            message: error&.message,
+            wait_ms: wait.nil? ? nil : wait.to_f * 1000,
+            timestamp: EventTime.coerce_event_time(event.time)
+          ))
+        end
+
+        # retry_on ran out of attempts. The job then raises the exception (an error line), unless
+        # retry_on was given a block.
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
+        def retry_stopped(event)
+          job = T.cast(event.payload[:job], ::ActiveJob::Base)
+          error = T.cast(event.payload[:error], Exception)
+          logger.error(Log::ActiveJob::RetryStopped.new(
+            **build_base_fields(job).to_kwargs,
+            error_class: error.class,
+            message: error.message,
+            timestamp: EventTime.coerce_event_time(event.time)
+          ))
+        end
+
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
+        def discard(event)
+          job = T.cast(event.payload[:job], ::ActiveJob::Base)
+          error = T.cast(event.payload[:error], Exception)
+          logger.error(Log::ActiveJob::Discard.new(
+            **build_base_fields(job).to_kwargs,
+            error_class: error.class,
+            message: error.message,
+            timestamp: EventTime.coerce_event_time(event.time)
+          ))
+        end
+
         private
+
+        # Like Rails' own enqueue lines: a job the queue didn't take writes an error line, and one a
+        # before_enqueue callback stopped writes none
+        sig { params(event: ::ActiveSupport::Notifications::Event).void }
+        def log_enqueue(event)
+          job = T.cast(event.payload[:job], ::ActiveJob::Base)
+          # perform_later rescues ActiveJob::EnqueueError and keeps it on the job
+          error = event.payload[:exception_object] || job.enqueue_error
+          if error
+            # With the inline adapter, a job that fails raises out of perform_later, and its perform line has
+            # already logged the error
+            log_exception(error, job) unless LogStruct::LoggedErrors.logged?(error)
+          elsif !event.payload[:aborted]
+            log_enqueued(job, EventTime.coerce_event_time(event.time))
+          end
+        end
+
+        sig { params(job: ::ActiveJob::Base, ts: Time).void }
+        def log_enqueued(job, ts)
+          base_fields = build_base_fields(job)
+          scheduled_at = job.scheduled_at
+          if scheduled_at
+            logger.info(Log::ActiveJob::Schedule.new(**base_fields.to_kwargs, scheduled_at: scheduled_at, timestamp: ts))
+          else
+            logger.info(Log::ActiveJob::Enqueue.new(**base_fields.to_kwargs, timestamp: ts))
+          end
+        end
 
         sig { params(job: ::ActiveJob::Base).returns(Log::ActiveJob::BaseFields) }
         def build_base_fields(job)
@@ -101,8 +172,8 @@ module LogStruct
         end
 
         # perform_now lets any Exception through, not only StandardErrors
-        sig { params(exception: Exception, job: ::ActiveJob::Base, _event: ::ActiveSupport::Notifications::Event).void }
-        def log_exception(exception, job, _event)
+        sig { params(exception: Exception, job: ::ActiveJob::Base).void }
+        def log_exception(exception, job)
           log_data = Log::ActiveJob::Error.new(
             **build_base_fields(job).to_kwargs,
             error_class: exception.class,

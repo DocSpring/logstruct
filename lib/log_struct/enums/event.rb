@@ -16,6 +16,9 @@ module LogStruct
       Schedule = new(:schedule)
       Start = new(:start)
       Finish = new(:finish)
+      Retry = new(:retry)
+      RetryStopped = new(:retry_stopped)
+      Discard = new(:discard)
 
       # File storage events (ActiveStorage, Shrine, CarrierWave, etc.)
       Upload = new(:upload)
