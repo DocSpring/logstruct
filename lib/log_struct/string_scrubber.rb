@@ -55,17 +55,19 @@ module LogStruct
       /x
       CREDIT_CARD_REPLACEMENT = "[CREDIT_CARD]"
 
-      # US numbers: 555-123-4567, 555 123 4567, 555.123.4567 and (555) 123-4567, with or without +1
-      PHONE_REGEX = /(?<![\w+])(?:\+1[\s.-]?)?(?:\(\d{3}\)[\s.-]?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?!\w)/
+      # US numbers: 555-123-4567, 555 123 4567, 555.123.4567 and (555) 123-4567, with or without +1 or 1
+      PHONE_REGEX = /(?<![\w+])(?:\+?1[\s.-]?)?(?:\(\d{3}\)[\s.-]?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?!\w)/
       PHONE_REPLACEMENT = "[PHONE]"
 
-      SSN_REGEX = /\b\d{3}[\s-]\d{2}[\s-]\d{4}\b/
+      # 123-45-6789 and 123 45 6789, but not inside a longer number (9-123-45-6789, 123-45-6789-0)
+      SSN_REGEX = /(?<!\w|\d-)\d{3}[\s-]\d{2}[\s-]\d{4}(?!\w|-\d)/
       SSN_REPLACEMENT = "[SSN]"
 
       IP_REGEX = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/
-      # Text that could be an IPv6 address (2001:db8::1, ::ffff:192.168.1.1). IPAddr decides whether it is one,
-      # and it must have a digit, so Ruby constants (Face::Bead) and times (12:30:45) stay.
-      IPV6_CANDIDATE_REGEX = /(?<![\w:.])(?=[\h:.]*\d)(?:\h{0,4}:){2,7}(?:\d{1,3}(?:\.\d{1,3}){3}|\h{1,4})?(?![\w:])/
+      # Text that could be an IPv6 address (2001:db8::1, ::ffff:192.168.1.1, fe80::1%en0 with its zone). IPAddr
+      # decides whether it is one, and it must have a digit, so Ruby constants (Face::Bead) and times (12:30:45)
+      # stay.
+      IPV6_CANDIDATE_REGEX = /(?<![\w:.])(?=[\h:.]*\d)(?:\h{0,4}:){2,7}(?:\d{1,3}(?:\.\d{1,3}){3}|\h{1,4})?(?:%\w+)?(?![\w:])/
       IP_REPLACEMENT = "[IP]"
 
       # Six pairs of hex digits, separated by colons or by dashes
@@ -180,7 +182,8 @@ module LogStruct
       sig { params(string: String).void }
       def scrub_ipv6_addresses!(string)
         string.gsub!(IPV6_CANDIDATE_REGEX) do |candidate|
-          ipv6_address?(candidate) ? IP_REPLACEMENT : candidate
+          # The zone (an interface's name) is replaced with its address
+          ipv6_address?(candidate.split("%", 2).first.to_s) ? IP_REPLACEMENT : candidate
         end
       end
 

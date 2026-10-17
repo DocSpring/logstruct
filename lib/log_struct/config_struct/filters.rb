@@ -61,7 +61,8 @@ module LogStruct
       # { _filtered: { _class: "String" } }  # plus its _hash for filter_keys_with_hashes
       #
       # A key matches when its name, or its words joined by underscores (KeyWords.normalize), equal an
-      # entry: :api_key also filters apiKey and X-Api-Key, but not api_key_id.
+      # entry: :api_key also filters apiKey and X-Api-Key, but doesn't by itself filter api_key_id (the
+      # default filter_matchers' sensitive words do).
       #
       # Default: [:password, :password_confirmation, :pass, :pw, :token, :secret, :credentials, :auth,
       #           :authentication, :authorization, :credit_card, :ssn, :social_security]

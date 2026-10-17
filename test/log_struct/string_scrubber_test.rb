@@ -202,7 +202,7 @@ module LogStruct
 
     def test_scrub_us_phone_numbers_in_their_common_formats
       ["555-123-4567", "555 123 4567", "555.123.4567", "(555) 123-4567", "(555)123-4567", "+1 555-123-4567",
-        "+1 (555) 123-4567", "+1-555-123-4567"].each do |number|
+        "+1 (555) 123-4567", "+1-555-123-4567", "1-555-123-4567", "1 (555) 123-4567"].each do |number|
         assert_equal "Call [PHONE] today", StringScrubber.scrub("Call #{number} today"), number
       end
     end
@@ -220,6 +220,12 @@ module LogStruct
 
       assert_not_includes result, "123-45-6789"
       assert_includes result, "[SSN]"
+    end
+
+    def test_leave_longer_numbers_that_contain_an_ssn
+      ["Part 123-45-6789-0", "Part 9-123-45-6789"].each do |text|
+        assert_equal text, StringScrubber.scrub(text)
+      end
     end
 
     def test_scrub_ip_addresses
@@ -247,7 +253,8 @@ module LogStruct
         "[fe80::1ff:fe23:4567:890a]:8080" => "[[IP]]:8080",
         "::1" => "[IP]",
         "::ffff:192.168.1.1" => "[IP]",
-        "Connected to 2001:db8::1." => "Connected to [IP]."
+        "Connected to 2001:db8::1." => "Connected to [IP].",
+        "via fe80::1%en0 now" => "via [IP] now"
       }.each do |input, expected|
         assert_equal expected, StringScrubber.scrub(input), input
       end

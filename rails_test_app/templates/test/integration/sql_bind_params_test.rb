@@ -6,14 +6,11 @@ require "test_helper"
 class SqlBindParamsTest < ActiveSupport::TestCase
   setup do
     @saved_log_binds = LogStruct.config.integrations.sql_log_bind_params
-    @saved_filter_keys = LogStruct.config.filters.filter_keys
     LogStruct.config.integrations.sql_log_bind_params = true
-    LogStruct.config.filters.filter_keys += [:name]
   end
 
   teardown do
     LogStruct.config.integrations.sql_log_bind_params = @saved_log_binds
-    LogStruct.config.filters.filter_keys = @saved_filter_keys
   end
 
   test "bind params from real queries are filtered by their column names" do
@@ -26,7 +23,8 @@ class SqlBindParamsTest < ActiveSupport::TestCase
 
     User.where(name: "Ada Lovelace", email: "ada@example.com").to_a
 
-    assert_equal [["[FILTERED]", "ada@example.com"]], captured
+    # email is one of the default filter keys
+    assert_equal [["Ada Lovelace", "[FILTERED]"]], captured
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end

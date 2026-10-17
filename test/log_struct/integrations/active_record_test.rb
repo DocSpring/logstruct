@@ -13,14 +13,15 @@ module LogStruct
         LogStruct.config.enabled = true
         LogStruct.config.integrations.enable_sql_logging = true
 
-        # Clear any existing subscribers
+        # A notifier of its own, with none of the app's subscribers. Teardown puts back the app's, which other
+        # tests' integrations (ActiveJob, Lograge) are subscribed to.
+        @original_notifier = ActiveSupport::Notifications.notifier
         ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
       end
 
       teardown do
         LogStruct.configuration = @original_config
-        # Reset notifications
-        ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
+        ActiveSupport::Notifications.notifier = @original_notifier
       end
 
       test "responds to setup method" do
@@ -287,8 +288,8 @@ module LogStruct
         logged_events = []
         LogStruct.stub(:info, ->(log) { logged_events << log }) do
           simulate_sql_notification(
-            binds: ["secret_password", "user@example.com", 123],
-            type_casted_binds: ["secret_password", "user@example.com", 123]
+            binds: ["5f4dcc3b5aa765d61d8327deb882cf99", "user@example.com", 123],
+            type_casted_binds: ["5f4dcc3b5aa765d61d8327deb882cf99", "user@example.com", 123]
           )
         end
 
@@ -326,6 +327,19 @@ module LogStruct
         logged_events.each do |log|
           assert_equal ["[FILTERED]", "Ada", "<4 bytes of binary data>"], log.bind_params
         end
+      end
+
+      test "keeps bind values that only mention a secret, and long text" do
+        LogStruct.config.integrations.sql_log_bind_params = true
+        setup_activerecord_for_test
+        values = ["monkey", "Author", "Forgot password", "Linda's account key", "A long description of the invoice, written by a person"]
+
+        logged_events = T.let([], T::Array[LogStruct::Log::SQL])
+        LogStruct.stub(:info, ->(log) { logged_events << log }) do
+          simulate_sql_notification(binds: values, type_casted_binds: values)
+        end
+
+        assert_equal values, T.must(logged_events.first).bind_params
       end
 
       test "filters JWT tokens in bind parameters" do
