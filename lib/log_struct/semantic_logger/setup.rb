@@ -28,6 +28,8 @@ module LogStruct
       @original_rails_logger = T.let(nil, T.untyped)
       @original_log_subscriber_logger = T.let(nil, T.untyped)
       @original_app_logger = T.let(nil, T.untyped)
+      # The appenders add_appenders added. LogStruct replaces only these, and keeps any an app adds.
+      @appenders = T.let([], T::Array[T.untyped])
 
       sig { returns(T::Boolean) }
       def self.configured?
@@ -50,10 +52,8 @@ module LogStruct
         log_level = determine_log_level(app)
         ::SemanticLogger.default_level = log_level
 
-        # Clear existing appenders
-        ::SemanticLogger.clear_appenders!
-
         # Add appropriate appenders based on environment
+        remove_appenders
         add_appenders(app)
         ReopenAfterFork.install!
 
@@ -62,12 +62,22 @@ module LogStruct
       end
 
       # Adds the appenders again, with the settings config/initializers changed after the logger was set up
-      # (prefer_json_in_development, enable_color_output, color_map, filter_noisy_loggers, local_environments)
+      # (prefer_json_in_development, enable_color_output, color_map, filter_noisy_loggers, local_environments).
+      # Appenders the app added in config/initializers stay.
       sig { params(app: T.untyped).void }
       def self.reconfigure_appenders(app)
-        ::SemanticLogger.flush
-        ::SemanticLogger.clear_appenders!
+        remove_appenders
         add_appenders(app)
+      end
+
+      # Removes the appenders add_appenders added, after writing the lines already queued for them
+      sig { void }
+      def self.remove_appenders
+        return if @appenders.empty?
+
+        ::SemanticLogger.flush
+        @appenders.each { |appender| ::SemanticLogger.remove_appender(appender) }
+        @appenders = []
       end
 
       sig { params(app: T.untyped).returns(Symbol) }
@@ -97,7 +107,8 @@ module LogStruct
         # text logs there.)
         io.sync = true if io.equal?($stdout)
 
-        if Rails.env.development?
+        appenders = []
+        appenders << if Rails.env.development?
           if config.prefer_json_in_development
             # Default to production-style JSON in development when enabled
             ::SemanticLogger.add_appender(
@@ -135,12 +146,14 @@ module LogStruct
         # rotates the file, and in a container it only fills the disk.
         local = config.local_environments.include?(Rails.env.to_sym)
         if local && app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
-          ::SemanticLogger.add_appender(
+          appenders << ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,
             filter: determine_filter
           )
         end
+        # add_appender returns nil when it ignores a second STDOUT appender
+        @appenders = appenders.compact
       end
 
       sig { params(app: T.untyped).returns(T.untyped) }
@@ -213,6 +226,7 @@ module LogStruct
         Rails.logger = original_logger
         ActiveSupport::LogSubscriber.logger = @original_log_subscriber_logger
         app.config.logger = @original_app_logger
+        remove_appenders
 
         # These hooks run after the ones that installed LogStruct's logger, including for
         # components that are already loaded

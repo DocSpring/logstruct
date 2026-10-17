@@ -13,7 +13,7 @@ module LogStruct
       @saved_appenders = ::SemanticLogger.appenders.dup
       @formatter = LogStruct::SemanticLogger::ColorFormatter.new
 
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ::SemanticLogger.add_appender(
         io: @io,
         formatter: @formatter,
@@ -24,8 +24,9 @@ module LogStruct
     end
 
     teardown do
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       @saved_appenders&.each { |appender| ::SemanticLogger.appenders << appender }
+      ::SemanticLogger::Logger.processor.start
     end
 
     test "colorizes LogStruct types with proper JSON structure" do
@@ -134,7 +135,7 @@ module LogStruct
       )
 
       # Update appender with custom formatter
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ::SemanticLogger.add_appender(
         io: custom_io,
         formatter: custom_formatter,
@@ -157,6 +158,19 @@ module LogStruct
       assert_includes result, "test"
       assert_includes result, "count"
       assert_includes result, "42"
+    end
+
+    test "a color map changes only the colors it names" do
+      io = StringIO.new
+      clear_test_appenders
+      ::SemanticLogger.add_appender(io: io, formatter: LogStruct::SemanticLogger::ColorFormatter.new(color_map: {key: :red}), async: false)
+
+      LogStruct::SemanticLogger::Logger.new("TestLogger").info({plan: "pro", count: 42})
+      ::SemanticLogger.flush
+
+      assert_includes io.string, "\e[31mplan\e[0m"
+      assert_includes io.string, "\e[32mpro\e[0m"
+      assert_includes io.string, "\e[34m42\e[0m"
     end
 
     test "handles different data types correctly" do

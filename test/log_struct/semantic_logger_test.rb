@@ -10,6 +10,7 @@ module LogStruct
   class SemanticLoggerTest < ActiveSupport::TestCase
     setup do
       @io = setup_isolated_logger
+      @isolated_appender = ::SemanticLogger.appenders.last
       @logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
     end
 
@@ -31,7 +32,7 @@ module LogStruct
       assert stdout.sync
     ensure
       # Remove the appenders writing to it before closing it; teardown puts back the others
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       $stdout = saved_stdout
       stdout&.close!
     end
@@ -43,7 +44,7 @@ module LogStruct
 
       assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
     ensure
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
     end
 
     test "request IDs are scrubbed and filtered like the rest of the line" do
@@ -97,6 +98,7 @@ module LogStruct
 
     test "settings from config/initializers apply to the logger set up before them" do
       LogStruct.config.prefer_json_in_development = false
+      before = ::SemanticLogger.appenders.to_a
 
       ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
         Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("development")) do
@@ -104,9 +106,27 @@ module LogStruct
         end
       end
 
-      assert_equal [LogStruct::SemanticLogger::ColorFormatter], ::SemanticLogger.appenders.map { |appender| appender.formatter.class }
+      formatters = (::SemanticLogger.appenders.to_a - before).map { |appender| appender.formatter.class }
+
+      assert_equal [LogStruct::SemanticLogger::ColorFormatter], formatters
     ensure
       LogStruct.config.prefer_json_in_development = true
+    end
+
+    test "adding the appenders again keeps the ones an app added in config/initializers" do
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+        app_appender = ::SemanticLogger.add_appender(io: StringIO.new, formatter: :json)
+
+        LogStruct::SemanticLogger::Setup.reconfigure_appenders(Rails.application)
+
+        assert_includes ::SemanticLogger.appenders, app_appender
+        assert_includes ::SemanticLogger.appenders, @isolated_appender
+        # LogStruct's STDOUT appender was replaced, not added a second time
+        assert_equal 1, ::SemanticLogger.appenders.count { |appender| appender.respond_to?(:console_output?) && appender.console_output? }
+      end
+    ensure
+      clear_test_appenders
     end
 
     test "the logstruct.setup initializer adds the appenders again when the logger is already set up" do
@@ -129,7 +149,7 @@ module LogStruct
     end
 
     test "logs only to STDOUT in production" do
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
         LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
       end
@@ -137,24 +157,24 @@ module LogStruct
       assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
       assert_equal 1, ::SemanticLogger.appenders.size
     ensure
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
     end
 
     test "logs to the log file too in test" do
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ClimateControl.modify(RAILS_LOG_TO_STDOUT: nil) do
         LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
       end
 
       assert_equal 1, ::SemanticLogger.appenders.count { |appender| appender.is_a?(::SemanticLogger::Appender::File) }
     ensure
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
     end
 
     test "forked processes still write their lines" do
       LogStruct::SemanticLogger::ReopenAfterFork.install!
       reader, writer = IO.pipe
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ::SemanticLogger.add_appender(io: writer, formatter: LogStruct::SemanticLogger::Formatter.new, async: false)
 
       # SemanticLogger's writer thread isn't copied into the child
@@ -165,7 +185,7 @@ module LogStruct
         exit!(0)
       end
       Process.wait(pid)
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       writer.close
 
       assert_includes reader.read, "from the child"
@@ -414,8 +434,28 @@ module LogStruct
       # Check main logger output
       assert_includes @io.string, "Appended message"
 
-      # Check secondary logger output
-      assert_includes secondary_io.string, "Appended message"
+      # Check secondary logger output, once
+      assert_equal 1, secondary_io.string.scan("Appended message").size
+    end
+
+    # rails server's log_to_stdout in development, where LogStruct writes to STDOUT
+    test "broadcast_to ignores a STDOUT logger when SemanticLogger already writes to STDOUT" do
+      console_appender = ::SemanticLogger.add_appender(io: $stdout, formatter: LogStruct::SemanticLogger::Formatter.new)
+      console = ::ActiveSupport::Logger.new($stdout)
+
+      @logger.broadcast_to(console)
+
+      assert_empty @logger.broadcasts
+    ensure
+      ::SemanticLogger.remove_appender(console_appender) if console_appender
+    end
+
+    test "broadcast_to keeps a STDOUT logger when nothing else writes to STDOUT" do
+      console = ::ActiveSupport::Logger.new($stdout)
+
+      @logger.broadcast_to(console)
+
+      assert_equal [console], @logger.broadcasts
     end
 
     test "broadcast works with different log levels" do

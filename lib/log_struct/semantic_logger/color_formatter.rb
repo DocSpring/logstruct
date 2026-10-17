@@ -19,7 +19,7 @@ module LogStruct
         @logstruct_formatter = T.let(LogStruct::Formatter.new, LogStruct::Formatter)
 
         # Set up custom color mapping
-        @custom_colors = T.let(color_map || default_color_map, T::Hash[Symbol, Symbol])
+        @custom_colors = T.let(default_color_map.merge(color_map || {}), T::Hash[Symbol, Symbol])
       end
 
       sig { override.params(log: ::SemanticLogger::Log, logger: T.untyped).returns(String) }
@@ -86,11 +86,9 @@ module LogStruct
         }
       end
 
-      # Simple JSON colorizer that adds ANSI codes
+      # The line as pretty-printed JSON, with ANSI colors for its keys, strings, numbers, booleans and nulls
       sig { params(data: T::Hash[String, T.untyped]).returns(String) }
       def colorize_json(data)
-        # For now, just return a simple colorized version of the JSON
-        # This is much simpler than the full recursive approach
         json_str = JSON.pretty_generate(data)
 
         # Apply basic colorization with regex

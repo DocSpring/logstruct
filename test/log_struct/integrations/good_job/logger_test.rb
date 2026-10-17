@@ -164,7 +164,7 @@ module LogStruct
           levels.each do |level|
             # Use a fresh StringIO for each level to avoid clearing issues
             io = StringIO.new
-            ::SemanticLogger.clear_appenders!
+            clear_test_appenders
             ::SemanticLogger.add_appender(
               io: io,
               formatter: LogStruct::SemanticLogger::Formatter.new,

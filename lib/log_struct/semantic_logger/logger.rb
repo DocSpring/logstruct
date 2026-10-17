@@ -1,6 +1,7 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "active_support/logger"
 require "semantic_logger"
 require_relative "concerns/log_methods"
 
@@ -52,7 +53,12 @@ module LogStruct
         # Every SemanticLogger logger writes to the same appenders, so broadcasting to one
         # would write each message twice. Sidekiq's Rails integration broadcasts Rails.logger
         # to Sidekiq's logger, for example.
-        @broadcasts << logger unless logger.is_a?(::SemanticLogger::Logger)
+        return logger if logger.is_a?(::SemanticLogger::Logger)
+        # `rails server` in development broadcasts to a STDOUT logger, which would print each
+        # message again as text beside LogStruct's line
+        return logger if console_logger_with_console_appender?(logger)
+
+        @broadcasts << logger
         logger
       end
 
@@ -100,14 +106,20 @@ module LogStruct
         ::SemanticLogger.pop_tags(count)
       end
 
-      # Support for << operator (used by RailsLogSplitter)
+      # Support for << operator (used by RailsLogSplitter). info passes the message on to the broadcast loggers.
       sig { params(msg: String).returns(T.self_type) }
       def <<(msg)
         info(msg)
-        # Scrubbed, like the messages broadcast by the log methods
-        text = StringScrubber.scrub(msg)
-        @broadcasts.each { |logger| logger << text if logger.respond_to?(:<<) }
         self
+      end
+
+      private
+
+      sig { params(logger: T.untyped).returns(T::Boolean) }
+      def console_logger_with_console_appender?(logger)
+        # rails server's logger writes to the STDOUT constant, which differs from $stdout when $stdout was replaced
+        ::SemanticLogger.appenders.console_output? &&
+          ::ActiveSupport::Logger.logger_outputs_to?(logger, $stdout, $stderr, STDOUT, STDERR) # rubocop:disable Style/GlobalStdStream
       end
     end
 
