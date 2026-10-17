@@ -5,6 +5,9 @@ on:
     - cron: '0 3 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   rails-main:
     name: Rails main integration tests
@@ -12,13 +15,15 @@ jobs:
     env:
       RUBY_VERSION: '4.0.1'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Remove Gemfile.lock and .ruby-version for variable Ruby versions
         run: rm -f Gemfile.lock .ruby-version
 
       - name: Setup Ruby 4.0.1
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '4.0.1'
           bundler-cache: true
