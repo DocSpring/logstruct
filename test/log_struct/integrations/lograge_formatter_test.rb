@@ -141,6 +141,25 @@ module LogStruct
         assert_equal "application/json", options[:accept]
       end
 
+      def test_custom_options_can_return_a_hash_or_change_the_options
+        event = ActiveSupport::Notifications::Event.new(
+          "process_action.action_controller", Time.now.to_f, Time.now.to_f, "event-id", {user_id: 42, headers: {}}
+        )
+        saved = LogStruct.config.integrations.lograge_custom_options
+
+        LogStruct.config.integrations.lograge_custom_options = ->(e, _options) { {:user_id => e.payload[:user_id], "plan" => "pro"} }
+        options = LogStruct::Integrations::Lograge.lograge_default_options(event)
+
+        assert_equal [42, "pro"], options.values_at(:user_id, :plan)
+
+        LogStruct.config.integrations.lograge_custom_options = ->(e, options) { options[:user_id] = e.payload[:user_id] }
+        options = LogStruct::Integrations::Lograge.lograge_default_options(event)
+
+        assert_equal 42, options[:user_id]
+      ensure
+        LogStruct.config.integrations.lograge_custom_options = saved
+      end
+
       def test_request_lines_log_the_referer_without_its_query
         log = LogStruct::Integrations::Lograge.build_request_log(
           {method: "GET", path: "/dashboard", referer: "https://example.test/reset?token=abc123#done"}

@@ -119,9 +119,11 @@ module LogStruct
           custom_options_proc = LogStruct.config.integrations.lograge_custom_options
           return unless custom_options_proc&.respond_to?(:call)
 
-          # Call the proc with the event and options
-          # The proc can modify the options hash directly
-          custom_options_proc.call(event, options)
+          # The proc can change options, or return a Hash of fields to add, as Lograge's custom_options do
+          result = custom_options_proc.call(event, options)
+          return if !result.is_a?(Hash) || result.equal?(options)
+
+          options.merge!(result.to_h { |key, value| [key.to_s.to_sym, value] })
         end
 
         sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(Log::Request) }
