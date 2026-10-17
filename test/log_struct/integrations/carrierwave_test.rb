@@ -1,4 +1,4 @@
-# typed: false # rubocop:disable Sorbet/TrueSigil
+# typed: true
 # frozen_string_literal: true
 
 require "test_helper"
@@ -109,7 +109,7 @@ class CarrierWaveIntegrationTest < ActiveSupport::TestCase
     offset = TEST_LOG_IO.string.bytesize
     yield
     ::SemanticLogger.flush
-    lines = TEST_LOG_IO.string.byteslice(offset..).lines.map { |line| JSON.parse(line) }
+    lines = TEST_LOG_IO.string.byteslice(offset..).to_s.lines.map { |line| JSON.parse(line) }
 
     assert_empty(lines.select { |line| line["src"] == "carrierwave" })
   end

@@ -213,8 +213,8 @@ module LogStruct
         return unless string.match?(/bearer|basic/i)
 
         string.gsub!(AUTHORIZATION_CREDENTIALS_REGEX) do |match|
-          scheme = T.must(Regexp.last_match(1))
-          credentials = T.must(Regexp.last_match(3))
+          scheme = Regexp.last_match(1).to_s
+          credentials = Regexp.last_match(3).to_s
           if authorization_credentials?(scheme, credentials)
             "#{scheme}#{Regexp.last_match(2)}#{AUTHORIZATION_CREDENTIALS_REPLACEMENT}"
           else
@@ -237,12 +237,12 @@ module LogStruct
       sig { params(string: String).void }
       def scrub_query_params!(string)
         string.gsub!(QUERY_STRING_REGEX) do
-          query = T.must(Regexp.last_match(1))
+          query = Regexp.last_match(1).to_s
           params = query.split("&", -1).map do |param|
             name, value = param.split("=", 2)
             next param if value.nil? || value.empty? || value == QUERY_PARAM_REPLACEMENT
 
-            sensitive_query_param?(T.must(name), value) ? "#{name}=#{QUERY_PARAM_REPLACEMENT}" : param
+            sensitive_query_param?(name.to_s, value) ? "#{name}=#{QUERY_PARAM_REPLACEMENT}" : param
           end
           "?#{params.join("&")}"
         end
