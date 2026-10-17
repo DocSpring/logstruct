@@ -24,9 +24,10 @@ module LogStruct
     # - Smart filtering reduces log volume for repetitive queries
     #
     # ## Security:
-    # - SQL queries are always parameterized (safe)
-    # - Bind parameters filtered through LogStruct's param filters
-    # - Sensitive patterns automatically scrubbed
+    # - Bind parameters are filtered by their column names, like request params, and values that
+    #   look like tokens or hashes are filtered too
+    # - The SQL is scrubbed like any string (emails, card numbers), but it isn't filtered: it can
+    #   hold literal values (string conditions, or every value when prepared_statements is off)
     #
     # ## Configuration:
     # ```ruby
@@ -174,14 +175,35 @@ module LogStruct
       def self.extract_and_filter_binds(payload)
         return nil unless LogStruct.config.integrations.sql_log_bind_params
 
-        # Prefer type_casted_binds as they're more readable
-        binds = payload[:type_casted_binds] || payload[:binds]
-        return nil unless binds
+        binds = payload[:binds]
+        # The values as the database gets them, which Rails passes as a lambda since 6.0
+        casted_binds = payload[:type_casted_binds]
+        casted_binds = casted_binds.call if casted_binds.respond_to?(:call)
+        return nil unless binds.is_a?(Array) || casted_binds.is_a?(Array)
 
-        # Filter sensitive data from bind parameters
-        binds.map do |bind|
-          filter_bind_parameter(bind)
+        attributes = binds.is_a?(Array) ? binds : []
+        values = casted_binds.is_a?(Array) ? casted_binds : attributes
+        values.each_with_index.map do |value, index|
+          filter_bind(attributes[index], value)
         end
+      end
+
+      # A bind's value, filtered by its column name like Rails' own SQL log lines
+      # (ActiveRecord::LogSubscriber#render_bind)
+      sig { params(attribute: T.untyped, value: T.untyped).returns(T.untyped) }
+      def self.filter_bind(attribute, value)
+        name = if attribute.is_a?(Array)
+          attribute.first&.name
+        elsif attribute.respond_to?(:name)
+          attribute.name
+        end
+        value = attribute.value_for_database if value.equal?(attribute) && attribute.respond_to?(:value_for_database)
+        if attribute.respond_to?(:type) && attribute.type.respond_to?(:binary?) && attribute.type.binary? && !value.nil?
+          return "<#{value.to_s.bytesize} bytes of binary data>"
+        end
+        return "[FILTERED]" if name && ParamFilters.should_filter_key?(name.to_s, value)
+
+        filter_bind_parameter(value)
       end
 
       # Extract database name from connection

@@ -303,6 +303,31 @@ module LogStruct
         assert_includes T.must(log).bind_params, 123
       end
 
+      test "filters bind parameters by their column names" do
+        LogStruct.config.integrations.sql_log_bind_params = true
+        setup_activerecord_for_test
+        # The binds Rails passes are ActiveRecord::Relation::QueryAttributes, a kind of ActiveModel::Attribute
+        require "active_model"
+        string_type = ::ActiveModel::Type::String.new
+        binds = [
+          ::ActiveModel::Attribute.from_user("password", "hunter2", string_type),
+          ::ActiveModel::Attribute.from_user("name", "Ada", string_type),
+          ::ActiveModel::Attribute.from_user("avatar", "\x89PNG", ::ActiveModel::Type::Binary.new)
+        ]
+
+        logged_events = []
+        LogStruct.stub(:info, ->(log) { logged_events << log }) do
+          # Rails passes the database values as a lambda
+          simulate_sql_notification(binds: binds, type_casted_binds: -> { ["hunter2", "Ada", "\x89PNG"] })
+          simulate_sql_notification(binds: binds)
+        end
+
+        assert_equal 2, logged_events.size
+        logged_events.each do |log|
+          assert_equal ["[FILTERED]", "Ada", "<4 bytes of binary data>"], log.bind_params
+        end
+      end
+
       test "filters JWT tokens in bind parameters" do
         LogStruct.config.integrations.sql_log_bind_params = true
         setup_activerecord_for_test
