@@ -542,5 +542,25 @@ module LogStruct
 
       assert_kind_of String, result
     end
+
+    test "filter_noisy_loggers leaves out the noisy loggers' lines and keeps the others" do
+      LogStruct.config.filter_noisy_loggers = true
+      io = StringIO.new
+      ::SemanticLogger.add_appender(
+        io: io,
+        formatter: LogStruct::SemanticLogger::Formatter.new,
+        filter: LogStruct::SemanticLogger::Setup.determine_filter,
+        async: false
+      )
+
+      ::SemanticLogger["Rails"].info("an app line")
+      ::SemanticLogger["ActionView::Base"].info("a template line")
+      ::SemanticLogger.flush
+
+      assert_includes io.string, "an app line"
+      refute_includes io.string, "a template line"
+    ensure
+      LogStruct.config.filter_noisy_loggers = false
+    end
   end
 end

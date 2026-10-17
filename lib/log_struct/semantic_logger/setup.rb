@@ -170,14 +170,15 @@ module LogStruct
         end
       end
 
-      sig { returns(T.nilable(Regexp)) }
-      def self.determine_filter
-        # Filter out noisy loggers if configured
-        config = LogStruct.config
-        return nil unless config.filter_noisy_loggers
+      NOISY_LOGGERS = /\A(ActionView|ActionController::RoutingError|ActiveRecord::SchemaMigration)/
 
-        # Common noisy loggers to filter
-        /\A(ActionView|ActionController::RoutingError|ActiveRecord::SchemaMigration)/
+      # With filter_noisy_loggers on, an appender filter that leaves out NOISY_LOGGERS' lines. SemanticLogger
+      # writes a line when a Proc filter returns true (a Regexp filter would keep only the names it matches).
+      sig { returns(T.nilable(T.proc.params(log: ::SemanticLogger::Log).returns(T::Boolean))) }
+      def self.determine_filter
+        return nil unless LogStruct.config.filter_noisy_loggers
+
+        ->(log) { !NOISY_LOGGERS.match?(log.name.to_s) }
       end
 
       # Replaces Rails.logger, ActiveSupport::LogSubscriber.logger, config.logger and the framework
