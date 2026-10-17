@@ -202,9 +202,10 @@ export default function PostmarkErrorHandlingPage() {
       </Callout>
       <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          The subscriber runs inside the logger call, before the line is written. If it raises, the
-          logger call raises that error and the line isn&apos;t written, so keep it to enqueueing a
-          job.
+          The subscriber runs inside the logger call, after the line is queued to be written. If it
+          raises, the line is still written and the error is handled like your app&apos;s other
+          errors (the <code>standard_errors</code> mode, which raises it from the logger call by
+          default), so keep it to enqueueing a job.
         </li>
         <li>
           It runs only where LogStruct handles mail errors: in processes where LogStruct is on, with{' '}

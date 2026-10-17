@@ -129,7 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Gem**: The gem packages only files committed to git
 - **Logging**: `rails server` in development printed every message twice: Rails' console logger wrote it as text beside LogStruct's line. `broadcast_to` ignores a logger that writes to STDOUT or STDERR when SemanticLogger already writes there
 - **Logging**: Loggers added with `broadcast_to` got each `logger << "..."` line twice
-- **Notifications**: `log.logstruct` subscribers get an entry after its line is written. A subscriber that raised stopped the line being written and raised from the app's log call; its error is handled like the app's other errors (`standard_errors`)
+- **Notifications**: `log.logstruct` subscribers get an entry after its line is queued to be written, so a subscriber that raises no longer stops the line being written. Its error is handled like the app's other errors (`standard_errors`, which raises it from the app's log call by default)
 - **ActionMailer**: The entry a mailer's own `rescue_from` handler logs has level `error`, like its line. It said `info`, which `log.logstruct` subscribers saw
 - **ActiveJob**: With the inline adapter, a failed `perform_later` writes one error line. The error that raised out of `perform_later` was logged again
 - **Sorbet**: Type error lines and reports have a backtrace that starts at the call that failed. Method signature errors had none, and the others started inside sorbet-runtime

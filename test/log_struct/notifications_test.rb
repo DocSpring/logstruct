@@ -137,9 +137,10 @@ class LogStructNotificationSubscriberTest < ActiveSupport::TestCase
     teardown_isolated_logger
   end
 
-  test "subscribers get the entry after its line is written" do
+  test "subscribers get the entry after its line is queued" do
     written_before = T.let(nil, T.nilable(T::Boolean))
     @subscription = ActiveSupport::Notifications.subscribe("log.logstruct") do
+      # Writes what was queued before the subscriber ran
       ::SemanticLogger.flush
       written_before = @log_output.string.include?("Invoice sent")
     end
@@ -162,7 +163,7 @@ class LogStructNotificationSubscriberTest < ActiveSupport::TestCase
     assert_equal ["app", "ArgumentError"], lines.last.values_at("src", "error_class")
   end
 
-  test "in tests a subscriber's error raises from the log call, after the line is written" do
+  test "in tests a subscriber's error raises from the log call, and the line is still written" do
     @subscription = ActiveSupport::Notifications.subscribe("log.logstruct") { raise ArgumentError, "bad subscriber" }
 
     assert_raises(ArgumentError) { @logger.info(@entry) }

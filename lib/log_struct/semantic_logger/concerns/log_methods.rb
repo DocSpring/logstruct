@@ -66,9 +66,10 @@ module LogStruct
           end
         end
 
-        # Sends a LogStruct entry to the log.logstruct subscribers, after its line is written. A subscriber's error
-        # doesn't stop the app's log call: it's handled like the app's other errors, and the lines written while
-        # handling it aren't sent to the subscribers again.
+        # Sends a LogStruct entry to the log.logstruct subscribers, after its line is queued to be written, so a
+        # subscriber's error can't lose it. The error is handled like the app's other errors (standard_errors, which
+        # raises it from the log call by default), and the lines written while handling it aren't sent to the
+        # subscribers again.
         sig { params(message: T.untyped, level: Symbol).void }
         def instrument_log(message, level)
           return unless message.is_a?(LogStruct::Log::Interfaces::CommonFields) || message.is_a?(T::Struct)
