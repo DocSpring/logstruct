@@ -1,13 +1,11 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "digest"
-
 module LogStruct
   # StringScrubber is inspired by logstop by @ankane: https://github.com/ankane/logstop
   # Enhancements:
   # - Shows which type of data was filtered
-  # - Includes an SHA256 hash with filtered emails for request tracing
+  # - Includes a hash of each filtered email (HashUtils) for request tracing
   # - Uses configuration options from LogStruct.config
   module StringScrubber
     class << self

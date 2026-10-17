@@ -116,18 +116,14 @@ module LogStruct
         # BEGIN CODE EXAMPLE: filter_configuration
         # ----------------------------------------------------------
         LogStruct.configure do |config|
-          # Configure which params should be filtered
-          config.filters.filter_keys = [
-            :password, :password_confirmation, :token, :secret,
-            :credit_card, :ssn, :social_security
-          ]
+          # Filter more keys, as well as the defaults (password, token, secret, credentials, auth, ...).
+          # Keys match by their words, so :account_number also filters accountNumber and Account-Number.
+          config.filters.filter_keys += [:account_number, :routing_number]
 
-          # Configure which params should include hashes for values
-          config.filters.filter_keys_with_hashes = [
-            :email, :email_address
-          ]
+          # Log a hash of these values instead of only filtering them (default: email, email_address)
+          config.filters.filter_keys_with_hashes += [:username]
 
-          # Configure sensitive data filtering for all strings
+          # Sensitive data in every string
           config.filters.credit_card_numbers = true  # Filter credit card numbers
           config.filters.email_addresses = true      # Filter email addresses
           config.filters.ip_addresses = false        # Filter IP addresses (off by default)
@@ -136,37 +132,48 @@ module LogStruct
           config.filters.ssns = true                 # Filter social security numbers
           config.filters.url_passwords = true        # Filter passwords in URLs
 
-          # Configure additional matchers for custom filtering rules
-          config.filters.filter_matchers = [
-            LogStruct::ConfigStruct::FilterMatcher.new(
-              callable: ->(key, _value) { key.start_with?("secret_") },
-              label: "secret prefix matcher"
-            )
-          ]
+          # More rules for key names, beside the default pattern for sensitive keys
+          config.filters.filter_matchers << LogStruct::ConfigStruct::FilterMatcher.new(
+            callable: ->(key, _value) { key.start_with?("internal_") },
+            label: "internal prefix"
+          )
 
-          # Configure the salt used for hashing filtered email addresses
-          config.filters.hash_salt = ENV.fetch("EMAIL_HASH_SALT", "test_salt")
+          # Rules that need a key's path from the line's top-level field, or the parameters around it.
+          # Rails' dotted filter_parameters (like "card.number") become path matchers at boot.
+          config.filters.path_matchers << LogStruct::ConfigStruct::PathFilterMatcher.new(
+            callable: ->(path, _value, _root) { path.last(2) == ["bank", "number"] },
+            label: "bank account numbers"
+          )
 
-          # Configure the length of hash output for filtered emails (default: 12)
-          config.filters.hash_length = 12
+          # The HMAC key for hashed values. Default: a key derived from the Rails app's secret_key_base
+          config.filters.hash_salt = ENV["LOGSTRUCT_HASH_KEY"]
+
+          # How many hex characters of each hash to log (default: 16)
+          config.filters.hash_length = 16
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: filter_configuration
         # ----------------------------------------------------------
 
-        # Verify filter configurations are applied
-        assert_includes LogStruct.configuration.filters.filter_keys, :password
-        assert_includes LogStruct.configuration.filters.filter_keys_with_hashes, :email
-        assert LogStruct.configuration.filters.credit_card_numbers
-        assert LogStruct.configuration.filters.email_addresses
-        assert LogStruct.configuration.filters.phone_numbers
-        assert LogStruct.configuration.filters.ssns
-        assert LogStruct.configuration.filters.url_passwords
-        refute LogStruct.configuration.filters.ip_addresses
-        refute LogStruct.configuration.filters.mac_addresses
-        assert_equal 1, LogStruct.configuration.filters.filter_matchers.size
-        assert_equal LogStruct.configuration.filters.hash_salt, LogStruct.configuration.filters.hash_salt
-        assert_equal 12, LogStruct.configuration.filters.hash_length
+        # Verify filter configurations are applied, on top of the defaults
+        filters = LogStruct.configuration.filters
+
+        assert_includes filters.filter_keys, :password
+        assert_includes filters.filter_keys, :account_number
+        assert_equal %i[email email_address username], filters.filter_keys_with_hashes
+        assert filters.credit_card_numbers
+        assert filters.email_addresses
+        assert filters.phone_numbers
+        assert filters.ssns
+        assert filters.url_passwords
+        refute filters.ip_addresses
+        refute filters.mac_addresses
+        assert_includes filters.filter_matchers.map(&:label), "default_sensitive_pattern"
+        assert_includes filters.filter_matchers.map(&:label), "internal prefix"
+        assert LogStruct::ParamFilters.should_filter_key?("accountNumber")
+        assert LogStruct::ParamFilters.should_filter_key?("internal_note")
+        assert LogStruct::ParamFilters.should_filter_key?("number", "1", path: ["params", "bank", "number"])
+        assert_equal 16, filters.hash_length
       end
 
       def test_error_handling_modes

@@ -17,6 +17,7 @@ module LogStruct
         CI_FALSE_VALUES = T.let(["false", "0", "no"].freeze, T::Array[String])
         RAILS_PATTERNS_LABEL = "Rails filter_parameters"
         RAILS_REGEXPS_LABEL = "Rails filter_parameters (Regexps)"
+        RAILS_PATHS_LABEL = "Rails filter_parameters (paths)"
         RAILS_PATTERN_LABELS = T.let([RAILS_PATTERNS_LABEL, RAILS_REGEXPS_LABEL].freeze, T::Array[String])
         RAILS_FILTER_MASK = "[FILTERED]"
         RAILS_FILTER_PROBE = "value"
@@ -109,24 +110,36 @@ module LogStruct
           return if rails_filter_params.empty?
 
           blocks, patterns = rails_filter_params.partition { |entry| callable_filter?(entry) }
-          regexps, partial_names = patterns.partition { |entry| entry.is_a?(Regexp) }
-          matchers = blocks.map { |block| build_callable_filter_matcher(block) }
+          # Rails matches entries with a dot against a key's path (user.password), and the rest against the key
+          path_patterns, key_patterns = patterns.partition { |entry| path_pattern?(entry) }
+          regexps, partial_names = key_patterns.partition { |entry| entry.is_a?(Regexp) }
+          # Rails gives blocks with any arity but 2 the parameters as a third argument
+          path_blocks, key_blocks = blocks.partition { |block| arity_for_filter(block) == 3 }
+
+          matchers = key_blocks.map { |block| build_callable_filter_matcher(block) }
           if partial_names.any?
             matchers << build_rails_pattern_matcher(partial_names, label: RAILS_PATTERNS_LABEL, matches_logstruct_fields: false)
           end
           if regexps.any?
             matchers << build_rails_pattern_matcher(regexps, label: RAILS_REGEXPS_LABEL, matches_logstruct_fields: true)
           end
+          path_matchers = path_blocks.map { |block| build_path_block_matcher(block) }
+          path_matchers << build_rails_path_matcher(path_patterns) if path_patterns.any?
 
           # Exact names also filter LogStruct's own fields, which the partial matches skip
-          names = patterns.filter_map { |entry| entry.to_s.downcase.to_sym if entry.is_a?(Symbol) || entry.is_a?(String) }
+          names = key_patterns.filter_map { |entry| entry.to_s.downcase.to_sym if entry.is_a?(Symbol) || entry.is_a?(String) }
           config.filters.filter_keys |= names
 
-          registered = config.filters.filter_matchers
           # The latest list replaces the patterns merged before
+          registered = config.filters.filter_matchers
           registered.reject! { |matcher| RAILS_PATTERN_LABELS.include?(matcher.label) }
           matchers.each do |matcher|
             registered << matcher unless registered.any? { |existing| existing.label == matcher.label }
+          end
+          registered_paths = config.filters.path_matchers
+          registered_paths.reject! { |matcher| matcher.label == RAILS_PATHS_LABEL }
+          path_matchers.each do |matcher|
+            registered_paths << matcher unless registered_paths.any? { |existing| existing.label == matcher.label }
           end
         end
 
@@ -209,9 +222,8 @@ module LogStruct
         end
 
         # Rails matches Symbols and Strings as case-insensitive substrings (:passw filters
-        # "user_password") and Regexps as they are. Entries with a dot match nested request
-        # parameters by their path in Rails. LogStruct checks one key at a time, so they only
-        # match a key that contains the whole path.
+        # "user_password") and Regexps as they are. Entries with a dot match a key by its path
+        # instead (build_rails_path_matcher).
         #
         # The substring matches skip LogStruct's own fields (Rails' :_key would hide GoodJob's
         # cron_key); their exact names are added to filter_keys instead. A Regexp says exactly
@@ -230,12 +242,55 @@ module LogStruct
           filter.respond_to?(:call)
         end
 
+        # Rails treats Strings and Symbols with a dot, and Regexps with an escaped dot, as paths
+        sig { params(entry: T.untyped).returns(T::Boolean) }
+        def path_pattern?(entry)
+          if entry.is_a?(Regexp)
+            entry.source.include?("\\.")
+          else
+            entry.to_s.include?(".")
+          end
+        end
+
+        # Rails joins a nested parameter's keys with dots ("user.password") and matches its dotted
+        # entries against that, as case-insensitive substrings or as Regexps. LogStruct's paths
+        # start at the line's field ("params.user.password"), so an entry matches the path from
+        # there or from the field's value down, as it would in Rails.
+        sig { params(patterns: T::Array[T.untyped]).returns(ConfigStruct::PathFilterMatcher) }
+        def build_rails_path_matcher(patterns)
+          regexps = patterns.select { |entry| entry.is_a?(Regexp) }
+          strings = patterns.reject { |entry| entry.is_a?(Regexp) }.map { |entry| Regexp.escape(entry.to_s) }
+          regexps << Regexp.new(strings.join("|"), true) if strings.any?
+          callable = Kernel.lambda do |path, _value, _root|
+            full_path = path.join(".")
+            field_path = path.drop(1).join(".")
+            regexps.any? { |regexp| regexp.match?(full_path) || (!field_path.empty? && regexp.match?(field_path)) }
+          end
+          ConfigStruct::PathFilterMatcher.new(callable: callable, label: RAILS_PATHS_LABEL)
+        end
+
+        # A Rails filter block with three arguments, given the parameters around the key: the
+        # line's top-level field's value (a request line's params), or the line for a top-level key
+        sig { params(filter: T.untyped).returns(ConfigStruct::PathFilterMatcher) }
+        def build_path_block_matcher(filter)
+          callable = Kernel.lambda do |path, original_value, root|
+            original_key = path.last.to_s
+            key = original_key.dup
+            value = original_value.duplicable? ? original_value.dup : original_value
+            result = filter.call(key, value, root)
+            !!result || (value.is_a?(String) && value != original_value)
+          rescue => e
+            handle_filter_error(e, filter, original_key || "")
+            false
+          end
+          ConfigStruct::PathFilterMatcher.new(callable: callable, label: filter.inspect)
+        end
+
         # Rails gives filter blocks copies of the key and value, ignores what they return, and
         # logs the value as the block left it: the Rails guides' example reverses it in place,
         # and a block can replace it with "[FILTERED]". LogStruct filters a key when its block
         # returns a truthy value or changes a String it's given, and never changes the logged
-        # value itself. Rails passes blocks with three arguments the request's parameters as
-        # well; LogStruct checks one key at a time, so they get an empty Hash.
+        # value itself. Blocks with three arguments are path matchers (build_path_block_matcher).
         sig { params(filter: T.untyped).returns(ConfigStruct::FilterMatcher) }
         def build_callable_filter_matcher(filter)
           callable = Kernel.lambda do |original_key, original_value|
@@ -246,8 +301,6 @@ module LogStruct
               []
             when 1
               [key]
-            when 3
-              [key, value, {}]
             else
               [key, value]
             end

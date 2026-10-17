@@ -1,7 +1,6 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "digest"
 require "json"
 require_relative "hash_utils"
 require_relative "config_struct/filters"
@@ -16,20 +15,42 @@ module LogStruct
 
       # Check if a key should be filtered based on our defined sensitive keys.
       # logstruct_field: the key is one of LogStruct's own fields at the top of a line.
-      sig { params(key: T.untyped, value: T.untyped, logstruct_field: T::Boolean).returns(T::Boolean) }
-      def should_filter_key?(key, value = nil, logstruct_field: false)
+      # path: the keys from the line's top-level field down to this one (the key alone if not given).
+      # root: the top-level field's value, or the whole line for a top-level key.
+      sig do
+        params(
+          key: T.untyped,
+          value: T.untyped,
+          logstruct_field: T::Boolean,
+          path: T.nilable(T::Array[String]),
+          root: T.untyped
+        ).returns(T::Boolean)
+      end
+      def should_filter_key?(key, value = nil, logstruct_field: false, path: nil, root: nil)
         filters = LogStruct.config.filters
         normalized_key = key.to_s
-        normalized_symbol = normalized_key.downcase.to_sym
 
-        return true if filters.filter_keys.include?(normalized_symbol)
+        return true if filters.filter_keys.include?(normalized_key.downcase.to_sym)
+        # By its words too, so :api_key filters apiKey and X-Api-Key
+        return true if filters.filter_keys.include?(KeyWords.normalize(normalized_key).to_sym)
 
-        filters.filter_matchers.any? do |matcher|
+        matched = filters.filter_matchers.any? do |matcher|
           next false if logstruct_field && !matcher.matches_logstruct_fields
 
           matcher.matches?(normalized_key, value)
         rescue => e
-          handle_filter_matcher_error(e, matcher, normalized_key)
+          handle_filter_matcher_error(e, matcher.label, normalized_key)
+          false
+        end
+        return true if matched
+        return false if filters.path_matchers.empty?
+
+        path ||= [normalized_key]
+        root = {} if root.nil?
+        filters.path_matchers.any? do |matcher|
+          matcher.matches?(path, value, root)
+        rescue => e
+          handle_filter_matcher_error(e, matcher.label, normalized_key)
           false
         end
       end
@@ -55,17 +76,14 @@ module LogStruct
         end
       end
 
-      # Summarize a String for logging, including details and an SHA256 hash (if configured)
+      # Summarize a filtered String: its class, and an HMAC of it for keys in filter_keys_with_hashes.
+      # No length, which would say how long a password or token is.
       sig { params(string: String, include_hash: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_string(string, include_hash)
         filtered_string = {
           _class: String
         }
-        if include_hash
-          filtered_string[:_hash] = HashUtils.hash_value(string)
-        else
-          filtered_string[:_bytes] = string.bytesize
-        end
+        filtered_string[:_hash] = HashUtils.hash_value(string) if include_hash
 
         filtered_string
       end
@@ -139,10 +157,10 @@ module LogStruct
         key.to_s
       end
 
-      sig { params(error: StandardError, matcher: ConfigStruct::FilterMatcher, key: String).void }
-      def handle_filter_matcher_error(error, matcher, key)
+      sig { params(error: StandardError, label: String, key: String).void }
+      def handle_filter_matcher_error(error, label, key)
         context = {
-          matcher: matcher.label,
+          matcher: label,
           key: key
         }
         LogStruct.handle_exception(error, source: Source::Internal, context: context)
