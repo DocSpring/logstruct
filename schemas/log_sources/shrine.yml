@@ -8,10 +8,7 @@ events:
     fields:
       Storage: Symbol
       Location: String
-      # From the file's metadata
-      Filename:
-        type: String
-        required: false
+      # From the file's metadata. Not its original filename, which can name a person.
       MimeType:
         type: String
         required: false

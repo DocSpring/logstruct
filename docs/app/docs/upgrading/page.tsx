@@ -120,8 +120,10 @@ export default function UpgradingPage() {
           <strong>Removed fields</strong> that were never written: ActiveStorage&apos;s{' '}
           <code>url</code> (a signed URL anyone could use), ActiveJob&apos;s <code>retries</code>,
           the blocked host line&apos;s <code>allowed_hosts</code> and <code>allow_ip_hosts</code>{' '}
-          (it has <code>blocked_hosts</code> instead), and Shrine&apos;s <code>metadata</code> and{' '}
-          <code>exist</code>.
+          (it has <code>blocked_hosts</code> instead), Shrine&apos;s <code>metadata</code> and{' '}
+          <code>exist</code>, and ActiveStorage&apos;s <code>filename</code>, <code>mime_type</code>
+          , <code>size</code> and <code>metadata</code> on upload and download lines (metadata lines
+          have the <code>mime_type</code> instead).
         </li>
       </ul>
 

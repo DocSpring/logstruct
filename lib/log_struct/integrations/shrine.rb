@@ -49,7 +49,6 @@ module LogStruct
             Log::Shrine::Upload.new(
               storage: storage_sym,
               location: payload[:location],
-              filename: metadata["filename"]&.to_s,
               mime_type: metadata["mime_type"]&.to_s,
               size: size.is_a?(Integer) ? size : nil,
               uploader: payload[:uploader]&.to_s,

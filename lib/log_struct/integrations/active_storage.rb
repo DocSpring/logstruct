@@ -85,17 +85,12 @@ module LogStruct
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             checksum: event.payload[:checksum]&.to_s,
-            duration_ms: duration_ms,
-            metadata: event.payload[:metadata],
-            filename: event.payload[:filename],
-            mime_type: event.payload[:content_type],
-            size: event.payload[:byte_size]
+            duration_ms: duration_ms
           )
         when Event::Download
           Log::ActiveStorage::Download.new(
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
-            filename: event.payload[:filename],
             range: event.payload[:range],
             duration_ms: duration_ms
           )
@@ -110,7 +105,7 @@ module LogStruct
           Log::ActiveStorage::Metadata.new(
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
-            metadata: event.payload[:metadata]
+            mime_type: event.payload[:content_type]&.to_s
           )
         when Event::Exist
           Log::ActiveStorage::Exist.new(

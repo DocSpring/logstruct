@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: Keys in `filter_keys_with_hashes` (default `email` and `email_address`) are filtered, with a `_hash` of the value so lines about the same address can be found. They were only hashed when another filter matched them too
 - **Breaking**: An email address has one hash however it's capitalized, and addresses in any script (`müller@example.de`) are scrubbed
 - **Breaking**: Every time in a struct line (`scheduled_at`, `started_at`, `finished_at`, ...) is written with milliseconds, like `ts`
-- **Breaking**: Removed fields that were never written: ActiveJob's `retries` on enqueue lines, the blocked host line's `allowed_hosts` and `allow_ip_hosts`, Shrine's `metadata` and `location` on metadata lines and `exist` on exists lines. Shrine's events don't carry them
+- **Breaking**: Removed fields that were never written: ActiveJob's `retries` on enqueue lines, the blocked host line's `allowed_hosts` and `allow_ip_hosts`, Shrine's `metadata` and `location` on metadata lines and `exist` on exists lines (Shrine's events don't carry them), and ActiveStorage's `filename`, `mime_type`, `size` and `metadata` on upload and download lines (Rails' events have only the blob's key). ActiveStorage metadata lines have the `mime_type` instead of `metadata`
 - **Breaking**: `Log::ActiveStorage::Stream` and the `stream` event are removed: Rails sends no `service_stream` event. Streaming downloads are `download` lines
 - **Requests**: Request lines have the client's IP (`source_ip`) and the `host`, as Rails' own request line does. A `lograge_custom_options` that added them can drop them
 - **Tags**: Tags are written: `logger.tagged("x")` and `config.log_tags` give a `tags` array, and named tags go in `ctx` (`request_id` is written as `req_id`)
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ActiveJob**: `retry`, `retry_stopped` and `discard` lines, with the exception that `retry_on` or `discard_on` caught (and the wait before the retry). The exception was in no line. `perform_all_later` writes a line per job
 - **ActiveStorage**: Deleting files by prefix (a blob's variants, when an image is purged) is a `delete` line with `prefix`. It raised a type error inside LogStruct, and wrote no line
 - **CarrierWave**: `download` lines (a remote file fetched with `download!`) and `delete` lines (`remove!`)
-- **Shrine**: Upload lines have the file's `filename`, `mime_type` and `size`, and metadata lines how long extracting the metadata took
+- **Shrine**: Upload lines have the file's `mime_type` and `size`, and metadata lines how long extracting the metadata took. They leave out the file's original name, which can name a person
 - **Security**: Blocked host lines have `blocked_hosts`, every host Rails blocked (the Host header, and X-Forwarded-Host)
 - **Filtering**: `Bearer` tokens and `Basic` credentials in strings are scrubbed (`filters.authorization_credentials`, on by default)
 - **Filtering**: The default sensitive key words include `passcode`, `apikey`, `social_security`, `credit_card` and `card_number`

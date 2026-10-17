@@ -33,7 +33,6 @@ module LogStruct
         const :file_id, T.nilable(String), default: nil
 
         # Event-specific fields
-        const :filename, T.nilable(String), default: nil
         const :range, T.nilable(String), default: nil
         const :duration_ms, T.nilable(Float), default: nil
 
@@ -46,7 +45,6 @@ module LogStruct
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
           h[LogField::FileId] = file_id unless file_id.nil?
-          h[LogField::Filename] = filename unless filename.nil?
           h[LogField::Range] = range unless range.nil?
           h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
           h

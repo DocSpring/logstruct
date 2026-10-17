@@ -344,6 +344,7 @@
       "ts": "2026-10-17T09:30:15.123+00:00",
       "storage": "S3",
       "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "mime_type": "application/pdf",
       "prog": "Rails"
     },
     "LogStruct::Log::ActiveStorage::Exist": {

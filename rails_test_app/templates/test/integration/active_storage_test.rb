@@ -282,12 +282,26 @@ class ActiveStorageTest < ActiveSupport::TestCase
     # The checksum should be present
     assert_not_nil upload_log["checksum"]
 
-    # Check file size if available - from the blob service
-    if upload_log["size"]
-      assert_kind_of Integer, upload_log["size"]
-    end
-
     # Check for duration which should always be present
     assert_not_nil upload_log["duration_ms"]
+    # Rails' event has the blob's key, not its filename
+    assert_empty upload_log.keys & %w[filename mime_type size metadata]
+  end
+
+  test "a metadata update logs the content type, not the disposition's filename" do
+    @log_output.truncate(0)
+    @log_output.rewind
+
+    ActiveSupport::Notifications.instrument("service_update_metadata.active_storage",
+      key: "m3k9x2q7",
+      service: "S3",
+      content_type: "application/pdf",
+      disposition: 'inline; filename="Jane Doe lease.pdf"')
+    ::SemanticLogger.flush
+
+    line = find_log_entries("metadata").last
+
+    assert_equal ["m3k9x2q7", "application/pdf"], line&.values_at("file_id", "mime_type")
+    assert_not_includes @log_output.string, "Jane Doe"
   end
 end

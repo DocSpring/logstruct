@@ -49,7 +49,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'ActiveStorage',
         description:
-          "Logs uploads, downloads, deletes and metadata updates with the service, the blob's key and the file's details, in place of Rails' own ActiveStorage lines. Existence checks and URLs are debug lines, as Rails logs them, and URL lines leave out the signed URL.",
+          "Logs uploads, downloads, deletes and metadata updates with the service and the blob's key (not its filename), in place of Rails' own ActiveStorage lines. Existence checks and URLs are debug lines, as Rails logs them, and URL lines leave out the signed URL.",
       };
 
     case LogType.CARRIERWAVE:
@@ -79,7 +79,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'Shrine',
         description:
-          "Loads Shrine's instrumentation plugin and logs its upload, download, delete, metadata and exists operations with the storage, location and duration, in place of Shrine's own text lines.",
+          "Loads Shrine's instrumentation plugin and logs its upload, download, delete, metadata and exists operations with the storage, location and duration, and an upload's MIME type and size (not the file's original name), in place of Shrine's own text lines.",
       };
 
     case LogType.SIDEKIQ:

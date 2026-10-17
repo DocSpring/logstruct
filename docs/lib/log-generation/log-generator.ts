@@ -633,7 +633,6 @@ export class LogGenerator extends RandomDataGenerator {
           new Shrine.ShrineUpload({
             storage: 'store',
             location,
-            filename: `invoice-${this.randomInt(1000, 9999)}.pdf`,
             mime_type: 'application/pdf',
             size: this.randomInt(20_000, 900_000),
             upload_options: {},

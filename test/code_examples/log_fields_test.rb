@@ -404,7 +404,7 @@ module LogStruct
         end
         example(Log::ActiveStorage::Download) { in_request { rails.info(Log::ActiveStorage::Download.new(**blob, duration_ms: 96.12)) } }
         example(Log::ActiveStorage::Delete) { rails.info(Log::ActiveStorage::Delete.new(**blob)) }
-        example(Log::ActiveStorage::Metadata) { rails.info(Log::ActiveStorage::Metadata.new(**blob)) }
+        example(Log::ActiveStorage::Metadata) { rails.info(Log::ActiveStorage::Metadata.new(**blob, mime_type: "application/pdf")) }
         # Existence checks and URLs are logged at debug level, as Rails logs them
         example(Log::ActiveStorage::Exist) { in_request { rails.debug(Log::ActiveStorage::Exist.new(**blob, exist: true)) } }
         example(Log::ActiveStorage::Url) { in_request { rails.debug(Log::ActiveStorage::Url.new(**blob)) } }
