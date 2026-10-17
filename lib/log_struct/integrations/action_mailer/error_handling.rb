@@ -21,29 +21,36 @@ module LogStruct
         module ClassMethods
           extend T::Sig
 
-          # Just log the error without reporting or retrying
+          # Logs the error, and doesn't report or raise it
           sig { params(ex: StandardError).void }
           def log_and_ignore_error(ex)
             ErrorHandling.handle_mailer_class_error(self, ex, report: false, reraise: false)
           end
 
-          # Log and report to error service, but doesn't reraise
+          # Logs and reports the error, and doesn't raise it
           sig { params(ex: StandardError).void }
           def log_and_report_error(ex)
             ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: false)
           end
 
-          # Log, report to error service, and reraise for retry
+          # Logs the error and raises it again, reporting it too in the Report modes
           sig { params(ex: StandardError).void }
           def log_and_reraise_error(ex)
-            ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: true)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: ErrorHandling.report_before_reraise?, reraise: true)
           end
         end
 
+        # log_and_reraise_error reports the error where standard_errors' mode reports the app's errors
+        # (Report, and ReportProduction in production). Elsewhere whatever rescues the raised error decides.
+        sig { returns(T::Boolean) }
+        def self.report_before_reraise?
+          mode = LogStruct.error_handling_mode_for(Source::Mailer)
+          mode == ErrorHandlingMode::Report || (mode == ErrorHandlingMode::ReportProduction && LogStruct.is_production?)
+        end
+
         # An error that reaches the class handler from the delivery itself was logged (and reported)
-        # by the mailer's handler, which let it through: it re-raised it for the job to retry, or
-        # LogStruct.handle_exception raised it (Raise mode). It's raised again, without logging it
-        # twice, so the job fails as deliver_now would.
+        # by the mailer's handler, which raised it again (log_and_reraise_error). It's raised again,
+        # without logging it twice, so the job fails as deliver_now would.
         sig { params(mailer_class: T.untyped, error: StandardError, report: T::Boolean, reraise: T::Boolean).void }
         def self.handle_mailer_class_error(mailer_class, error, report:, reraise:)
           Kernel.raise error if LogStruct::LoggedErrors.logged?(error)
@@ -60,9 +67,7 @@ module LogStruct
             backtrace: error.backtrace,
             level: Level::Error
           ))
-          if report
-            LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}, log: false)
-          end
+          LogStruct.report_error(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}) if report
 
           Kernel.raise error if reraise
         end
@@ -99,23 +104,23 @@ module LogStruct
 
         protected
 
-        # Just log the error without reporting or retrying
+        # Logs the error, and doesn't report or raise it
         sig { params(ex: StandardError).void }
         def log_and_ignore_error(ex)
           self.logstruct_mail_failed = true
           log_email_delivery_error(ex, notify: false, report: false, reraise: false)
         end
 
-        # Log and report to error service, but doesn't reraise.
+        # Logs and reports the error, and doesn't raise it
         sig { params(ex: StandardError).void }
         def log_and_report_error(ex)
           log_email_delivery_error(ex, notify: false, report: true, reraise: false)
         end
 
-        # Log, report to error service, and reraise for retry
+        # Logs the error and raises it again, reporting it too in the Report modes (report_before_reraise?)
         sig { params(ex: StandardError).void }
         def log_and_reraise_error(ex)
-          log_email_delivery_error(ex, notify: false, report: true, reraise: true)
+          log_email_delivery_error(ex, notify: false, report: ErrorHandling.report_before_reraise?, reraise: true)
         end
 
         private
@@ -184,7 +189,7 @@ module LogStruct
           # LogStruct.handle_exception in Raise mode), and mustn't log or report it again
           LogStruct::LoggedErrors.mark(error)
 
-          # Handle notifications and reporting
+          # Handle notifications, reporting and raising
           handle_error_notifications(error, notify, report, reraise)
         end
 
@@ -211,7 +216,7 @@ module LogStruct
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }
-            LogStruct.handle_exception(error, source: Source::Mailer, context: context, log: false)
+            LogStruct.report_error(error, source: Source::Mailer, context: context)
           end
 
           # Re-raise the error if requested

@@ -99,8 +99,7 @@ module LogStruct
       end
 
       def test_postmark_rescue_from
-        # The default mode for standard errors, in which log_and_report_error and
-        # log_and_reraise_error raise
+        # The default mode for standard errors, in which log_and_reraise_error raises without reporting
         assert_equal ErrorHandlingMode::Raise, LogStruct.config.error_handling_modes.standard_errors
         assert_includes ::ActionMailer::Base.rescue_handlers, ["StandardError", :log_and_reraise_error]
 

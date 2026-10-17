@@ -39,10 +39,11 @@ module LogStruct
         # Log the error, then carry on as if the mail had been sent
         rescue_from Net::SMTPFatalError, with: :log_and_ignore_error
 
-        # Log the error, then report it or raise it as error_handling_modes.standard_errors says
+        # Log the error and report it, then carry on as if the mail had been sent
         rescue_from Net::SMTPServerBusy, with: :log_and_report_error
 
-        # Other StandardErrors reach LogStruct's default handler, log_and_reraise_error
+        # Other StandardErrors reach LogStruct's default handler, log_and_reraise_error, which logs and raises
+        # them (reporting them too where error_handling_modes.standard_errors reports errors)
 
         def invoice_ready(user)
           mail(to: user.email, subject: "Your invoice is ready", body: "Your invoice is ready.")
@@ -202,22 +203,23 @@ module LogStruct
         assert_equal %w[delivery error], mailer_events
         assert_empty @reported
 
-        # log_and_report_error: raised in Raise mode (the default for standard errors) ...
+        # log_and_report_error: one error line, reported, nothing raised, in any mode
         RejectingDelivery.error = Net::SMTPServerBusy.new("451 4.3.0 try again later")
-        assert_raises(Net::SMTPServerBusy) { invoice_ready(user).deliver_now }
-        assert_equal %w[delivery error], mailer_events
-        assert_empty @reported
-
-        # ... and reported, without failing the delivery, in Report mode
-        LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
         invoice_ready(user).deliver_now
 
         assert_equal %w[delivery error], mailer_events
         assert_equal [[Net::SMTPServerBusy, LogStruct::Source::Mailer]], @reported
 
-        # Other errors: LogStruct's default handler logs, reports (in Report mode) and raises them
+        # Other errors: LogStruct's default handler logs and raises them, in Raise mode (the default for
+        # standard errors) without reporting them ...
         @reported.clear
         RejectingDelivery.error = Errno::ECONNREFUSED.new("connect(2) for smtp.example.com port 587")
+        assert_raises(Errno::ECONNREFUSED) { invoice_ready(user).deliver_now }
+        assert_equal %w[delivery error], mailer_events
+        assert_empty @reported
+
+        # ... and in Report mode reporting them too
+        LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
         assert_raises(Errno::ECONNREFUSED) { invoice_ready(user).deliver_now }
         assert_equal %w[delivery error], mailer_events
         assert_equal [[Errno::ECONNREFUSED, LogStruct::Source::Mailer]], @reported

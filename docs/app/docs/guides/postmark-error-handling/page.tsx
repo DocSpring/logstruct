@@ -5,21 +5,6 @@ import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { Callout } from '@/components/ui/callout';
 
-// What each handler does with an error, for each standard_errors mode (LogStruct on)
-const MODE_ROWS: [string, string, string, string][] = [
-  ['Raise (default)', 'Logged', 'Logged, raised', 'Logged, raised'],
-  ['Report', 'Logged', 'Logged, reported', 'Logged, reported, raised'],
-  [
-    'ReportProduction',
-    'Logged',
-    'Production: logged, reported. Local: logged, raised',
-    'Production: logged, reported, raised. Local: logged, raised',
-  ],
-  ['Log', 'Logged', 'Logged', 'Logged, raised'],
-  ['LogProduction', 'Logged', 'Production: logged. Local: logged, raised', 'Logged, raised'],
-  ['Ignore', 'Logged', 'Logged', 'Logged, raised'],
-];
-
 // The fields of LogStruct::Log::ActionMailer::Error, as a subscriber reads them and as the line has them
 const FIELD_ROWS: [string, string, string][] = [
   ['error_class', 'error_class', 'The exception class (a Class; its name in the line)'],
@@ -65,51 +50,31 @@ export default function PostmarkErrorHandlingPage() {
       <HeadingWithAnchor id="error-handling-methods">The Three Handlers</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300">
         A mailer can name one of these in its own <code>rescue_from</code>. Each writes one{' '}
-        <code>error</code> line, and then does what{' '}
-        <code>config.error_handling_modes.standard_errors</code> says (see{' '}
-        <Link href="/docs/configuration#error-handling-configuration" className="underline">
-          Error Handling Configuration
-        </Link>
-        ). &quot;Reported&quot; means passed once to your error tracker or{' '}
-        <code>error_reporting_handler</code>; &quot;raised&quot; means <code>deliver_now</code>{' '}
-        raises the error and a <code>deliver_later</code> job fails. &quot;Local&quot; is the
-        environments in <code>local_environments</code> (development and test by default).
+        <code>error</code> line, and then:
       </p>
-      <div className="relative overflow-x-auto">
-        <table className="w-full text-sm text-left text-neutral-600 dark:text-neutral-300">
-          <thead className="text-neutral-700 dark:text-neutral-300 border-b border-neutral-200 dark:border-neutral-700">
-            <tr>
-              <th scope="col" className="px-4 py-2 font-medium">
-                standard_errors
-              </th>
-              <th scope="col" className="px-4 py-2 font-medium font-mono text-xs">
-                log_and_ignore_error
-              </th>
-              <th scope="col" className="px-4 py-2 font-medium font-mono text-xs">
-                log_and_report_error
-              </th>
-              <th scope="col" className="px-4 py-2 font-medium font-mono text-xs">
-                log_and_reraise_error
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {MODE_ROWS.map(([mode, ignore, report, reraise]) => (
-              <tr key={mode} className="border-b border-neutral-200 dark:border-neutral-700">
-                <td className="px-4 py-2 font-mono text-xs align-top whitespace-nowrap">{mode}</td>
-                <td className="px-4 py-2 align-top">{ignore}</td>
-                <td className="px-4 py-2 align-top">{report}</td>
-                <td className="px-4 py-2 align-top">{reraise}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
+        <li>
+          <code>log_and_ignore_error</code> carries on as if the mail had been sent.
+        </li>
+        <li>
+          <code>log_and_report_error</code> reports the error once, to your error tracker or{' '}
+          <code>error_reporting_handler</code>, and carries on.
+        </li>
+        <li>
+          <code>log_and_reraise_error</code> raises the error again (<code>deliver_now</code>{' '}
+          raises, and a <code>deliver_later</code> job fails), and reports it where{' '}
+          <code>config.error_handling_modes.standard_errors</code> reports your app&apos;s errors
+          (see{' '}
+          <Link href="/docs/configuration#error-handling-configuration" className="underline">
+            Error Handling Configuration
+          </Link>
+          ): in <code>Report</code> mode, and in <code>ReportProduction</code> mode in production.
+        </li>
+      </ul>
       <Callout type="warning">
-        With the default, <code>Raise</code>, <code>log_and_report_error</code> logs the error and
-        then raises it; it doesn&apos;t report it. Neither does <code>log_and_reraise_error</code>.
-        LogStruct reports mail errors only in the <code>Report</code> modes, though an error tracker
-        that catches raised errors may report them itself.
+        With the default mode, <code>Raise</code>, LogStruct doesn&apos;t report the errors{' '}
+        <code>log_and_reraise_error</code> raises, though an error tracker that catches raised
+        errors may report them itself.
       </Callout>
 
       <HeadingWithAnchor id="logstruct-off" level={3}>

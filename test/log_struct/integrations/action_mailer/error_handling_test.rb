@@ -55,6 +55,8 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
   end
 
   test "a failed delivery is one error line" do
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+
     with_reports_recorded do
       assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(FailingMailer, :notice).deliver_now }
     end
@@ -110,6 +112,8 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
   end
 
   test "a failed delivery in MailDeliveryJob raises the delivery error, logged and reported only by the mailer" do
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+
     with_reports_recorded do
       assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(FailingMailer, :notice).deliver_now }
     end
@@ -136,6 +140,7 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
   end
 
   test "the mailer class logs, reports and re-raises an error its mailer didn't handle" do
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
     error = DeliveryFailed.new("Couldn't load the email's record")
 
     with_reports_recorded do
@@ -154,15 +159,45 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
     assert_equal 1, error_lines.size
   end
 
-  # In Raise mode handle_exception raises, so log_and_report_error lets the error through. The job
-  # must fail as deliver_now does, not swallow it at the mailer class.
-  test "in Raise mode, log_and_report_error fails a delivery job as deliver_now raises" do
-    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Raise
+  test "log_and_report_error logs and reports the error, and doesn't raise it, in every mode" do
+    LogStruct::ErrorHandlingMode.values.each do |mode|
+      LogStruct.config.error_handling_modes.standard_errors = mode
+      @buf.truncate(0)
+      @buf.rewind
+      @reported.clear
 
-    assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(ReportingMailer, :notice).deliver_now }
-    assert_raises(DeliveryFailed) { deliver_through_job(ReportingMailer) }
+      with_reports_recorded do
+        ActionMailer::MessageDelivery.new(ReportingMailer, :notice).deliver_now
+        deliver_through_job(ReportingMailer)
+        ReportingMailer.handle_exception(DeliveryFailed.new("Couldn't load the email's record"))
+      end
 
-    assert_equal 2, error_lines.size, "One line per delivery"
+      assert_equal 3, error_lines.size, "One line per error in #{mode.serialize}"
+      assert_equal 3, @reported.size, "One report per error in #{mode.serialize}"
+    end
+  end
+
+  test "log_and_reraise_error reports the error only in the Report modes, and always raises it" do
+    # ReportProduction reports in production only
+    reports_by_mode = {
+      LogStruct::ErrorHandlingMode::Raise => 0,
+      LogStruct::ErrorHandlingMode::Log => 0,
+      LogStruct::ErrorHandlingMode::Ignore => 0,
+      LogStruct::ErrorHandlingMode::Report => 1,
+      LogStruct::ErrorHandlingMode::ReportProduction => 0
+    }
+    reports_by_mode.each do |mode, reports|
+      LogStruct.config.error_handling_modes.standard_errors = mode
+      @reported.clear
+
+      with_reports_recorded do
+        assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(FailingMailer, :notice).deliver_now }
+      end
+
+      assert_equal reports, @reported.size, "Reports in #{mode.serialize}"
+    end
+
+    LogStruct.stub(:is_production?, true) { assert_predicate LogStruct::Integrations::ActionMailer::ErrorHandling, :report_before_reraise? }
   end
 
   # Only the mailer's own handler marks an error for the class handler to raise again
@@ -193,9 +228,9 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
     ActionMailer::MailDeliveryJob.perform_now(mailer_class.name, "notice", "deliver_now", args: [])
   end
 
-  # LogStruct.handle_exception raises in tests; record what it would report in production
+  # Records what LogStruct reports
   def with_reports_recorded(&block)
-    LogStruct.stub(:handle_exception, ->(error, source:, context: nil, log: true) { @reported << error }, &block)
+    LogStruct.stub(:report_error, ->(error, source:, context: nil) { @reported << error }, &block)
   end
 
   def error_lines
