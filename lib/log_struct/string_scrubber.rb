@@ -24,6 +24,10 @@ module LogStruct
       # cspell:ignore Fuser Asecret
       ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&])+(%40)}i
       URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]\2'
+      # A URL's user info that a cut string ends in, before the @ that would close it
+      CUT_URL_PASSWORD_REGEX = %r{(//[^\s/:@]*:)[^\s/@]*\z}
+      CUT_ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F|%40)[^\s/&])*\z}i
+      CUT_URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]'
 
       # A URL's query string, for the sensitive params in it
       QUERY_STRING_REGEX = /\?([^\s#"'<>]+)/
@@ -129,6 +133,15 @@ module LogStruct
         string = custom_scrubber.call(string) if !custom_scrubber.nil?
 
         string
+      end
+
+      # The end of a scrubbed string that was cut: a URL password the cut separated from its closing @ (which
+      # URL_PASSWORD_REGEX needs) is replaced, however long it was
+      sig { params(string: String).returns(String) }
+      def scrub_cut_end(string)
+        return string unless LogStruct.config.filters.url_passwords
+
+        string.sub(CUT_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT).sub(CUT_ENCODED_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT)
       end
 
       # The hash of a value (HashUtils.hash_value). Email addresses are hashed in lowercase, so an address has

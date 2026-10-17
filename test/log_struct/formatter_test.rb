@@ -530,6 +530,32 @@ module LogStruct
       assert_includes value, "[EMAIL:"
     end
 
+    def test_scrubs_a_long_url_password_that_the_cut_separates_from_its_host
+      LogStruct.config.limits.max_string_bytes = 100
+      # The password runs past the scrubbers' margin, so its closing @ is beyond what they see
+      secret = "s3cr3t" * 60
+      plain = "#{"a" * 10} https://user:#{secret}@db.example.com/app"
+      # cspell:ignore Fuser
+      encoded = "#{"a" * 10} https%3A%2F%2Fuser%3A#{secret}%40db.example.com"
+
+      [plain, encoded].each do |long|
+        value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+        assert_not_includes value, "s3cr3t", long[0, 30]
+        assert_includes value, "[PASSWORD]", long[0, 30]
+      end
+    end
+
+    def test_leaves_a_cut_url_without_a_password
+      LogStruct.config.limits.max_string_bytes = 100
+      long = "#{"a" * 70} https://example.com/#{"b" * 200}"
+
+      value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+      assert_includes value, "https://example.com/bbb"
+      assert_not_includes value, "[PASSWORD]"
+    end
+
     def test_writes_the_first_keys_of_a_large_hash
       LogStruct.config.limits.max_hash_keys = 3
 

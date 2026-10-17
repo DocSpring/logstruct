@@ -218,8 +218,8 @@ module LogStruct
       max_bytes = LogStruct.config.limits.max_string_bytes
       return scrub_string(string) if string.bytesize <= max_bytes
 
-      scrubbed = scrub_string(T.must(string.byteslice(0, max_bytes + SCRUB_MARGIN_BYTES)).scrub(""))
-      kept = T.must(scrubbed.byteslice(0, max_bytes)).scrub("")
+      scrubbed = scrub_string(string.byteslice(0, max_bytes + SCRUB_MARGIN_BYTES).to_s.scrub(""))
+      kept = StringScrubber.scrub_cut_end(scrubbed.byteslice(0, max_bytes).to_s.scrub(""))
       "#{kept}... (cut from #{string.bytesize} bytes)"
     end
 
