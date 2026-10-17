@@ -25,43 +25,56 @@ module LogStruct
           end
         end
 
-        # Used when ActionMailer::MailDeliveryJob passes an error to the mailer class
+        # The handlers, for a mailer and (through ClassMethods) for the mailer class, which
+        # ActionMailer::MailDeliveryJob passes an error to. Both have a logger.
+        module Handlers
+          extend T::Sig
+          extend T::Helpers
+
+          abstract!
+
+          sig { params(ex: StandardError).void }
+          def log_and_ignore_error(ex)
+            FallbackErrorHandlers.handle(handler_logger, ex, report: false, reraise: false)
+          end
+
+          sig { params(ex: StandardError).void }
+          def log_and_report_error(ex)
+            FallbackErrorHandlers.handle(handler_logger, ex, report: true, reraise: false)
+          end
+
+          sig { params(ex: StandardError).void }
+          def log_and_reraise_error(ex)
+            FallbackErrorHandlers.handle(handler_logger, ex, report: false, reraise: true)
+          end
+
+          private
+
+          sig { abstract.returns(T.untyped) }
+          def handler_logger
+          end
+        end
+
+        include Handlers
+
         module ClassMethods
           extend T::Sig
           extend T::Helpers
 
           requires_ancestor { T.class_of(::ActionMailer::Base) }
 
-          sig { params(ex: StandardError).void }
-          def log_and_ignore_error(ex)
-            FallbackErrorHandlers.handle(logger, ex, report: false, reraise: false)
-          end
+          include Handlers
 
-          sig { params(ex: StandardError).void }
-          def log_and_report_error(ex)
-            FallbackErrorHandlers.handle(logger, ex, report: true, reraise: false)
-          end
+          private
 
-          sig { params(ex: StandardError).void }
-          def log_and_reraise_error(ex)
-            FallbackErrorHandlers.handle(logger, ex, report: false, reraise: true)
-          end
+          sig { override.returns(T.untyped) }
+          def handler_logger = logger
         end
 
-        sig { params(ex: StandardError).void }
-        def log_and_ignore_error(ex)
-          FallbackErrorHandlers.handle(logger, ex, report: false, reraise: false)
-        end
+        private
 
-        sig { params(ex: StandardError).void }
-        def log_and_report_error(ex)
-          FallbackErrorHandlers.handle(logger, ex, report: true, reraise: false)
-        end
-
-        sig { params(ex: StandardError).void }
-        def log_and_reraise_error(ex)
-          FallbackErrorHandlers.handle(logger, ex, report: false, reraise: true)
-        end
+        sig { override.returns(T.untyped) }
+        def handler_logger = logger
       end
     end
   end

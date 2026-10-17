@@ -63,6 +63,17 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
     assert_equal 1, @reported.size
   end
 
+  test "the error line names the mail's recipients, and doesn't promise a retry" do
+    with_reports_recorded do
+      assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(FailingMailer, :notice).deliver_now }
+    end
+
+    message = error_lines.first&.fetch("msg")
+
+    assert_match(/\ADeliveryFailed: Email delivery failed\. Recipients: \[EMAIL:\h+\]\. Error message: Invalid 'From' address\z/,
+      message.to_s.delete_prefix("#{self.class}::"))
+  end
+
   # Raise is the default mode for standard errors: LogStruct raises the error instead of reporting it, and the app's
   # error reporter gets it from the job or the request
   test "in Raise mode, a failed delivery in MailDeliveryJob is one error line from the mailer" do
@@ -161,6 +172,19 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
     2.times { IgnoringMailer.handle_exception(error) }
 
     assert_equal 2, error_lines.size
+  end
+
+  test "the mailer's handlers log their errors as error entries" do
+    entries = []
+    subscription = ActiveSupport::Notifications.subscribe("log.logstruct") { |_name, _start, _finish, _id, payload| entries << payload[:log] }
+    LogStruct::SemanticLogger::Logger.new("Mailer").then { |logger| ::Rails.logger = logger }
+
+    with_reports_recorded { ActionMailer::MessageDelivery.new(IgnoringMailer, :notice).deliver_now }
+    IgnoringMailer.handle_exception(DeliveryFailed.new("Couldn't load the email's record"))
+
+    assert_equal [LogStruct::Level::Error, LogStruct::Level::Error], entries.grep(LogStruct::Log::ActionMailer::Error).map(&:level)
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscription) if subscription
   end
 
   private

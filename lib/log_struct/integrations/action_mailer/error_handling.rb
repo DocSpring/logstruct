@@ -49,7 +49,7 @@ module LogStruct
           Kernel.raise error if LogStruct::LoggedErrors.logged?(error)
 
           message = if reraise
-            "#{error.class}: Email delivery error, will retry. Error message: #{error.message}"
+            "#{error.class}: Email delivery failed. Error message: #{error.message}"
           else
             "#{error.class}: Cannot send email. Error message: #{error.message}"
           end
@@ -153,7 +153,8 @@ module LogStruct
             message: message,
             backtrace: error.backtrace,
             additional_data: context_data.presence,
-            timestamp: Time.now
+            timestamp: Time.now,
+            level: Level::Error
           )
 
           # Log the structured error
@@ -191,7 +192,7 @@ module LogStruct
         sig { params(error: StandardError, reraise: T::Boolean).returns(String) }
         def error_message_for(error, reraise)
           if reraise
-            "#{error.class}: Email delivery error, will retry. Recipients: #{recipients(error)}. Error message: #{error.message}"
+            "#{error.class}: Email delivery failed. Recipients: #{recipients(error)}. Error message: #{error.message}"
           else
             "#{error.class}: Cannot send email to #{recipients(error)}. Error message: #{error.message}"
           end
@@ -262,14 +263,18 @@ module LogStruct
           )
         end
 
+        # The formatter scrubs the addresses in the line
         sig { params(error: StandardError).returns(String) }
         def recipients(error)
-          # Some delivery errors (Postmark's, for example) have the recipients
+          # Some delivery errors (Postmark's, for example) have the recipients that failed
           if error.respond_to?(:recipients) && T.unsafe(error).recipients.present?
-            T.unsafe(error).recipients.join(", ")
-          else
-            "unknown"
+            return T.unsafe(error).recipients.join(", ")
           end
+
+          # Otherwise the mail's own: to, cc and bcc (unknown when the mailer failed before it built the mail)
+          mail = respond_to?(:message) ? message : nil
+          destinations = mail.respond_to?(:destinations) ? Array(mail.destinations).compact : []
+          destinations.empty? ? "unknown" : destinations.join(", ")
         end
       end
     end
