@@ -155,10 +155,9 @@ check(structs.any?, "Struct catalog is empty")
 check(structs.key?("GoodJob"), "Struct catalog missing GoodJob")
 good_job = structs["GoodJob"]
 
-check(good_job["allowed_events"].include?("enqueue"), "GoodJob missing enqueue event")
+check(good_job["allowed_events"].sort == %w[error log], "GoodJob events should be error and log only")
 check(good_job["fixed_source"] == "job", "GoodJob fixed source incorrect")
 
 go_contents = File.read(gen_path)
 
 check(go_contents.include?("\"GoodJob\": {Name: \"GoodJob\""), "catalog_gen.go missing GoodJob entry")
-check(go_contents.include?("AllowedEvents: []string{\"enqueue\""), "catalog_gen.go missing enqueue event")

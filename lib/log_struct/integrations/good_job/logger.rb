@@ -14,12 +14,8 @@ module LogStruct
       # performance while creating structured log entries specifically for GoodJob
       # operations and events.
       #
-      # ## Benefits:
-      # - High-performance logging with SemanticLogger backend
-      # - Structured GoodJob-specific log entries
-      # - Automatic job context capture
-      # - Thread and process information
-      # - Performance metrics and timing data
+      # GoodJob's own messages are logged as Log::GoodJob::Log lines with the process and thread,
+      # and, during a job, the job's ID, class, queue, execution count, scheduled time and priority.
       #
       # ## Usage:
       # This logger is automatically configured when the GoodJob integration
@@ -31,20 +27,12 @@ module LogStruct
         # Override log methods to create GoodJob-specific log structs
         %i[debug info warn error fatal].each do |level|
           define_method(level) do |message = nil, payload = nil, &block|
-            # Extract basic job context from thread-local variables
-            job_context = {}
-
-            if Thread.current[:good_job_execution]
-              execution = Thread.current[:good_job_execution]
-              if execution.respond_to?(:job_id)
-                job_context[:job_id] = execution.job_id
-                job_context[:job_class] = execution.job_class if execution.respond_to?(:job_class)
-                job_context[:queue_name] = execution.queue_name if execution.respond_to?(:queue_name)
-                job_context[:executions] = execution.executions if execution.respond_to?(:executions)
-                job_context[:scheduled_at] = execution.scheduled_at if execution.respond_to?(:scheduled_at)
-                job_context[:priority] = execution.priority if execution.respond_to?(:priority)
-              end
+            # LogStruct log entries and Hashes (like the thread error handler's) are logged as they are
+            unless message.nil? || message.is_a?(String)
+              next super(message, payload, &block)
             end
+
+            job_context = Logger.current_job_context
 
             log_struct = Log::GoodJob::Log.new(
               message: message || (block ? block.call : ""),
@@ -60,6 +48,27 @@ module LogStruct
 
             super(log_struct, payload, &nil)
           end
+        end
+
+        # The job GoodJob is running on this thread: CurrentThread.job (a GoodJob::Job) in GoodJob 4,
+        # CurrentThread.execution in GoodJob 3
+        sig { returns(T::Hash[Symbol, T.untyped]) }
+        def self.current_job_context
+          return {} unless defined?(::GoodJob::CurrentThread)
+
+          current = ::GoodJob::CurrentThread
+          job = (current.job if current.respond_to?(:job)) || (current.execution if current.respond_to?(:execution))
+          return {} unless job
+
+          job_class = job.try(:job_class) || job.try(:serialized_params)&.dig("job_class")
+          {
+            job_id: job.try(:active_job_id)&.to_s,
+            job_class: job_class&.to_s,
+            queue_name: job.try(:queue_name)&.to_sym,
+            executions: job.try(:executions_count) || job.try(:executions),
+            scheduled_at: job.try(:scheduled_at),
+            priority: job.try(:priority)
+          }
         end
       end
     end

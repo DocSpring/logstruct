@@ -156,6 +156,7 @@ module LogStruct
           return true if defined?(::Falcon::Server)
           return true if defined?(::Rails::Server)
           return true if sidekiq_server?
+          return true if good_job_cli?
 
           false
         end
@@ -174,6 +175,12 @@ module LogStruct
         sig { returns(T::Boolean) }
         def sidekiq_server?
           !!(defined?(::Sidekiq) && ::Sidekiq.respond_to?(:server?) && ::Sidekiq.server?)
+        end
+
+        # GoodJob's executable (`good_job start`) sets within_exe before it loads the app
+        sig { returns(T::Boolean) }
+        def good_job_cli?
+          !!(defined?(::GoodJob::CLI) && ::GoodJob::CLI.respond_to?(:within_exe?) && ::GoodJob::CLI.within_exe?)
         end
 
         sig { returns(T::Boolean) }

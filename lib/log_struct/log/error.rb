@@ -29,7 +29,7 @@ module LogStruct
       const :level, Level, default: Level::Info
 
       # Event-specific fields
-      const :error_class, T.class_of(StandardError)
+      const :error_class, T.class_of(Exception)
       const :message, String
       const :backtrace, T.nilable(T::Array[String]), default: nil
 

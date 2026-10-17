@@ -89,7 +89,8 @@ module LogStruct
           )
         end
 
-        sig { params(exception: StandardError, job: ::ActiveJob::Base, _event: ::ActiveSupport::Notifications::Event).void }
+        # perform_now lets any Exception through, not only StandardErrors
+        sig { params(exception: Exception, job: ::ActiveJob::Base, _event: ::ActiveSupport::Notifications::Event).void }
         def log_exception(exception, job, _event)
           base_fields = build_base_fields(job)
           job_context = base_fields.to_kwargs
@@ -97,6 +98,8 @@ module LogStruct
           log_data = Log.from_exception(Source::Job, exception, job_context)
 
           logger.error(log_data)
+          # So a backend that reports the same exception (GoodJob's on_thread_error) doesn't log it again
+          LogStruct::LoggedErrors.mark(exception)
         end
 
         sig { returns(T.untyped) }

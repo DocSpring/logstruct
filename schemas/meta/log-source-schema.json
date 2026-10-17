@@ -61,6 +61,7 @@
         "T::Array[T::Boolean]",
         "T::Array[Time]",
         "T.class_of(StandardError)",
+        "T.class_of(Exception)",
         "T.untyped"
       ]
     },

@@ -7,11 +7,7 @@
 # Template: tools/codegen/templates/sorbet/source_parent.rb.erb
 
 require_relative "good_job/log"
-require_relative "good_job/enqueue"
-require_relative "good_job/start"
-require_relative "good_job/finish"
 require_relative "good_job/error"
-require_relative "good_job/schedule"
 
 module LogStruct
   module Log

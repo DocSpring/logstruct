@@ -7,6 +7,13 @@ require "log_struct/integrations/good_job/logger"
 module LogStruct
   module Integrations
     class GoodJobTest < ActiveSupport::TestCase
+      # Stands in for GoodJob::CLI
+      class FakeGoodJobCLI
+        class << self
+          attr_accessor :log_to_stdout
+        end
+      end
+
       setup do
         @original_config = LogStruct.config
         LogStruct.configuration = LogStruct::Configuration.new
@@ -57,7 +64,7 @@ module LogStruct
         assert_includes GoodJob.private_methods, :configure_logger
       end
 
-      test "replaces GoodJob's logger and logs thread errors after the app's own handler" do
+      test "replaces GoodJob's logger, and logs thread errors as well as passing them to the app's handler" do
         with_fake_goodjob do |fake|
           reported = []
           fake.on_thread_error = ->(exception) { reported << exception.message }
@@ -66,18 +73,120 @@ module LogStruct
           GoodJob.send(:configure_logger)
 
           assert_instance_of GoodJob::Logger, fake.logger
-          logged = []
-          fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
-            fake.on_thread_error.call(RuntimeError.new("boom"))
-          end
-
-          assert_equal ["boom"], reported
-          assert_equal ["boom"], logged
+          assert_same false, FakeGoodJobCLI.log_to_stdout, "GoodJob's executable shouldn't add a plain text STDOUT logger"
+          assert_thread_error_logged_and_reported(fake, reported)
         end
       end
 
-      test "subscribe_to_notifications method exists and is private" do
-        assert_includes GoodJob.private_methods, :subscribe_to_notifications
+      test "a thread error is one structured error line from GoodJob's logger" do
+        io = setup_isolated_logger
+        with_fake_goodjob do |fake|
+          GoodJob.send(:configure_logger)
+          clear_log_buffer(io)
+
+          error = RuntimeError.new("boom")
+          error.set_backtrace(["app/jobs/example_job.rb:3:in 'perform'"])
+          fake._on_thread_error(error)
+          ::SemanticLogger.flush
+
+          lines = io.string.lines.map { |line| JSON.parse(line) }
+
+          assert_equal 1, lines.length
+          assert_equal %w[job error error RuntimeError boom],
+            lines[0].values_at("src", "evt", "lvl", "error_class", "error_message")
+        end
+      ensure
+        teardown_isolated_logger
+      end
+
+      # In a Rails app, GoodJob's engine sets config.good_job.on_thread_error in an after_initialize
+      # block that runs after LogStruct's setup
+      test "logs thread errors when the app sets its handler after LogStruct's setup" do
+        with_fake_goodjob do |fake|
+          2.times { GoodJob.setup(LogStruct.config) }
+
+          reported = []
+          fake.on_thread_error = ->(exception) { reported << exception.message }
+
+          assert_thread_error_logged_and_reported(fake, reported)
+        end
+      end
+
+      test "GoodJob's own error lines are off for the errors it passes to the thread error handler" do
+        with_fake_goodjob do |fake|
+          # Like GoodJob::LogSubscriber: it logs errors as text with the whole backtrace in the message
+          log_subscriber = Class.new do
+            attr_reader :lines
+
+            def initialize
+              @lines = []
+            end
+
+            def finished_job_task(event) = @lines << [:job, event]
+
+            def notifier_notify_error(event) = error { "Notifier errored: #{event.payload[:error].backtrace}" }
+
+            def systemd_watchdog_error(event) = error { "Error pinging systemd: #{event.payload[:error].backtrace}" }
+
+            def scheduler_create_pool(event) = @lines << [:pool, event]
+
+            def error(progname = nil, tags: [], &block) = @lines << [:error, block ? yield : progname]
+          end
+          fake.const_set(:LogSubscriber, log_subscriber)
+
+          2.times { GoodJob.setup(LogStruct.config) }
+
+          connection_error = IOError.new("connection lost")
+          connection_error.set_backtrace(["lib/good_job/notifier.rb:1:in 'listen'"])
+          other_error = RuntimeError.new("listen failed")
+          event = ->(error) { Struct.new(:payload).new({error: error}) }
+          subscriber = log_subscriber.new
+          subscriber.finished_job_task(event.call(other_error))
+          # The notifier passes connection errors on only once they repeat, and every other error straight away
+          subscriber.notifier_notify_error(event.call(connection_error))
+          subscriber.notifier_notify_error(event.call(other_error))
+          # GoodJob passes every systemd watchdog error on
+          subscriber.systemd_watchdog_error(event.call(other_error))
+          subscriber.scheduler_create_pool(:event)
+
+          assert_equal [[:error, "Notifier errored: IOError: connection lost"], [:pool, :event]], subscriber.lines
+          assert_equal 1, log_subscriber.ancestors.count(GoodJob::CompactErrorLines)
+        end
+      end
+
+      test "doesn't log a failed job's exception the ActiveJob integration logged, and still passes it on" do
+        with_fake_goodjob do |fake|
+          GoodJob.setup(LogStruct.config)
+          reported = []
+          fake.on_thread_error = ->(exception) { reported << exception }
+          error = RuntimeError.new("job failed")
+          LogStruct::LoggedErrors.mark(error)
+
+          logged = []
+          fake.logger.stub(:error, ->(entry) { logged << entry }) do
+            fake._on_thread_error(error)
+          end
+
+          assert_empty logged
+          assert_equal [error], reported
+        end
+      end
+
+      # GoodJob passes any Exception its handled_exceptions setting lets through
+      test "logs a thread error that isn't a StandardError, and still passes it on" do
+        with_fake_goodjob do |fake|
+          GoodJob.setup(LogStruct.config)
+          reported = []
+          fake.on_thread_error = ->(exception) { reported << exception.class }
+
+          logged = []
+          fake.logger.stub(:error, ->(entry) { logged << entry.error_class }) do
+            fake._on_thread_error(NotImplementedError.new("not yet"))
+          end
+
+          assert_equal ["NotImplementedError"], logged
+          assert_equal [NotImplementedError], reported
+        end
       end
 
       test "integration is included in automatic setup" do
@@ -100,13 +209,33 @@ module LogStruct
 
       private
 
+      # A thread error reaches the app's handler (which adds to reported) and GoodJob's logger once
+      def assert_thread_error_logged_and_reported(fake, reported)
+        logged = []
+        fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
+          fake._on_thread_error(RuntimeError.new("boom"))
+        end
+
+        assert_equal ["boom"], reported
+        assert_equal ["boom"], logged
+      end
+
       # Stands in for the GoodJob gem, which isn't installed for the tests
       def with_fake_goodjob
         fake = Module.new do
           class << self
             attr_accessor :logger, :on_thread_error
+
+            # Like GoodJob: every thread error goes through here
+            def _on_thread_error(exception)
+              on_thread_error.call(exception) if on_thread_error.respond_to?(:call)
+            end
           end
         end
+        FakeGoodJobCLI.log_to_stdout = nil
+        fake.const_set(:CLI, FakeGoodJobCLI)
+        # GoodJob's list names database connection errors; IOError stands in for them here
+        fake.const_set(:Notifier, Module.new.tap { |notifier| notifier.const_set(:CONNECTION_ERRORS, %w[IOError]) })
         Object.const_set(:GoodJob, fake)
         yield fake
       ensure

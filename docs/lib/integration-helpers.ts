@@ -88,7 +88,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'GoodJob',
         description:
-          'The GoodJob integration logs job lifecycle events (enqueue, start, finish, error) with execution context and performance metrics.',
+          "The GoodJob integration logs GoodJob's own messages and its thread errors as structured lines (GoodJob 3.0 or later). GoodJob's jobs are logged by the ActiveJob integration.",
       };
 
     case LogType.SQL:
@@ -150,7 +150,7 @@ export function getEventsForLogType(logType: LogType): Event[] {
     case LogType.CARRIERWAVE:
       return [Event.Upload, Event.Delete];
     case LogType.GOODJOB:
-      return [Event.Enqueue, Event.Start, Event.Finish, Event.Error, Event.Log];
+      return [Event.Error, Event.Log];
     case LogType.SQL:
       return [Event.Database];
     case LogType.ACTIVEMODELSERIALIZERS:

@@ -5,6 +5,14 @@ require "test_helper"
 
 module LogStruct
   class ConfigurationTest < ActiveSupport::TestCase
+    # Stands in for GoodJob::CLI (GoodJob isn't installed for the tests)
+    class FakeGoodJobCLI
+      class << self
+        attr_accessor :within_exe
+        alias_method :within_exe?, :within_exe
+      end
+    end
+
     setup do
       # Save original configuration
       @original_config = LogStruct.config.dup
@@ -301,6 +309,36 @@ module LogStruct
     ensure
       ::ARGV.replace(original_argv) if defined?(original_argv)
       ::Rails.send(:remove_const, :Server) if defined?(::Rails::Server)
+    end
+
+    def test_enabled_for_good_job_executable_in_production
+      original_server_mode = LogStruct.server_mode?
+      had_rails_server = defined?(::Rails::Server)
+      LogStruct.server_mode = false
+      ::Rails.send(:remove_const, :Server) if defined?(::Rails::Server)
+      LogStruct.config.enabled = false
+      LogStruct.config.enabled_environments = [:production]
+
+      # GoodJob loads its CLI class in every process; only its executable sets within_exe
+      raise "GoodJob is loaded in the tests, so this test can't stand in for it" if defined?(::GoodJob)
+      FakeGoodJobCLI.within_exe = nil
+      Object.const_set(:GoodJob, Module.new)
+      ::GoodJob.const_set(:CLI, FakeGoodJobCLI)
+
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+        LogStruct.set_enabled_from_rails_env!
+
+        assert_not LogStruct.config.enabled, "LogStruct should stay disabled when GoodJob is loaded outside its executable"
+
+        FakeGoodJobCLI.within_exe = true
+        LogStruct.set_enabled_from_rails_env!
+
+        assert LogStruct.config.enabled, "LogStruct should be enabled in GoodJob's executable in production"
+      end
+    ensure
+      LogStruct.server_mode = T.must(original_server_mode)
+      ::Rails.const_set(:Server, Class.new) if had_rails_server && !defined?(::Rails::Server)
+      Object.send(:remove_const, :GoodJob) if defined?(::GoodJob)
     end
 
     def test_disabled_for_console_in_production

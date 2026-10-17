@@ -19,6 +19,18 @@ module LogStruct
           teardown_isolated_logger
         end
 
+        # Stands in for GoodJob::CurrentThread (GoodJob isn't installed for the tests)
+        def with_good_job_current_thread(**accessors)
+          current_thread = Module.new
+          accessors.each { |name, value| current_thread.define_singleton_method(name) { value } }
+          good_job = Module.new
+          good_job.const_set(:CurrentThread, current_thread)
+          Object.const_set(:GoodJob, good_job)
+          yield
+        ensure
+          Object.send(:remove_const, :GoodJob) if Object.const_defined?(:GoodJob, false)
+        end
+
         test "extends LogStruct SemanticLogger Logger" do
           assert_kind_of LogStruct::SemanticLogger::Logger, @logger
         end
@@ -61,86 +73,73 @@ module LogStruct
           assert_equal "Job failed", log["msg"]
         end
 
-        test "extracts job context from thread local variables" do
+        test "logs a LogStruct log entry as it is" do
           clear_log_buffer(@io)
 
-          # Simulate GoodJob setting thread-local execution context
-          mock_execution = OpenStruct.new(
-            job_id: "job_123",
-            job_class: "TestJob",
-            queue_name: :default,
-            executions: 1,
-            scheduled_at: Time.now,
-            priority: 5
+          @logger.error(
+            Log::GoodJob::Error.new(
+              error_class: "RuntimeError",
+              error_message: "boom",
+              level: Level::Error,
+              process_id: Process.pid,
+              thread_id: "abc"
+            )
+          )
+          @logger.info({evt: "custom", note: "hash"})
+          ::SemanticLogger.flush
+
+          lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+          assert_equal 2, lines.length
+          assert_equal %w[error error RuntimeError boom], lines[0].values_at("evt", "lvl", "error_class", "error_message")
+          assert_equal %w[custom hash], lines[1].values_at("evt", "note")
+        end
+
+        # GoodJob 4: CurrentThread.job is the GoodJob::Job being run
+        test "logs the running job's fields from GoodJob::CurrentThread.job" do
+          clear_log_buffer(@io)
+          job = Struct.new(:active_job_id, :job_class, :queue_name, :executions_count, :scheduled_at, :priority, keyword_init: true).new(
+            active_job_id: "job_123", job_class: "TestJob", queue_name: "default", executions_count: 1, scheduled_at: Time.now, priority: 5
           )
 
-          Thread.current[:good_job_execution] = mock_execution
-
-          @logger.info("Processing job")
+          with_good_job_current_thread(job: job) { @logger.info("Processing job") }
           ::SemanticLogger.flush
+          log = JSON.parse(@io.string.lines.first.strip)
 
-          output = @io.string
-          log = JSON.parse(output.lines.first.strip)
-
-          assert_equal "job_123", log["job_id"]
-          assert_equal "TestJob", log["job_class"]
-          assert_equal "default", log["queue_name"]
-          assert_equal 1, log["executions"]
+          assert_equal ["job_123", "TestJob", "default", 1, 5], log.values_at("job_id", "job_class", "queue_name", "executions", "priority")
           assert log["scheduled_at"]
-          assert_equal 5, log["priority"]
-
-          # Clean up
-          Thread.current[:good_job_execution] = nil
         end
 
-        test "handles missing job context gracefully" do
+        # GoodJob 3: CurrentThread.execution, with the job class in its serialized params
+        test "logs the running job's fields from GoodJob::CurrentThread.execution" do
           clear_log_buffer(@io)
+          execution = Struct.new(:active_job_id, :serialized_params, :queue_name, keyword_init: true).new(
+            active_job_id: "job_456", serialized_params: {"job_class" => "OlderJob"}, queue_name: "low"
+          )
 
-          # Ensure no job context is set
-          Thread.current[:good_job_execution] = nil
-
-          @logger.info("Regular log message")
+          with_good_job_current_thread(execution: execution) { @logger.info("Processing job") }
           ::SemanticLogger.flush
+          log = JSON.parse(@io.string.lines.first.strip)
 
-          output = @io.string
-          log = JSON.parse(output.lines.first.strip)
-
-          # Should still log successfully
-          assert_equal "job", log["src"]
-          assert_equal "Regular log message", log["msg"]
-
-          # Job-specific fields should be absent
-          refute log.key?("job_id")
-          refute log.key?("job_class")
-          refute log.key?("queue_name")
+          assert_equal %w[job_456 OlderJob low], log.values_at("job_id", "job_class", "queue_name")
+          refute log.key?("priority")
         end
 
-        test "handles execution context with missing methods gracefully" do
+        test "logs no job fields outside a job" do
           clear_log_buffer(@io)
 
-          # Create a mock execution that doesn't respond to some methods
-          mock_execution = Object.new
-          mock_execution.define_singleton_method(:job_id) do
-            "partial_job_123"
+          with_good_job_current_thread(job: nil) { @logger.info("Regular log message") }
+          @logger.info("Without GoodJob")
+          ::SemanticLogger.flush
+          logs = @io.string.lines.map { |line| JSON.parse(line) }
+
+          assert_equal ["Regular log message", "Without GoodJob"], logs.map { |log| log["msg"] }
+          logs.each do |log|
+            assert_equal "job", log["src"]
+            refute log.key?("job_id")
+            refute log.key?("job_class")
+            refute log.key?("queue_name")
           end
-          # job_class method intentionally missing
-
-          Thread.current[:good_job_execution] = mock_execution
-
-          @logger.info("Partial context job")
-          ::SemanticLogger.flush
-
-          output = @io.string
-          log = JSON.parse(output.lines.first.strip)
-
-          # Should include available fields
-          assert_equal "partial_job_123", log["job_id"]
-
-          # Should not include unavailable fields
-          refute log.key?("job_class")
-
-          # Clean up
-          Thread.current[:good_job_execution] = nil
         end
 
         test "supports all log levels" do
