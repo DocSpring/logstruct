@@ -200,6 +200,19 @@ module LogStruct
       assert_includes result, "[PHONE]"
     end
 
+    def test_scrub_us_phone_numbers_in_their_common_formats
+      ["555-123-4567", "555 123 4567", "555.123.4567", "(555) 123-4567", "(555)123-4567", "+1 555-123-4567",
+        "+1 (555) 123-4567", "+1-555-123-4567"].each do |number|
+        assert_equal "Call [PHONE] today", StringScrubber.scrub("Call #{number} today"), number
+      end
+    end
+
+    def test_leave_numbers_other_than_us_phone_numbers
+      ["5551234567", "v1.555.123", "+44 20 7946 0958", "order 555-1234"].each do |text|
+        assert_equal text, StringScrubber.scrub(text)
+      end
+    end
+
     def test_scrub_ssns
       # Test with a formatted SSN
       input = "SSN: 123-45-6789"
@@ -225,6 +238,30 @@ module LogStruct
 
       assert_not_includes result, "00:11:22:33:44:55"
       assert_includes result, "[MAC]"
+    end
+
+    def test_scrub_ipv6_addresses
+      {
+        "from 2001:db8::1 now" => "from [IP] now",
+        "2001:0db8:85a3:0000:0000:8a2e:0370:7334" => "[IP]",
+        "[fe80::1ff:fe23:4567:890a]:8080" => "[[IP]]:8080",
+        "::1" => "[IP]",
+        "::ffff:192.168.1.1" => "[IP]",
+        "Connected to 2001:db8::1." => "Connected to [IP]."
+      }.each do |input, expected|
+        assert_equal expected, StringScrubber.scrub(input), input
+      end
+    end
+
+    def test_leave_text_with_colons_other_than_ipv6_addresses
+      ["at 12:30:45", "ActiveRecord::Base", "Face::Bead", "2026-10-17T12:30:45Z", "a::b::c"].each do |text|
+        assert_equal text, StringScrubber.scrub(text)
+      end
+    end
+
+    def test_scrub_mac_addresses_with_dashes
+      assert_equal "MAC: [MAC]", StringScrubber.scrub("MAC: 00-1A-2B-3C-4D-5E")
+      assert_equal "00-1A:2B-3C-4D-5E", StringScrubber.scrub("00-1A:2B-3C-4D-5E")
     end
 
     def test_disabled_filters

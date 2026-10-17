@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 require "base64"
-
+require "ipaddr"
 require "uri"
 require_relative "hash_utils"
 require_relative "param_filters"
@@ -55,16 +55,21 @@ module LogStruct
       /x
       CREDIT_CARD_REPLACEMENT = "[CREDIT_CARD]"
 
-      PHONE_REGEX = /\b\d{3}[\s-]\d{3}[\s-]\d{4}\b/
+      # US numbers: 555-123-4567, 555 123 4567, 555.123.4567 and (555) 123-4567, with or without +1
+      PHONE_REGEX = /(?<![\w+])(?:\+1[\s.-]?)?(?:\(\d{3}\)[\s.-]?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?!\w)/
       PHONE_REPLACEMENT = "[PHONE]"
 
       SSN_REGEX = /\b\d{3}[\s-]\d{2}[\s-]\d{4}\b/
       SSN_REPLACEMENT = "[SSN]"
 
       IP_REGEX = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/
+      # Text that could be an IPv6 address (2001:db8::1, ::ffff:192.168.1.1). IPAddr decides whether it is one,
+      # and it must have a digit, so Ruby constants (Face::Bead) and times (12:30:45) stay.
+      IPV6_CANDIDATE_REGEX = /(?<![\w:.])(?=[\h:.]*\d)(?:\h{0,4}:){2,7}(?:\d{1,3}(?:\.\d{1,3}){3}|\h{1,4})?(?![\w:])/
       IP_REPLACEMENT = "[IP]"
 
-      MAC_REGEX = /\b[0-9a-f]{2}(:[0-9a-f]{2}){5}\b/i
+      # Six pairs of hex digits, separated by colons or by dashes
+      MAC_REGEX = /\b[0-9a-f]{2}([:-])[0-9a-f]{2}(?:\1[0-9a-f]{2}){4}\b/i
       MAC_REPLACEMENT = "[MAC]"
 
       # Hash keys and Symbols like these are never changed by the scrubbers, so they're skipped
@@ -108,8 +113,11 @@ module LogStruct
         # SSNs
         string.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.ssns
 
-        # IPs
-        string.gsub!(IP_REGEX, IP_REPLACEMENT) if config.ip_addresses
+        # IPs: IPv6 first, which can end in an IPv4 address
+        if config.ip_addresses
+          scrub_ipv6_addresses!(string) if string.include?(":")
+          string.gsub!(IP_REGEX, IP_REPLACEMENT)
+        end
 
         # MAC addresses
         string.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.mac_addresses
@@ -168,6 +176,20 @@ module LogStruct
       end
 
       private
+
+      sig { params(string: String).void }
+      def scrub_ipv6_addresses!(string)
+        string.gsub!(IPV6_CANDIDATE_REGEX) do |candidate|
+          ipv6_address?(candidate) ? IP_REPLACEMENT : candidate
+        end
+      end
+
+      sig { params(candidate: String).returns(T::Boolean) }
+      def ipv6_address?(candidate)
+        ::IPAddr.new(candidate).ipv6?
+      rescue ::IPAddr::Error
+        false
+      end
 
       # Bearer tokens and Basic credentials (Authorization: Bearer eyJ... becomes Bearer [FILTERED])
       sig { params(string: String).void }
