@@ -82,6 +82,9 @@ module LogStruct
         # Rails' "Processing by", "Completed 200 OK" and "Rendered" lines, which the request line replaces
         sig { void }
         def unsubscribe_rails_request_lines
+          # Earlier Rails versions' subscribers are lograge's to detach
+          return unless defined?(::ActiveSupport::EventReporter::LogSubscriber)
+
           RailsLogSubscribers.unsubscribe_from_events(::ActionController::LogSubscriber) if defined?(::ActionController::LogSubscriber)
           RailsLogSubscribers.unsubscribe_from_events(::ActionView::LogSubscriber) if defined?(::ActionView::LogSubscriber)
         end
