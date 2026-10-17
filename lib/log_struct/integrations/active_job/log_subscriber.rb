@@ -29,9 +29,14 @@ module LogStruct
         sig { params(event: ::ActiveSupport::Notifications::Event).void }
         def enqueue_all(event)
           ts = EventTime.coerce_event_time(event.time)
-          Array(event.payload[:jobs]).each do |job|
-            next unless job.is_a?(::ActiveJob::Base)
+          jobs = Array(event.payload[:jobs]).grep(::ActiveJob::Base)
+          # Adapters with their own enqueue_all (Sidekiq's) say only how many jobs they enqueued
+          if jobs.none? { |job| job.successfully_enqueued? || job.enqueue_error }
+            log_enqueued_count(jobs, event.payload[:enqueued_count], ts)
+            return
+          end
 
+          jobs.each do |job|
             if job.successfully_enqueued?
               log_enqueued(job, ts)
             elsif job.enqueue_error
@@ -144,6 +149,19 @@ module LogStruct
             logger.info(Log::ActiveJob::Schedule.new(**base_fields.to_kwargs, scheduled_at: scheduled_at, timestamp: ts))
           else
             logger.info(Log::ActiveJob::Enqueue.new(**base_fields.to_kwargs, timestamp: ts))
+          end
+        end
+
+        # Every job's line when the adapter enqueued them all; when it didn't, it doesn't say which it enqueued
+        sig { params(jobs: T::Array[::ActiveJob::Base], enqueued_count: T.untyped, ts: Time).void }
+        def log_enqueued_count(jobs, enqueued_count, ts)
+          return if jobs.empty?
+
+          if enqueued_count == jobs.size
+            jobs.each { |job| log_enqueued(job, ts) }
+          else
+            classes = jobs.map { |job| job.class.to_s }.uniq.join(", ")
+            logger.warn("perform_all_later enqueued #{enqueued_count.to_i} of #{jobs.size} jobs (#{classes}); the queue adapter doesn't say which")
           end
         end
 

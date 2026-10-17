@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **ActiveJob**: `retry`, `retry_stopped` and `discard` lines, with the exception that `retry_on` or `discard_on` caught (and the wait before the retry). The exception was in no line. `perform_all_later` writes a line per job
+- **ActiveJob**: `retry`, `retry_stopped` and `discard` lines, with the exception that `retry_on` or `discard_on` caught (and the wait before the retry). The exception was in no line. `perform_all_later` writes a line per job; with an adapter that reports only how many jobs it enqueued (Sidekiq's), a line per job when it enqueued them all, and one warn line with the counts when it didn't
 - **ActiveStorage**: Deleting files by prefix (a blob's variants, when an image is purged) is a `delete` line with `prefix`. It raised a type error inside LogStruct, and wrote no line
 - **CarrierWave**: `download` lines (a remote file fetched with `download!`) and `delete` lines (`remove!`)
 - **Shrine**: Upload lines have the file's `mime_type` and `size`, and metadata lines how long extracting the metadata took. They leave out the file's original name, which can name a person

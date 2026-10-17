@@ -98,6 +98,12 @@ export default function ActiveJobIntegrationPage() {
         callback stopped writes no line. Rails tags the lines of <code>perform_later</code> with{' '}
         <code>ActiveJob</code>, but not those of <code>perform_all_later</code>.
       </p>
+      <p className="text-neutral-600 dark:text-neutral-300">
+        Some adapters (Sidekiq&apos;s) enqueue the jobs together and say only how many they
+        enqueued. When that&apos;s all of them, each job has its line. When it&apos;s fewer (a
+        Sidekiq client middleware stopped one), there&apos;s one <code>warn</code> line with both
+        counts instead, since the adapter doesn&apos;t say which jobs it enqueued.
+      </p>
 
       <HeadingWithAnchor id="schedule" level={3} className="text-xl font-semibold mt-6 mb-3">
         schedule

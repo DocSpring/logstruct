@@ -4,6 +4,8 @@
 require "test_helper"
 require "log_struct/integrations/active_job/log_subscriber"
 require "active_support/notifications"
+require "minitest/mock"
+require "sidekiq"
 require "time"
 
 module LogStruct
@@ -16,6 +18,13 @@ module LogStruct
         end
 
         class TestMailer < ::ActionMailer::Base
+        end
+
+        class SidekiqBulkJob < ::ActiveJob::Base
+          self.queue_adapter = :sidekiq
+
+          def perform
+          end
         end
 
         setup do
@@ -214,6 +223,32 @@ module LogStruct
           )
         end
 
+        test "perform_all_later on Sidekiq's adapter, which says only how many jobs it enqueued, writes a line for each" do
+          event = sidekiq_enqueue_all_event(2) { |args| Array.new(args.size) { SecureRandom.hex(12) } }
+
+          @subscriber.enqueue_all(event)
+          ::SemanticLogger.flush
+
+          jobs = event.payload[:jobs]
+
+          assert_equal [false, false], jobs.map { |job| !!job.successfully_enqueued? }
+          assert_equal [["enqueue", jobs[0].job_id], ["enqueue", jobs[1].job_id]], json_lines(@log_output).map { |log| log.values_at("evt", "job_id") }
+        end
+
+        test "perform_all_later on Sidekiq's adapter that enqueued fewer jobs than it was given writes one warning" do
+          # A client middleware can stop a job: push_bulk returns nil for it
+          event = sidekiq_enqueue_all_event(2) { |args| [SecureRandom.hex(12), *Array.new(args.size - 1)] }
+
+          @subscriber.enqueue_all(event)
+          ::SemanticLogger.flush
+
+          lines = json_lines(@log_output)
+
+          assert_equal 1, lines.size
+          assert_equal "warn", lines.first["lvl"]
+          assert_match(/enqueued 1 of 2 jobs \(.*SidekiqBulkJob\)/, lines.first["msg"])
+        end
+
         test "retry_on writes a retry line with the exception and the wait" do
           clear_log_buffer(@log_output)
           job = TestActiveJob.new
@@ -270,6 +305,20 @@ module LogStruct
 
         def build_event(name, start_time, finish_time, payload)
           ::ActiveSupport::Notifications::Event.new(name, start_time, finish_time, "test", payload)
+        end
+
+        # The enqueue_all event of a real perform_all_later on the Sidekiq adapter, with Redis replaced by the block
+        # (given the jobs' arguments, it returns their JIDs). The lines it wrote itself are cleared.
+        def sidekiq_enqueue_all_event(count, &push_bulk)
+          events = []
+          subscription = ::ActiveSupport::Notifications.subscribe("enqueue_all.active_job") { |event| events << event }
+          ::Sidekiq::Client.stub(:push_bulk, ->(payload) { yield(payload.fetch("args")) }) do
+            ::ActiveJob.perform_all_later(Array.new(count) { SidekiqBulkJob.new })
+          end
+          ::ActiveSupport::Notifications.unsubscribe(subscription)
+          ::SemanticLogger.flush
+          clear_log_buffer(@log_output)
+          events.fetch(0)
         end
 
         def parse_first_log(io)
