@@ -61,6 +61,15 @@ module LogStruct
         replace_rails_logger(app)
       end
 
+      # Adds the appenders again, with the settings config/initializers changed after the logger was set up
+      # (prefer_json_in_development, enable_color_output, color_map, filter_noisy_loggers, local_environments)
+      sig { params(app: T.untyped).void }
+      def self.reconfigure_appenders(app)
+        ::SemanticLogger.flush
+        ::SemanticLogger.clear_appenders!
+        add_appenders(app)
+      end
+
       sig { params(app: T.untyped).returns(Symbol) }
       def self.determine_log_level(app)
         level = if app.config.log_level

@@ -95,6 +95,39 @@ module LogStruct
       assert_equal ["app/jobs/sync_job.rb:3:in 'perform'"], lines.first["backtrace"]
     end
 
+    test "settings from config/initializers apply to the logger set up before them" do
+      LogStruct.config.prefer_json_in_development = false
+
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
+        Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("development")) do
+          LogStruct::SemanticLogger::Setup.reconfigure_appenders(Rails.application)
+        end
+      end
+
+      assert_equal [LogStruct::SemanticLogger::ColorFormatter], ::SemanticLogger.appenders.map { |appender| appender.formatter.class }
+    ensure
+      LogStruct.config.prefer_json_in_development = true
+    end
+
+    test "the logstruct.setup initializer adds the appenders again when the logger is already set up" do
+      initializer = LogStruct::Railtie.instance.initializers.find { |i| i.name == "logstruct.setup" }
+      reconfigured = []
+
+      LogStruct.stub(:apply_initializer_settings!, nil) do
+        LogStruct.stub(:merge_rails_filter_parameters!, nil) do
+          LogStruct::Integrations.stub(:setup_integrations, ->(stage:) {}) do
+            LogStruct::SemanticLogger::Setup.stub(:configured?, true) do
+              LogStruct::SemanticLogger::Setup.stub(:reconfigure_appenders, ->(app) { reconfigured << app }) do
+                T.must(initializer).run(Rails.application)
+              end
+            end
+          end
+        end
+      end
+
+      assert_equal [Rails.application], reconfigured
+    end
+
     test "logs only to STDOUT in production" do
       ::SemanticLogger.clear_appenders!
       Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
