@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   get "/logging/shrine_upload", to: "logging#test_shrine_upload"
   get "/logging/ams", to: "logging#test_ams_serialization"
 
+  post "/security/submit", to: "security#submit"
+  get "/security/remote_ip", to: "security#remote_ip"
+
   # Healthcheck route
   get "/health", to: proc { [200, {}, ["OK"]] }
 end

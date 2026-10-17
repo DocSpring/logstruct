@@ -28,6 +28,12 @@ module LogStruct
       const :timestamp, Time, factory: -> { Time.now }
       const :level, Level, default: Level::Info
 
+      const :path, T.nilable(String), default: nil
+      const :http_method, T.nilable(String), default: nil
+      const :source_ip, T.nilable(String), default: nil
+      const :user_agent, T.nilable(String), default: nil
+      const :referer, T.nilable(String), default: nil
+
       # Event-specific fields
       const :error_class, T.class_of(Exception)
       const :message, String
@@ -39,13 +45,22 @@ module LogStruct
       const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
       include LogStruct::Log::Shared::MergeAdditionalDataFields
 
+      # Request fields (optional)
+      include LogStruct::Log::Interfaces::RequestFields
+
       # Serialize shared fields
       include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon
+      include LogStruct::Log::Shared::AddRequestFields
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
       def to_h
         h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
+        h[LogField::Path] = path unless path.nil?
+        h[LogField::HttpMethod] = http_method unless http_method.nil?
+        h[LogField::SourceIp] = source_ip unless source_ip.nil?
+        h[LogField::UserAgent] = user_agent unless user_agent.nil?
+        h[LogField::Referer] = referer unless referer.nil?
         h[LogField::ErrorClass] = error_class
         h[LogField::Message] = message
         h[LogField::ErrorMessage] = error_message unless error_message.nil?
