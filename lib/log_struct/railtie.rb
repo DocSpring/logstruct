@@ -41,6 +41,7 @@ module LogStruct
       unless LogStruct.enabled? && LogStruct.config.integrations.enable_sidekiq
         Integrations::Sidekiq.restore_logger
       end
+      Integrations::ActionMailer.setup_fallback_error_handlers(LogStruct.config)
 
       next unless LogStruct.enabled?
 
