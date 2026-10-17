@@ -25,13 +25,8 @@ module LogStruct
         return nil unless config.integrations.enable_activejob
 
         ::ActiveSupport.on_load(:active_job) do
-          if ::ActiveJob::LogSubscriber.respond_to?(:detach_from)
-            # Detach the default text formatter
-            ::ActiveJob::LogSubscriber.detach_from :active_job
-          elsif ::ActiveSupport.respond_to?(:event_reporter)
-            reporter = ::ActiveSupport.event_reporter
-            reporter.unsubscribe(::ActiveJob::LogSubscriber) if reporter.respond_to?(:unsubscribe)
-          end
+          # Detach the default text formatter
+          RailsLogSubscribers.detach(::ActiveJob::LogSubscriber, :active_job)
 
           # Attach our structured formatter
           Integrations::ActiveJob::LogSubscriber.attach_to :active_job

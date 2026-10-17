@@ -37,7 +37,7 @@ module LogStruct
       sig { void }
       def self.detach_rails_log_subscriber
         require "active_storage/log_subscriber"
-        ::ActiveStorage::LogSubscriber.detach_from(:active_storage)
+        RailsLogSubscribers.detach(::ActiveStorage::LogSubscriber, :active_storage)
       rescue LoadError
         nil
       end

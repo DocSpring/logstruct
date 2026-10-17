@@ -56,7 +56,7 @@ module LogStruct
         # is enabled. We still receive notifications via ActiveSupport.
         if defined?(::ActiveRecord::LogSubscriber)
           begin
-            ::ActiveRecord::LogSubscriber.detach_from(:active_record)
+            RailsLogSubscribers.detach(::ActiveRecord::LogSubscriber, :active_record)
           rescue => e
             LogStruct.handle_exception(e, source: LogStruct::Source::Internal)
           end

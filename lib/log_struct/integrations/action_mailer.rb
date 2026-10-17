@@ -33,7 +33,7 @@ module LogStruct
         ActiveSupport.on_load(:action_mailer) do
           # LogStruct's delivery lines replace Rails' mail lines, which also log the whole mail at debug level.
           # Mailers keep their logger, so an app's own logger calls in a mailer are still logged.
-          ::ActionMailer::LogSubscriber.detach_from(:action_mailer) if defined?(::ActionMailer::LogSubscriber)
+          RailsLogSubscribers.detach(::ActionMailer::LogSubscriber, :action_mailer) if defined?(::ActionMailer::LogSubscriber)
 
           prepend LogStruct::Integrations::ActionMailer::EventLogging
           prepend LogStruct::Integrations::ActionMailer::ErrorHandling
