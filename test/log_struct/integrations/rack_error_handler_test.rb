@@ -20,6 +20,33 @@ class LogStruct::Integrations::RackErrorHandlerTest < Minitest::Test
     refute ErrorLines.security_error?(RuntimeError.new("boom"))
   end
 
+  def test_an_unhandled_errors_status_and_cause_are_typed_fields
+    error = begin
+      begin
+        raise IOError, "connection lost"
+      rescue IOError
+        raise "Import failed"
+      end
+    rescue => e
+      e
+    end
+    request = ActionDispatch::Request.new(Rack::MockRequest.env_for("/imports"))
+    lines = []
+
+    LogStruct.stub(:fatal, ->(line) { lines << line }) do
+      ErrorLines.log_unhandled(request, ActionDispatch::ExceptionWrapper.new(ActiveSupport::BacktraceCleaner.new, error))
+      # Without a backtrace cleaner, Rails gives the trace as Thread::Backtrace::Locations
+      ErrorLines.log_unhandled(request, ActionDispatch::ExceptionWrapper.new(nil, error.dup))
+    end
+
+    line = T.cast(lines.fetch(0), LogStruct::Log::Error)
+
+    assert_equal [500, "IOError", "connection lost"], [line.status, line.cause_class, line.cause_message]
+    assert_nil line.additional_data
+    assert_equal 2, lines.size
+    assert_kind_of String, T.cast(lines.fetch(1), LogStruct::Log::Error).backtrace&.first
+  end
+
   def test_the_middleware_logs_an_escaped_error_once_and_raises_it_again
     io = StringIO.new
     logger = Logger.new(io)

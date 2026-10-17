@@ -64,7 +64,8 @@ module LogStruct
           return if LoggedErrors.logged?(error)
 
           LoggedErrors.mark(error)
-          trace = Array(wrapper.exception_trace)
+          # Without a backtrace cleaner, Rails' trace is Thread::Backtrace::Locations
+          trace = Array(wrapper.exception_trace).map(&:to_s)
           cause = error.cause
           line = Log::Error.new(
             source: Source::Rails,
