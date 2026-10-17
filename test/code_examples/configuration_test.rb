@@ -201,12 +201,16 @@ module LogStruct
         # BEGIN CODE EXAMPLE: error_handling_modes
         # ----------------------------------------------------------
         LogStruct.configure do |config|
-          # Configure error handling modes
           modes = config.error_handling_modes
 
+          # The defaults:
+          # Sorbet type errors: raised in development and test, logged and reported in production
           modes.type_checking_errors = LogStruct::ErrorHandlingMode::ReportProduction
-          modes.logstruct_errors = LogStruct::ErrorHandlingMode::ReportProduction
+          # Errors inside LogStruct: raised in development and test, logged in production
+          modes.logstruct_errors = LogStruct::ErrorHandlingMode::LogProduction
+          # CSRF and IP spoofing errors: logged and reported (Rails still responds as usual)
           modes.security_errors = LogStruct::ErrorHandlingMode::Report
+          # Errors LogStruct's integrations pass on, such as a mailer's delivery error: raised
           modes.standard_errors = LogStruct::ErrorHandlingMode::Raise
         end
         # ----------------------------------------------------------
@@ -216,7 +220,7 @@ module LogStruct
         # Verify error handling modes are applied
         assert_equal LogStruct::ErrorHandlingMode::ReportProduction,
           LogStruct.configuration.error_handling_modes.type_checking_errors
-        assert_equal LogStruct::ErrorHandlingMode::ReportProduction,
+        assert_equal LogStruct::ErrorHandlingMode::LogProduction,
           LogStruct.configuration.error_handling_modes.logstruct_errors
         assert_equal LogStruct::ErrorHandlingMode::Report,
           LogStruct.configuration.error_handling_modes.security_errors

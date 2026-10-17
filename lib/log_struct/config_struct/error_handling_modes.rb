@@ -16,7 +16,9 @@ module LogStruct
       # - Raise - Always raise the error
 
       # Configurable error handling categories
-      prop :type_checking_errors, ErrorHandlingMode, default: ErrorHandlingMode::LogProduction
+      # Sorbet type errors in your app and its gems: logged and reported in production, so they don't pass unseen
+      prop :type_checking_errors, ErrorHandlingMode, default: ErrorHandlingMode::ReportProduction
+      # LogStruct's own errors
       prop :logstruct_errors, ErrorHandlingMode, default: ErrorHandlingMode::LogProduction
       prop :security_errors, ErrorHandlingMode, default: ErrorHandlingMode::Report
       prop :standard_errors, ErrorHandlingMode, default: ErrorHandlingMode::Raise
