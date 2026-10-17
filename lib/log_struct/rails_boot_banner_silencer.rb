@@ -15,6 +15,9 @@ module LogStruct
       @installed = true
 
       return unless ARGV.include?("server")
+      # Rails' own banner stays when LogStruct is disabled
+      return unless LogStruct.enabled?
+
       patch!
     end
 

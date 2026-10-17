@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "timeout"
 
 class PumaIntegrationUnitTest < Minitest::Test
   PUMA = LogStruct::Integrations::Puma
@@ -14,6 +15,84 @@ class PumaIntegrationUnitTest < Minitest::Test
   def teardown
     PUMA.send(:state_reset!)
     ARGV.replace(@original_argv)
+  end
+
+  def test_install_patches_skips_when_puma_is_not_installed
+    installed = PUMA::STATE[:installed]
+    PUMA::STATE[:installed] = false
+
+    PUMA.stub(:require, ->(_name) { raise LoadError, "cannot load such file -- puma" }) do
+      PUMA.install_patches!
+    end
+
+    refute PUMA::STATE[:installed]
+  ensure
+    PUMA::STATE[:installed] = installed
+  end
+
+  def test_puma_lifecycle_initializer_does_nothing_when_logstruct_is_disabled
+    initializer = LogStruct::Railtie.instance.initializers.find { |i| i.name == "logstruct.puma_lifecycle" }
+    logged = []
+
+    LogStruct.stub(:enabled?, false) do
+      LogStruct.stub(:server_mode?, true) do
+        LogStruct.stub(:info, ->(log) { logged << log }) do
+          T.must(initializer).run(Rails.application)
+        end
+      end
+    end
+
+    assert_empty logged
+  end
+
+  def test_shutdown_trap_logs_then_runs_the_previous_handler
+    previous_calls = []
+    shutdowns = []
+    original = Signal.trap("USR2") { |signal_number| previous_calls << signal_number }
+
+    PUMA.stub(:emit_shutdown!, ->(message) { shutdowns << message }) do
+      PUMA.trap_shutdown_signal("USR2")
+      Process.kill("USR2", Process.pid)
+      Timeout.timeout(2) { sleep 0.01 while previous_calls.empty? }
+    end
+
+    assert_equal ["USR2"], shutdowns
+    assert_equal [Signal.list.fetch("USR2")], previous_calls
+  ensure
+    Signal.trap("USR2", original || "DEFAULT")
+  end
+
+  # A real signal in a child process: the default action, EXIT and IGNORE can't be stubbed
+  # (stubbing Signal.trap breaks the debug gem's trap interceptor for later tests)
+  def test_shutdown_trap_does_what_the_signal_does_by_default
+    output = in_child_process do |out|
+      send_signal_after_trapping("DEFAULT", out)
+      out.write("not stopped")
+    rescue SignalException => e
+      out.write("stopped by #{e.signm}")
+    end
+
+    assert_equal "logged USR2; stopped by SIGUSR2", output
+  end
+
+  def test_shutdown_trap_exits_when_the_previous_handler_was_exit
+    output = in_child_process do |out|
+      send_signal_after_trapping("EXIT", out)
+      out.write("not stopped")
+    rescue SystemExit
+      out.write("exited")
+    end
+
+    assert_equal "logged USR2; exited", output
+  end
+
+  def test_shutdown_trap_carries_on_when_the_signal_was_ignored
+    output = in_child_process do |out|
+      send_signal_after_trapping("IGNORE", out, wait: 0.2)
+      out.write("still running")
+    end
+
+    assert_equal "logged USR2; still running", output
   end
 
   def test_process_line_builds_started_log_from_boot_sequence
@@ -128,5 +207,36 @@ class PumaIntegrationUnitTest < Minitest::Test
     ]
 
     lines.each { |line| PUMA.process_line(line) }
+  end
+
+  def send_signal_after_trapping(previous_handler, out, wait: 2)
+    PUMA.stub(:emit_shutdown!, ->(message) { out.write("logged #{message}; ") }) do
+      Signal.trap("USR2", previous_handler)
+      PUMA.trap_shutdown_signal("USR2")
+      Process.kill("USR2", Process.pid)
+      sleep wait
+    end
+  end
+
+  # Runs the block in a forked child and returns what it wrote. exit! skips the child's at_exit hooks
+  # (Minitest, SimpleCov).
+  def in_child_process
+    reader, writer = IO.pipe
+    pid = fork do
+      reader.close
+      begin
+        yield writer
+      rescue Exception => e # rubocop:disable Lint/RescueException
+        writer.write("#{e.class}: #{e.message}")
+      ensure
+        writer.close
+        exit!(0)
+      end
+    end
+    writer.close
+    Process.wait(pid)
+    reader.read
+  ensure
+    reader&.close
   end
 end

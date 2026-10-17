@@ -86,3 +86,5 @@ Luhn
 byteslice
 unwritable
 FFFD
+signm
+SIGUSR

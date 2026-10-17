@@ -55,8 +55,9 @@ module LogStruct
   LogStruct::RailsBootBannerSilencer.install!
 
   # Patch Puma immediately for server runs so we can convert its lifecycle
-  # messages into structured logs reliably.
-  if ARGV.include?("server")
+  # messages into structured logs reliably. Not when LogStruct is disabled, and not
+  # when Puma isn't installed (install_patches! skips it).
+  if LogStruct.enabled? && ARGV.include?("server")
     begin
       require "log_struct/integrations/puma"
       LogStruct::Integrations::Puma.install_patches!
