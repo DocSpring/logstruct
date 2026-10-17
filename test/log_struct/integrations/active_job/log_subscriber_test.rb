@@ -20,6 +20,22 @@ module LogStruct
         class TestMailer < ::ActionMailer::Base
         end
 
+        class PushFailed < StandardError; end
+
+        # An adapter without enqueue_all, so perform_all_later enqueues each job itself
+        class FlakyAdapter < ::ActiveJob::QueueAdapters::AbstractAdapter
+          def enqueue(job)
+            raise PushFailed, "Redis connection lost" if job.queue_name == "unavailable"
+          end
+        end
+
+        class FlakyAdapterJob < ::ActiveJob::Base
+          self.queue_adapter = FlakyAdapter.new
+
+          def perform
+          end
+        end
+
         class SidekiqBulkJob < ::ActiveJob::Base
           self.queue_adapter = :sidekiq
 
@@ -247,6 +263,37 @@ module LogStruct
           assert_equal 1, lines.size
           assert_equal "warn", lines.first["lvl"]
           assert_match(/enqueued 1 of 2 jobs \(.*SidekiqBulkJob\)/, lines.first["msg"])
+        end
+
+        test "perform_all_later on Sidekiq's adapter that raises writes one error line for the jobs" do
+          # Sidekiq pushes each queue's jobs separately: the first push succeeds, then Redis goes away
+          first = SidekiqBulkJob.new.tap { |job| job.queue_name = "accepted" }
+          second = SidekiqBulkJob.new.tap { |job| job.queue_name = "unavailable" }
+          push_bulk = ->(payload) { (payload.fetch("queue") == "unavailable") ? raise(PushFailed, "Redis connection lost") : [SecureRandom.hex(12)] }
+          clear_log_buffer(@log_output)
+
+          ::Sidekiq::Client.stub(:push_bulk, push_bulk) do
+            assert_raises(PushFailed) { ::ActiveJob.perform_all_later(first, second) }
+          end
+          ::SemanticLogger.flush
+
+          lines = json_lines(@log_output).select { |log| log["src"] == "job" }
+
+          assert_equal [["error", PushFailed.name, "Redis connection lost", nil]], lines.map { |log| log.values_at("evt", "error_class", "error_message", "job_id") }
+          assert_match(/\Aperform_all_later of 2 jobs \(.*SidekiqBulkJob\) failed; the queue adapter doesn't say which it enqueued\z/, lines.first["msg"])
+        end
+
+        test "perform_all_later on an adapter without enqueue_all writes the lines of the jobs it enqueued before it raised" do
+          first = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          second = FlakyAdapterJob.new.tap { |job| job.queue_name = "unavailable" }
+          third = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          clear_log_buffer(@log_output)
+
+          assert_raises(PushFailed) { ::ActiveJob.perform_all_later(first, second, third) }
+          ::SemanticLogger.flush
+
+          assert_equal [["enqueue", first.job_id], ["error", second.job_id]],
+            json_lines(@log_output).select { |log| log["src"] == "job" }.map { |log| log.values_at("evt", "job_id") }
         end
 
         test "retry_on writes a retry line with the exception and the wait" do

@@ -30,6 +30,12 @@ module LogStruct
         def enqueue_all(event)
           ts = EventTime.coerce_event_time(event.time)
           jobs = Array(event.payload[:jobs]).grep(::ActiveJob::Base)
+          error = event.payload[:exception_object]
+          if error
+            log_enqueue_all_error(error, jobs, ts)
+            return
+          end
+
           # Adapters with their own enqueue_all (Sidekiq's) say only how many jobs they enqueued
           if jobs.none? { |job| job.successfully_enqueued? || job.enqueue_error }
             log_enqueued_count(jobs, event.payload[:enqueued_count], ts)
@@ -150,6 +156,34 @@ module LogStruct
           else
             logger.info(Log::ActiveJob::Enqueue.new(**base_fields.to_kwargs, timestamp: ts))
           end
+        end
+
+        # perform_all_later raised: the adapter did (Redis down, say), or with the inline adapter a job did
+        sig { params(error: Exception, jobs: T::Array[::ActiveJob::Base], ts: Time).void }
+        def log_enqueue_all_error(error, jobs, ts)
+          # Rails' own enqueue loop (for adapters without enqueue_all) marks each job it tried
+          tried = jobs.reject { |job| job.successfully_enqueued?.nil? }
+          unless tried.empty?
+            tried.each { |job| log_enqueued(job, ts) if job.successfully_enqueued? }
+            failed = tried.find { |job| !job.successfully_enqueued? }
+            # With the inline adapter, the error is a job's own, which its perform line has logged
+            log_exception(error, failed) if failed && !LogStruct::LoggedErrors.logged?(error)
+            return
+          end
+          return if LogStruct::LoggedErrors.logged?(error)
+
+          # An adapter's own enqueue_all (Sidekiq's) doesn't say which jobs it enqueued before it raised
+          classes = jobs.map { |job| job.class.to_s }.uniq.join(", ")
+          logger.error(Log::Error.new(
+            source: Source::Job,
+            error_class: error.class,
+            message: "perform_all_later of #{jobs.size} jobs (#{classes}) failed; the queue adapter doesn't say which it enqueued",
+            error_message: error.message,
+            backtrace: error.backtrace,
+            level: Level::Error,
+            timestamp: ts
+          ))
+          LogStruct::LoggedErrors.mark(error)
         end
 
         # Every job's line when the adapter enqueued them all; when it didn't, it doesn't say which it enqueued

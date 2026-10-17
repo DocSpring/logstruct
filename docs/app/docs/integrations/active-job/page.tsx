@@ -102,7 +102,11 @@ export default function ActiveJobIntegrationPage() {
         Some adapters (Sidekiq&apos;s) enqueue the jobs together and say only how many they
         enqueued. When that&apos;s all of them, each job has its line. When it&apos;s fewer (a
         Sidekiq client middleware stopped one), there&apos;s one <code>warn</code> line with both
-        counts instead, since the adapter doesn&apos;t say which jobs it enqueued.
+        counts instead, since the adapter doesn&apos;t say which jobs it enqueued. If the adapter
+        raises (Redis is down), <code>perform_all_later</code> raises too, and there&apos;s one{' '}
+        <code>error</code> line with the error and the number of jobs. With other adapters, the jobs
+        enqueued before the error have their lines and the job that failed has an <code>error</code>{' '}
+        line.
       </p>
 
       <HeadingWithAnchor id="schedule" level={3} className="text-xl font-semibold mt-6 mb-3">
