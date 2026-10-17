@@ -3,6 +3,7 @@
 
 require "json"
 require_relative "hash_utils"
+require_relative "string_scrubber"
 require_relative "config_struct/filters"
 require_relative "enums/source"
 
@@ -99,7 +100,7 @@ module LogStruct
 
         hash.each do |key, value|
           has_sensitive_keys ||= should_filter_key?(key, value)
-          normalized_keys << normalize_summary_key(key)
+          normalized_keys << normalize_summary_key(StringScrubber.scrub_name(key))
         end
 
         summary = {

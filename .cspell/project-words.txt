@@ -82,3 +82,4 @@ HMAC
 otps
 crypted
 jwts
+Luhn

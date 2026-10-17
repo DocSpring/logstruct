@@ -139,8 +139,33 @@ module LogStruct
 
       result = @formatter.process_values(user)
 
-      assert_instance_of GlobalID, result
-      assert_equal "gid://logstruct/User/123", result.to_s
+      assert_equal "gid://logstruct/User/123", result
+    end
+
+    def test_process_values_scrubs_global_ids
+      user_class = create_user_class
+      user = user_class.new("ada@example.com")
+
+      result = @formatter.process_values(user)
+
+      assert_match %r{\Agid://logstruct/User/\[EMAIL:[a-f0-9]+\]\z}, result
+    end
+
+    def test_scrubs_keys_and_symbol_values
+      result = @formatter.process_values({"ada@example.com" => {status: :"bob@example.com"}, :level => :info})
+
+      assert_equal :info, result[:level]
+      key = result.keys.first
+
+      assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, key)
+      assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, result.dig(key, :status))
+    end
+
+    def test_scrubs_the_keys_of_filtered_hashes
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "tokens", tokens: {"ada@example.com" => "t1"}})
+
+      assert_not_includes log_line, "ada@example.com"
+      assert_match(/\[EMAIL:[a-f0-9]+\]/, JSON.parse(log_line).dig("tokens", "_filtered", "_keys", 0))
     end
 
     def test_process_values_formats_hashes_recursively
@@ -150,8 +175,7 @@ module LogStruct
 
       result = @formatter.process_values(arg)
 
-      assert_instance_of GlobalID, result[:user]
-      assert_equal "gid://logstruct/User/123", result[:user].to_s
+      assert_equal "gid://logstruct/User/123", result[:user]
       assert_equal "test", result[:data][:value]
     end
 
@@ -162,8 +186,7 @@ module LogStruct
 
       result = @formatter.process_values(arg)
 
-      assert_instance_of GlobalID, result[0]
-      assert_equal "gid://logstruct/User/123", result[0].to_s
+      assert_equal "gid://logstruct/User/123", result[0]
       assert_not_includes result[1][:email], "test@example.com"
     end
 

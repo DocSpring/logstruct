@@ -106,6 +106,11 @@ module LogStruct
       # Default: true
       prop :url_passwords, T::Boolean, default: true
 
+      # Filter sensitive params in URLs' query strings: params that filter_keys or the filter matchers
+      # would filter as keys (?token=, ?api_key=, user[password]=), and OAuth's ?code=
+      # Default: true
+      prop :url_query_params, T::Boolean, default: true
+
       # Filter credit card numbers
       # Default: true
       prop :credit_card_numbers, T::Boolean, default: true

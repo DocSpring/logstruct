@@ -131,6 +131,7 @@ module LogStruct
           config.filters.phone_numbers = true        # Filter phone numbers
           config.filters.ssns = true                 # Filter social security numbers
           config.filters.url_passwords = true        # Filter passwords in URLs
+          config.filters.url_query_params = true     # Filter sensitive params in URLs (?token=...)
 
           # More rules for key names, beside the default pattern for sensitive keys
           config.filters.filter_matchers << LogStruct::ConfigStruct::FilterMatcher.new(

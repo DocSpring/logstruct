@@ -92,18 +92,19 @@ module LogStruct
           ancestors.delete(arg)
         end
       when GlobalID::Identification
+        # Scrubbed like any String: a record's ID can be an email address
         begin
-          arg.to_global_id
+          scrub_string(arg.to_global_id.to_s)
         rescue
           begin
             object = T.cast(arg, Object)
             # Active Record is optional
             if defined?(::ActiveRecord::Base) && object.is_a?(::ActiveRecord::Base)
-              "#{object.class}(##{object.id})"
+              scrub_string("#{object.class}(##{object.id})")
             else
               # For non-ActiveRecord objects that failed to_global_id, try to get a string representation
               # If this also fails, we want to catch it and return the error placeholder
-              String(object)
+              scrub_string(String(object))
             end
           rescue => e
             LogStruct.handle_exception(e, source: Source::Internal)
@@ -116,7 +117,9 @@ module LogStruct
         scrub_string(arg)
       when Time
         arg.iso8601(3)
-      when Numeric, Symbol, TrueClass, FalseClass, NilClass
+      when Symbol
+        StringScrubber.scrub_name(arg)
+      when Numeric, TrueClass, FalseClass, NilClass
         arg
       else
         # Structs, ActionController::Parameters and other objects: filter and scrub what
@@ -157,7 +160,8 @@ module LogStruct
         children_root = (path && recursion_depth == 0) ? with_indifferent_access(value) : root
         # Check if this key should be filtered at any depth
         filtered = ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field, path: key_path, root: key_root)
-        result[key] = if !filtered
+        # Keys are scrubbed too: an email address can be a key
+        result[StringScrubber.scrub_name(key)] = if !filtered
           process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: key_path, root: children_root)
         elsif value == RAILS_FILTERED_MASK
           # Rails' parameter filter has already replaced the value
