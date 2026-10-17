@@ -8,6 +8,9 @@ module LogStruct
 
       const :callable, T.proc.params(key: String, value: T.untyped).returns(T::Boolean)
       const :label, String
+      # Whether the matcher also applies to the names of LogStruct's own fields at the top of a line.
+      # LogStruct's matcher for Rails' partial matches doesn't: Rails' default :_key would filter cron_key.
+      const :matches_logstruct_fields, T::Boolean, default: true
 
       sig { params(key: String, value: T.untyped).returns(T::Boolean) }
       def matches?(key, value)
@@ -101,9 +104,9 @@ module LogStruct
         Regexp
       )
 
-      # Additional filter matchers built from Rails filter_parameters entries that aren't simple symbols.
-      # Each matcher receives the key (String) and optional value, returning true when the pair should be filtered.
-      # By default, includes a regex matcher for common sensitive key patterns.
+      # Matchers for keys that aren't listed by name in filter_keys. Each matcher receives the key (String)
+      # and optional value, returning true when the pair should be filtered. Includes a regex matcher for
+      # common sensitive key patterns, and LogStruct adds matchers for Rails' filter_parameters at boot.
       prop :filter_matchers,
         T::Array[FilterMatcher],
         factory: -> {

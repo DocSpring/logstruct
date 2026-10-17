@@ -227,17 +227,16 @@ module LogStruct
         # unless this reference is updated along with Rails.logger.
         ActiveSupport::LogSubscriber.logger = logger
 
-        # Also replace various component loggers
-        ActiveRecord::Base.logger = logger if defined?(ActiveRecord::Base)
-        ActionController::Base.logger = logger if defined?(ActionController::Base)
-        if defined?(ActionMailer::Base)
-          ActionMailer::Base.logger = logger
-          # Ensure ActionMailer.logger is also set (it might be accessed directly)
-          T.unsafe(::ActionMailer).logger = logger if T.unsafe(::ActionMailer).respond_to?(:logger=)
-        end
-        ActiveJob::Base.logger = logger if defined?(ActiveJob::Base)
-        ActionView::Base.logger = logger if defined?(ActionView::Base)
-        ActionCable.server.config.logger = logger if defined?(ActionCable)
+        # Also replace the component loggers. Use load hooks rather than referencing the base
+        # classes: loading them this early would apply their on_load hooks before the app's
+        # initializers run, e.g. ActiveRecord would copy an empty filter_parameters into
+        # filter_attributes.
+        ActiveSupport.on_load(:active_record) { T.unsafe(self).logger = logger }
+        ActiveSupport.on_load(:action_controller) { T.unsafe(self).logger = logger }
+        ActiveSupport.on_load(:action_mailer) { T.unsafe(self).logger = logger }
+        ActiveSupport.on_load(:active_job) { T.unsafe(self).logger = logger }
+        ActiveSupport.on_load(:action_view) { T.unsafe(self).logger = logger }
+        ActiveSupport.on_load(:action_cable) { T.unsafe(self).logger = logger }
 
         # Store reference in app config
         app.config.logger = logger

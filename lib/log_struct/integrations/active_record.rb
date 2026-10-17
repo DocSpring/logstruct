@@ -63,9 +63,8 @@ module LogStruct
 
         # Disable verbose query logs ("↳ caller") since LogStruct provides
         # structured context and these lines are noisy/unstructured.
-        if ::ActiveRecord::Base.respond_to?(:verbose_query_logs=)
-          T.unsafe(::ActiveRecord::Base).verbose_query_logs = false
-        end
+        # (A setting on the ActiveRecord module, so ActiveRecord::Base isn't loaded early.)
+        ::ActiveRecord.verbose_query_logs = false
 
         subscribe_to_sql_notifications
         true

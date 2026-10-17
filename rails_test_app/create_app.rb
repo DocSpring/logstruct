@@ -321,6 +321,14 @@ if !skip_app_creation
   # e.g., %i[ mri mingw x64_mingw ] -> %i[ mri windows ]
   gemfile_content.gsub!(%r{%i\[\s*mri\s+mingw\s+x64_mingw\s*\]}, "%i[ mri windows ]")
 
+  # ActiveSupport's JSON encoder passes quirks_mode to JSON.generate, which json 3 rejects
+  # (fixed on Rails main)
+  if rails_version != "main"
+    gemfile_content += <<~GEMS
+      gem "json", "< 3"
+    GEMS
+  end
+
   # Have to pin concurrent-ruby to 1.3.4 for Rails 7.0 compatibility
   if rails_version.start_with?("7.0")
     gemfile_content += <<~GEMS

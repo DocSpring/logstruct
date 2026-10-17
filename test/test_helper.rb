@@ -114,6 +114,16 @@ class ActiveSupport::TestCase
   setup do
     TEST_LOG_IO.truncate(0)
     TEST_LOG_IO.rewind
+    @saved_filter_keys = T.let(LogStruct.config.filters.filter_keys.dup, T.nilable(T::Array[Symbol]))
+    @saved_filter_matchers = T.let(LogStruct.config.filters.filter_matchers.dup,
+      T.nilable(T::Array[LogStruct::ConfigStruct::FilterMatcher]))
+  end
+
+  # Tests change the filters in place, so later tests would see them. Runs after each test
+  # class's own teardown has put back the configuration it replaced.
+  teardown do
+    LogStruct.config.filters.filter_keys = T.must(@saved_filter_keys)
+    LogStruct.config.filters.filter_matchers = T.must(@saved_filter_matchers)
   end
 
   # Helper method for tests that need to capture and parse log output

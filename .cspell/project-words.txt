@@ -15,6 +15,7 @@ defn
 demodulize
 docspring
 dotenv
+duplicable
 Dotenv
 ESRCH
 Fanout
@@ -47,6 +48,7 @@ nonblock
 nonblocking
 optparse
 parseable
+passw
 pentester
 pentesters
 popen

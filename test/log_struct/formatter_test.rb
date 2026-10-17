@@ -199,7 +199,7 @@ module LogStruct
           @touched_indices = []
         end
 
-        def process_values(value, recursion_depth: 0)
+        def process_values(value, **options)
           if value.respond_to?(:touch!)
             value.touch!
             @touched_indices << value.index if value.respond_to?(:index)
@@ -229,6 +229,131 @@ module LogStruct
       assert_instance_of Hash, result
       assert_equal 1, result[:a]
       assert_equal 2, result[:hash2][:b]
+    end
+
+    def test_filters_and_scrubs_values_nested_past_the_depth_limit
+      deep = {password: "hunter2", note: "a@b.com", items: [1, 2, 3]}
+      22.times { deep = {n: deep} }
+
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "deep", ctx: deep})
+
+      assert_not_includes log_line, "hunter2"
+      assert_not_includes log_line, "a@b.com"
+      JSON.parse(log_line)
+    end
+
+    def test_summarizes_each_type_past_the_depth_limit
+      too_deep = 21
+
+      assert_equal({_filtered: {_class: "Hash", _keys_count: 2}},
+        @formatter.process_values({a: 1, b: 2}, recursion_depth: too_deep))
+      assert_equal({_filtered: {_class: "Array", _count: 3}},
+        @formatter.process_values([1, 2, 3], recursion_depth: too_deep))
+      assert_equal({_filtered: {_class: "String", _bytes: 7}},
+        @formatter.process_values("a@b.com", recursion_depth: too_deep))
+      assert_equal 42, @formatter.process_values(42, recursion_depth: too_deep)
+      assert_nil @formatter.process_values(nil, recursion_depth: too_deep)
+    end
+
+    def test_logs_circular_hashes_without_raising
+      circular = {name: "loop"}
+      circular[:self] = circular
+
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "circular", ctx: circular})
+
+      assert_equal "loop", JSON.parse(log_line).dig("ctx", "name")
+    end
+
+    def test_logs_hashes_with_several_back_references_once
+      circular = {name: "loop"}
+      circular[:first] = circular
+      circular[:second] = circular
+
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "circular", ctx: circular})
+
+      ctx = JSON.parse(log_line).fetch("ctx")
+
+      assert_equal "loop", ctx["name"]
+      assert_equal "loop", ctx.dig("first", "name")
+      assert_equal({"_class" => "Hash", "_keys_count" => 3}, ctx.dig("first", "first", "_filtered"))
+      assert_operator log_line.bytesize, :<, 1000
+    end
+
+    def test_summarizes_circular_values_under_filtered_keys
+      circular_array = []
+      circular_array << circular_array
+      circular_hash = {name: "loop"}
+      circular_hash[:self] = circular_hash
+
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "circular", password: circular_array, token: circular_hash})
+
+      result = JSON.parse(log_line)
+
+      assert_equal({"_class" => "Array", "_count" => 1}, result.dig("password", "_filtered"))
+      assert_equal "Hash", result.dig("token", "_filtered", "_class")
+      refute result.dig("token", "_filtered").key?("_bytes")
+    end
+
+    def test_filtered_summaries_have_the_json_size_of_plain_values
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "sizes", password: ["ab", 1], token: {a: "b"}})
+
+      result = JSON.parse(log_line)
+
+      assert_equal ["ab", 1].to_json.bytesize, result.dig("password", "_filtered", "_bytes")
+      assert_equal({a: "b"}.to_json.bytesize, result.dig("token", "_filtered", "_bytes"))
+    end
+
+    def test_logs_a_value_shared_by_two_keys_in_full_each_time
+      shared = {id: 1}
+
+      result = @formatter.process_values({first: shared, second: shared})
+
+      assert_equal({first: {id: 1}, second: {id: 1}}, result)
+    end
+
+    def test_filters_structs_parameters_and_other_objects
+      login = Struct.new(:username, :password).new("alice", "hunter2")
+      require "action_controller"
+      params = ActionController::Parameters.new(password: "hunter2", name: "visible")
+      account = Class.new {
+        def initialize
+          @api_token = "hunter2"
+          @plan = "pro"
+        end
+      }.new
+
+      log_line = @formatter.call(@severity,
+        @time,
+        @progname,
+        {msg: "update", login: login, params: params, account: account})
+
+      assert_not_includes log_line, "hunter2"
+      result = JSON.parse(log_line)
+
+      assert_equal "alice", result.dig("login", "username")
+      assert_equal "visible", result.dig("params", "name")
+      assert_equal "pro", result.dig("account", "plan")
+    end
+
+    def test_does_not_log_raw_values_when_processing_fails
+      exploding_hash = Class.new(Hash) do
+        def each(*)
+          raise "boom"
+        end
+      end.new
+      exploding_hash[:password] = "hunter2"
+
+      LogStruct.stub(:handle_exception, nil) do
+        result = @formatter.process_values(exploding_hash)
+
+        assert_equal({_filtered: {_class: exploding_hash.class.name, _keys_count: 1}}, result)
+      end
+    end
+
+    def test_keeps_values_rails_already_filtered
+      result = @formatter.process_values({password: "[FILTERED]", secret_answer: "blue"})
+
+      assert_equal "[FILTERED]", result[:password]
     end
 
     def test_generate_json

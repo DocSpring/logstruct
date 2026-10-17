@@ -55,7 +55,7 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 - Lograge request logs include request metadata (request_id, source_ip, user_agent, referer, host, content_type, accept) and custom fields from `lograge_custom_options`
 - A Rack middleware is inserted to catch and log errors, including security violations (IP spoofing, CSRF, blocked hosts, etc.)
 - Structured logging is set up for ActiveJob, Sidekiq, Shrine, etc.
-- Rails `config.filter_parameters` are merged into LogStruct's filters and then cleared (to avoid double filtering). Configure sensitive keys via `LogStruct.config.filters`.
+- LogStruct also filters the keys in Rails' `config.filter_parameters`, matched the way Rails matches them (`:passw` filters `user_password`), so the same keys are filtered in every log line. Rails' own list is left in place, so `request.filtered_parameters`, `ActiveRecord::Base.filter_attributes` and other Rails features keep filtering, and values Rails has already replaced are logged as `[FILTERED]`. Configure extra sensitive keys via `LogStruct.config.filters`.
 - When `RAILS_LOG_TO_STDOUT` is set, we log to STDOUT only. Otherwise, we log to STDOUT by default without adding a file appender to avoid duplicate logs.
 
 ### Default behavior by process type

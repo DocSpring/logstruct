@@ -105,97 +105,116 @@ module LogStruct
       end
     end
 
-    def test_merge_rails_filter_parameters
-      # Store original filter keys
-      original_filter_keys = LogStruct.config.filters.filter_keys.dup
+    def test_merge_rails_filter_parameters_matches_keys_the_way_rails_does
+      filter_params = [:passw, "Card_Number", :_key]
 
-      # Create a mock for Rails.application.config
-      # T.unsafe is needed to work around sorbet limitations in tests
-      # This is acceptable since this is just a test method
-      mock_config = T.unsafe(Object.new)
-
-      # Set up mock filter parameters with a mix of symbols and strings
-      filter_params = [:credit_card, "ssn", :password, "existing_key"]
-      clear_called = T.let(false, T::Boolean)
-
-      # Define necessary methods on our mock
-      mock_config.define_singleton_method(:filter_parameters) { filter_params }
-      mock_config.define_singleton_method(:respond_to?) do |method_name|
-        method_name.to_sym == :filter_parameters || super(method_name)
-      end
-
-      # Add a clear method to the filter_parameters array
-      filter_params.define_singleton_method(:clear) do
-        clear_called = true
-        filter_params.replace([])
-      end
-
-      # Set up mock Rails.application
-      mock_app = T.unsafe(Object.new)
-      mock_app.define_singleton_method(:config) { mock_config }
-
-      # Set our initial filter keys
-      LogStruct.config.filters.filter_keys = [:existing_key, :another_key]
-
-      # Stub Rails.application
-      Rails.stub(:application, mock_app) do
-        # Run the method we're testing
+      with_rails_filter_parameters(filter_params) do
         LogStruct.merge_rails_filter_parameters!
-
-        # Check that all Rails filter parameters were merged
-        assert_includes LogStruct.config.filters.filter_keys, :credit_card
-        assert_includes LogStruct.config.filters.filter_keys, :ssn
-        assert_includes LogStruct.config.filters.filter_keys, :password
-        assert_includes LogStruct.config.filters.filter_keys, :existing_key
-        assert_includes LogStruct.config.filters.filter_keys, :another_key
-
-        # Check that duplicates were removed (existing_key appears in both)
-        assert_equal 1, LogStruct.config.filters.filter_keys.count(:existing_key)
-        assert_equal 5, LogStruct.config.filters.filter_keys.size
-
-        # Verify Rails filter parameters were cleared
-        assert_empty filter_params
-        assert clear_called, "filter_parameters.clear should have been called"
       end
 
-      # Restore original filter keys
-      LogStruct.config.filters.filter_keys = original_filter_keys
+      %w[password new_PASSWORD card_number_last4 stripe_key].each do |key|
+        assert ParamFilters.should_filter_key?(key), "#{key} should be filtered"
+      end
+      %w[name keyboard].each do |key|
+        refute ParamFilters.should_filter_key?(key), "#{key} should not be filtered"
+      end
+      # Rails keeps its own list for filtered_parameters, filter_attributes, etc.
+      assert_equal [:passw, "Card_Number", :_key], filter_params
     end
 
     def test_merge_rails_filter_parameters_preserves_regex_filters
-      original_filter_keys = LogStruct.config.filters.filter_keys.dup
-      original_matchers = LogStruct.config.filters.filter_matchers.dup
-
       regex_filter = /\Aapi_/i
       filter_params = [regex_filter]
 
-      filter_params.define_singleton_method(:clear) do
-        T.unsafe(self).replace([])
-      end
-
-      mock_config = T.unsafe(Object.new)
-      mock_config.define_singleton_method(:filter_parameters) { filter_params }
-      mock_config.define_singleton_method(:respond_to?) do |method_name, include_private = false|
-        if method_name.to_sym == :filter_parameters
-          true
-        else
-          super(method_name, include_private)
-        end
-      end
-
-      mock_app = T.unsafe(Object.new)
-      mock_app.define_singleton_method(:config) { mock_config }
-
-      LogStruct.config.filters.filter_keys = []
-
-      Rails.stub(:application, mock_app) do
+      with_rails_filter_parameters(filter_params) do
         LogStruct.merge_rails_filter_parameters!
       end
 
       assert ParamFilters.should_filter_key?("api_token"), "regex-based Rails filters should continue filtering keys"
-    ensure
-      LogStruct.config.filters.filter_keys = T.must(original_filter_keys)
-      LogStruct.config.filters.filter_matchers = T.must(original_matchers)
+      refute ParamFilters.should_filter_key?("rapid_api_value")
+      assert_equal [regex_filter], filter_params
+    end
+
+    def test_merge_rails_filter_parameters_again_uses_the_latest_list
+      with_rails_filter_parameters([:first_word]) { LogStruct.merge_rails_filter_parameters! }
+      with_rails_filter_parameters([:second_word]) { LogStruct.merge_rails_filter_parameters! }
+
+      assert ParamFilters.should_filter_key?("second_word_count")
+      refute ParamFilters.should_filter_key?("first_word_count")
+    end
+
+    def test_rails_partial_matches_skip_logstruct_fields
+      with_rails_filter_parameters([:_key, :metadata]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      log_line = Formatter.new.call(::Logger::INFO,
+        Time.now,
+        nil,
+        {msg: "Stored", cron_key: "daily_cleanup", metadata: {size: 1}, data: {stripe_key: "sk_live_123"}})
+
+      result = JSON.parse(log_line)
+      # Rails' :_key would filter GoodJob's cron_key
+      assert_equal "daily_cleanup", result["cron_key"]
+      # Exact names still filter LogStruct's own fields
+      assert result["metadata"].key?("_filtered"), "metadata should be filtered: #{log_line}"
+      assert_not_includes log_line, "sk_live_123"
+    end
+
+    def test_rails_filter_blocks_get_a_copy_of_the_value
+      reverse_secrets = ->(key, value) { value.reverse! if key.include?("answer") }
+      value = +"blue"
+
+      with_rails_filter_parameters([reverse_secrets]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      assert ParamFilters.should_filter_key?("security_answer", value)
+      assert_equal "blue", value
+    end
+
+    def test_rails_regexps_filter_logstruct_fields_too
+      with_rails_filter_parameters([/\Adata\z/, :_key]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      log_line = Formatter.new.call(::Logger::INFO, Time.now, nil, {msg: "Stored", cron_key: "daily", data: {note: "regexp-secret"}})
+
+      assert_not_includes log_line, "regexp-secret"
+      assert JSON.parse(log_line)["data"].key?("_filtered"), "data should be filtered: #{log_line}"
+      # The partial match still skips LogStruct's own fields
+      assert_equal "daily", JSON.parse(log_line)["cron_key"]
+    end
+
+    def test_rails_filter_blocks_that_replace_the_value_filter_it
+      # Rails ignores a block's return value and logs the value as the block left it
+      mask_notes = ->(key, value) {
+        value.replace("[FILTERED]") if key == "private_note" && value.is_a?(String)
+        nil
+      }
+      value = +"block-secret"
+
+      with_rails_filter_parameters([mask_notes]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      assert ParamFilters.should_filter_key?("private_note", value)
+      refute ParamFilters.should_filter_key?("public_note", +"hello")
+      assert_equal "block-secret", value
+      log_line = Formatter.new.call(::Logger::INFO, Time.now, nil, {msg: "Saved", private_note: +"block-secret"})
+
+      assert_not_includes log_line, "block-secret"
+    end
+
+    def test_rails_filter_blocks_with_three_arguments
+      pin_filter = ->(key, _value, _params) { key == "pin" }
+
+      with_rails_filter_parameters([pin_filter]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      assert ParamFilters.should_filter_key?("pin", "1234")
+      refute ParamFilters.should_filter_key?("name", "Ada")
     end
 
     # Test that development server process is DISABLED by default
@@ -420,6 +439,18 @@ module LogStruct
       ::ARGV.replace(original_argv) if defined?(original_argv)
       LogStruct.server_mode = T.must(original_server_mode)
       ::Rails.const_set(:Server, Class.new) if had_rails_server && !defined?(::Rails::Server)
+    end
+
+    private
+
+    def with_rails_filter_parameters(filter_params, &block)
+      mock_config = T.unsafe(Object.new)
+      mock_config.define_singleton_method(:filter_parameters) { filter_params }
+      mock_app = T.unsafe(Object.new)
+      mock_app.define_singleton_method(:config) { mock_config }
+      LogStruct.config.filters.filter_keys = []
+
+      Rails.stub(:application, mock_app, &block)
     end
   end
 end
