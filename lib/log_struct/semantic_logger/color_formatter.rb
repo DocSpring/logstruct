@@ -6,46 +6,12 @@ require_relative "formatter"
 
 module LogStruct
   module SemanticLogger
-    # Development-Optimized Colorized JSON Formatter
-    #
-    # This formatter extends SemanticLogger's Color formatter to provide beautiful,
-    # readable JSON output in development environments. It significantly improves
-    # the developer experience when working with structured logs.
-    #
-    # ## Benefits of Colorized Output:
-    #
-    # ### Readability
-    # - **Syntax highlighting**: JSON keys, values, and data types are color-coded
-    # - **Visual hierarchy**: Different colors help identify structure at a glance
-    # - **Error spotting**: Quickly identify malformed data or unexpected values
-    # - **Context separation**: Log entries are visually distinct from each other
-    #
-    # ### Performance in Development
-    # - **Faster debugging**: Quickly scan logs without reading every character
-    # - **Pattern recognition**: Colors help identify common log patterns
-    # - **Reduced cognitive load**: Less mental effort required to parse log output
-    # - **Improved workflow**: Spend less time reading logs, more time coding
-    #
-    # ### Customization
-    # - **Configurable colors**: Customize colors for keys, strings, numbers, etc.
-    # - **Environment-aware**: Automatically disabled in production/CI environments
-    # - **Fallback support**: Gracefully falls back to standard formatting if needed
-    #
-    # ## Color Mapping:
-    # - **Keys**: Yellow - Easy to spot field names
-    # - **Strings**: Green - Clear indication of text values
-    # - **Numbers**: Blue - Numeric values stand out
-    # - **Booleans**: Magenta - true/false values are distinctive
-    # - **Null**: Red - Missing values are immediately visible
-    # - **Logger names**: Cyan - Source identification
-    #
-    # ## Integration with SemanticLogger:
-    # This formatter preserves all SemanticLogger benefits (performance, threading,
-    # reliability) while adding visual enhancements. It processes LogStruct types,
-    # hashes, and plain messages with appropriate colorization.
-    #
-    # The formatter is automatically enabled in development when `enable_color_output`
-    # is true (default), providing zero-configuration enhanced logging experience.
+    # Writes lines as pretty-printed JSON in color, for reading in a terminal: keys yellow, strings green, numbers
+    # blue, booleans magenta, nil red and logger names cyan (config.color_map changes them). LogStruct uses it in
+    # development when LogStruct is enabled there, prefer_json_in_development is false and enable_color_output is
+    # true (its default). LogStruct entries and Hashes are the JSON line, pretty-printed. Plain lines keep
+    # SemanticLogger's layout, with their message, exception and tags scrubbed and their named tags filtered as a
+    # JSON line's ctx is.
     class ColorFormatter < ::SemanticLogger::Formatters::Color
       extend T::Sig
 
@@ -53,19 +19,17 @@ module LogStruct
       def initialize(color_map: nil, **args)
         super(**args)
         @logstruct_formatter = T.let(LogStruct::Formatter.new, LogStruct::Formatter)
+        @json_formatter = T.let(LogStruct::SemanticLogger::Formatter.new, LogStruct::SemanticLogger::Formatter)
 
         # Set up custom color mapping
-        @custom_colors = T.let(color_map || default_color_map, T::Hash[Symbol, Symbol])
+        @custom_colors = T.let(default_color_map.merge(color_map || {}), T::Hash[Symbol, Symbol])
       end
 
       sig { override.params(log: ::SemanticLogger::Log, logger: T.untyped).returns(String) }
       def call(log, logger)
         # Handle LogStruct types specially with colorization
-        if log.payload.is_a?(LogStruct::Log::Interfaces::CommonFields)
-          formatted = format_logstruct_payload(log)
-          formatted if formatted
-        elsif log.payload.is_a?(Hash) || log.payload.is_a?(T::Struct)
-          formatted = format_logstruct_payload(log)
+        if log.payload.is_a?(Hash) || log.payload.is_a?(T::Struct)
+          formatted = format_logstruct_payload(log, logger)
           formatted if formatted
         else
           # For plain messages, use SemanticLogger's default colorization
@@ -84,9 +48,15 @@ module LogStruct
         scrub_text(super)
       end
 
+      # SemanticLogger's text for the exception and its causes, without the input a params parser quoted
       sig { returns(T.untyped) }
       def exception
-        scrub_text(super)
+        text = super
+        error = log.exception
+        if text.is_a?(String) && error.is_a?(Exception)
+          ParamsErrors.replacements(error).each { |quoted, logged| text = text.gsub(quoted, logged) }
+        end
+        scrub_text(text)
       end
 
       sig { returns(T.untyped) }
@@ -94,9 +64,15 @@ module LogStruct
         scrub_text(super)
       end
 
-      sig { returns(T.untyped) }
+      # Filtered and scrubbed as they are in a JSON line's ctx: a key filtering hides there is hidden here too
+      sig { returns(T.nilable(String)) }
       def named_tags
-        scrub_text(super)
+        named_tags = log.named_tags
+        return if named_tags.nil? || named_tags.empty?
+
+        filtered = @logstruct_formatter.process_values({ctx: named_tags.to_h.transform_keys(&:to_sym)})[:ctx]
+        list = filtered.map { |name, value| "#{color}#{name}: #{value}#{color_map.clear}" }
+        "{#{list.join(", ")}}"
       end
 
       private
@@ -122,11 +98,9 @@ module LogStruct
         }
       end
 
-      # Simple JSON colorizer that adds ANSI codes
+      # The line as pretty-printed JSON, with ANSI colors for its keys, strings, numbers, booleans and nulls
       sig { params(data: T::Hash[String, T.untyped]).returns(String) }
       def colorize_json(data)
-        # For now, just return a simple colorized version of the JSON
-        # This is much simpler than the full recursive approach
         json_str = JSON.pretty_generate(data)
 
         # Apply basic colorization with regex
@@ -137,9 +111,10 @@ module LogStruct
           .gsub(": null", ": " + colorize_text("null", :nil))
       end
 
-      sig { params(log: ::SemanticLogger::Log).returns(T.nilable(String)) }
-      def format_logstruct_payload(log)
-        logstruct_json = @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
+      # The line LogStruct::SemanticLogger::Formatter writes (message, tags and ctx included), in color
+      sig { params(log: ::SemanticLogger::Log, logger: T.untyped).returns(T.nilable(String)) }
+      def format_logstruct_payload(log, logger)
+        logstruct_json = @json_formatter.call(log, logger)
 
         parsed_data = T.let(JSON.parse(logstruct_json), T::Hash[String, T.untyped])
         colorized_json = colorize_json(parsed_data)
@@ -150,7 +125,8 @@ module LogStruct
           process: log.process_info,
           name: format_name(log.name))
 
-        "#{prefix}#{colorized_json}\n"
+        # SemanticLogger's appenders add the newline
+        "#{prefix}#{colorized_json}"
       rescue JSON::ParserError
         nil
       end

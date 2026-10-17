@@ -232,7 +232,7 @@ module LogStruct
           if (m = l.match(/^\*?\s*Listening on (.+)$/))
             si = T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])
             list = T.cast(si[:listening], T::Array[T.untyped])
-            address = T.must(m[1])
+            address = m[1].to_s
             list << address unless list.include?(address)
             # Emit started when we see the first listening address
             if !STATE[:started_emitted]

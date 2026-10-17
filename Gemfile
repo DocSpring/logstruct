@@ -3,8 +3,10 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in logstruct.gemspec
-gemspec
+# Specify your gem's dependencies in logstruct.gemspec. Its development dependencies are the
+# integrations' gems, which the tests need: they go in the test group, because CI installs the
+# gems without the development group (its tools need newer Rubies).
+gemspec development_group: :test
 
 # Skip Ruby version check if RUBY_VERSION is set (e.g. on CI)
 unless ENV["RUBY_VERSION"]

@@ -16,9 +16,10 @@ module LogStruct
       # Default: 10
       prop :max_array_items, Integer, default: 10
 
-      # The most lines written from an Array that looks like a backtrace
-      # Default: 100
-      prop :max_backtrace_lines, Integer, default: 100
+      # The most lines written from an Array that looks like a backtrace, such as an error line's
+      # backtrace. The rest are counted in a last "... and N more lines" item.
+      # Default: 20
+      prop :max_backtrace_lines, Integer, default: 20
 
       # Strings longer than this many bytes are cut, and say how long they were
       # Default: 32768 (32 KB)

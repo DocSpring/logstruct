@@ -52,6 +52,37 @@ module LogStruct
       assert_match(/\[EMAIL:[a-f0-9]+\].*\[EMAIL:[a-f0-9]+\]/, result)
     end
 
+    # cspell:ignore martínez martí exämple
+    def test_scrub_email_addresses_in_any_script
+      %w[linda.martínez@gmail.com zoë@example.com jose@exämple.com].each do |email|
+        result = StringScrubber.scrub("Sent to #{email}.")
+
+        assert_match(/\ASent to \[EMAIL:\h+\]\.\z/, result, email)
+      end
+    end
+
+    def test_an_email_has_the_same_hash_in_any_case
+      assert_equal StringScrubber.scrub("user@example.com"), StringScrubber.scrub("User@Example.COM")
+    end
+
+    def test_scrub_strings_with_invalid_utf8
+      binary = "From caf\xC3\xA9@example.com \xFF".b
+
+      assert_match(/\AFrom \[EMAIL:\h+\] \uFFFD\z/, StringScrubber.scrub(binary))
+    end
+
+    def test_scrub_bearer_tokens_and_basic_credentials
+      basic = Base64.strict_encode64("admin:hunter2")
+
+      assert_equal "Authorization: Bearer [FILTERED]",
+        StringScrubber.scrub("Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjF9.sig")
+      assert_equal "Retried with basic [FILTERED] after a 401", StringScrubber.scrub("Retried with basic #{basic} after a 401")
+      # Short words after them, and base64 without user:password, stay
+      assert_equal "Send a Bearer token, or Basic auth on the Basic plan",
+        StringScrubber.scrub("Send a Bearer token, or Basic auth on the Basic plan")
+      assert_equal "Basic aGVsbG8gd29ybGQ=", StringScrubber.scrub("Basic aGVsbG8gd29ybGQ=")
+    end
+
     def test_scrub_url_passwords
       # Test with a URL containing a password
       # cspell:ignore mydb
@@ -169,6 +200,19 @@ module LogStruct
       assert_includes result, "[PHONE]"
     end
 
+    def test_scrub_us_phone_numbers_in_their_common_formats
+      ["555-123-4567", "555 123 4567", "555.123.4567", "(555) 123-4567", "(555)123-4567", "+1 555-123-4567",
+        "+1 (555) 123-4567", "+1-555-123-4567", "1-555-123-4567", "1 (555) 123-4567"].each do |number|
+        assert_equal "Call [PHONE] today", StringScrubber.scrub("Call #{number} today"), number
+      end
+    end
+
+    def test_leave_numbers_other_than_us_phone_numbers
+      ["5551234567", "v1.555.123", "+44 20 7946 0958", "order 555-1234"].each do |text|
+        assert_equal text, StringScrubber.scrub(text)
+      end
+    end
+
     def test_scrub_ssns
       # Test with a formatted SSN
       input = "SSN: 123-45-6789"
@@ -176,6 +220,12 @@ module LogStruct
 
       assert_not_includes result, "123-45-6789"
       assert_includes result, "[SSN]"
+    end
+
+    def test_leave_longer_numbers_that_contain_an_ssn
+      ["Part 123-45-6789-0", "Part 9-123-45-6789"].each do |text|
+        assert_equal text, StringScrubber.scrub(text)
+      end
     end
 
     def test_scrub_ip_addresses
@@ -196,6 +246,31 @@ module LogStruct
       assert_includes result, "[MAC]"
     end
 
+    def test_scrub_ipv6_addresses
+      {
+        "from 2001:db8::1 now" => "from [IP] now",
+        "2001:0db8:85a3:0000:0000:8a2e:0370:7334" => "[IP]",
+        "[fe80::1ff:fe23:4567:890a]:8080" => "[[IP]]:8080",
+        "::1" => "[IP]",
+        "::ffff:192.168.1.1" => "[IP]",
+        "Connected to 2001:db8::1." => "Connected to [IP].",
+        "via fe80::1%en0 now" => "via [IP] now"
+      }.each do |input, expected|
+        assert_equal expected, StringScrubber.scrub(input), input
+      end
+    end
+
+    def test_leave_text_with_colons_other_than_ipv6_addresses
+      ["at 12:30:45", "ActiveRecord::Base", "Face::Bead", "2026-10-17T12:30:45Z", "a::b::c"].each do |text|
+        assert_equal text, StringScrubber.scrub(text)
+      end
+    end
+
+    def test_scrub_mac_addresses_with_dashes
+      assert_equal "MAC: [MAC]", StringScrubber.scrub("MAC: 00-1A-2B-3C-4D-5E")
+      assert_equal "00-1A:2B-3C-4D-5E", StringScrubber.scrub("00-1A:2B-3C-4D-5E")
+    end
+
     def test_disabled_filters
       # Create a config with all filters disabled
       test_config = LogStruct::Configuration.new(
@@ -206,13 +281,14 @@ module LogStruct
           phone_numbers: false,
           ssns: false,
           ip_addresses: false,
-          mac_addresses: false
+          mac_addresses: false,
+          authorization_credentials: false
         )
       )
       LogStruct.configuration = test_config
 
       # Test with sensitive data
-      input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567"
+      input = "Email: user@example.com, Card: 4111111111111111, Phone: 555-123-4567, Bearer abcdefghijklmnopqrstuvwxyz"
       result = StringScrubber.scrub(input)
 
       # Verify nothing was filtered

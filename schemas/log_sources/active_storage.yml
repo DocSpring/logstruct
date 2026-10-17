@@ -6,16 +6,16 @@ consts:
 base:
   fields:
     Storage: Symbol
-    FileId: String
+    # Left out when a prefix of keys is deleted
+    FileId:
+      type: String
+      required: false
 
 events:
+  # Rails' events have the blob's key, not its filename (which can name a person)
   Upload:
     default_required: false
     fields:
-      Filename: String
-      MimeType: String
-      Size: Integer
-      Metadata: 'T::Hash[String, T.untyped]'
       DurationMs:
         type: Float
       Checksum: String
@@ -23,28 +23,27 @@ events:
   Download:
     default_required: false
     fields:
-      Filename: String
       Range: String
       DurationMs:
         type: Float
         required: false
 
+  # One file, or every file whose key starts with prefix (a blob's variants)
   Delete:
+    default_required: false
+    fields:
+      Prefix: String
 
+  # A stored file's metadata updated: its content type. Not the disposition, which has the filename.
   Metadata:
     default_required: false
     fields:
-      Metadata: 'T::Hash[String, T.untyped]'
+      MimeType: String
 
   Exist:
     default_required: false
     fields:
       Exist: T::Boolean
-
-  Stream:
-    default_required: false
-    fields:
-      Prefix: String
 
   # The URL is left out: it's signed, and anyone with it can read the file until it expires
   Url:

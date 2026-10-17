@@ -270,7 +270,7 @@ module LogStruct
         @formatter.process_values({a: 1, b: 2}, recursion_depth: too_deep))
       assert_equal({_filtered: {_class: "Array", _count: 3}},
         @formatter.process_values([1, 2, 3], recursion_depth: too_deep))
-      assert_equal({_filtered: {_class: "String", _bytes: 7}},
+      assert_equal({_filtered: {_class: "String"}},
         @formatter.process_values("a@b.com", recursion_depth: too_deep))
       assert_equal 42, @formatter.process_values(42, recursion_depth: too_deep)
       assert_nil @formatter.process_values(nil, recursion_depth: too_deep)
@@ -315,13 +315,27 @@ module LogStruct
       refute result.dig("token", "_filtered").key?("_bytes")
     end
 
-    def test_filtered_summaries_have_the_json_size_of_plain_values
-      log_line = @formatter.call(@severity, @time, @progname, {msg: "sizes", password: ["ab", 1], token: {a: "b"}})
+    def test_filtered_summaries_leave_out_how_big_the_values_are
+      log_line = @formatter.call(@severity, @time, @progname, {msg: "sizes", password: ["hunter2"], creds: {value: "hunter2"}})
 
       result = JSON.parse(log_line)
 
-      assert_equal ["ab", 1].to_json.bytesize, result.dig("password", "_filtered", "_bytes")
-      assert_equal({a: "b"}.to_json.bytesize, result.dig("token", "_filtered", "_bytes"))
+      assert_equal({"_class" => "Array", "_count" => 1}, result.dig("password", "_filtered"))
+      assert_equal({"_class" => "Hash", "_keys_count" => 1, "_keys" => ["value"]}, result.dig("creds", "_filtered"))
+    end
+
+    def test_an_email_has_one_hash_under_a_key_and_in_text_however_its_written
+      log_line = @formatter.call(@severity,
+        @time,
+        @progname,
+        {msg: "Signed up User@Example.com", email: "user@example.com", note: "from USER@example.COM"})
+
+      result = JSON.parse(log_line)
+      email_hash = result.dig("email", "_filtered", "_hash")
+
+      assert_match(/\A\h{12}\z/, email_hash)
+      assert_equal "Signed up [EMAIL:#{email_hash}]", result["msg"]
+      assert_equal "from [EMAIL:#{email_hash}]", result["note"]
     end
 
     def test_logs_a_value_shared_by_two_keys_in_full_each_time
@@ -516,6 +530,63 @@ module LogStruct
       assert_includes value, "[EMAIL:"
     end
 
+    def test_scrubs_a_long_url_password_that_the_cut_separates_from_its_host
+      LogStruct.config.limits.max_string_bytes = 100
+      # The password runs past the scrubbers' margin, so its closing @ is beyond what they see. When the password has
+      # an @ of its own, the scrubbers see that one and take it for the one before the host.
+      secret = "s3cr3t" * 60
+      # cspell:ignore Fuser
+      longs = ["", "p@"].flat_map do |start|
+        encoded_start = start.sub("@", "%40")
+        ["#{"a" * 10} https://user:#{start}#{secret}@db.example.com/app",
+          "#{"a" * 10} https%3A%2F%2Fuser%3A#{encoded_start}#{secret}%40db.example.com"]
+      end
+
+      longs.each do |long|
+        value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+        assert_not_includes value, "s3cr3t", long[0, 30]
+        assert_includes value, "[PASSWORD]", long[0, 30]
+      end
+    end
+
+    def test_scrubs_basic_credentials_that_the_cut_runs_through
+      LogStruct.config.limits.max_string_bytes = 100
+      credentials = Base64.strict_encode64("ada:#{"s3cr3t" * 60}")
+      # The scrubbers see a part of the credentials that is no Base64 value
+      long = "#{"a" * 31} Authorization: Basic #{credentials}"
+
+      value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+      assert_not_includes value, credentials[0, 8]
+      assert_includes value, "Basic [FILTERED]"
+    end
+
+    def test_leaves_values_the_scrubbers_saw_whole_at_the_cut
+      LogStruct.config.limits.max_string_bytes = 100
+      # The cut is right after "plan", and the scrubbers saw the words after it
+      prose = "#{"x" * 89} Basic plan#{" usage summary" * 50}"
+      # The scrubbers saw the whole URL, and with its password replaced it's short enough to keep whole
+      url = "#{"x" * 20} https://user:#{"p" * 250}@db.example.com:5432"
+
+      prose_value, url_value = [prose, url].map do |long|
+        JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+      end
+
+      assert_match(/ Basic plan\.\.\. \(cut from/, prose_value)
+      assert_equal "#{"x" * 20} https://user:[PASSWORD]@db.example.com:5432", url_value
+    end
+
+    def test_leaves_a_cut_url_without_a_password
+      LogStruct.config.limits.max_string_bytes = 100
+      long = "#{"a" * 70} https://example.com/#{"b" * 200}"
+
+      value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+      assert_includes value, "https://example.com/bbb"
+      assert_not_includes value, "[PASSWORD]"
+    end
+
     def test_writes_the_first_keys_of_a_large_hash
       LogStruct.config.limits.max_hash_keys = 3
 
@@ -527,8 +598,18 @@ module LogStruct
     def test_writes_the_first_lines_of_a_backtrace_like_array
       result = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Trace", lines: ["a:0"] * 150}))
 
-      assert_equal 101, result["lines"].size
-      assert_equal "... and 50 more lines", result["lines"].last
+      assert_equal 21, result["lines"].size
+      assert_equal "... and 130 more lines", result["lines"].last
+    end
+
+    def test_an_error_lines_backtrace_has_max_backtrace_lines
+      error = ArgumentError.new("bad input")
+      error.set_backtrace((1..30).map { |line| "app/models/user.rb:#{line}:in 'save'" })
+
+      result = JSON.parse(@formatter.call(::Logger::ERROR, @time, @progname, error))
+
+      assert_equal 21, result["backtrace"].size
+      assert_equal "... and 10 more lines", result["backtrace"].last
     end
 
     def test_logs_exceptions_with_their_class_message_and_backtrace

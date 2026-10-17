@@ -32,7 +32,8 @@ export const metadata: Metadata = {
     'structured logging',
     'Sidekiq',
     'Sorbet',
-    'TypeScript',
+    'Lograge',
+    'SemanticLogger',
   ],
   icons: {
     icon: [{ url: '/favicon.ico' }, { url: '/favicon.png' }],
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'LogStruct - Zero-configuration JSON Logging for Ruby on Rails',
     description:
-      'Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.',
+      'Typed JSON structured logging for Rails apps, with filtering of sensitive data and integrations for Sidekiq, GoodJob, ActionMailer, ActiveJob, Shrine, ActiveStorage, CarrierWave and more.',
     url: 'https://logstruct.com',
     siteName: 'LogStruct',
     type: 'website',
@@ -55,7 +56,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'LogStruct - Zero-configuration JSON Logging for Ruby on Rails',
     description:
-      'Type-safe JSON structured logging for Rails apps with support for Sidekiq, Shrine, ActiveStorage, CarrierWave, and more.',
+      'Typed JSON structured logging for Rails apps, with filtering of sensitive data and integrations for Sidekiq, GoodJob, ActionMailer, ActiveJob, Shrine, ActiveStorage, CarrierWave and more.',
     images: ['/images/og-image.jpg'],
   },
 };

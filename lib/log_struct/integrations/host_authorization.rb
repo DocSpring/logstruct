@@ -80,33 +80,19 @@ module LogStruct
         sig { params(env: T::Hash[String, T.untyped]).void }
         def log_blocked_host(env)
           request = ::ActionDispatch::Request.new(env)
-          # Include the blocked hosts app configuration in the log entry
-          # This can be helpful later when reviewing logs.
-          blocked_hosts = env["action_dispatch.blocked_hosts"]
-
-          # Build allowed_hosts array
-          allowed_hosts_array = T.let(nil, T.nilable(T::Array[String]))
-          if blocked_hosts.respond_to?(:allowed_hosts)
-            allowed_hosts_array = blocked_hosts.allowed_hosts
-          end
-
-          # Get allow_ip_hosts value
-          allow_ip_hosts_value = T.let(nil, T.nilable(T::Boolean))
-          if blocked_hosts.respond_to?(:allow_ip_hosts)
-            allow_ip_hosts_value = blocked_hosts.allow_ip_hosts
-          end
+          # The hosts Rails blocked: the Host header, and X-Forwarded-Host when it's set
+          blocked_hosts = Array(env["action_dispatch.blocked_hosts"]).map(&:to_s)
 
           log_entry = LogStruct::Log::Security::BlockedHost.new(
             message: "Blocked host detected: #{request.host}",
             blocked_host: request.host,
+            blocked_hosts: blocked_hosts.empty? ? nil : blocked_hosts,
             path: request.path,
             http_method: request.method,
             source_ip: request.ip,
             user_agent: request.user_agent,
             referer: StringScrubber.without_query(request.referer),
-            x_forwarded_for: request.x_forwarded_for,
-            allowed_hosts: allowed_hosts_array&.empty? ? nil : allowed_hosts_array,
-            allow_ip_hosts: allow_ip_hosts_value
+            x_forwarded_for: request.x_forwarded_for
           )
 
           LogStruct.warn(log_entry)

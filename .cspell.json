@@ -7,7 +7,10 @@
     "node_modules/**"
   ],
   "overrides": [],
-  "ignoreRegExpList": [],
+  "ignoreRegExpList": [
+    "/\\b[A-Za-z]+&apos;[A-Za-z]+\\b/g",
+    "/\\\\e\\[[0-9;]*m/g"
+  ],
   "useGitignore": true,
   "dictionaryDefinitions": [
     {
@@ -23,7 +26,6 @@
   ],
   "dictionaries": [
     "project-words",
-    "lockfile-words-root",
-    "lockfile-words-docs"
+    "lockfile-words-root"
   ]
 }

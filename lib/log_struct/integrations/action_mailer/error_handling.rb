@@ -21,35 +21,42 @@ module LogStruct
         module ClassMethods
           extend T::Sig
 
-          # Just log the error without reporting or retrying
+          # Logs the error, and doesn't report or raise it
           sig { params(ex: StandardError).void }
           def log_and_ignore_error(ex)
             ErrorHandling.handle_mailer_class_error(self, ex, report: false, reraise: false)
           end
 
-          # Log and report to error service, but doesn't reraise
+          # Logs and reports the error, and doesn't raise it
           sig { params(ex: StandardError).void }
           def log_and_report_error(ex)
             ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: false)
           end
 
-          # Log, report to error service, and reraise for retry
+          # Logs the error and raises it again, reporting it too in the Report modes
           sig { params(ex: StandardError).void }
           def log_and_reraise_error(ex)
-            ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: true)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: ErrorHandling.report_before_reraise?, reraise: true)
           end
         end
 
+        # log_and_reraise_error reports the error where standard_errors' mode reports the app's errors
+        # (Report, and ReportProduction in production). Elsewhere whatever rescues the raised error decides.
+        sig { returns(T::Boolean) }
+        def self.report_before_reraise?
+          mode = LogStruct.error_handling_mode_for(Source::Mailer)
+          mode == ErrorHandlingMode::Report || (mode == ErrorHandlingMode::ReportProduction && LogStruct.is_production?)
+        end
+
         # An error that reaches the class handler from the delivery itself was logged (and reported)
-        # by the mailer's handler, which let it through: it re-raised it for the job to retry, or
-        # LogStruct.handle_exception raised it (Raise mode). It's raised again, without logging it
-        # twice, so the job fails as deliver_now would.
+        # by the mailer's handler, which raised it again (log_and_reraise_error). It's raised again,
+        # without logging it twice, so the job fails as deliver_now would.
         sig { params(mailer_class: T.untyped, error: StandardError, report: T::Boolean, reraise: T::Boolean).void }
         def self.handle_mailer_class_error(mailer_class, error, report:, reraise:)
           Kernel.raise error if LogStruct::LoggedErrors.logged?(error)
 
           message = if reraise
-            "#{error.class}: Email delivery error, will retry. Error message: #{error.message}"
+            "#{error.class}: Email delivery failed. Error message: #{error.message}"
           else
             "#{error.class}: Cannot send email. Error message: #{error.message}"
           end
@@ -60,9 +67,7 @@ module LogStruct
             backtrace: error.backtrace,
             level: Level::Error
           ))
-          if report
-            LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}, log: false)
-          end
+          LogStruct.report_error(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}) if report
 
           Kernel.raise error if reraise
         end
@@ -99,23 +104,23 @@ module LogStruct
 
         protected
 
-        # Just log the error without reporting or retrying
+        # Logs the error, and doesn't report or raise it
         sig { params(ex: StandardError).void }
         def log_and_ignore_error(ex)
           self.logstruct_mail_failed = true
           log_email_delivery_error(ex, notify: false, report: false, reraise: false)
         end
 
-        # Log and report to error service, but doesn't reraise.
+        # Logs and reports the error, and doesn't raise it
         sig { params(ex: StandardError).void }
         def log_and_report_error(ex)
           log_email_delivery_error(ex, notify: false, report: true, reraise: false)
         end
 
-        # Log, report to error service, and reraise for retry
+        # Logs the error and raises it again, reporting it too in the Report modes (report_before_reraise?)
         sig { params(ex: StandardError).void }
         def log_and_reraise_error(ex)
-          log_email_delivery_error(ex, notify: false, report: true, reraise: true)
+          log_email_delivery_error(ex, notify: false, report: ErrorHandling.report_before_reraise?, reraise: true)
         end
 
         private
@@ -153,7 +158,8 @@ module LogStruct
             message: message,
             backtrace: error.backtrace,
             additional_data: context_data.presence,
-            timestamp: Time.now
+            timestamp: Time.now,
+            level: Level::Error
           )
 
           # Log the structured error
@@ -183,7 +189,7 @@ module LogStruct
           # LogStruct.handle_exception in Raise mode), and mustn't log or report it again
           LogStruct::LoggedErrors.mark(error)
 
-          # Handle notifications and reporting
+          # Handle notifications, reporting and raising
           handle_error_notifications(error, notify, report, reraise)
         end
 
@@ -191,7 +197,7 @@ module LogStruct
         sig { params(error: StandardError, reraise: T::Boolean).returns(String) }
         def error_message_for(error, reraise)
           if reraise
-            "#{error.class}: Email delivery error, will retry. Recipients: #{recipients(error)}. Error message: #{error.message}"
+            "#{error.class}: Email delivery failed. Recipients: #{recipients(error)}. Error message: #{error.message}"
           else
             "#{error.class}: Cannot send email to #{recipients(error)}. Error message: #{error.message}"
           end
@@ -210,7 +216,7 @@ module LogStruct
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }
-            LogStruct.handle_exception(error, source: Source::Mailer, context: context, log: false)
+            LogStruct.report_error(error, source: Source::Mailer, context: context)
           end
 
           # Re-raise the error if requested
@@ -262,14 +268,18 @@ module LogStruct
           )
         end
 
+        # The formatter scrubs the addresses in the line
         sig { params(error: StandardError).returns(String) }
         def recipients(error)
-          # Some delivery errors (Postmark's, for example) have the recipients
+          # Some delivery errors (Postmark's, for example) have the recipients that failed
           if error.respond_to?(:recipients) && T.unsafe(error).recipients.present?
-            T.unsafe(error).recipients.join(", ")
-          else
-            "unknown"
+            return T.unsafe(error).recipients.join(", ")
           end
+
+          # Otherwise the mail's own: to, cc and bcc (unknown when the mailer failed before it built the mail)
+          mail = respond_to?(:message) ? message : nil
+          destinations = mail.respond_to?(:destinations) ? Array(mail.destinations).compact : []
+          destinations.empty? ? "unknown" : destinations.join(", ")
         end
       end
     end

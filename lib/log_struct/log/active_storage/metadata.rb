@@ -30,10 +30,10 @@ module LogStruct
         const :level, Level, default: Level::Info
 
         const :storage, Symbol
-        const :file_id, String
+        const :file_id, T.nilable(String), default: nil
 
         # Event-specific fields
-        const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
+        const :mime_type, T.nilable(String), default: nil
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -43,8 +43,8 @@ module LogStruct
         def to_h
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
-          h[LogField::FileId] = file_id
-          h[LogField::Metadata] = metadata unless metadata.nil?
+          h[LogField::FileId] = file_id unless file_id.nil?
+          h[LogField::MimeType] = mime_type unless mime_type.nil?
           h
         end
       end

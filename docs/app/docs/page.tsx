@@ -12,9 +12,9 @@ export default function DocsPage() {
         Introduction
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct adds JSON structured logging to any Rails app. Simply add the gem to your Gemfile
-        and add an initializer to configure it. Now your Rails app prints beautiful JSON logs to
-        STDOUT.
+        LogStruct adds JSON structured logging to Rails apps. Add the gem to your Gemfile, and in
+        production your app writes one JSON line to STDOUT for each request, job, email, error and
+        log call. An initializer is only needed to change the defaults.
       </p>
 
       <HeadingWithAnchor id="features" level={2}>
@@ -22,25 +22,38 @@ export default function DocsPage() {
       </HeadingWithAnchor>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          JSON logging enabled by default for server processes and test runs in production and test
-          environments (automatically disabled for console and other Rake tasks).
+          On in production for the server and job processes it recognizes (Puma, Unicorn, Thin,
+          Falcon, <code>rails server</code>, Sidekiq and <code>good_job start</code>), and in test
+          for every process except the console. Off in development, consoles and production Rake
+          tasks unless you set <code>LOGSTRUCT_ENABLED=true</code>. See{' '}
+          <a href="/docs/when-logstruct-runs">When LogStruct runs</a>.
         </li>
         <li>
-          Sets up <a href="https://github.com/roidrage/lograge">Lograge</a> for structured request
-          logging.
+          Sets up <a href="https://github.com/roidrage/lograge">Lograge</a> for request lines, and
+          uses <a href="https://github.com/reidmorrison/semantic_logger">Semantic Logger</a> to
+          write every line.
         </li>
         <li>
-          Uses <a href="https://github.com/reidmorrison/semantic_logger">Semantic Logger</a> as the
-          logging framework.
+          <a href="/docs/integrations">Integrations</a> for ActiveJob, ActionMailer, Sidekiq,
+          GoodJob, Puma, ActiveStorage, Shrine, CarrierWave, Ahoy, ActiveModelSerializers, Dotenv
+          and SQL queries (opt-in).
         </li>
-        <li>Automatic integration with many Rails components and third-party gems.</li>
-        <li>Customizable error handling and reporting with sensible, production-ready defaults.</li>
-        <li>Sensitive data scrubbing and param filtering for security and privacy.</li>
         <li>
-          Host authorization response app for logging &quot;blocked host&quot; security violations.
+          <a href="/docs/filtering-sensitive-data">Filtering</a> of sensitive keys and scrubbing of
+          emails, card numbers and other sensitive values in strings.
         </li>
-        <li>Rack middleware for logging errors, IP Spoofing, CSRF violations, etc.</li>
-        <li>Type checking with Sorbet.</li>
+        <li>
+          Security lines for blocked hosts, CSRF errors and IP spoofing errors, with Rails&apos; own
+          responses left as they are.
+        </li>
+        <li>
+          Error handling modes that decide whether each kind of error is raised, logged or reported,
+          with reports going to Sentry, Bugsnag, Rollbar, Honeybadger or your own reporter.
+        </li>
+        <li>
+          Typed log lines with <a href="/docs/sorbet-types">Sorbet</a>, for the built-in lines and
+          your own.
+        </li>
       </ul>
 
       <HeadingWithAnchor id="logging-with-logstruct" level={2}>
@@ -59,15 +72,27 @@ export default function DocsPage() {
           </TabsList>
           <TabsContent value="ruby" className="mt-0.5">
             <CodeBlock language="ruby">{getCodeExample('basic_logging').code}</CodeBlock>
+            <p className="mt-4 text-neutral-600 dark:text-neutral-300">These lines are written:</p>
+            <CodeBlock language="json">
+              {`{"src":"app","evt":"log","lvl":"info","ts":"2026-10-17T03:14:21.865+00:00","msg":"User signed in","prog":"Rails"}
+{"evt":"user_login","user_id":123,"plan":"pro","src":"app","ts":"2026-10-17T03:14:21.865+00:00","lvl":"info","prog":"Rails"}
+{"msg":"Charged the card","amount_cents":1999,"currency":"usd","src":"app","evt":"log","ts":"2026-10-17T03:14:21.865+00:00","lvl":"info","prog":"Rails"}`}
+            </CodeBlock>
             <Callout className="mt-4">
-              This approach is ideal for most applications. No knowledge of Sorbet is required.
+              Most apps only need this. No knowledge of Sorbet is required.
             </Callout>
           </TabsContent>
           <TabsContent value="typed" className="mt-0.5">
             <CodeBlock language="ruby">{getCodeExample('typed_logging').code}</CodeBlock>
+            <p className="mt-4 text-neutral-600 dark:text-neutral-300">This line is written:</p>
+            <CodeBlock language="json">
+              {`{"src":"app","evt":"log","lvl":"info","ts":"2026-10-17T03:14:21.865+00:00","msg":"User signed in","user_id":123,"plan":"pro","prog":"Rails"}`}
+            </CodeBlock>
             <Callout className="mt-4" type="success">
-              This approach provides several benefits: IDE autocompletion, type checking (in all
-              environments), and guaranteed log structure with valid data.
+              Typed lines give you IDE autocompletion, and their fields are type-checked when the
+              line is built: a wrong type raises in development and test, and is reported in
+              production. The <code>additional_data</code> fields are merged into the top level of
+              the line.
             </Callout>
           </TabsContent>
         </Tabs>

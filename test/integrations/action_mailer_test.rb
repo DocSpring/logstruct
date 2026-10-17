@@ -213,6 +213,37 @@ class ActionMailerIntegrationTest < ActiveSupport::TestCase
     assert_match(/mailer_action="error_during_delivery"/, log_content)
   end
 
+  test "mailers keep their logger, and Rails' own mail log lines are replaced" do
+    original_mailer_logger = ActionMailer::Base.logger
+    ActionMailer::Base.logger = Logger.new(@log_output)
+    logging_mailer = Class.new(ActionMailer::Base) do
+      default from: "test@example.com"
+
+      def self.name = "LoggingMailer"
+
+      def welcome
+        logger.info("Building the welcome mail")
+        mail(to: "recipient@example.com", subject: "Welcome") do |format|
+          format.text { render plain: "Welcome" }
+        end
+      end
+    end
+
+    LogStruct::Integrations::ActionMailer.setup(LogStruct.configuration)
+    logging_mailer.welcome.deliver_now
+
+    log_content = @log_output.string
+
+    assert_match(/Building the welcome mail/, log_content)
+    refute_match(/Delivered mail /, log_content)
+    refute(ActiveSupport::LogSubscriber.log_subscribers.any?(ActionMailer::LogSubscriber))
+  ensure
+    ActionMailer::Base.logger = original_mailer_logger
+    unless ActiveSupport::LogSubscriber.log_subscribers.any?(ActionMailer::LogSubscriber)
+      ActionMailer::LogSubscriber.attach_to(:action_mailer)
+    end
+  end
+
   test "LogStruct error handling can be disabled" do
     # Disable ActionMailer integration
     LogStruct.configure do |config|

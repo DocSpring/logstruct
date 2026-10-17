@@ -8,6 +8,7 @@ require_relative "enums/level"
 require_relative "enums/log_field"
 require_relative "log/interfaces/public_common_fields"
 require_relative "shared/serialize_common_public"
+require_relative "params_errors"
 
 # Dynamically require all top-level log structs under log/*
 # Nested per-event files are required by their parent files.
@@ -32,7 +33,8 @@ module LogStruct
       LogStruct::Log::Error.new(
         source: source,
         error_class: ex.class,
-        message: ex.message,
+        # Without the input a params parser quoted, for a request's params error that the app logs itself
+        message: ParamsErrors.messages(ex).first,
         backtrace: ex.backtrace,
         additional_data: additional_data,
         timestamp: timestamp

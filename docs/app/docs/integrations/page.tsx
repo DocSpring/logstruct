@@ -1,13 +1,16 @@
+import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { FilteringProvider } from '@/components/filtering-context';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
-// Tabs are now handled inside IntegrationExamples
 import { IntegrationExamples } from '@/components/integration-examples';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { AllLogTypes } from '@/generated/logstruct';
 import { getCodeExample } from '@/lib/codeExamples';
 import { getEventsForLogType, getLogTypeInfo, getTitleId } from '@/lib/integration-helpers';
+
+// The example lines' time: when the page was built, which the browser renders them with too
+const EXAMPLES_TIME = Date.now();
 
 export default function IntegrationsPage() {
   return (
@@ -16,9 +19,23 @@ export default function IntegrationsPage() {
         Integrations
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct integrates with many popular gems and Rails components to provide comprehensive
-        structured logging throughout your application. These integrations automatically hook into
-        important events and capture relevant context for better observability.
+        Each integration turns the lines a Rails component or gem writes into LogStruct lines, or
+        adds lines of its own. An integration is set up only when its gem is loaded, and each one
+        can be turned off with its <code>config.integrations.enable_*</code> setting (see{' '}
+        <Link href="/docs/configuration#integration-configuration" className="underline">
+          Integration Configuration
+        </Link>
+        ). All of them are on by default except SQL logging.
+      </p>
+      <p className="text-neutral-600 dark:text-neutral-300">
+        The example lines below are generated in your browser to show each line&apos;s shape. Tick
+        &quot;Apply filtering&quot; to see what LogStruct&apos;s filters do to them. The pages for
+        ActiveJob, ActionMailer, Sidekiq, GoodJob, SQL and Security show lines written by the real
+        code, and every field is described in{' '}
+        <Link href="/docs/log-fields" className="underline">
+          Log Fields
+        </Link>
+        .
       </p>
 
       <FilteringProvider>
@@ -27,12 +44,21 @@ export default function IntegrationsPage() {
           const logTypeInfo = getLogTypeInfo(logType);
           if (!logTypeInfo) return null; // Skip plain logs, etc.
 
-          const { title, description, configuration_code, preferredEvent } = logTypeInfo;
+          const { title, description, configuration_code, preferredEvent, docsPath } = logTypeInfo;
 
           return (
             <div key={logType} className="mt-10">
               <HeadingWithAnchor id={getTitleId(title)}>{title}</HeadingWithAnchor>
               <p className="text-neutral-600 dark:text-neutral-300 mb-4">{description}</p>
+              {docsPath && (
+                <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+                  <Link href={docsPath} className="underline">
+                    {docsPath.startsWith('/docs/integrations/')
+                      ? `The ${title} integration in detail`
+                      : 'Error handling settings'}
+                  </Link>
+                </p>
+              )}
 
               {/* Show Ruby code example if one is specified */}
               {configuration_code && (
@@ -65,6 +91,7 @@ export default function IntegrationsPage() {
                     logType={logType}
                     events={events}
                     preferredEvent={preferredEvent}
+                    now={EXAMPLES_TIME}
                   />
                 );
               })()}

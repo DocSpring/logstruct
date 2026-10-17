@@ -11,8 +11,10 @@ module LogStruct
         const :email, String
       end
 
-      class MockRequest < T::Struct
-        const :remote_ip, String
+      setup do
+        ::SemanticLogger.flush
+        # Only the lines the example logs, not those logged as the test started
+        @log_offset = TEST_LOG_IO.string.bytesize
       end
 
       def test_basic_logging
@@ -20,52 +22,53 @@ module LogStruct
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: basic_logging
         # ----------------------------------------------------------
-        # Log a simple string
+        # Log a message
         Rails.logger.info "User signed in"
 
-        # Log a hash with custom fields
-        Rails.logger.info({
-          event: "user_login",
-          user_id: user.id,
-          ip_address: "192.168.1.1",
-          custom_field: "any value you want"
-        })
+        # Log a Hash: its keys become the line's fields, and evt names the event
+        Rails.logger.info({evt: "user_login", user_id: user.id, plan: "pro"})
+
+        # Log a message with fields
+        Rails.logger.info({msg: "Charged the card", amount_cents: 1999, currency: "usd"})
         # ----------------------------------------------------------
         # END CODE EXAMPLE: basic_logging
         # ----------------------------------------------------------
-        assert_equal 123, user.id # Stop minitest complaining
+
+        message, hash, message_with_fields = logged_lines
+
+        assert_equal({"src" => "app", "evt" => "log", "lvl" => "info", "msg" => "User signed in"}, message.except("ts", "prog"))
+        assert_equal({"src" => "app", "evt" => "user_login", "lvl" => "info", "user_id" => 123, "plan" => "pro"}, hash.except("ts", "prog"))
+        assert_equal ["Charged the card", 1999, "usd"], message_with_fields.values_at("msg", "amount_cents", "currency")
       end
 
       def test_getting_started_basic_logging
         user = MockUser.new(id: 123, email: "user@example.com")
-        request = MockRequest.new(remote_ip: "192.168.1.1")
-
-        # Set up tagged logger
-        Rails.logger = ActiveSupport::TaggedLogging.new(Rails.logger)
 
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: getting_started_basic_logging
         # ----------------------------------------------------------
-        # Log a simple message
+        # Log a message
         Rails.logger.info "User signed in"
 
-        # Log structured data
-        Rails.logger.info({
-          src: "rails",
-          evt: "user_login",
-          user_id: user.id,
-          ip_address: request.remote_ip
-        })
+        # Log a Hash of fields
+        Rails.logger.info({evt: "user_login", user_id: user.id, email: user.email})
 
-        # Log with tags
+        # Tag every line logged in a block
         Rails.logger.tagged("Authentication") do
-          Rails.logger.info "User signed in"
-          Rails.logger.info(user_id: user.id, ip_address: request.remote_ip)
+          Rails.logger.info "Checking the password"
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: getting_started_basic_logging
         # ----------------------------------------------------------
-        assert_equal 123, user.id # Stop minitest complaining
+
+        message, hash, tagged = logged_lines
+
+        assert_equal "User signed in", message["msg"]
+        assert_equal ["user_login", 123], hash.values_at("evt", "user_id")
+        # The email key is filtered, with a hash of the address so lines about the same person can be found
+        assert_equal ["String"], [hash.dig("email", "_filtered", "_class")]
+        assert_match(/\A\h{12}\z/, hash.dig("email", "_filtered", "_hash"))
+        assert_equal [["Authentication"], "Checking the password"], tagged.values_at("tags", "msg")
       end
 
       def test_typed_logging
@@ -78,7 +81,7 @@ module LogStruct
           message: "User signed in",
           additional_data: {
             user_id: 123,
-            ip_address: "192.168.1.1"
+            plan: "pro"
           }
         )
 
@@ -88,8 +91,19 @@ module LogStruct
         # END CODE EXAMPLE: typed_logging
         # ----------------------------------------------------------
 
-        # Simple assertion to make the test pass
-        assert_instance_of LogStruct::Log::Plain, log
+        line = logged_lines.last
+
+        assert_equal(
+          {"src" => "app", "evt" => "log", "lvl" => "info", "msg" => "User signed in", "user_id" => 123, "plan" => "pro"},
+          line.except("ts", "prog")
+        )
+      end
+
+      private
+
+      def logged_lines
+        ::SemanticLogger.flush
+        T.must(TEST_LOG_IO.string.byteslice(@log_offset..)).lines.map { |line| JSON.parse(line) }
       end
     end
   end

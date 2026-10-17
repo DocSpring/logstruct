@@ -8,58 +8,12 @@ require_relative "logger"
 require_relative "reopen_after_fork"
 
 module LogStruct
-  # SemanticLogger Integration
-  #
-  # LogStruct uses SemanticLogger as its core logging engine, providing significant
-  # performance and functionality benefits over Rails' default logger:
-  #
-  # ## Performance Benefits
-  # - **Asynchronous logging**: Logs are written in a background thread, eliminating
-  #   I/O blocking in your main application threads
-  # - **High throughput**: Can handle 100,000+ log entries per second
-  # - **Memory efficient**: Structured data processing with minimal allocations
-  # - **Zero-copy serialization**: Direct JSON generation without intermediate objects
-  #
-  # ## Reliability Benefits
-  # - **Thread-safe**: All operations are thread-safe by design
-  # - **Graceful degradation**: Continues logging even if appenders fail
-  # - **Error isolation**: Logging errors don't crash your application
-  # - **Buffered writes**: Reduces disk I/O with intelligent batching
-  #
-  # ## Feature Benefits
-  # - **Multiple appenders**: Log to files, STDOUT, databases, cloud services simultaneously
-  # - **Structured metadata**: Rich context including process ID, thread ID, tags, and more
-  # - **Log filtering**: Runtime filtering by logger name, level, or custom rules
-  # - **Formatters**: Pluggable output formatting (JSON, colorized, custom)
-  # - **Metrics integration**: Built-in performance metrics and timing data
-  #
-  # ## Development Experience
-  # - **Colorized output**: Beautiful, readable logs in development with ANSI colors
-  # - **Tagged logging**: Hierarchical context tracking (requests, jobs, etc.)
-  # - **Debugging tools**: Detailed timing and memory usage information
-  # - **Hot reloading**: Configuration changes without application restart
-  #
-  # ## Production Benefits
-  # - **Log rotation**: Automatic file rotation with size/time-based policies
-  # - **Compression**: Automatic log compression to save disk space
-  # - **Cloud integration**: Direct integration with CloudWatch, Splunk, etc.
-  # - **Alerting**: Built-in support for error alerting and monitoring
-  #
-  # ## LogStruct Specific Enhancements
-  # - **Type safety**: Full Sorbet type annotations for compile-time error detection
-  # - **Structured data**: Native support for LogStruct's typed log structures
-  # - **Filtering integration**: Seamless integration with LogStruct's data filters
-  # - **Error handling**: Enhanced error reporting with full stack traces and context
-  #
-  # SemanticLogger is a production-grade logging framework used by companies processing
-  # millions of requests per day. It provides the performance and reliability needed
-  # for high-traffic Rails applications while maintaining an elegant developer experience.
+  # LogStruct writes its lines through SemanticLogger. It replaces Rails.logger and the framework loggers with a
+  # SemanticLogger logger whose formatter writes LogStruct's JSON lines. SemanticLogger formats and writes each line on
+  # a background thread, so a request or job doesn't wait for the write, and it can write to several appenders
+  # (STDOUT, a file, a log service) at once.
   module SemanticLogger
-    # Handles setup and configuration of SemanticLogger for Rails applications
-    #
-    # This module provides the core integration between LogStruct and SemanticLogger,
-    # configuring appenders, formatters, and logger replacement to provide optimal
-    # logging performance while maintaining full compatibility with Rails conventions.
+    # Sets up SemanticLogger for a Rails app: its level, appenders and formatters, and the loggers it replaces
     module Setup
       extend T::Sig
 
@@ -74,27 +28,18 @@ module LogStruct
       @original_rails_logger = T.let(nil, T.untyped)
       @original_log_subscriber_logger = T.let(nil, T.untyped)
       @original_app_logger = T.let(nil, T.untyped)
+      # The appenders add_appenders added. LogStruct replaces only these, and keeps any an app adds.
+      @appenders = T.let([], T::Array[T.untyped])
 
       sig { returns(T::Boolean) }
       def self.configured?
         !@logger.nil?
       end
 
-      # Configures SemanticLogger as the primary logging engine for the Rails application
-      #
-      # This method replaces Rails' default logger with SemanticLogger, providing:
-      # - **10-100x performance improvement** for high-volume logging
-      # - **Non-blocking I/O** through background thread processing
-      # - **Enhanced reliability** with graceful error handling
-      # - **Multiple output destinations** (files, STDOUT, cloud services)
-      # - **Structured metadata** including process/thread IDs and timing
-      #
-      # The configuration automatically:
-      # - Determines optimal log levels based on environment
-      # - Sets up appropriate appenders (console, file, etc.)
-      # - Enables colorized output in development
-      # - Replaces Rails.logger and component loggers
-      # - Preserves full Rails.logger API compatibility
+      # Configures SemanticLogger and replaces Rails' loggers with LogStruct's:
+      # - the level from config.log_level (info in production, debug elsewhere)
+      # - the appenders for the environment (see add_appenders)
+      # - Rails.logger and the framework loggers (ActiveRecord, ActionController, ActiveJob, ...)
       #
       # @param app [Rails::Application] The Rails application instance
       sig { params(app: T.untyped).void }
@@ -107,15 +52,32 @@ module LogStruct
         log_level = determine_log_level(app)
         ::SemanticLogger.default_level = log_level
 
-        # Clear existing appenders
-        ::SemanticLogger.clear_appenders!
-
         # Add appropriate appenders based on environment
+        remove_appenders
         add_appenders(app)
         ReopenAfterFork.install!
 
         # Replace Rails.logger with SemanticLogger
         replace_rails_logger(app)
+      end
+
+      # Adds the appenders again, with the settings config/initializers changed after the logger was set up
+      # (prefer_json_in_development, enable_color_output, color_map, filter_noisy_loggers, local_environments).
+      # Appenders the app added in config/initializers stay.
+      sig { params(app: T.untyped).void }
+      def self.reconfigure_appenders(app)
+        remove_appenders
+        add_appenders(app)
+      end
+
+      # Removes the appenders add_appenders added, after writing the lines already queued for them
+      sig { void }
+      def self.remove_appenders
+        return if @appenders.empty?
+
+        ::SemanticLogger.flush
+        @appenders.each { |appender| ::SemanticLogger.remove_appender(appender) }
+        @appenders = []
       end
 
       sig { params(app: T.untyped).returns(Symbol) }
@@ -145,7 +107,8 @@ module LogStruct
         # text logs there.)
         io.sync = true if io.equal?($stdout)
 
-        if Rails.env.development?
+        appenders = []
+        appenders << if Rails.env.development?
           if config.prefer_json_in_development
             # Default to production-style JSON in development when enabled
             ::SemanticLogger.add_appender(
@@ -183,12 +146,14 @@ module LogStruct
         # rotates the file, and in a container it only fills the disk.
         local = config.local_environments.include?(Rails.env.to_sym)
         if local && app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
-          ::SemanticLogger.add_appender(
+          appenders << ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,
             filter: determine_filter
           )
         end
+        # add_appender returns nil when it ignores a second STDOUT appender
+        @appenders = appenders.compact
       end
 
       sig { params(app: T.untyped).returns(T.untyped) }
@@ -205,39 +170,20 @@ module LogStruct
         end
       end
 
-      sig { returns(T.nilable(Regexp)) }
-      def self.determine_filter
-        # Filter out noisy loggers if configured
-        config = LogStruct.config
-        return nil unless config.filter_noisy_loggers
+      NOISY_LOGGERS = /\A(ActionView|ActionController::RoutingError|ActiveRecord::SchemaMigration)/
 
-        # Common noisy loggers to filter
-        /\A(ActionView|ActionController::RoutingError|ActiveRecord::SchemaMigration)/
+      # With filter_noisy_loggers on, an appender filter that leaves out NOISY_LOGGERS' lines. SemanticLogger
+      # writes a line when a Proc filter returns true (a Regexp filter would keep only the names it matches).
+      sig { returns(T.nilable(T.proc.params(log: ::SemanticLogger::Log).returns(T::Boolean))) }
+      def self.determine_filter
+        return nil unless LogStruct.config.filter_noisy_loggers
+
+        ->(log) { !NOISY_LOGGERS.match?(log.name.to_s) }
       end
 
-      # Replaces Rails.logger and all component loggers with LogStruct's SemanticLogger
-      #
-      # This method provides seamless integration by replacing the default Rails logger
-      # throughout the entire Rails stack, ensuring all logging flows through the
-      # high-performance SemanticLogger system.
-      #
-      # ## Benefits of Complete Logger Replacement:
-      # - **Consistent performance**: All Rails components benefit from SemanticLogger speed
-      # - **Unified formatting**: All logs use the same structured JSON format
-      # - **Centralized configuration**: Single point of control for all logging
-      # - **Complete compatibility**: Maintains all Rails.logger API contracts
-      #
-      # ## Components Updated:
-      # - Rails.logger (framework core)
-      # - ActiveRecord::Base.logger (database queries)
-      # - ActionController::Base.logger (request processing)
-      # - ActionMailer::Base.logger (email delivery)
-      # - ActiveJob::Base.logger (background jobs)
-      # - ActionView::Base.logger (template rendering)
-      # - ActionCable.server.config.logger (WebSocket connections)
-      #
-      # After replacement, all Rails logging maintains API compatibility while gaining
-      # SemanticLogger's performance, reliability, and feature benefits.
+      # Replaces Rails.logger, ActiveSupport::LogSubscriber.logger, config.logger and the framework
+      # loggers (ActiveRecord, ActionController, ActionMailer, ActiveJob, ActionView, ActionCable)
+      # with LogStruct's SemanticLogger logger, so every Rails line is a LogStruct JSON line
       #
       # @param app [Rails::Application] The Rails application instance
       sig { params(app: T.untyped).void }
@@ -281,6 +227,7 @@ module LogStruct
         Rails.logger = original_logger
         ActiveSupport::LogSubscriber.logger = @original_log_subscriber_logger
         app.config.logger = @original_app_logger
+        remove_appenders
 
         # These hooks run after the ones that installed LogStruct's logger, including for
         # components that are already loaded

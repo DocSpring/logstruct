@@ -21,6 +21,8 @@
         "BindParams",
         "BlockedHost",
         "BlockedHosts",
+        "CauseClass",
+        "CauseMessage",
         "Checksum",
         "ClientIp",
         "ConnectionPoolSize",

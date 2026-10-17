@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 interface SubHeading {
   id: string;
   title: string;
+  // A page of its own, instead of the heading on this page
+  href?: string;
 }
 
 interface NestedDocNavItemProps {
@@ -94,14 +96,13 @@ export function NestedDocNavItem({ href, title, subHeadings = [], active }: Nest
         <div
           className={cn(
             'pl-4 space-y-0.5 overflow-hidden transition-all duration-300 ease-in-out',
-            isOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0',
+            isOpen ? 'max-h-[80rem] opacity-100 mt-1' : 'max-h-0 opacity-0',
           )}
         >
           {subHeadings.map((subHeading) => {
-            const subHeadingHref = `${href}#${subHeading.id}`;
-            // Check if this specific subheading is active
+            const subHeadingHref = subHeading.href ?? `${href}#${subHeading.id}`;
             const isSubheadingActive =
-              pathname.startsWith(href) && pathname.includes(`#${subHeading.id}`);
+              subHeading.href !== undefined && pathname === subHeading.href;
 
             return (
               <Link

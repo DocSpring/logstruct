@@ -8,6 +8,13 @@ events:
     fields:
       Storage: Symbol
       Location: String
+      # From the file's metadata. Not its original filename, which can name a person.
+      MimeType:
+        type: String
+        required: false
+      Size:
+        type: Integer
+        required: false
       UploadOptions:
         type: 'T::Hash[Symbol, T.untyped]'
         required: false
@@ -34,20 +41,16 @@ events:
       Storage: Symbol
       Location: String
 
+  # Shrine extracted a file's metadata. Its event has no location, nor the metadata it extracted.
   Metadata:
     fields:
       Storage: Symbol
-      Location:
-        type: String
-        required: false
-      Metadata:
-        type: 'T::Hash[String, T.untyped]'
+      DurationMs:
+        type: Float
         required: false
 
+  # Shrine checked whether a file exists. Its event doesn't say whether it did.
   Exist:
     fields:
       Storage: Symbol
       Location: String
-      Exist:
-        type: T::Boolean
-        required: false

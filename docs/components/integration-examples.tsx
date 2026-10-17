@@ -14,13 +14,17 @@ export function IntegrationExamples({
   logType,
   events,
   preferredEvent,
+  now,
 }: {
   logType: LogType;
   events: Event[];
   preferredEvent?: Event;
+  // When the lines were written (milliseconds since the epoch): the page's build time, so that the browser
+  // renders the lines the server did
+  now: number;
 }) {
   const { filtering, setFiltering } = useFiltering();
-  const gen = new LogGenerator(12345, filtering);
+  const gen = new LogGenerator(12345, filtering, now);
   const baseFilteringId = useId();
 
   if (events.length <= 1) {

@@ -142,7 +142,7 @@ module LogStruct
 
         hash = log_entry.serialize
 
-        assert_equal scheduled_time.iso8601, hash[:scheduled_at]
+        assert_equal scheduled_time.iso8601(3), hash[:scheduled_at]
         assert_equal 10, hash[:priority]
       end
 

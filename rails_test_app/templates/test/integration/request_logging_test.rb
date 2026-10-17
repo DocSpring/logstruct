@@ -41,6 +41,20 @@ class RequestLoggingTest < ActionDispatch::IntegrationTest
     assert parsed.key?("duration_ms"), "Must have 'duration_ms' field"
   end
 
+  def test_a_request_logs_no_rails_request_lines_beside_the_request_line
+    get "/logging/basic"
+
+    assert_response :success
+
+    ::SemanticLogger.flush
+    @log_output.rewind
+    output = @log_output.read.to_s
+
+    assert_includes output, '"evt":"request"'
+    assert_not_includes output, "Processing by LoggingController"
+    assert_not_includes output, "Completed 200 OK"
+  end
+
   def test_request_log_has_the_referer_without_its_query
     get "/logging/basic", headers: {"HTTP_REFERER" => "https://app.example.com/reset?token=reset-token-123"}
 
@@ -95,6 +109,10 @@ class RequestLoggingTest < ActionDispatch::IntegrationTest
     assert_equal "LoggingController", parsed["controller"], "Must have controller field"
     assert_equal "test_basic", parsed["action"], "Must have action field"
     assert_equal "/logging/basic", parsed["path"], "Must have correct path"
+    # Rails' "Started GET" line has the client's address, so the request line has it too. This app
+    # turns on filters.ip_addresses, which scrubs it.
+    assert_equal "[IP]", parsed["source_ip"], "Must have the client's IP, scrubbed"
+    assert_equal "www.example.com", parsed["host"], "Must have the host"
   end
 
   def test_all_logs_during_request_have_request_id

@@ -136,4 +136,9 @@
   footer a:not([class]) {
     @apply text-gray-700 dark:text-gray-200 hover:underline;
   }
+
+  /* Long names in prose (LogStruct::Log::Interfaces::PublicCommonFields) wrap instead of widening the page on phones */
+  :not(pre) > code {
+    overflow-wrap: anywhere;
+  }
 }

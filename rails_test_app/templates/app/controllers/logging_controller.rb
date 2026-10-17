@@ -22,6 +22,11 @@ class LoggingController < ApplicationController
     render json: {status: "ok", message: "Basic logging completed"}
   end
 
+  # Reads the request's params
+  def test_params
+    render json: {keys: params.keys}
+  end
+
   # Error logging
   def test_error
     # Since the tests run in the test environment and Rails' test behavior may catch exceptions

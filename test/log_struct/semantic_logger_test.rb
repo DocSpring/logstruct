@@ -10,6 +10,7 @@ module LogStruct
   class SemanticLoggerTest < ActiveSupport::TestCase
     setup do
       @io = setup_isolated_logger
+      @isolated_appender = ::SemanticLogger.appenders.last
       @logger = LogStruct::SemanticLogger::Logger.new("TestLogger")
     end
 
@@ -31,7 +32,7 @@ module LogStruct
       assert stdout.sync
     ensure
       # Remove the appenders writing to it before closing it; teardown puts back the others
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       $stdout = saved_stdout
       stdout&.close!
     end
@@ -43,7 +44,7 @@ module LogStruct
 
       assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
     ensure
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
     end
 
     test "request IDs are scrubbed and filtered like the rest of the line" do
@@ -95,8 +96,82 @@ module LogStruct
       assert_equal ["app/jobs/sync_job.rb:3:in 'perform'"], lines.first["backtrace"]
     end
 
+    test "a params error's line leaves out the input its parser quoted" do
+      rack_error = assert_raises(Rack::Utils::InvalidParameterError) do
+        Rack::Utils.parse_nested_query("password=%zz-synthetic-raw-secret")
+      end
+      bad_request = assert_raises(ActionController::BadRequest) do
+        raise rack_error
+      rescue Rack::Utils::InvalidParameterError => e
+        raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
+      end
+      clear_log_buffer(@io)
+
+      @logger.error(bad_request)
+      @logger.error("Import failed", rack_error)
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal [["Invalid request parameters", nil], ["Import failed", "Invalid request parameters"]],
+        lines.map { |line| line.values_at("msg", "error_message") }
+      assert_not_includes @io.string, "synthetic-raw-secret"
+    end
+
+    test "settings from config/initializers apply to the logger set up before them" do
+      LogStruct.config.prefer_json_in_development = false
+      before = ::SemanticLogger.appenders.to_a
+
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
+        Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("development")) do
+          LogStruct::SemanticLogger::Setup.reconfigure_appenders(Rails.application)
+        end
+      end
+
+      formatters = (::SemanticLogger.appenders.to_a - before).map { |appender| appender.formatter.class }
+
+      assert_equal [LogStruct::SemanticLogger::ColorFormatter], formatters
+    ensure
+      LogStruct.config.prefer_json_in_development = true
+    end
+
+    test "adding the appenders again keeps the ones an app added in config/initializers" do
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: "true") do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+        app_appender = ::SemanticLogger.add_appender(io: StringIO.new, formatter: :json)
+
+        LogStruct::SemanticLogger::Setup.reconfigure_appenders(Rails.application)
+
+        assert_includes ::SemanticLogger.appenders, app_appender
+        assert_includes ::SemanticLogger.appenders, @isolated_appender
+        # LogStruct's STDOUT appender was replaced, not added a second time
+        assert_equal 1, ::SemanticLogger.appenders.count { |appender| appender.respond_to?(:console_output?) && appender.console_output? }
+      end
+    ensure
+      clear_test_appenders
+    end
+
+    test "the logstruct.setup initializer adds the appenders again when the logger is already set up" do
+      initializer = LogStruct::Railtie.instance.initializers.find { |i| i.name == "logstruct.setup" }
+      reconfigured = []
+
+      LogStruct.stub(:apply_initializer_settings!, nil) do
+        LogStruct.stub(:merge_rails_filter_parameters!, nil) do
+          LogStruct::Integrations.stub(:setup_integrations, ->(stage:) {}) do
+            LogStruct::SemanticLogger::Setup.stub(:configured?, true) do
+              LogStruct::SemanticLogger::Setup.stub(:reconfigure_appenders, ->(app) { reconfigured << app }) do
+                T.must(initializer).run(Rails.application)
+              end
+            end
+          end
+        end
+      end
+
+      assert_equal [Rails.application], reconfigured
+    end
+
     test "logs only to STDOUT in production" do
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
         LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
       end
@@ -104,24 +179,24 @@ module LogStruct
       assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
       assert_equal 1, ::SemanticLogger.appenders.size
     ensure
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
     end
 
     test "logs to the log file too in test" do
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ClimateControl.modify(RAILS_LOG_TO_STDOUT: nil) do
         LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
       end
 
       assert_equal 1, ::SemanticLogger.appenders.count { |appender| appender.is_a?(::SemanticLogger::Appender::File) }
     ensure
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
     end
 
     test "forked processes still write their lines" do
       LogStruct::SemanticLogger::ReopenAfterFork.install!
       reader, writer = IO.pipe
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ::SemanticLogger.add_appender(io: writer, formatter: LogStruct::SemanticLogger::Formatter.new, async: false)
 
       # SemanticLogger's writer thread isn't copied into the child
@@ -132,7 +207,7 @@ module LogStruct
         exit!(0)
       end
       Process.wait(pid)
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       writer.close
 
       assert_includes reader.read, "from the child"
@@ -244,20 +319,34 @@ module LogStruct
       assert_equal ["A logged Hash attempted to set reserved key: ts", "A logged Hash attempted to set reserved key: lvl"], reported.uniq
     end
 
-    test "supports tagged logging" do
-      @logger.tagged("request-123") do
-        @logger.info("Processing request")
+    test "writes the logger's tags, and its named tags in ctx" do
+      @logger.tagged("billing", "request-123") do
+        @logger.tagged(user_id: 42) do
+          @logger.info("Processing request")
+        end
       end
-      ::SemanticLogger.flush  # Flush to ensure output is written
+      ::SemanticLogger.flush
 
-      output = @io.string
+      line = JSON.parse(T.must(@io.string.lines.last))
 
-      assert_includes output, "Processing request"
+      assert_equal "Processing request", line["msg"]
+      assert_equal ["billing", "request-123"], line["tags"]
+      assert_equal({"user_id" => 42}, line["ctx"])
+    end
 
-      # Tags should be included in the log
-      # For now just check the message is there
-      # log = JSON.parse(output.lines.last)
-      # assert_includes log["tags"] || [], "request-123"
+    test "tags and named tags are filtered and scrubbed like the rest of the line" do
+      @logger.tagged("user@example.com") do
+        @logger.tagged(password: "hunter2") do
+          @logger.info("Signed in")
+        end
+      end
+      ::SemanticLogger.flush
+
+      line = JSON.parse(T.must(@io.string.lines.last))
+
+      refute_includes line.to_s, "user@example.com"
+      refute_includes line.to_s, "hunter2"
+      assert_match(/\A\[EMAIL:\h+\]\z/, line["tags"].first)
     end
 
     test "maintains backward compatibility with Rails.logger interface" do
@@ -307,10 +396,13 @@ module LogStruct
 
       @logger.info("Signed in as ada@example.com")
       @logger.warn { "Card 4111111111111111 declined" }
+      @logger << "Reset sent to grace@example.com"
 
       assert_includes secondary_io.string, "Signed in as [EMAIL:"
       assert_includes secondary_io.string, "Card [CREDIT_CARD] declined"
+      assert_includes secondary_io.string, "Reset sent to [EMAIL:"
       assert_not_includes secondary_io.string, "ada@example.com"
+      assert_not_includes secondary_io.string, "grace@example.com"
     end
 
     test "broadcast_to ignores SemanticLogger loggers, which share its appenders" do
@@ -364,8 +456,28 @@ module LogStruct
       # Check main logger output
       assert_includes @io.string, "Appended message"
 
-      # Check secondary logger output
-      assert_includes secondary_io.string, "Appended message"
+      # Check secondary logger output, once
+      assert_equal 1, secondary_io.string.scan("Appended message").size
+    end
+
+    # rails server's log_to_stdout in development, where LogStruct writes to STDOUT
+    test "broadcast_to ignores a STDOUT logger when SemanticLogger already writes to STDOUT" do
+      console_appender = ::SemanticLogger.add_appender(io: $stdout, formatter: LogStruct::SemanticLogger::Formatter.new)
+      console = ::ActiveSupport::Logger.new($stdout)
+
+      @logger.broadcast_to(console)
+
+      assert_empty @logger.broadcasts
+    ensure
+      ::SemanticLogger.remove_appender(console_appender) if console_appender
+    end
+
+    test "broadcast_to keeps a STDOUT logger when nothing else writes to STDOUT" do
+      console = ::ActiveSupport::Logger.new($stdout)
+
+      @logger.broadcast_to(console)
+
+      assert_equal [console], @logger.broadcasts
     end
 
     test "broadcast works with different log levels" do
@@ -451,6 +563,26 @@ module LogStruct
       result = formatter.call("DEBUG", time, "prog", "")
 
       assert_kind_of String, result
+    end
+
+    test "filter_noisy_loggers leaves out the noisy loggers' lines and keeps the others" do
+      LogStruct.config.filter_noisy_loggers = true
+      io = StringIO.new
+      ::SemanticLogger.add_appender(
+        io: io,
+        formatter: LogStruct::SemanticLogger::Formatter.new,
+        filter: LogStruct::SemanticLogger::Setup.determine_filter,
+        async: false
+      )
+
+      ::SemanticLogger["Rails"].info("an app line")
+      ::SemanticLogger["ActionView::Base"].info("a template line")
+      ::SemanticLogger.flush
+
+      assert_includes io.string, "an app line"
+      refute_includes io.string, "a template line"
+    ensure
+      LogStruct.config.filter_noisy_loggers = false
     end
   end
 end

@@ -12,35 +12,40 @@ module LogStruct
         # Override log methods to handle LogStruct types and broadcast
         sig { params(message: T.untyped, payload: T.untyped, exception: T.untyped, block: T.nilable(T.proc.returns(String))).returns(T::Boolean) }
         def debug(message = nil, payload = nil, exception = nil, &block)
-          result = super(*semantic_logger_args(:debug, message, payload, exception), &block)
+          result = super(*semantic_logger_args(message, payload, exception), &block)
+          instrument_log(message, :debug)
           broadcast_message(:debug, message, block)
           result
         end
 
         sig { params(message: T.untyped, payload: T.untyped, exception: T.untyped, block: T.nilable(T.proc.returns(String))).returns(T::Boolean) }
         def info(message = nil, payload = nil, exception = nil, &block)
-          result = super(*semantic_logger_args(:info, message, payload, exception), &block)
+          result = super(*semantic_logger_args(message, payload, exception), &block)
+          instrument_log(message, :info)
           broadcast_message(:info, message, block)
           result
         end
 
         sig { params(message: T.untyped, payload: T.untyped, exception: T.untyped, block: T.nilable(T.proc.returns(String))).returns(T::Boolean) }
         def warn(message = nil, payload = nil, exception = nil, &block)
-          result = super(*semantic_logger_args(:warn, message, payload, exception), &block)
+          result = super(*semantic_logger_args(message, payload, exception), &block)
+          instrument_log(message, :warn)
           broadcast_message(:warn, message, block)
           result
         end
 
         sig { params(message: T.untyped, payload: T.untyped, exception: T.untyped, block: T.nilable(T.proc.returns(String))).returns(T::Boolean) }
         def error(message = nil, payload = nil, exception = nil, &block)
-          result = super(*semantic_logger_args(:error, message, payload, exception), &block)
+          result = super(*semantic_logger_args(message, payload, exception), &block)
+          instrument_log(message, :error)
           broadcast_message(:error, message, block)
           result
         end
 
         sig { params(message: T.untyped, payload: T.untyped, exception: T.untyped, block: T.nilable(T.proc.returns(String))).returns(T::Boolean) }
         def fatal(message = nil, payload = nil, exception = nil, &block)
-          result = super(*semantic_logger_args(:fatal, message, payload, exception), &block)
+          result = super(*semantic_logger_args(message, payload, exception), &block)
+          instrument_log(message, :fatal)
           broadcast_message(:fatal, message, block)
           result
         end
@@ -50,9 +55,8 @@ module LogStruct
         # SemanticLogger's arguments for a line: a LogStruct entry or struct goes in the payload, and a Hash is the
         # payload itself, so its keys are written at the top level of the line. An exception can come second
         # (logger.error({id: 1}, error)) or third.
-        sig { params(level: Symbol, message: T.untyped, payload: T.untyped, exception: T.untyped).returns([T.untyped, T.untyped, T.untyped]) }
-        def semantic_logger_args(level, message, payload, exception)
-          instrument_log(message, level)
+        sig { params(message: T.untyped, payload: T.untyped, exception: T.untyped).returns([T.untyped, T.untyped, T.untyped]) }
+        def semantic_logger_args(message, payload, exception)
           if message.is_a?(LogStruct::Log::Interfaces::CommonFields) || message.is_a?(T::Struct)
             [nil, {payload: message}, nil]
           elsif message.is_a?(Hash)
@@ -62,12 +66,23 @@ module LogStruct
           end
         end
 
-        # Instrument log events for subscribers
+        # Sends a LogStruct entry to the log.logstruct subscribers, after its line is queued to be written, so a
+        # subscriber's error can't lose it. The error is handled like the app's other errors (standard_errors, which
+        # raises it from the log call by default), and the lines written while handling it aren't sent to the
+        # subscribers again.
         sig { params(message: T.untyped, level: Symbol).void }
         def instrument_log(message, level)
           return unless message.is_a?(LogStruct::Log::Interfaces::CommonFields) || message.is_a?(T::Struct)
+          return if Thread.current[:logstruct_instrumenting_log]
 
-          ::ActiveSupport::Notifications.instrument("log.logstruct", log: message, level: level)
+          Thread.current[:logstruct_instrumenting_log] = true
+          begin
+            ::ActiveSupport::Notifications.instrument("log.logstruct", log: message, level: level)
+          rescue => e
+            LogStruct.handle_exception(e, source: Source::App, context: {notification: "log.logstruct"})
+          ensure
+            Thread.current[:logstruct_instrumenting_log] = false
+          end
         end
 
         # Other loggers get String messages, and what blocks return, scrubbed like a log line's strings

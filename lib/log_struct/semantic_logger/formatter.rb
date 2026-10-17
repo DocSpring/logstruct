@@ -3,53 +3,13 @@
 
 require "semantic_logger"
 require_relative "../formatter"
+require_relative "../params_errors"
 
 module LogStruct
   module SemanticLogger
-    # High-Performance JSON Formatter with LogStruct Integration
-    #
-    # This formatter extends SemanticLogger's JSON formatter to provide optimal
-    # JSON serialization performance while preserving all LogStruct features
-    # including data filtering, sensitive data scrubbing, and type-safe structures.
-    #
-    # ## Performance Advantages Over Rails Logger:
-    #
-    # ### Serialization Performance
-    # - **Direct JSON generation**: Bypasses intermediate object creation
-    # - **Streaming serialization**: Memory-efficient processing of large objects
-    # - **Type-optimized paths**: Fast serialization for common data types
-    # - **Zero-copy operations**: Minimal memory allocation during serialization
-    #
-    # ### Memory Efficiency
-    # - **Object reuse**: Formatter instances are reused across log calls
-    # - **Lazy evaluation**: Only processes data that will be included in output
-    # - **Efficient buffering**: Optimal buffer sizes for JSON generation
-    # - **Garbage collection friendly**: Minimal object allocation reduces GC pressure
-    #
-    # ### Integration Benefits
-    # - **LogStruct compatibility**: Native support for typed log structures
-    # - **Filter preservation**: Maintains all LogStruct filtering capabilities
-    # - **Scrubbing integration**: Seamless sensitive data scrubbing
-    # - **Error handling**: Robust handling of serialization errors
-    #
-    # ## Feature Preservation:
-    # This formatter maintains full compatibility with LogStruct's features:
-    # - Sensitive data filtering (passwords, tokens, etc.)
-    # - Recursive object scrubbing and processing
-    # - Type-safe log structure handling
-    # - Custom field transformations
-    # - Metadata preservation and enrichment
-    #
-    # ## JSON Output Structure:
-    # The formatter produces consistent, parseable JSON that includes:
-    # - Standard log fields (timestamp, level, message, logger name)
-    # - LogStruct-specific fields (source, event, context)
-    # - The request ID and the running Sidekiq job's context, from SemanticLogger's named tags
-    # - Application-specific payload data
-    #
-    # This combination provides the performance benefits of SemanticLogger with
-    # the structured data benefits of LogStruct, resulting in faster, more
-    # reliable logging for high-traffic applications.
+    # Writes each SemanticLogger line as LogStruct's JSON: LogStruct entries, Hashes, messages and exceptions, with
+    # SemanticLogger's tags and named tags (the request ID and the running Sidekiq job's context among them). LogStruct::Formatter
+    # filters and scrubs every value, within the size limits in config.limits.
     class Formatter < ::SemanticLogger::Formatters::Json
       extend T::Sig
 
@@ -64,12 +24,17 @@ module LogStruct
         # Extract LogStruct from various locations where it might be stored
         logstruct = extract_logstruct(log)
 
-        # The request ID and the running Sidekiq job's context, from named_tags
-        request_id = log.named_tags[:request_id]
-        job_context = log.named_tags[:sidekiq_context]
+        # The request ID, the running Sidekiq job's context and the other named tags (logger.tagged(user_id: 1))
+        # go in req_id and ctx, and tags (logger.tagged("billing"), config.log_tags, ActiveJob's) in tags
+        named_tags = log.named_tags
+        request_id = named_tags[:request_id]
+        job_context = named_tags[:sidekiq_context]
+        context = named_tags.except(:request_id, :sidekiq_context)
+        context = context.merge(job_context) if job_context.is_a?(Hash)
         metadata = {
           request_id: request_id.is_a?(String) ? request_id : nil,
-          context: job_context.is_a?(Hash) ? job_context : nil
+          context: context.empty? ? nil : context,
+          tags: log.tags.empty? ? nil : log.tags
         }
 
         json = if logstruct
@@ -108,11 +73,13 @@ module LogStruct
         message = log.message
         logged_message = (message.is_a?(String) && !message.empty?) ? message : nil
         payload = log.payload
+        # Without the input a params parser quoted
+        exception_message = ParamsErrors.messages(exception).first
         LogStruct::Log::Error.new(
           source: Source::App,
           error_class: exception.class,
-          message: logged_message || exception.message,
-          error_message: logged_message ? exception.message : nil,
+          message: logged_message || exception_message,
+          error_message: logged_message ? exception_message : nil,
           backtrace: exception.backtrace,
           additional_data: payload.is_a?(Hash) ? without_reserved_keys(payload) : nil,
           timestamp: log.time

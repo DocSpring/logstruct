@@ -16,7 +16,7 @@ require "log_struct/concerns/logging"
 # Require integrations
 require "log_struct/integrations"
 
-# SemanticLogger integration - core feature for high-performance logging
+# SemanticLogger: the logger, formatters and setup LogStruct writes its lines with
 require "log_struct/semantic_logger/formatter"
 require "log_struct/semantic_logger/color_formatter"
 require "log_struct/semantic_logger/logger"

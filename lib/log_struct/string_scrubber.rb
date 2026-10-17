@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "base64"
+require "ipaddr"
 require "uri"
 require_relative "hash_utils"
 require_relative "param_filters"
@@ -22,6 +24,14 @@ module LogStruct
       # cspell:ignore Fuser Asecret
       ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&])+(%40)}i
       URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]\2'
+      # A URL's user info that runs past what the scrubbers saw of a long string, where the cut can separate the
+      # password from the @ that closes it. Everything after the user's colon goes: the password can contain an
+      # @ of its own (p@ss).
+      CUT_URL_PASSWORD_REGEX = %r{(//[^\s/:@]*:)[^\s/"'<>]*\z}
+      CUT_ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&"'<>])*\z}i
+      CUT_URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]'
+      # Basic credentials that run past what the scrubbers saw: a cut token doesn't decode, so it can't be checked
+      CUT_BASIC_CREDENTIALS_REGEX = %r{\b(Basic\s+)[A-Za-z0-9+/]+=*\z}i
 
       # A URL's query string, for the sensitive params in it
       QUERY_STRING_REGEX = /\?([^\s#"'<>]+)/
@@ -29,7 +39,15 @@ module LogStruct
       SENSITIVE_QUERY_PARAMS = T.let(["code"].freeze, T::Array[String])
       QUERY_PARAM_REPLACEMENT = "[FILTERED]"
 
-      EMAIL_REGEX = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i
+      # Letters and digits of any script (an accented name, a domain in another alphabet)
+      EMAIL_REGEX = /(?<![\p{L}\p{N}._%+-])[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.\p{L}{2,}(?![\p{L}\p{N}])/
+      # A whole String that is an email address
+      WHOLE_EMAIL_REGEX = /\A#{EMAIL_REGEX}\z/
+
+      # The credentials after Bearer or Basic, as in an Authorization header. A Bearer token has at least 16
+      # characters, and Basic credentials must decode to user:password, so "Bearer token" and "Basic plan" stay.
+      AUTHORIZATION_CREDENTIALS_REGEX = %r{\b(Bearer|Basic)(\s+)([A-Za-z0-9\-._~+/]+=*)}i
+      AUTHORIZATION_CREDENTIALS_REPLACEMENT = "[FILTERED]"
 
       # 13 to 19 digits, written together, in fours (4111 1111 1111 1111, with a 19-digit card's last
       # three) or in American Express and Diners Club groups (3782 822463 10005). Numbers that fail
@@ -45,16 +63,23 @@ module LogStruct
       /x
       CREDIT_CARD_REPLACEMENT = "[CREDIT_CARD]"
 
-      PHONE_REGEX = /\b\d{3}[\s-]\d{3}[\s-]\d{4}\b/
+      # US numbers: 555-123-4567, 555 123 4567, 555.123.4567 and (555) 123-4567, with or without +1 or 1
+      PHONE_REGEX = /(?<![\w+])(?:\+?1[\s.-]?)?(?:\(\d{3}\)[\s.-]?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?!\w)/
       PHONE_REPLACEMENT = "[PHONE]"
 
-      SSN_REGEX = /\b\d{3}[\s-]\d{2}[\s-]\d{4}\b/
+      # 123-45-6789 and 123 45 6789, but not inside a longer number (9-123-45-6789, 123-45-6789-0)
+      SSN_REGEX = /(?<!\w|\d-)\d{3}[\s-]\d{2}[\s-]\d{4}(?!\w|-\d)/
       SSN_REPLACEMENT = "[SSN]"
 
       IP_REGEX = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/
+      # Text that could be an IPv6 address (2001:db8::1, ::ffff:192.168.1.1, fe80::1%en0 with its zone). IPAddr
+      # decides whether it is one, and it must have a digit, so Ruby constants (Face::Bead) and times (12:30:45)
+      # stay.
+      IPV6_CANDIDATE_REGEX = /(?<![\w:.])(?=[\h:.]*\d)(?:\h{0,4}:){2,7}(?:\d{1,3}(?:\.\d{1,3}){3}|\h{1,4})?(?:%\w+)?(?![\w:])/
       IP_REPLACEMENT = "[IP]"
 
-      MAC_REGEX = /\b[0-9a-f]{2}(:[0-9a-f]{2}){5}\b/i
+      # Six pairs of hex digits, separated by colons or by dashes
+      MAC_REGEX = /\b[0-9a-f]{2}([:-])[0-9a-f]{2}(?:\1[0-9a-f]{2}){4}\b/i
       MAC_REPLACEMENT = "[MAC]"
 
       # Hash keys and Symbols like these are never changed by the scrubbers, so they're skipped
@@ -65,8 +90,11 @@ module LogStruct
       def scrub(string)
         return string if string.empty?
 
-        string = string.to_s.dup
+        # The scrubbers match letters of any script, which needs valid UTF-8
+        string = valid_utf8(string.to_s).dup
         config = LogStruct.config.filters
+
+        scrub_authorization_credentials!(string) if config.authorization_credentials
 
         # Sensitive params in URLs' query strings
         scrub_query_params!(string) if config.url_query_params && string.include?("?")
@@ -79,10 +107,7 @@ module LogStruct
 
         # Emails
         if config.email_addresses
-          string.gsub!(EMAIL_REGEX) do |email|
-            email_hash = HashUtils.hash_value(email)
-            "[EMAIL:#{email_hash}]"
-          end
+          string.gsub!(EMAIL_REGEX) { |email| "[EMAIL:#{value_hash(email)}]" }
         end
 
         # Credit card numbers
@@ -98,8 +123,11 @@ module LogStruct
         # SSNs
         string.gsub!(SSN_REGEX, SSN_REPLACEMENT) if config.ssns
 
-        # IPs
-        string.gsub!(IP_REGEX, IP_REPLACEMENT) if config.ip_addresses
+        # IPs: IPv6 first, which can end in an IPv4 address
+        if config.ip_addresses
+          scrub_ipv6_addresses!(string) if string.include?(":")
+          string.gsub!(IP_REGEX, IP_REPLACEMENT)
+        end
 
         # MAC addresses
         string.gsub!(MAC_REGEX, MAC_REPLACEMENT) if config.mac_addresses
@@ -109,6 +137,48 @@ module LogStruct
         string = custom_scrubber.call(string) if !custom_scrubber.nil?
 
         string
+      end
+
+      # The end of the part of a long string the scrubbers saw (Formatter#scrub_limited_string). They saw only the
+      # start of a value that runs past it, so a URL password separated from its closing @ (which
+      # URL_PASSWORD_REGEX needs) and Basic credentials cut short (which no longer decode) are replaced, however
+      # long they were.
+      sig { params(string: String).returns(String) }
+      def scrub_cut_end(string)
+        filters = LogStruct.config.filters
+        if filters.url_passwords
+          string = string.sub(CUT_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT)
+            .sub(CUT_ENCODED_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT)
+        end
+        if filters.authorization_credentials
+          string = string.sub(CUT_BASIC_CREDENTIALS_REGEX, "\\1#{AUTHORIZATION_CREDENTIALS_REPLACEMENT}")
+        end
+        string
+      end
+
+      # The hash of a value (HashUtils.hash_value). Email addresses are hashed in lowercase, so an address has
+      # one hash however it's written, and the same hash under a filtered key as in a scrubbed string.
+      sig { params(value: String).returns(String) }
+      def value_hash(value)
+        HashUtils.hash_value(WHOLE_EMAIL_REGEX.match?(value) ? value.downcase : value)
+      end
+
+      # A String as valid UTF-8: binary and other encodings are converted, and bytes that aren't valid
+      # become U+FFFD
+      sig { params(string: String).returns(String) }
+      def valid_utf8(string)
+        return string if string.ascii_only? || (string.encoding == Encoding::UTF_8 && string.valid_encoding?)
+
+        utf8 = if string.encoding == Encoding::BINARY || string.encoding == Encoding::US_ASCII
+          string.dup.force_encoding(Encoding::UTF_8)
+        else
+          begin
+            string.encode(Encoding::UTF_8)
+          rescue EncodingError
+            string.dup.force_encoding(Encoding::UTF_8)
+          end
+        end
+        utf8.valid_encoding? ? utf8 : utf8.scrub
       end
 
       # A Hash key or a Symbol, scrubbed like a String unless it's a plain identifier (user_id,
@@ -134,17 +204,57 @@ module LogStruct
 
       private
 
+      sig { params(string: String).void }
+      def scrub_ipv6_addresses!(string)
+        string.gsub!(IPV6_CANDIDATE_REGEX) do |candidate|
+          # The zone (an interface's name) is replaced with its address
+          ipv6_address?(candidate.split("%", 2).first.to_s) ? IP_REPLACEMENT : candidate
+        end
+      end
+
+      sig { params(candidate: String).returns(T::Boolean) }
+      def ipv6_address?(candidate)
+        ::IPAddr.new(candidate).ipv6?
+      rescue ::IPAddr::Error
+        false
+      end
+
+      # Bearer tokens and Basic credentials (Authorization: Bearer eyJ... becomes Bearer [FILTERED])
+      sig { params(string: String).void }
+      def scrub_authorization_credentials!(string)
+        return unless string.match?(/bearer|basic/i)
+
+        string.gsub!(AUTHORIZATION_CREDENTIALS_REGEX) do |match|
+          scheme = Regexp.last_match(1).to_s
+          credentials = Regexp.last_match(3).to_s
+          if authorization_credentials?(scheme, credentials)
+            "#{scheme}#{Regexp.last_match(2)}#{AUTHORIZATION_CREDENTIALS_REPLACEMENT}"
+          else
+            match
+          end
+        end
+      end
+
+      sig { params(scheme: String, credentials: String).returns(T::Boolean) }
+      def authorization_credentials?(scheme, credentials)
+        return credentials.length >= 16 if scheme.casecmp?("bearer")
+
+        credentials.length >= 8 && Base64.strict_decode64(credentials).include?(":")
+      rescue ArgumentError
+        false
+      end
+
       # Replaces the values of query params whose names would be filtered as keys
       # (/reset?token=abc&page=2 becomes /reset?token=[FILTERED]&page=2)
       sig { params(string: String).void }
       def scrub_query_params!(string)
         string.gsub!(QUERY_STRING_REGEX) do
-          query = T.must(Regexp.last_match(1))
+          query = Regexp.last_match(1).to_s
           params = query.split("&", -1).map do |param|
             name, value = param.split("=", 2)
             next param if value.nil? || value.empty? || value == QUERY_PARAM_REPLACEMENT
 
-            sensitive_query_param?(T.must(name), value) ? "#{name}=#{QUERY_PARAM_REPLACEMENT}" : param
+            sensitive_query_param?(name.to_s, value) ? "#{name}=#{QUERY_PARAM_REPLACEMENT}" : param
           end
           "?#{params.join("&")}"
         end

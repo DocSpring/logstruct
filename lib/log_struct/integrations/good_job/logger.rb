@@ -10,10 +10,6 @@ module LogStruct
     module GoodJob
       # Custom Logger for GoodJob that creates LogStruct::Log::GoodJob entries
       #
-      # This logger extends LogStruct's SemanticLogger to provide optimal logging
-      # performance while creating structured log entries specifically for GoodJob
-      # operations and events.
-      #
       # GoodJob's own messages are logged as Log::GoodJob::Log lines with the process and thread,
       # and, during a job, the job's ID, class, queue, execution count, scheduled time and priority.
       #

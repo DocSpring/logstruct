@@ -29,13 +29,19 @@ module LogStruct
       # (or wasn't) replaced
       LogStruct.apply_initializer_settings!
       if LogStruct.enabled?
-        LogStruct::SemanticLogger::Setup.configure_semantic_logger(app) unless LogStruct::SemanticLogger::Setup.configured?
+        if LogStruct::SemanticLogger::Setup.configured?
+          # The formatter, colors, noisy logger filter and log file settings in config/initializers apply too
+          LogStruct::SemanticLogger::Setup.reconfigure_appenders(app)
+        else
+          LogStruct::SemanticLogger::Setup.configure_semantic_logger(app)
+        end
       elsif LogStruct::SemanticLogger::Setup.configured?
         LogStruct::SemanticLogger::Setup.restore_rails_logger(app)
       end
       unless LogStruct.enabled? && LogStruct.config.integrations.enable_sidekiq
         Integrations::Sidekiq.restore_logger
       end
+      Integrations::ActionMailer.setup_fallback_error_handlers(LogStruct.config)
 
       next unless LogStruct.enabled?
 

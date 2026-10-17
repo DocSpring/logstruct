@@ -31,9 +31,12 @@ module LogStruct
         filters = LogStruct.config.filters
         normalized_key = key.to_s
 
-        return true if filters.filter_keys.include?(normalized_key.downcase.to_sym)
-        # By its words too, so :api_key filters apiKey and X-Api-Key
-        return true if filters.filter_keys.include?(KeyWords.normalize(normalized_key).to_sym)
+        words = KeyWords.normalize(normalized_key).to_sym
+        # By its words too, so :api_key filters apiKey and X-Api-Key. Keys in filter_keys_with_hashes are
+        # filtered too, with a hash of their value.
+        [filters.filter_keys, filters.filter_keys_with_hashes].each do |keys|
+          return true if keys.include?(normalized_key.downcase.to_sym) || keys.include?(words)
+        end
 
         matched = filters.filter_matchers.any? do |matcher|
           next false if logstruct_field && !matcher.matches_logstruct_fields
@@ -59,7 +62,8 @@ module LogStruct
       # Check if a key should be hashed rather than completely filtered
       sig { params(key: T.untyped).returns(T::Boolean) }
       def should_include_string_hash?(key)
-        LogStruct.config.filters.filter_keys_with_hashes.include?(key.to_s.downcase.to_sym)
+        keys = LogStruct.config.filters.filter_keys_with_hashes
+        keys.include?(key.to_s.downcase.to_sym) || keys.include?(KeyWords.normalize(key.to_s).to_sym)
       end
 
       # Convert a value to a filtered summary hash (e.g. { _filtered: { class: "String", ... }})
@@ -84,63 +88,33 @@ module LogStruct
         filtered_string = {
           _class: String
         }
-        filtered_string[:_hash] = HashUtils.hash_value(string) if include_hash
+        filtered_string[:_hash] = StringScrubber.value_hash(string) if include_hash
 
         filtered_string
       end
 
-      # Summarize a Hash for logging, including details about the size and keys
+      # Summarize a filtered Hash: its first 10 keys and how many there are. No size, which would say
+      # how long the secrets in it are.
       sig { params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_hash(hash)
         return {_class: "Hash", _empty: true} if hash.empty?
 
-        # Don't include byte size if hash contains any filtered keys
-        has_sensitive_keys = T.let(false, T::Boolean)
-        normalized_keys = []
-
-        hash.each do |key, value|
-          has_sensitive_keys ||= should_filter_key?(key, value)
-          normalized_keys << normalize_summary_key(StringScrubber.scrub_name(key))
-        end
-
-        summary = {
+        {
           _class: Hash,
           _keys_count: hash.keys.size,
-          _keys: normalized_keys.take(10)
+          _keys: hash.keys.take(10).map { |key| normalize_summary_key(StringScrubber.scrub_name(key)) }
         }
-
-        # Only add byte size if no sensitive keys are present
-        unless has_sensitive_keys
-          bytes = json_bytesize(hash)
-          summary[:_bytes] = bytes if bytes
-        end
-
-        summary
       end
 
-      # Summarize an Array for logging, including details about the size and items
+      # Summarize a filtered Array: how many items it has
       sig { params(array: T::Array[T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_array(array)
         return {_class: "Array", _empty: true} if array.empty?
 
-        summary = {
+        {
           _class: Array,
           _count: array.size
         }
-        bytes = json_bytesize(array)
-        summary[:_bytes] = bytes if bytes
-
-        summary
-      end
-
-      # The size of a filtered Hash or Array as JSON. JSON.generate stops at its nesting limit,
-      # which a circular reference reaches, and writes other objects with to_s instead of walking
-      # their attributes. nil when the value can't be written as JSON.
-      sig { params(value: T.any(T::Hash[T.untyped, T.untyped], T::Array[T.untyped])).returns(T.nilable(Integer)) }
-      def json_bytesize(value)
-        ::JSON.generate(value).bytesize
-      rescue ::JSON::NestingError, ::JSON::GeneratorError
-        nil
       end
 
       private

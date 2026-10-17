@@ -6,116 +6,46 @@ require "test_helper"
 module LogStruct
   module CodeExamples
     class RailsInitializerTest < ActiveSupport::TestCase
-      def setup
-        # Save original Rails.env to restore later
-        @original_env = Rails.env
-      end
-
-      def teardown
-        # Restore original Rails.env
-        Rails.env = @original_env
-      end
-
       def test_rails_initializer
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: rails_initializer
         # ----------------------------------------------------------
+        # config/initializers/logstruct.rb
         LogStruct.configure do |config|
-          # Basic configuration
-          config.enabled = !Rails.env.test? # Disable in test mode to speed up tests
-          config.local_environments = [:development, :test]
+          # Filter these keys too, on top of LogStruct's defaults and Rails' filter_parameters
+          config.filters.filter_keys += [:date_of_birth, :account_number]
 
-          # Configure error handling based on environment
-          if Rails.env.production?
-            # In production, report serious errors to error tracking services
-            config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-            config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-          else
-            # In development, raise errors to see them immediately
-            config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Raise
-            config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Raise
-          end
+          # Keep the same email hashes when secret_key_base changes, and in every app that logs the
+          # same people. Without it, the key is derived from secret_key_base.
+          config.filters.hash_salt = Rails.application.credentials.logstruct_hash_key
 
-          # Configure sensitive data filtering
-          config.filters.filter_keys = [
-            :password, :password_confirmation,
-            :api_key, :api_secret, :token,
-            :credit_card, :card_number, :cvv
-          ]
-
-          # Add additional sensitive fields from your application
-          config.filters.filter_keys_with_hashes = [
-            :email, :email_address
-          ]
-
-          # Set a unique hash salt for your application (used for email hashing)
-          config.filters.hash_salt = Rails.application.credentials.log_struct_salt || SecureRandom.hex(8)
-
-          # Configure which integrations to enable (all true by default)
-          # Disable any integrations you don't need
-          config.integrations.enable_lograge = true
-          config.integrations.enable_actionmailer = true
-          config.integrations.enable_activejob = true
-          config.integrations.enable_sidekiq = !!defined?(Sidekiq)
-          config.integrations.enable_shrine = !!defined?(Shrine)
-          config.integrations.enable_carrierwave = !!defined?(CarrierWave)
-
-          # Add custom fields to lograge output
-          config.integrations.lograge_custom_options = ->(event, _) {
-            params = event.payload[:params]
-            params = params&.except(*Rails.application.config.filter_parameters)
-            {
-              # Add request_id for correlation across logs
-              request_id: event.payload[:headers]&.[]("X-Request-Id") || SecureRandom.uuid,
-              # Add current user ID if available
-              user_id: event.payload[:user_id],
-              # Add params safely filtered
-              params: params
-            }
+          # Add the signed-in user to request lines (see append_info_to_payload below)
+          config.integrations.lograge_custom_options = ->(event, _options) {
+            {user_id: event.payload[:user_id]}
           }
-        end
 
-        # You can also access configuration directly when needed
-        Rails.logger.info("LogStruct enabled: #{LogStruct.config.enabled}")
+          # Log SQL queries slower than 250 ms
+          config.integrations.enable_sql_logging = true
+          config.integrations.sql_slow_query_threshold = 250.0
+
+          # Log the account and organization a mail was sent for
+          config.integrations.actionmailer_id_mapping = {account: :account_id, organization: :organization_id}
+        end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: rails_initializer
         # ----------------------------------------------------------
 
-        configure_logstruct_for_env("development")
+        config = LogStruct.config
 
-        # Verify proper configuration for development
-        assert LogStruct.configuration.enabled
-        assert_equal LogStruct::ErrorHandlingMode::Raise,
-          LogStruct.configuration.error_handling_modes.security_errors
-        assert_equal LogStruct::ErrorHandlingMode::Raise,
-          LogStruct.configuration.error_handling_modes.logstruct_errors
+        assert_includes config.filters.filter_keys, :password
+        assert_includes config.filters.filter_keys, :date_of_birth
+        assert_nil config.filters.hash_salt # no such credential in the test app
+        event = ActiveSupport::Notifications::Event.new("process_action.action_controller", 0.0, 0.0, "id", {user_id: 7})
 
-        # Test in production environment
-        configure_logstruct_for_env("production")
-
-        # Verify proper configuration for production
-        assert LogStruct.configuration.enabled
-        assert_equal LogStruct::ErrorHandlingMode::Report,
-          LogStruct.configuration.error_handling_modes.security_errors
-        assert_equal LogStruct::ErrorHandlingMode::Log,
-          LogStruct.configuration.error_handling_modes.logstruct_errors
-      end
-
-      private
-
-      def configure_logstruct_for_env(env_name)
-        Rails.env = ActiveSupport::StringInquirer.new(env_name)
-        LogStruct.configure do |config|
-          config.enabled = !Rails.env.test?
-
-          if Rails.env.production?
-            config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Report
-            config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Log
-          else
-            config.error_handling_modes.security_errors = LogStruct::ErrorHandlingMode::Raise
-            config.error_handling_modes.logstruct_errors = LogStruct::ErrorHandlingMode::Raise
-          end
-        end
+        assert_equal({user_id: 7}, config.integrations.lograge_custom_options&.call(event, {}))
+        assert config.integrations.enable_sql_logging
+        assert_in_delta 250.0, T.must(config.integrations.sql_slow_query_threshold)
+        assert_equal({account: :account_id, organization: :organization_id}, config.integrations.actionmailer_id_mapping)
       end
     end
   end

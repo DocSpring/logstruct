@@ -154,8 +154,8 @@ module LogStruct
     def process_hash(hash, recursion_depth:, ancestors:, path: nil, root: nil)
       result = {}
 
-      # Rails gives filter blocks the request's parameters with indifferent access
-      line_root = (path && recursion_depth == 0) ? with_indifferent_access(hash) : nil
+      # Path matchers' roots are built only if a matcher reads them (most don't)
+      line_root = (path && recursion_depth == 0) ? ConfigStruct::LazyRoot.new(hash) : nil
 
       max_keys = LogStruct.config.limits.max_hash_keys
       hash.each_with_index do |(key, value), index|
@@ -169,7 +169,7 @@ module LogStruct
         key_path = path && [*path, key.to_s]
         # A top-level key's root is the line; the keys below it get the top-level field's value
         key_root = (recursion_depth == 0) ? line_root : root
-        children_root = (path && recursion_depth == 0) ? with_indifferent_access(value) : root
+        children_root = (path && recursion_depth == 0) ? ConfigStruct::LazyRoot.new(value) : root
         # Check if this key should be filtered at any depth
         filtered = ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field, path: key_path, root: key_root)
         # Keys are scrubbed too: an email address can be a key
@@ -191,18 +191,7 @@ module LogStruct
     # Bytes that aren't valid UTF-8 become U+FFFD.
     sig { params(string: String).returns(String) }
     def valid_utf8(string)
-      return string if string.ascii_only? || (string.encoding == Encoding::UTF_8 && string.valid_encoding?)
-
-      utf8 = if string.encoding == Encoding::BINARY || string.encoding == Encoding::US_ASCII
-        string.dup.force_encoding(Encoding::UTF_8)
-      else
-        begin
-          string.encode(Encoding::UTF_8)
-        rescue EncodingError
-          string.dup.force_encoding(Encoding::UTF_8)
-        end
-      end
-      utf8.valid_encoding? ? utf8 : utf8.scrub
+      StringScrubber.valid_utf8(string)
     end
 
     # A String or Symbol key as valid UTF-8 (symbolize_keys makes Symbols of binary String keys)
@@ -223,22 +212,24 @@ module LogStruct
     # The scrubbers see a little more than a cut string keeps, so data at the cut is scrubbed whole
     SCRUB_MARGIN_BYTES = 256
 
-    # A string scrubbed, and cut to limits.max_string_bytes
+    # A string scrubbed, and cut to limits.max_string_bytes. The scrubbers see its first max_string_bytes plus
+    # SCRUB_MARGIN_BYTES: a value running past that was only partly seen, so scrub_cut_end replaces it if it can
+    # be a credential.
     sig { params(string: String).returns(String) }
     def scrub_limited_string(string)
       max_bytes = LogStruct.config.limits.max_string_bytes
       return scrub_string(string) if string.bytesize <= max_bytes
 
-      scrubbed = scrub_string(T.must(string.byteslice(0, max_bytes + SCRUB_MARGIN_BYTES)).scrub(""))
-      kept = T.must(scrubbed.byteslice(0, max_bytes)).scrub("")
+      seen_bytes = max_bytes + SCRUB_MARGIN_BYTES
+      scrubbed = scrub_string(string.byteslice(0, seen_bytes).to_s.scrub(""))
+      if string.bytesize > seen_bytes
+        scrubbed = StringScrubber.scrub_cut_end(scrubbed)
+      elsif scrubbed.bytesize <= max_bytes
+        # The scrubbers saw all of it, and their replacements made it short enough
+        return scrubbed
+      end
+      kept = scrubbed.byteslice(0, max_bytes).to_s.scrub("")
       "#{kept}... (cut from #{string.bytesize} bytes)"
-    end
-
-    sig { params(value: T.untyped).returns(T.untyped) }
-    def with_indifferent_access(value)
-      value.is_a?(Hash) ? ActiveSupport::HashWithIndifferentAccess.new(value) : value
-    rescue SystemStackError, StandardError
-      value
     end
 
     # Like deep_symbolize_keys, but stops at circular references and at the depth where
@@ -277,7 +268,7 @@ module LogStruct
       when Array
         {_filtered: {_class: arg.class.name, _count: arg.size}}
       when String
-        {_filtered: {_class: arg.class.name, _bytes: arg.bytesize}}
+        {_filtered: {_class: arg.class.name}}
       when Numeric, Symbol, TrueClass, FalseClass, NilClass
         arg
       else
@@ -353,6 +344,7 @@ module LogStruct
     # Serializes Log (or string) into JSON.
     # request_id: the request's ID (default: the one RequestContext stored for this thread).
     # context: fields for the line's ctx, like the running job's ID and class. The line's own ctx keys win.
+    # tags: the logger's tags (logger.tagged("billing")), written as tags unless the line has its own.
     sig do
       params(
         severity: T.any(String, Symbol, Integer),
@@ -360,10 +352,11 @@ module LogStruct
         progname: T.nilable(String),
         log_value: T.untyped,
         request_id: T.nilable(String),
-        context: T.nilable(T::Hash[T.untyped, T.untyped])
+        context: T.nilable(T::Hash[T.untyped, T.untyped]),
+        tags: T.nilable(T::Array[T.untyped])
       ).returns(String)
     end
-    def call(severity, time, progname, log_value, request_id: nil, context: nil)
+    def call(severity, time, progname, log_value, request_id: nil, context: nil, tags: nil)
       level_enum = Level.from_severity(severity)
 
       data = log_value_to_hash(log_value, time: time)
@@ -376,7 +369,7 @@ module LogStruct
       data[:evt] ||= Event::Log
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = level_enum # Set level from severity parameter
-      add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context)
+      add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context, tags: tags)
 
       begin
         generate_json(data)
@@ -416,12 +409,14 @@ module LogStruct
         data: T::Hash[T.untyped, T.untyped],
         progname: T.nilable(String),
         request_id: T.untyped,
-        context: T.nilable(T::Hash[T.untyped, T.untyped])
+        context: T.nilable(T::Hash[T.untyped, T.untyped]),
+        tags: T.nilable(T::Array[T.untyped])
       ).void
     end
-    def add_metadata(data, progname:, request_id:, context:)
+    def add_metadata(data, progname:, request_id:, context:, tags:)
       metadata = {}
       metadata[:prog] = progname if progname.present?
+      metadata[:tags] = tags if tags.is_a?(Array) && !tags.empty? && !data.key?(:tags)
       if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
         metadata[:req_id] = request_id
       end

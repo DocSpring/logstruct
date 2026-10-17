@@ -19,21 +19,26 @@ require_relative "../../enums/log_field"
 
 module LogStruct
   module Log
-    class ActiveStorage
-      class Stream < T::Struct
+    class ActiveJob
+      class Discard < T::Struct
         extend T::Sig
 
         # Shared/common fields
-        const :source, Source::Storage, default: Source::Storage
-        const :event, Event, default: Event::Stream
+        const :source, Source::Job, default: Source::Job
+        const :event, Event, default: Event::Discard
         const :timestamp, Time, factory: -> { Time.now }
         const :level, Level, default: Level::Info
 
-        const :storage, Symbol
-        const :file_id, String
+        const :job_id, String
+        const :job_class, String
+        const :queue_name, T.nilable(Symbol), default: nil
+        const :arguments, T.nilable(T::Array[T.untyped]), default: nil
+        const :executions, T.nilable(Integer), default: nil
+        const :provider_job_id, T.nilable(String), default: nil
 
         # Event-specific fields
-        const :prefix, T.nilable(String), default: nil
+        const :error_class, T.class_of(Exception)
+        const :message, String
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -42,9 +47,14 @@ module LogStruct
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
         def to_h
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
-          h[LogField::Storage] = storage
-          h[LogField::FileId] = file_id
-          h[LogField::Prefix] = prefix unless prefix.nil?
+          h[LogField::JobId] = job_id
+          h[LogField::JobClass] = job_class
+          h[LogField::QueueName] = queue_name unless queue_name.nil?
+          h[LogField::Arguments] = arguments unless arguments.nil?
+          h[LogField::Executions] = executions unless executions.nil?
+          h[LogField::ProviderJobId] = provider_job_id unless provider_job_id.nil?
+          h[LogField::ErrorClass] = error_class
+          h[LogField::Message] = message
           h
         end
       end

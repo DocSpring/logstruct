@@ -70,7 +70,23 @@ module LogStruct
             config.lograge.custom_options = lambda do |event|
               Integrations::Lograge.lograge_default_options(event)
             end
+
+            # Lograge detaches Rails' own request lines from ActiveSupport::Notifications. From Rails 8.2 they come
+            # from Rails.event, so LogStruct detaches them there.
+            config.after_initialize do |app|
+              Integrations::Lograge.unsubscribe_rails_request_lines unless app.config.lograge.keep_original_rails_log
+            end
           end
+        end
+
+        # Rails' "Processing by", "Completed 200 OK" and "Rendered" lines, which the request line replaces
+        sig { void }
+        def unsubscribe_rails_request_lines
+          # Earlier Rails versions' subscribers are lograge's to detach
+          return unless defined?(::ActiveSupport::EventReporter::LogSubscriber)
+
+          RailsLogSubscribers.unsubscribe_from_events(::ActionController::LogSubscriber) if defined?(::ActionController::LogSubscriber)
+          RailsLogSubscribers.unsubscribe_from_events(::ActionView::LogSubscriber) if defined?(::ActionView::LogSubscriber)
         end
 
         sig { params(event: ActiveSupport::Notifications::Event).returns(T::Hash[Symbol, T.untyped]) }
@@ -81,6 +97,7 @@ module LogStruct
             :host,
             :source_ip
           ).compact
+          add_request_address(event.payload[:request], options)
 
           if event.payload[:params].present?
             options[:params] = event.payload[:params].except("controller", "action")
@@ -93,6 +110,21 @@ module LogStruct
           apply_custom_options(event, options)
 
           options
+        end
+
+        # Rails' payload has the request but not its address, which Rails' own "Started GET" line logs.
+        # A payload's own :source_ip and :host (from append_info_to_payload) take precedence.
+        sig { params(request: T.untyped, options: T::Hash[Symbol, T.untyped]).void }
+        def add_request_address(request, options)
+          return unless request.is_a?(::ActionDispatch::Request)
+
+          options[:host] ||= request.host
+          options[:source_ip] ||= begin
+            request.remote_ip
+          rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError
+            # The forwarding headers disagree, so the address the connection came from
+            request.get_header("REMOTE_ADDR")
+          end
         end
 
         # Process headers from the event payload
@@ -119,9 +151,11 @@ module LogStruct
           custom_options_proc = LogStruct.config.integrations.lograge_custom_options
           return unless custom_options_proc&.respond_to?(:call)
 
-          # Call the proc with the event and options
-          # The proc can modify the options hash directly
-          custom_options_proc.call(event, options)
+          # The proc can change options, or return a Hash of fields to add, as Lograge's custom_options do
+          result = custom_options_proc.call(event, options)
+          return if !result.is_a?(Hash) || result.equal?(options)
+
+          options.merge!(result.to_h { |key, value| [key.to_s.to_sym, value] })
         end
 
         sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(Log::Request) }

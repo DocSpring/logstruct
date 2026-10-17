@@ -1,0 +1,823 @@
+{
+  "lines": {
+    "LogStruct::Log::ActionMailer::Delivery": {
+      "src": "mailer",
+      "evt": "delivery",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "to": ["[EMAIL:a058d5090035d2e1]"],
+      "from": "[EMAIL:a6778e226026bac8]",
+      "subject": "Your October invoice",
+      "mailer": "InvoiceMailer",
+      "mailer_action": "monthly",
+      "attachments": 1,
+      "account_id": 42,
+      "user_id": 1873,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActionMailer::Delivered": {
+      "src": "mailer",
+      "evt": "delivered",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "to": ["[EMAIL:a058d5090035d2e1]"],
+      "from": "[EMAIL:a6778e226026bac8]",
+      "subject": "Your October invoice",
+      "msg_id": "[EMAIL:ff61c70b949f216c]",
+      "mailer": "InvoiceMailer",
+      "mailer_action": "monthly",
+      "attachments": 1,
+      "account_id": 42,
+      "user_id": 1873,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActionMailer::Error": {
+      "src": "mailer",
+      "evt": "error",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "to": ["[EMAIL:a058d5090035d2e1]"],
+      "from": "[EMAIL:a6778e226026bac8]",
+      "subject": "Your October invoice",
+      "mailer": "InvoiceMailer",
+      "mailer_action": "monthly",
+      "attachments": 1,
+      "error_class": "Net::SMTPAuthenticationError",
+      "msg": "Net::SMTPAuthenticationError: Email delivery failed. Recipients: [EMAIL:a6778e226026bac8]. Error message: 535 5.7.8 Authentication failed",
+      "backtrace": ["app/mailers/invoice_mailer.rb:12:in 'InvoiceMailer#monthly'"],
+      "account_id": 42,
+      "user_id": 1873,
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "ActionMailer::MailDeliveryJob"
+      }
+    },
+    "LogStruct::Log::ActiveJob::Enqueue": {
+      "src": "job",
+      "evt": "enqueue",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 0,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActiveJob::Schedule": {
+      "src": "job",
+      "evt": "schedule",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 0,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "scheduled_at": "2026-10-17T10:30:15.123+00:00",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActiveJob::Start": {
+      "src": "job",
+      "evt": "start",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 1,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "started_at": "2026-10-17T09:30:15.123+00:00",
+      "attempt": 1,
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceExportJob"
+      }
+    },
+    "LogStruct::Log::ActiveJob::Finish": {
+      "src": "job",
+      "evt": "finish",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.935+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 1,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "duration_ms": 812.43,
+      "finished_at": "2026-10-17T09:30:15.935+00:00",
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceExportJob"
+      }
+    },
+    "LogStruct::Log::ActiveJob::Retry": {
+      "src": "job",
+      "evt": "retry",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 1,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "error_class": "Net::ReadTimeout",
+      "msg": "Net::ReadTimeout with #<TCPSocket:(closed)>",
+      "wait_ms": 3000.0,
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceExportJob"
+      }
+    },
+    "LogStruct::Log::ActiveJob::RetryStopped": {
+      "src": "job",
+      "evt": "retry_stopped",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 5,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "error_class": "Net::ReadTimeout",
+      "msg": "Net::ReadTimeout with #<TCPSocket:(closed)>",
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceExportJob"
+      }
+    },
+    "LogStruct::Log::ActiveJob::Discard": {
+      "src": "job",
+      "evt": "discard",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 1,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "error_class": "ActiveJob::DeserializationError",
+      "msg": "Error while trying to deserialize arguments: Couldn't find Customer",
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceExportJob"
+      }
+    },
+    "LogStruct::Log::ActiveJob::Error": {
+      "src": "job",
+      "evt": "error",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "job_id": "c2b8e0f4-1d3a-4b6c-9e7f-5a1d2c3b4e5f",
+      "job_class": "InvoiceExportJob",
+      "queue_name": "default",
+      "arguments": [
+        "gid://my-app/Customer/1873",
+        {
+          "month": "2026-09",
+          "email": {
+            "_filtered": {
+              "_class": "String",
+              "_hash": "a058d5090035d2e1"
+            }
+          }
+        }
+      ],
+      "executions": 1,
+      "provider_job_id": "b4a9c63e5f1d2a7e9c0f3b18",
+      "error_class": "Net::ReadTimeout",
+      "msg": "Net::ReadTimeout with #<TCPSocket:(closed)>",
+      "backtrace": [
+        "app/services/invoice_export.rb:42:in 'InvoiceExport#upload'",
+        "app/services/invoice_export.rb:18:in 'InvoiceExport#call'",
+        "app/jobs/invoice_export_job.rb:9:in 'InvoiceExportJob#perform'"
+      ],
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceExportJob"
+      }
+    },
+    "LogStruct::Log::ActiveModelSerializers": {
+      "src": "rails",
+      "evt": "generate",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "ams.render",
+      "serializer": "InvoiceSerializer",
+      "adapter": "ActiveModelSerializers::Adapter::Attributes",
+      "resource_class": "Invoice",
+      "duration_ms": 1.241,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActiveStorage::Upload": {
+      "src": "storage",
+      "evt": "upload",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "S3",
+      "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "duration_ms": 184.3,
+      "checksum": "3Ys4l0pZ8wQ1mH7cE2uXrA==",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActiveStorage::Download": {
+      "src": "storage",
+      "evt": "download",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "S3",
+      "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "duration_ms": 96.12,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActiveStorage::Delete": {
+      "src": "storage",
+      "evt": "delete",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "S3",
+      "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "prog": "Rails"
+    },
+    "LogStruct::Log::ActiveStorage::Metadata": {
+      "src": "storage",
+      "evt": "metadata",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "S3",
+      "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "mime_type": "application/pdf",
+      "prog": "Rails"
+    },
+    "LogStruct::Log::ActiveStorage::Exist": {
+      "src": "storage",
+      "evt": "exist",
+      "lvl": "debug",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "S3",
+      "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "exist": true,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::ActiveStorage::Url": {
+      "src": "storage",
+      "evt": "url",
+      "lvl": "debug",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "S3",
+      "file_id": "m3k9x2q7w1c8v4b6n0z5h2j7",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Ahoy": {
+      "src": "app",
+      "evt": "log",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "ahoy.track",
+      "ahoy_event": "Viewed invoice",
+      "properties": {
+        "invoice_id": 812
+      },
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::CarrierWave::Upload": {
+      "src": "carrierwave",
+      "evt": "upload",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "file",
+      "file_id": "avatar.png",
+      "uploader": "AvatarUploader",
+      "model": "User",
+      "mount_point": "avatar",
+      "version": "",
+      "store_path": "uploads/user/avatar/1873/avatar.png",
+      "ext": "png",
+      "filename": "avatar.png",
+      "mime_type": "image/png",
+      "size": 48213,
+      "duration_ms": 12.7,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::CarrierWave::Download": {
+      "src": "carrierwave",
+      "evt": "download",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "file",
+      "file_id": "avatar.png",
+      "uploader": "AvatarUploader",
+      "model": "User",
+      "mount_point": "avatar",
+      "version": "",
+      "store_path": "uploads/user/avatar/1873/avatar.png",
+      "ext": "png",
+      "filename": "avatar.png",
+      "mime_type": "image/png",
+      "size": 48213,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::CarrierWave::Delete": {
+      "src": "carrierwave",
+      "evt": "delete",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "file",
+      "file_id": "avatar.png",
+      "uploader": "AvatarUploader",
+      "model": "User",
+      "mount_point": "avatar",
+      "version": "",
+      "store_path": "uploads/user/avatar/1873/avatar.png",
+      "ext": "png",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Dotenv::Load": {
+      "src": "dotenv",
+      "evt": "load",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "file": ".env",
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Dotenv::Update": {
+      "src": "dotenv",
+      "evt": "update",
+      "lvl": "debug",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "vars": ["DATABASE_URL", "REDIS_URL"],
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Dotenv::Save": {
+      "src": "dotenv",
+      "evt": "save",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "snapshot": true,
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Dotenv::Restore": {
+      "src": "dotenv",
+      "evt": "restore",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "vars": ["DATABASE_URL", "REDIS_URL"],
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Error": {
+      "src": "app",
+      "evt": "error",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "error_class": "JSON::ParserError",
+      "msg": "Import failed",
+      "error_message": "unexpected end of input",
+      "backtrace": [
+        "app/services/invoice_import.rb:27:in 'InvoiceImport#parse'",
+        "app/controllers/imports_controller.rb:11:in 'ImportsController#create'"
+      ],
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::GoodJob::Log": {
+      "src": "job",
+      "evt": "log",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "Notifier subscribed with LISTEN",
+      "pid": 4821,
+      "tid": "2ix4",
+      "prog": "GoodJob"
+    },
+    "LogStruct::Log::GoodJob::Error": {
+      "src": "job",
+      "evt": "error",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "error_class": "ActiveRecord::ConnectionNotEstablished",
+      "error_message": "connection to server at \"10.0.3.12\", port 5432 failed: Connection refused",
+      "pid": 4821,
+      "tid": "2ix4",
+      "backtrace": ["good_job/notifier.rb:225:in 'GoodJob::Notifier#with_connection'"],
+      "prog": "GoodJob"
+    },
+    "LogStruct::Log::Plain": {
+      "src": "app",
+      "evt": "log",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "Exported 120 invoices",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Puma::Start": {
+      "src": "puma",
+      "evt": "start",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "mode": "single",
+      "puma_version": "6.6.1",
+      "puma_codename": "Return to Forever",
+      "ruby_version": "ruby 3.4.5 (2025-07-16 revision 20cda200d3) +PRISM [x86_64-linux]",
+      "min_threads": 3,
+      "max_threads": 3,
+      "environment": "production",
+      "pid": 1,
+      "listening_addresses": ["http://0.0.0.0:3000"],
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Puma::Shutdown": {
+      "src": "puma",
+      "evt": "shutdown",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "pid": 1,
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Puma::Error": {
+      "src": "puma",
+      "evt": "error",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "error_class": "NoMethodError",
+      "msg": "undefined method 'call' for nil",
+      "backtrace": ["config/initializers/health_check.rb:8:in 'HealthCheck#call'"],
+      "error_context": "Rack app",
+      "method": "GET",
+      "path": "/up",
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Request": {
+      "src": "rails",
+      "evt": "request",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "path": "/users/sign_in",
+      "method": "POST",
+      "source_ip": "198.51.100.23",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0",
+      "referer": "https://app.example.com/users/sign_in",
+      "format": "html",
+      "controller": "Users::SessionsController",
+      "action": "create",
+      "status": 302,
+      "duration_ms": 48.21,
+      "view": 0.0,
+      "db": 3.62,
+      "params": {
+        "authenticity_token": "[FILTERED]",
+        "user": {
+          "email": "[FILTERED]",
+          "password": "[FILTERED]",
+          "remember_me": "1"
+        },
+        "commit": "Log in"
+      },
+      "host": "app.example.com",
+      "content_type": "application/x-www-form-urlencoded",
+      "accept": "text/html,application/xhtml+xml",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::SQL": {
+      "src": "app",
+      "evt": "database",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "Invoice Load executed",
+      "sql": "SELECT \"invoices\".* FROM \"invoices\" WHERE \"invoices\".\"account_id\" = $1",
+      "name": "Invoice Load",
+      "duration_ms": 142.37,
+      "row_count": 120,
+      "adapter": "PostgreSQLAdapter",
+      "db_name": "app_production",
+      "pool_size": 5,
+      "active_count": 2,
+      "op_type": "SELECT",
+      "table_names": ["invoices"],
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Security::BlockedHost": {
+      "src": "security",
+      "evt": "blocked_host",
+      "lvl": "warn",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "path": "/",
+      "method": "GET",
+      "source_ip": "203.0.113.7",
+      "user_agent": "curl/8.7.1",
+      "msg": "Blocked host detected: admin.example.net",
+      "blocked_host": "admin.example.net",
+      "blocked_hosts": ["admin.example.net"],
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Security::CSRFViolation": {
+      "src": "security",
+      "evt": "csrf_violation",
+      "lvl": "error",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "path": "/invoices/812",
+      "method": "PATCH",
+      "source_ip": "198.51.100.23",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0",
+      "referer": "https://app.example.com/invoices/812/edit",
+      "msg": "Can't verify CSRF token authenticity.",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Security::IPSpoof": {
+      "src": "security",
+      "evt": "ip_spoof",
+      "lvl": "warn",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "path": "/login",
+      "method": "GET",
+      "source_ip": "10.0.1.15",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0",
+      "msg": "IP spoofing attack?! HTTP_CLIENT_IP=\"203.0.113.9\" HTTP_X_FORWARDED_FOR=\"198.51.100.4\"",
+      "client_ip": "203.0.113.9",
+      "x_forwarded_for": "198.51.100.4",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Shrine::Upload": {
+      "src": "shrine",
+      "evt": "upload",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "store",
+      "location": "invoice/812/original-3f9a1c.pdf",
+      "upload_opts": {},
+      "opts": {},
+      "uploader": "DocumentUploader",
+      "duration_ms": 143.8,
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Shrine::Download": {
+      "src": "shrine",
+      "evt": "download",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "store",
+      "location": "invoice/812/original-3f9a1c.pdf",
+      "download_opts": {},
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Shrine::Delete": {
+      "src": "shrine",
+      "evt": "delete",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "store",
+      "location": "invoice/812/original-3f9a1c.pdf",
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Shrine::Metadata": {
+      "src": "shrine",
+      "evt": "metadata",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "cache",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "LogStruct::Log::Shrine::Exist": {
+      "src": "shrine",
+      "evt": "exist",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "storage": "store",
+      "location": "invoice/812/original-3f9a1c.pdf",
+      "prog": "Rails"
+    },
+    "LogStruct::Log::Sidekiq::Log": {
+      "src": "sidekiq",
+      "evt": "log",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "start",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceSyncWorker"
+      },
+      "pid": 4821,
+      "tid": "1v8b",
+      "prog": "Sidekiq-Server"
+    },
+    "LogStruct::Log::Sidekiq::Error": {
+      "src": "sidekiq",
+      "evt": "error",
+      "lvl": "warn",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "error_class": "Timeout::Error",
+      "msg": "execution expired",
+      "backtrace": ["app/workers/invoice_sync_worker.rb:15:in 'InvoiceSyncWorker#perform'"],
+      "error_context": "Job raised exception",
+      "queue_name": "default",
+      "retry_count": 2,
+      "prog": "Rails",
+      "ctx": {
+        "jid": "b4a9c63e5f1d2a7e9c0f3b18",
+        "class": "InvoiceSyncWorker"
+      }
+    }
+  },
+  "formats": {
+    "hash": {
+      "msg": "Invoice sent",
+      "invoice_id": 812,
+      "email": {
+        "_filtered": {
+          "_class": "String",
+          "_hash": "a058d5090035d2e1"
+        }
+      },
+      "src": "app",
+      "evt": "log",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "lvl": "info",
+      "prog": "Rails",
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17"
+    },
+    "tags": {
+      "src": "app",
+      "evt": "log",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "Charged card",
+      "prog": "Rails",
+      "tags": ["billing"],
+      "req_id": "6f1c9a2e-7b4d-4e8a-9c61-2d5b8f0e4a17",
+      "ctx": {
+        "account_id": 42
+      }
+    },
+    "additional_data": {
+      "src": "app",
+      "evt": "log",
+      "lvl": "info",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "msg": "Imported invoices",
+      "account_id": 42,
+      "rows": 120,
+      "prog": "Rails"
+    },
+    "filtered": {
+      "msg": "Account updated",
+      "email": {
+        "_filtered": {
+          "_class": "String",
+          "_hash": "a058d5090035d2e1"
+        }
+      },
+      "password": {
+        "_filtered": {
+          "_class": "String"
+        }
+      },
+      "api_tokens": {
+        "_filtered": {
+          "_class": "Array",
+          "_count": 2
+        }
+      },
+      "credentials": {
+        "_filtered": {
+          "_class": "Hash",
+          "_keys_count": 2,
+          "_keys": ["client_id", "client_secret"]
+        }
+      },
+      "note": "Call Linda on [PHONE]",
+      "src": "app",
+      "evt": "log",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "lvl": "info",
+      "prog": "Rails"
+    },
+    "limits": {
+      "msg": "Import finished",
+      "columns": {
+        "first_name": "First name",
+        "last_name": "Last name",
+        "city": "City",
+        "country": "Country",
+        "_more_keys": 1
+      },
+      "row_ids": [101, 102, 103, "... and 5 more items"],
+      "summary": "Rows 104 and 107 had no ... (cut from 32 bytes)",
+      "src": "app",
+      "evt": "log",
+      "ts": "2026-10-17T09:30:15.123+00:00",
+      "lvl": "info",
+      "prog": "Rails"
+    }
+  }
+}

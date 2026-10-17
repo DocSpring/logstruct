@@ -47,3 +47,7 @@ public/coverage/
 
 # Sorbet => TS/JSON
 generated/
+
+# Playwright
+test-results/
+playwright-report/

@@ -16,6 +16,10 @@ module LogStruct
 
       SHRINE_EVENTS = T.let(%i[upload exists download delete metadata open].freeze, T::Array[Symbol])
 
+      # The file name in a Content-Disposition (attachment; filename="..."; filename*=UTF-8''...). A quoted name
+      # can hold a semicolon, and whatever follows a quote (malformed or not) goes too.
+      DISPOSITION_FILENAME_REGEX = /(\bfilename\*?\s*=\s*)(?:"(?:[^"\\]|\\.)*"?)?[^;]*/i
+
       # Set up Shrine structured logging
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
@@ -26,7 +30,7 @@ module LogStruct
         # Create a structured log subscriber for Shrine
         # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
         shrine_log_subscriber = lambda do |event|
-          payload = event.payload.except(:io, :metadata, :name).dup
+          payload = event.payload.except(:io, :name).dup
 
           # Map event name to Event type
           event_type = case event.name
@@ -34,9 +38,8 @@ module LogStruct
           when :download then Event::Download
           when :open then Event::Download
           when :delete then Event::Delete
-          when :metadata then Event::Metadata
           when :exists then Event::Exist
-          else Event::Unknown
+          else Event::Metadata
           end
 
           # Create structured log data
@@ -45,11 +48,15 @@ module LogStruct
 
           log_data = case event_type
           when Event::Upload
+            metadata = payload[:metadata].is_a?(Hash) ? payload[:metadata] : {}
+            size = metadata["size"]
             Log::Shrine::Upload.new(
               storage: storage_sym,
               location: payload[:location],
+              mime_type: metadata["mime_type"]&.to_s,
+              size: size.is_a?(Integer) ? size : nil,
               uploader: payload[:uploader]&.to_s,
-              upload_options: payload[:upload_options],
+              upload_options: without_file_names(payload[:upload_options]),
               options: payload[:options],
               duration_ms: event.duration.to_f
             )
@@ -64,23 +71,14 @@ module LogStruct
               storage: storage_sym,
               location: payload[:location]
             )
-          when Event::Metadata
-            metadata_params = {
-              storage: storage_sym,
-              metadata: payload[:metadata]
-            }
-            metadata_params[:location] = payload[:location] if payload[:location]
-            Log::Shrine::Metadata.new(**metadata_params)
           when Event::Exist
             Log::Shrine::Exist.new(
               storage: storage_sym,
-              location: payload[:location],
-              exist: payload[:exist]
+              location: payload[:location]
             )
           else
-            unknown_params = {storage: storage_sym, metadata: payload[:metadata]}
-            unknown_params[:location] = payload[:location] if payload[:location]
-            Log::Shrine::Metadata.new(**unknown_params)
+            # metadata, the only other event in SHRINE_EVENTS
+            Log::Shrine::Metadata.new(storage: storage_sym, duration_ms: event.duration.to_f)
           end
 
           # Log directly through SemanticLogger, NOT through Shrine.logger
@@ -103,6 +101,21 @@ module LogStruct
         ::Shrine.logger = ::SemanticLogger[::Shrine]
 
         true
+      end
+
+      # Upload options with the file names taken out of a Content-Disposition (upload_options:
+      # {content_disposition: ...}, which the upload_options plugin often sets): they can name a person
+      sig { params(options: T.untyped).returns(T.untyped) }
+      def self.without_file_names(options)
+        return options unless options.is_a?(Hash)
+
+        options.to_h do |key, value|
+          if value.is_a?(String) && KeyWords.normalize(key).include?("disposition")
+            [key, value.gsub(DISPOSITION_FILENAME_REGEX, '\1[FILENAME]')]
+          else
+            [key, value]
+          end
+        end
       end
 
       # Prepended to Shrine's default instrumentation log subscriber, so it doesn't log the

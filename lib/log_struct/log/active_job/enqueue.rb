@@ -36,9 +36,6 @@ module LogStruct
         const :executions, T.nilable(Integer), default: nil
         const :provider_job_id, T.nilable(String), default: nil
 
-        # Event-specific fields
-        const :retries, T.nilable(Integer), default: nil
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
@@ -52,7 +49,6 @@ module LogStruct
           h[LogField::Arguments] = arguments unless arguments.nil?
           h[LogField::Executions] = executions unless executions.nil?
           h[LogField::ProviderJobId] = provider_job_id unless provider_job_id.nil?
-          h[LogField::Retries] = retries unless retries.nil?
           h
         end
       end
