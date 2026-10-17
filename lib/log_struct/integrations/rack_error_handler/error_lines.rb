@@ -15,6 +15,24 @@ module LogStruct
           T::Array[String]
         )
 
+        # Errors from parsing a request's params: Rails' ParseError (and its ParamErrors), and Rack's. Their messages,
+        # and those of errors raised because of them (Rails' "Invalid request parameters: ..."), quote the request's
+        # input: a JSON parser's excerpt of the body, Rack's "invalid %-encoding (<value>)". Nothing can filter a body
+        # that didn't parse, so their lines leave the input out.
+        PARAMS_ERROR_NAMES = T.let(
+          [
+            "ActionDispatch::Http::Parameters::ParseError",
+            "Rack::BadRequest",
+            "Rack::QueryParser::InvalidParameterError",
+            "Rack::QueryParser::ParameterTypeError",
+            "Rack::QueryParser::ParamsTooDeepError"
+          ].freeze,
+          T::Array[String]
+        )
+        # Rails' message for a ParseError
+        PARSE_ERROR_MESSAGE = "Error occurred while parsing request parameters"
+        PARAMS_ERROR_MESSAGE = "Invalid request parameters"
+
         sig { returns(T::Boolean) }
         def self.enabled?
           LogStruct.enabled? && LogStruct.config.integrations.enable_rack_error_handler
@@ -44,7 +62,7 @@ module LogStruct
             Log::Error.new(
               source: Source::Rails,
               error_class: error.class,
-              message: error.message,
+              message: messages(error).first,
               backtrace: error.backtrace,
               path: request.path,
               http_method: request.method,
@@ -66,11 +84,11 @@ module LogStruct
           LoggedErrors.mark(error)
           # Without a backtrace cleaner, Rails' trace is Thread::Backtrace::Locations
           trace = Array(wrapper.exception_trace).map(&:to_s)
-          cause = error.cause
+          message, cause_message = messages(error)
           line = Log::Error.new(
             source: Source::Rails,
             error_class: error.class,
-            message: error.message,
+            message: message,
             backtrace: trace.empty? ? error.backtrace : trace,
             path: request.path,
             http_method: request.method,
@@ -78,8 +96,8 @@ module LogStruct
             user_agent: request.user_agent,
             referer: StringScrubber.without_query(request.referer),
             status: wrapper.status_code,
-            cause_class: cause&.class&.name,
-            cause_message: cause&.message
+            cause_class: error.cause&.class&.name,
+            cause_message: cause_message
           )
           case request.get_header("action_dispatch.debug_exception_log_level")
           when ::Logger::DEBUG then LogStruct.debug(line)
@@ -141,6 +159,25 @@ module LogStruct
           request.remote_ip
         rescue ::ActionDispatch::RemoteIp::IpSpoofAttackError
           request.ip
+        end
+
+        # The message and the cause's message for an error's line, without the input a params parser quoted
+        sig { params(error: Exception).returns([String, T.nilable(String)]) }
+        def self.messages(error)
+          cause = error.cause
+          if params_error?(error)
+            [error.instance_of?(::ActionDispatch::Http::Parameters::ParseError) ? PARSE_ERROR_MESSAGE : PARAMS_ERROR_MESSAGE, nil]
+          elsif cause && params_error?(cause)
+            message = error.message.sub(cause.message, "").sub(/[\s:]+\z/, "")
+            [message.empty? ? PARAMS_ERROR_MESSAGE : message, nil]
+          else
+            [error.message, cause&.message]
+          end
+        end
+
+        sig { params(error: Exception).returns(T::Boolean) }
+        def self.params_error?(error)
+          error.class.ancestors.any? { |ancestor| PARAMS_ERROR_NAMES.include?(ancestor.name) }
         end
 
         sig { params(error: Exception).returns(T::Boolean) }

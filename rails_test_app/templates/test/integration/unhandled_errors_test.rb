@@ -56,6 +56,21 @@ class UnhandledErrorsTest < ActionDispatch::IntegrationTest
     assert_not_includes @log_output.string, "synthetic-raw-secret"
   end
 
+  test "the error lines for params Rails can't parse leave out the input the parsers quote" do
+    post "/logging/params", params: '{"password":synthetic-raw-secret}', headers: {"CONTENT_TYPE" => "application/json"}
+
+    assert_response :bad_request
+    post "/logging/params", params: "password=%zz-synthetic-raw-secret", headers: {"CONTENT_TYPE" => "application/x-www-form-urlencoded"}
+
+    assert_response :bad_request
+    errors = lines.select { |line| line["evt"] == "error" }
+
+    assert_equal [["ActionDispatch::Http::Parameters::ParseError", "Error occurred while parsing request parameters", "JSON::ParserError"],
+      ["ActionController::BadRequest", "Invalid request parameters", "Rack::QueryParser::InvalidParameterError"]],
+      errors.map { |line| line.values_at("error_class", "msg", "cause_class") }
+    assert_not_includes @log_output.string, "synthetic-raw-secret"
+  end
+
   test "a routing error is an error line with its 404 status" do
     get "/no/such/route"
 

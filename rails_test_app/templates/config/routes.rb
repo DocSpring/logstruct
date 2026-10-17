@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   get "/logging/error_logging", to: "logging#test_error_logging"
   get "/logging/shrine_upload", to: "logging#test_shrine_upload"
   get "/logging/ams", to: "logging#test_ams_serialization"
+  post "/logging/params", to: "logging#test_params"
 
   post "/security/submit", to: "security#submit"
   get "/security/remote_ip", to: "security#remote_ip"

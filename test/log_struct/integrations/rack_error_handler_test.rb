@@ -61,6 +61,41 @@ class LogStruct::Integrations::RackErrorHandlerTest < Minitest::Test
     refute_includes output.string, "synthetic-raw-secret"
   end
 
+  def test_errors_from_parsing_params_leave_out_the_input_the_parsers_quote
+    parse_error = raised do
+      JSON.parse('{"password":synthetic-raw-secret}')
+    rescue JSON::ParserError
+      raise ActionDispatch::Http::Parameters::ParseError, "Error occurred while parsing request parameters"
+    end
+    bad_request = raised do
+      Rack::Utils.parse_nested_query("password=%zz-synthetic-raw-secret")
+    rescue Rack::Utils::InvalidParameterError => e
+      raise ActionController::BadRequest, "Invalid request parameters: #{e.message}"
+    end
+    rack_error = raised { Rack::Utils.parse_nested_query("password=%zz-synthetic-raw-secret") }
+    request = ActionDispatch::Request.new(Rack::MockRequest.env_for("/sessions", method: "POST"))
+    lines = []
+
+    LogStruct.stub(:fatal, ->(line) { lines << line }) do
+      LogStruct.stub(:error, ->(line) { lines << line }) do
+        [parse_error, bad_request].each do |error|
+          ErrorLines.log_unhandled(request, ActionDispatch::ExceptionWrapper.new(ActiveSupport::BacktraceCleaner.new, error))
+        end
+        # From a middleware outside ShowExceptions that reads Rack's params
+        ErrorLines.log_escaped(request, rack_error)
+      end
+    end
+
+    expected = [
+      ["Error occurred while parsing request parameters", "JSON::ParserError", nil],
+      ["Invalid request parameters", "Rack::QueryParser::InvalidParameterError", nil],
+      ["Invalid request parameters", nil, nil]
+    ]
+
+    assert_equal expected, lines.map { |line| [line.message, line.cause_class, line.cause_message] }
+    refute_includes lines.map { |line| line.serialize.to_json }.join, "synthetic-raw-secret"
+  end
+
   def test_the_middleware_logs_an_escaped_error_once_and_raises_it_again
     io = StringIO.new
     logger = Logger.new(io)
@@ -82,5 +117,15 @@ class LogStruct::Integrations::RackErrorHandlerTest < Minitest::Test
     assert_equal 1, lines.size
     assert_equal ["rails", "error", "RuntimeError", "boom", "/orders", "GET", "https://app.example.com/reset"],
       lines.first.values_at("src", "evt", "error_class", "msg", "path", "method", "referer")
+  end
+
+  private
+
+  def raised
+    yield
+
+    flunk "Expected an error"
+  rescue => e
+    e
   end
 end
