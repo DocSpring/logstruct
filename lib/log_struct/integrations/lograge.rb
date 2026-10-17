@@ -70,7 +70,20 @@ module LogStruct
             config.lograge.custom_options = lambda do |event|
               Integrations::Lograge.lograge_default_options(event)
             end
+
+            # Lograge detaches Rails' own request lines from ActiveSupport::Notifications. From Rails 8.2 they come
+            # from Rails.event, so LogStruct detaches them there.
+            config.after_initialize do |app|
+              Integrations::Lograge.unsubscribe_rails_request_lines unless app.config.lograge.keep_original_rails_log
+            end
           end
+        end
+
+        # Rails' "Processing by", "Completed 200 OK" and "Rendered" lines, which the request line replaces
+        sig { void }
+        def unsubscribe_rails_request_lines
+          RailsLogSubscribers.unsubscribe_from_events(::ActionController::LogSubscriber) if defined?(::ActionController::LogSubscriber)
+          RailsLogSubscribers.unsubscribe_from_events(::ActionView::LogSubscriber) if defined?(::ActionView::LogSubscriber)
         end
 
         sig { params(event: ActiveSupport::Notifications::Event).returns(T::Hash[Symbol, T.untyped]) }

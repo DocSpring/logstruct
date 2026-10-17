@@ -136,6 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ActiveJob**: With the inline adapter, a failed `perform_later` writes one error line. The error that raised out of `perform_later` was logged again
 - **Sorbet**: Type error lines and reports have a backtrace that starts at the call that failed. Method signature errors had none, and the others started inside sorbet-runtime
 - **Rails 8.2**: Apps on Rails main boot with LogStruct. Rails' ActiveStorage, ActionMailer and ActiveRecord log subscribers read `Rails.event` there, and detaching them raised `NoMethodError`
+- **Rails 8.2**: Requests on Rails main log only the request line, without Rails' "Processing by" and "Completed 200 OK" text lines, which lograge detaches only on earlier Rails versions
 - **Filtering**: US phone numbers with a leading `1` (`1-555-123-4567`) are scrubbed whole, SSN-shaped parts of longer numbers (`123-45-6789-0`) are left alone, and an IPv6 address's zone (`fe80::1%en0`) is scrubbed with it
 
 ## [0.1.12] - 2026-01-30
