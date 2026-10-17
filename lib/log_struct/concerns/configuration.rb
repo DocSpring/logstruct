@@ -61,15 +61,32 @@ module LogStruct
           # 3. Otherwise, leave as config.enabled (defaults to true)
 
           # Then check if LOGSTRUCT_ENABLED env var is set
-          config.enabled = if ENV["LOGSTRUCT_ENABLED"]
-            %w[true t yes y 1].include?(ENV["LOGSTRUCT_ENABLED"]&.strip&.downcase)
-          else
+          env_var_enabled = enabled_from_env_var
+          config.enabled = if env_var_enabled.nil?
             is_console = console_process?
             is_server = server_process?
             ci_build?
             in_enabled_env = config.enabled_environments.include?(::Rails.env.to_sym)
 
             in_enabled_env && !is_console && (is_server || ::Rails.env.test?)
+          else
+            env_var_enabled
+          end
+
+          # apply_initializer_settings! compares the settings with these
+          @enabled_from_rails_env = T.let(config.enabled, T.nilable(T::Boolean))
+          @enabled_environments_from_rails_env = T.let(config.enabled_environments.dup, T.nilable(T::Array[Symbol]))
+        end
+
+        # After config/initializers run: LOGSTRUCT_ENABLED takes precedence, then `config.enabled`
+        # if an initializer changed it, then `config.enabled_environments` if an initializer changed that
+        sig { void }
+        def apply_initializer_settings!
+          env_var_enabled = enabled_from_env_var
+          if !env_var_enabled.nil?
+            config.enabled = env_var_enabled
+          elsif config.enabled == @enabled_from_rails_env && config.enabled_environments != @enabled_environments_from_rails_env
+            set_enabled_from_rails_env!
           end
         end
 
@@ -114,6 +131,14 @@ module LogStruct
         end
 
         private
+
+        sig { returns(T.nilable(T::Boolean)) }
+        def enabled_from_env_var
+          value = ENV["LOGSTRUCT_ENABLED"]
+          return nil if value.nil?
+
+          %w[true t yes y 1].include?(value.strip.downcase)
+        end
 
         sig { returns(T::Boolean) }
         def console_process?

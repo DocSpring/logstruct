@@ -16,6 +16,19 @@ class FilterParametersTest < ActionDispatch::IntegrationTest
     assert_equal "[FILTERED]", filter.filter("password" => "hunter2")["password"]
   end
 
+  def test_logstruct_filters_keys_from_initializers_the_way_rails_does
+    # :otp and :crypt come from config/initializers/filter_parameter_logging.rb, not LogStruct's
+    # defaults, and Rails matches them anywhere in a key
+    Rails.logger.info(msg: "Signed in", otp_attempt: "135790", encrypted_note: "hunter2")
+
+    ::SemanticLogger.flush
+    output = @log_output.string
+
+    assert_includes output, "Signed in"
+    assert_not_includes output, "135790"
+    assert_not_includes output, "hunter2"
+  end
+
   def test_active_record_filter_attributes_still_filter
     assert_includes ActiveRecord::Base.filter_attributes, :passw
   end

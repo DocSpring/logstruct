@@ -60,6 +60,43 @@ module LogStruct
         assert_equal({"jid" => "abc123", "class" => "HardJob", "template_id" => "tpl_1"}, line["ctx"])
       end
 
+      test "Sidekiq's logger is replaced before config/initializers run" do
+        names = Rails.application.initializers.tsort_each.map(&:name)
+
+        assert_operator names.index("logstruct.configure_logger"), :<, names.index(:load_config_initializers)
+
+        sidekiq_config = ::Sidekiq.default_configuration
+        saved = sidekiq_config.logger
+        sidekiq_config.logger = ::Logger.new(StringIO.new)
+        initializer = Rails.application.initializers.find { |i| i.name == "logstruct.configure_logger" }
+
+        # Only the Sidekiq part: replacing Rails.logger again would reset the test appenders
+        LogStruct::SemanticLogger::Setup.stub(:configure_semantic_logger, nil) do
+          T.must(initializer).run(Rails.application)
+        end
+
+        assert_kind_of Sidekiq::Logger, sidekiq_config.logger
+      ensure
+        sidekiq_config&.logger = saved
+      end
+
+      test "restore_logger puts back the logger Sidekiq had" do
+        sidekiq_config = ::Sidekiq.default_configuration
+        saved = sidekiq_config.logger
+        original = ::Logger.new(StringIO.new)
+        sidekiq_config.logger = original
+
+        Sidekiq.configure_logger
+
+        assert_kind_of Sidekiq::Logger, sidekiq_config.logger
+
+        Sidekiq.restore_logger
+
+        assert_same original, sidekiq_config.logger
+      ensure
+        sidekiq_config&.logger = saved
+      end
+
       test "a failed job is logged once, as a structured line without its arguments" do
         sidekiq_config = ::Sidekiq::Config.new
         sidekiq_config.logger = Sidekiq::Logger.new("Sidekiq-Server")

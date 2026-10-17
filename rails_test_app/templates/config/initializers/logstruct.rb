@@ -7,6 +7,14 @@ LogStruct.configure do |config|
   # Specify which environments to enable in
   config.enabled_environments = [:development, :test, :production]
 
+  # Lets BootLogsIntegrationTest check that `enabled` and `enabled_environments` set here are honored
+  if ENV.key?("LOGSTRUCT_TEST_INITIALIZER_ENABLED")
+    config.enabled = ENV["LOGSTRUCT_TEST_INITIALIZER_ENABLED"] == "true"
+  end
+  if ENV.key?("LOGSTRUCT_TEST_INITIALIZER_ENVIRONMENTS")
+    config.enabled_environments = ENV.fetch("LOGSTRUCT_TEST_INITIALIZER_ENVIRONMENTS").split(",").map(&:to_sym)
+  end
+
   # Specify which environments are considered local/development
   config.local_environments = [:development, :test]
 

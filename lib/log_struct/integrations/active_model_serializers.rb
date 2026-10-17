@@ -17,6 +17,11 @@ module LogStruct
         # Only activate if AMS appears to be present
         return nil unless defined?(::ActiveModelSerializers)
 
+        # AMS logs each render as a line of text too
+        if defined?(::ActiveModelSerializers::Logging::LogSubscriber)
+          ::ActiveModelSerializers::Logging::LogSubscriber.detach_from(:active_model_serializers)
+        end
+
         # Subscribe to common AMS notification names; keep broad but specific
         pattern = /\.active_model_serializers\z/
 

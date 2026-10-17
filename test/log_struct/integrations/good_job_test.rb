@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "log_struct/integrations/good_job/logger"
 
 module LogStruct
   module Integrations
@@ -56,6 +57,25 @@ module LogStruct
         assert_includes GoodJob.private_methods, :configure_logger
       end
 
+      test "replaces GoodJob's logger and logs thread errors after the app's own handler" do
+        with_fake_goodjob do |fake|
+          reported = []
+          fake.on_thread_error = ->(exception) { reported << exception.message }
+
+          GoodJob.send(:configure_logger)
+          GoodJob.send(:configure_logger)
+
+          assert_instance_of GoodJob::Logger, fake.logger
+          logged = []
+          fake.logger.stub(:error, ->(entry) { logged << entry.error_message }) do
+            fake.on_thread_error.call(RuntimeError.new("boom"))
+          end
+
+          assert_equal ["boom"], reported
+          assert_equal ["boom"], logged
+        end
+      end
+
       test "subscribe_to_notifications method exists and is private" do
         assert_includes GoodJob.private_methods, :subscribe_to_notifications
       end
@@ -79,6 +99,19 @@ module LogStruct
       end
 
       private
+
+      # Stands in for the GoodJob gem, which isn't installed for the tests
+      def with_fake_goodjob
+        fake = Module.new do
+          class << self
+            attr_accessor :logger, :on_thread_error
+          end
+        end
+        Object.const_set(:GoodJob, fake)
+        yield fake
+      ensure
+        Object.send(:remove_const, :GoodJob)
+      end
 
       def skip_if_goodjob_defined
         if defined?(::GoodJob)

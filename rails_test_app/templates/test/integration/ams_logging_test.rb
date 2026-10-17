@@ -59,22 +59,19 @@ class AmsLoggingTest < ActionDispatch::IntegrationTest
   def test_ams_logs_do_not_pollute_with_default_format
     raise "AMS not available" unless defined?(::ActiveModelSerializers)
 
-    # Capture both SemanticLogger output and stdout
-    original_stdout = $stdout
-    stdout_capture = StringIO.new
-    $stdout = stdout_capture
+    # AMS's own log subscriber writes "Rendered UserSerializer with ... (0.1ms)" to this logger
+    ams_log = StringIO.new
+    original_logger = ActiveModelSerializers.logger
+    ActiveModelSerializers.logger = ActiveSupport::TaggedLogging.new(Logger.new(ams_log))
 
-    get "/logging/basic"
+    get "/logging/ams"
 
     ::SemanticLogger.flush
-    $stdout = original_stdout
-    stdout_capture.rewind
-    stdout_output = stdout_capture.read.to_s
 
-    # AMS default logs like "Rendered X with Y (Zms)" should NOT appear in stdout
-    refute_match(/Rendered\s+\S+Serializer\s+with/,
-      stdout_output,
-      "AMS default log format should not appear in stdout")
+    assert_includes @log_output.string, '"msg":"ams.render"'
+    refute_match(/Rendered\s+\S+\s+with/, ams_log.string, "AMS default log lines should not be logged")
+  ensure
+    ActiveModelSerializers.logger = original_logger
   end
 
   def test_ams_logs_adapter_class_name_not_serialized_output

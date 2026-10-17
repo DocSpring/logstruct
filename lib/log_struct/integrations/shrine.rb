@@ -88,71 +88,33 @@ module LogStruct
           ::SemanticLogger[::Shrine].info(log_data)
         end)
 
-        # Check if instrumentation plugin is already loaded
-        # If so, we need to replace the existing subscribers, not add duplicates
-        if instrumentation_already_configured?
-          replace_existing_subscribers(shrine_log_subscriber)
-        else
-          # First time setup - configure the instrumentation plugin
-          ::Shrine.plugin :instrumentation,
-            events: SHRINE_EVENTS,
-            log_subscriber: shrine_log_subscriber
+        # Load the instrumentation plugin without Shrine's default log subscriber, which logs
+        # each event as a line of text (a no-op if the app has loaded it already). Shrine
+        # ignores a subscriber that's already subscribed.
+        ::Shrine.plugin :instrumentation, log_subscriber: nil
+        SHRINE_EVENTS.each do |event_name|
+          T.unsafe(::Shrine).subscribe(event_name, &shrine_log_subscriber)
         end
+
+        # The app may load the plugin with the default log subscriber too, before or after this
+        ::Shrine::Plugins::Instrumentation::LogSubscriber.singleton_class.prepend(SkipLoggedEvents)
+
+        # Other plugins' log subscribers and Shrine's warnings write text to Shrine.logger
+        ::Shrine.logger = ::SemanticLogger[::Shrine]
 
         true
       end
 
-      sig { returns(T::Boolean) }
-      def self.instrumentation_already_configured?
-        return false unless defined?(::Shrine)
+      # Prepended to Shrine's default instrumentation log subscriber, so it doesn't log the
+      # events that LogStruct logs
+      module SkipLoggedEvents
+        extend T::Sig
 
-        opts = T.unsafe(::Shrine).opts
-        return false unless opts.is_a?(Hash)
+        sig { params(event: T.untyped).returns(T.untyped) }
+        def call(event)
+          return if SHRINE_EVENTS.include?(event.name)
 
-        instrumentation_opts = opts[:instrumentation]
-        return false unless instrumentation_opts.is_a?(Hash)
-
-        subscribers = instrumentation_opts[:subscribers]
-        return false unless subscribers.is_a?(Hash)
-
-        !subscribers.empty?
-      end
-
-      sig { params(new_subscriber: T.untyped).void }
-      def self.replace_existing_subscribers(new_subscriber)
-        opts = T.unsafe(::Shrine).opts
-        instrumentation_opts = opts[:instrumentation]
-        subscribers = instrumentation_opts[:subscribers]
-
-        # Clear all existing subscribers and add our new one
-        SHRINE_EVENTS.each do |event_name|
-          # Clear existing subscribers for this event
-          subscribers[event_name] = [] if subscribers[event_name]
-
-          # Add our subscriber
-          subscribers[event_name] ||= []
-          subscribers[event_name] << new_subscriber
-
-          # Also re-subscribe via ActiveSupport::Notifications
-          # Shrine uses "shrine.#{event_name}" as the notification name
-          notification_name = "shrine.#{event_name}"
-
-          # Unsubscribe existing listeners for this event
-          # ActiveSupport::Notifications stores subscriptions, we need to find and remove them
-          notifier = ::ActiveSupport::Notifications.notifier
-          if notifier.respond_to?(:listeners_for)
-            # Rails 7.0+ uses listeners_for
-            listeners = notifier.listeners_for(notification_name)
-            listeners.each do |listener|
-              ::ActiveSupport::Notifications.unsubscribe(listener)
-            end
-          end
-
-          # Subscribe our new subscriber
-          ::ActiveSupport::Notifications.subscribe(notification_name) do |*args|
-            event = ::ActiveSupport::Notifications::Event.new(*args)
-            new_subscriber.call(event)
-          end
+          super
         end
       end
     end
