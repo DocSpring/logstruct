@@ -245,7 +245,7 @@ module LogStruct
             field_path = path.drop(1).join(".")
             regexps.any? { |regexp| regexp.match?(full_path) || (!field_path.empty? && regexp.match?(field_path)) }
           end
-          ConfigStruct::PathFilterMatcher.new(callable: callable, label: RAILS_PATHS_LABEL)
+          ConfigStruct::PathFilterMatcher.new(callable: callable, label: RAILS_PATHS_LABEL, uses_root: false)
         end
 
         # A Rails filter block with three arguments, given the parameters around the key: the

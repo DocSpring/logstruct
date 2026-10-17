@@ -214,9 +214,11 @@ module LogStruct
 
           # Rules that need a key's path from the line's top-level field, or the parameters around it.
           # Rails' dotted filter_parameters (like "card.number") become path matchers at boot.
+          # uses_root: false for a rule that doesn't read the parameters, so they aren't copied for it.
           config.filters.path_matchers << LogStruct::ConfigStruct::PathFilterMatcher.new(
             callable: ->(path, _value, _root) { path.last(2) == ["bank", "number"] },
-            label: "bank account numbers"
+            label: "bank account numbers",
+            uses_root: false
           )
 
           # The HMAC key for hashed values. Default: a key derived from the Rails app's secret_key_base

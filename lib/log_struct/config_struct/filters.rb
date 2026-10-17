@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "active_support/hash_with_indifferent_access"
+
 module LogStruct
   # A key's words, lowercase and joined by underscores, so that keys match however they're written:
   # apiKey, api-key, X-Api-Key and HTTP_X_API_KEY all contain "api_key"
@@ -36,16 +38,44 @@ module LogStruct
     # A filter that needs more than the key: Rails' entries with a dot (`card.number`) match a key by its
     # path, and Rails gives filter blocks with three arguments the parameters around the key. The path
     # starts at the line's top-level field (`["params", "card", "number"]`); `root` is that field's value,
-    # or the whole line for a top-level key.
+    # or the whole line for a top-level key, with indifferent access as Rails gives it. Building it copies
+    # every value inside it, so a matcher that doesn't read it sets uses_root to false and gets nil.
     class PathFilterMatcher < T::Struct
       extend T::Sig
 
       const :callable, T.proc.params(path: T::Array[String], value: T.untyped, root: T.untyped).returns(T::Boolean)
       const :label, String
+      const :uses_root, T::Boolean, default: true
 
       sig { params(path: T::Array[String], value: T.untyped, root: T.untyped).returns(T::Boolean) }
       def matches?(path, value, root)
-        callable.call(path, value, root)
+        root = nil unless uses_root
+        callable.call(path, value, root.is_a?(LazyRoot) ? root.value : root)
+      end
+    end
+
+    # The root a PathFilterMatcher gets, built the first time a matcher reads it
+    class LazyRoot
+      extend T::Sig
+
+      sig { params(value: T.untyped).void }
+      def initialize(value)
+        @source = value
+        @built = T.let(false, T::Boolean)
+        @value = T.let(nil, T.untyped)
+      end
+
+      # The value with indifferent access, as Rails gives filter blocks the request's parameters
+      sig { returns(T.untyped) }
+      def value
+        return @value if @built
+
+        @built = true
+        @value = begin
+          @source.is_a?(Hash) ? ActiveSupport::HashWithIndifferentAccess.new(@source) : @source
+        rescue SystemStackError, StandardError
+          @source
+        end
       end
     end
 

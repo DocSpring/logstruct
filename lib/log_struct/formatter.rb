@@ -154,8 +154,8 @@ module LogStruct
     def process_hash(hash, recursion_depth:, ancestors:, path: nil, root: nil)
       result = {}
 
-      # Rails gives filter blocks the request's parameters with indifferent access
-      line_root = (path && recursion_depth == 0) ? with_indifferent_access(hash) : nil
+      # Path matchers' roots are built only if a matcher reads them (most don't)
+      line_root = (path && recursion_depth == 0) ? ConfigStruct::LazyRoot.new(hash) : nil
 
       max_keys = LogStruct.config.limits.max_hash_keys
       hash.each_with_index do |(key, value), index|
@@ -169,7 +169,7 @@ module LogStruct
         key_path = path && [*path, key.to_s]
         # A top-level key's root is the line; the keys below it get the top-level field's value
         key_root = (recursion_depth == 0) ? line_root : root
-        children_root = (path && recursion_depth == 0) ? with_indifferent_access(value) : root
+        children_root = (path && recursion_depth == 0) ? ConfigStruct::LazyRoot.new(value) : root
         # Check if this key should be filtered at any depth
         filtered = ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field, path: key_path, root: key_root)
         # Keys are scrubbed too: an email address can be a key
@@ -221,13 +221,6 @@ module LogStruct
       scrubbed = scrub_string(string.byteslice(0, max_bytes + SCRUB_MARGIN_BYTES).to_s.scrub(""))
       kept = StringScrubber.scrub_cut_end(scrubbed.byteslice(0, max_bytes).to_s.scrub(""))
       "#{kept}... (cut from #{string.bytesize} bytes)"
-    end
-
-    sig { params(value: T.untyped).returns(T.untyped) }
-    def with_indifferent_access(value)
-      value.is_a?(Hash) ? ActiveSupport::HashWithIndifferentAccess.new(value) : value
-    rescue SystemStackError, StandardError
-      value
     end
 
     # Like deep_symbolize_keys, but stops at circular references and at the depth where
