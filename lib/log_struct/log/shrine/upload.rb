@@ -32,6 +32,9 @@ module LogStruct
         # Event-specific fields
         const :storage, Symbol
         const :location, String
+        const :filename, T.nilable(String), default: nil
+        const :mime_type, T.nilable(String), default: nil
+        const :size, T.nilable(Integer), default: nil
         const :upload_options, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
         const :options, T.nilable(T::Hash[Symbol, T.untyped]), default: nil
         const :uploader, T.nilable(String), default: nil
@@ -46,6 +49,9 @@ module LogStruct
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
           h[LogField::Location] = location
+          h[LogField::Filename] = filename unless filename.nil?
+          h[LogField::MimeType] = mime_type unless mime_type.nil?
+          h[LogField::Size] = size unless size.nil?
           h[LogField::UploadOptions] = upload_options unless upload_options.nil?
           h[LogField::Options] = options unless options.nil?
           h[LogField::Uploader] = uploader unless uploader.nil?

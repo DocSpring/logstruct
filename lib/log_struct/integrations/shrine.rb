@@ -26,7 +26,7 @@ module LogStruct
         # Create a structured log subscriber for Shrine
         # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
         shrine_log_subscriber = lambda do |event|
-          payload = event.payload.except(:io, :metadata, :name).dup
+          payload = event.payload.except(:io, :name).dup
 
           # Map event name to Event type
           event_type = case event.name
@@ -34,9 +34,8 @@ module LogStruct
           when :download then Event::Download
           when :open then Event::Download
           when :delete then Event::Delete
-          when :metadata then Event::Metadata
           when :exists then Event::Exist
-          else Event::Unknown
+          else Event::Metadata
           end
 
           # Create structured log data
@@ -45,9 +44,14 @@ module LogStruct
 
           log_data = case event_type
           when Event::Upload
+            metadata = payload[:metadata].is_a?(Hash) ? payload[:metadata] : {}
+            size = metadata["size"]
             Log::Shrine::Upload.new(
               storage: storage_sym,
               location: payload[:location],
+              filename: metadata["filename"]&.to_s,
+              mime_type: metadata["mime_type"]&.to_s,
+              size: size.is_a?(Integer) ? size : nil,
               uploader: payload[:uploader]&.to_s,
               upload_options: payload[:upload_options],
               options: payload[:options],
@@ -64,23 +68,14 @@ module LogStruct
               storage: storage_sym,
               location: payload[:location]
             )
-          when Event::Metadata
-            metadata_params = {
-              storage: storage_sym,
-              metadata: payload[:metadata]
-            }
-            metadata_params[:location] = payload[:location] if payload[:location]
-            Log::Shrine::Metadata.new(**metadata_params)
           when Event::Exist
             Log::Shrine::Exist.new(
               storage: storage_sym,
-              location: payload[:location],
-              exist: payload[:exist]
+              location: payload[:location]
             )
           else
-            unknown_params = {storage: storage_sym, metadata: payload[:metadata]}
-            unknown_params[:location] = payload[:location] if payload[:location]
-            Log::Shrine::Metadata.new(**unknown_params)
+            # metadata, the only other event in SHRINE_EVENTS
+            Log::Shrine::Metadata.new(storage: storage_sym, duration_ms: event.duration.to_f)
           end
 
           # Log directly through SemanticLogger, NOT through Shrine.logger
