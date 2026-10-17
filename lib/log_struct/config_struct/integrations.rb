@@ -61,7 +61,7 @@ module LogStruct
       # Default: true
       prop :enable_goodjob, T::Boolean, default: true
 
-      # Enable SemanticLogger integration for high-performance logging
+      # Replace Rails' loggers with LogStruct's SemanticLogger logger
       # Default: true
       prop :enable_semantic_logger, T::Boolean, default: true
 
