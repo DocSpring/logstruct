@@ -272,6 +272,12 @@ end`}
       <RubyCodeExample name="error_reporting_handler" />
 
       <p className="text-neutral-600 dark:text-neutral-300 mt-4 mb-4">
+        If the handler raises (a timeout calling your service), LogStruct logs its error as a{' '}
+        <code>logstruct</code> error line, and the error it was reporting is handled as it would
+        have been.
+      </p>
+
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4 mb-4">
         When your app loads more than one of the supported services, choose one:
       </p>
 

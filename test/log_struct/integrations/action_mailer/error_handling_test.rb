@@ -200,6 +200,20 @@ class ActionMailerErrorHandlingTest < ActiveSupport::TestCase
     LogStruct.stub(:is_production?, true) { assert_predicate LogStruct::Integrations::ActionMailer::ErrorHandling, :report_before_reraise? }
   end
 
+  test "a reporter that raises doesn't change what the handlers do with the error" do
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+    saved_handler = LogStruct.config.error_reporting_handler
+    LogStruct.config.error_reporting_handler = ->(_error, _context, _source) { raise Timeout::Error, "reporter timed out" }
+
+    ActionMailer::MessageDelivery.new(ReportingMailer, :notice).deliver_now
+    ReportingMailer.handle_exception(DeliveryFailed.new("Couldn't load the email's record"))
+    error = assert_raises(DeliveryFailed) { ActionMailer::MessageDelivery.new(FailingMailer, :notice).deliver_now }
+
+    assert_equal "Invalid 'From' address", error.message
+  ensure
+    LogStruct.config.error_reporting_handler = saved_handler
+  end
+
   # Only the mailer's own handler marks an error for the class handler to raise again
   test "the class handler ignores an error each time it's given it" do
     error = DeliveryFailed.new("Couldn't load the email's record")

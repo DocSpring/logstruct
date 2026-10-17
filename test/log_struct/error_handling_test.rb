@@ -29,6 +29,23 @@ class ErrorHandlingTest < Minitest::Test
     end
   end
 
+  def test_a_reporter_that_raises_is_logged_and_the_error_is_handled_as_before
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+    LogStruct.config.error_reporting_handler = ->(_error, _context, _source) { raise Timeout::Error, "reporter timed out" }
+    logged = []
+
+    LogStruct.stub(:error, ->(entry) { logged << entry }) do
+      LogStruct.handle_exception(RuntimeError.new("boom"), source: LogStruct::Source::App)
+    end
+
+    expected = [
+      [LogStruct::Source::App, RuntimeError, "boom", nil],
+      [LogStruct::Source::Internal, Timeout::Error, "The error reporter raised while reporting RuntimeError", "reporter timed out"]
+    ]
+
+    assert_equal expected, logged.map { |entry| [entry.source, entry.error_class, entry.message, entry.error_message] }
+  end
+
   def test_handle_exception_raise
     LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Raise
     error = RuntimeError.new("boom")

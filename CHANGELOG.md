@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sidekiq**: Lines logged during a Sidekiq job are written once instead of twice (#13)
 - **Sidekiq**: The logger logs a copy of `Sidekiq::Context` instead of the live hash, which could mark successful jobs as failed (#14)
 - **Development**: Colored lines filter named tags as JSON lines filter `ctx`: `logger.tagged(password: "...")` wrote the password. Colored Hash and LogStruct lines are the JSON line, pretty-printed, with the message, tags and named tags it has, and without a blank line after them
+- **Errors**: An `error_reporting_handler` that raises (a timeout calling its service) no longer changes what happens to the error it was reporting: `handle_exception` in the Report modes and the mailers' handlers carry on (or raise the original error), and the handler's error is a `logstruct` error line
 - **Logger settings**: `filter_noisy_loggers` leaves out ActionView's, routing errors' and schema migrations' lines. It kept only those lines and left out every other one
 - **GoodJob**: The GoodJob integration now sets GoodJob's logger and logs GoodJob's thread errors. It referred to its own module instead of `::GoodJob`, so neither was set up before
 - **GoodJob**: LogStruct turns itself on in GoodJob's executable (`good_job start`), like Puma and Sidekiq, and stops GoodJob adding a plain text STDOUT logger beside it, so GoodJob workers log JSON, each line once
