@@ -3,6 +3,7 @@
 
 require "logger"
 require "active_support/core_ext/object/blank"
+require "active_support/hash_with_indifferent_access"
 require "json"
 require "globalid"
 require_relative "enums/source"
@@ -58,8 +59,22 @@ module LogStruct
     # LogStruct's own fields, which some filters don't apply to at the top of a line
     LOG_FIELD_KEYS = T.let(LogField.values.map(&:serialize).to_set.freeze, T::Set[T.untyped])
 
-    sig { params(arg: T.untyped, recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T.untyped) }
-    def process_values(arg, recursion_depth: 0, ancestors: {}.compare_by_identity)
+    # path and root are for filters that match a key by its path (see ParamFilters.should_filter_key?).
+    # They're only tracked when such filters exist: path is nil otherwise.
+    sig do
+      params(
+        arg: T.untyped,
+        recursion_depth: Integer,
+        ancestors: T::Hash[T.untyped, T::Boolean],
+        path: T.nilable(T::Array[String]),
+        root: T.untyped
+      ).returns(T.untyped)
+    end
+    def process_values(arg, recursion_depth: 0, ancestors: {}.compare_by_identity, path: nil, root: nil)
+      if recursion_depth == 0 && path.nil? && !LogStruct.config.filters.path_matchers.empty?
+        path = []
+      end
+
       # Circular references and deeply nested values stop here. Values below this depth
       # would skip filtering and scrubbing, so they're summarized instead of logged.
       return summarize_unprocessed_value(arg) if recursion_depth > MAX_RECURSION_DEPTH || ancestors.key?(arg)
@@ -69,26 +84,27 @@ module LogStruct
         ancestors[arg] = true
         begin
           if arg.is_a?(Hash)
-            process_hash(arg, recursion_depth: recursion_depth, ancestors: ancestors)
+            process_hash(arg, recursion_depth: recursion_depth, ancestors: ancestors, path: path, root: root)
           else
-            process_array(arg, recursion_depth: recursion_depth, ancestors: ancestors)
+            process_array(arg, recursion_depth: recursion_depth, ancestors: ancestors, path: path, root: root)
           end
         ensure
           ancestors.delete(arg)
         end
       when GlobalID::Identification
+        # Scrubbed like any String: a record's ID can be an email address
         begin
-          arg.to_global_id
+          scrub_string(arg.to_global_id.to_s)
         rescue
           begin
             object = T.cast(arg, Object)
             # Active Record is optional
             if defined?(::ActiveRecord::Base) && object.is_a?(::ActiveRecord::Base)
-              "#{object.class}(##{object.id})"
+              scrub_string("#{object.class}(##{object.id})")
             else
               # For non-ActiveRecord objects that failed to_global_id, try to get a string representation
               # If this also fails, we want to catch it and return the error placeholder
-              String(object)
+              scrub_string(String(object))
             end
           rescue => e
             LogStruct.handle_exception(e, source: Source::Internal)
@@ -101,12 +117,14 @@ module LogStruct
         scrub_string(arg)
       when Time
         arg.iso8601(3)
-      when Numeric, Symbol, TrueClass, FalseClass, NilClass
+      when Symbol
+        StringScrubber.scrub_name(arg)
+      when Numeric, TrueClass, FalseClass, NilClass
         arg
       else
         # Structs, ActionController::Parameters and other objects: filter and scrub what
         # to_json would write
-        process_values(arg.as_json, recursion_depth: recursion_depth + 1, ancestors: ancestors)
+        process_values(arg.as_json, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root)
       end
     rescue => e
       # Report error through LogStruct's framework
@@ -119,15 +137,32 @@ module LogStruct
       summarize_unprocessed_value(arg)
     end
 
-    sig { params(hash: T::Hash[T.untyped, T.untyped], recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T::Hash[T.untyped, T.untyped]) }
-    def process_hash(hash, recursion_depth:, ancestors:)
+    sig do
+      params(
+        hash: T::Hash[T.untyped, T.untyped],
+        recursion_depth: Integer,
+        ancestors: T::Hash[T.untyped, T::Boolean],
+        path: T.nilable(T::Array[String]),
+        root: T.untyped
+      ).returns(T::Hash[T.untyped, T.untyped])
+    end
+    def process_hash(hash, recursion_depth:, ancestors:, path: nil, root: nil)
       result = {}
+
+      # Rails gives filter blocks the request's parameters with indifferent access
+      line_root = (path && recursion_depth == 0) ? with_indifferent_access(hash) : nil
 
       hash.each do |key, value|
         logstruct_field = recursion_depth == 0 && LOG_FIELD_KEYS.include?(key)
+        key_path = path && [*path, key.to_s]
+        # A top-level key's root is the line; the keys below it get the top-level field's value
+        key_root = (recursion_depth == 0) ? line_root : root
+        children_root = (path && recursion_depth == 0) ? with_indifferent_access(value) : root
         # Check if this key should be filtered at any depth
-        result[key] = if !ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field)
-          process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors)
+        filtered = ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field, path: key_path, root: key_root)
+        # Keys are scrubbed too: an email address can be a key
+        result[StringScrubber.scrub_name(key)] = if !filtered
+          process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: key_path, root: children_root)
         elsif value == RAILS_FILTERED_MASK
           # Rails' parameter filter has already replaced the value
           value
@@ -137,6 +172,13 @@ module LogStruct
       end
 
       result
+    end
+
+    sig { params(value: T.untyped).returns(T.untyped) }
+    def with_indifferent_access(value)
+      value.is_a?(Hash) ? ActiveSupport::HashWithIndifferentAccess.new(value) : value
+    rescue SystemStackError, StandardError
+      value
     end
 
     # Like deep_symbolize_keys, but stops at circular references and at the depth where
@@ -244,9 +286,20 @@ module LogStruct
       end
     end
 
-    # Serializes Log (or string) into JSON
-    sig { params(severity: T.any(String, Symbol, Integer), time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
-    def call(severity, time, progname, log_value)
+    # Serializes Log (or string) into JSON.
+    # request_id: the request's ID (default: the one RequestContext stored for this thread).
+    # context: fields for the line's ctx, like the running job's ID and class. The line's own ctx keys win.
+    sig do
+      params(
+        severity: T.any(String, Symbol, Integer),
+        time: Time,
+        progname: T.nilable(String),
+        log_value: T.untyped,
+        request_id: T.nilable(String),
+        context: T.nilable(T::Hash[T.untyped, T.untyped])
+      ).returns(String)
+    end
+    def call(severity, time, progname, log_value, request_id: nil, context: nil)
       level_enum = Level.from_severity(severity)
 
       data = log_value_to_hash(log_value, time: time)
@@ -259,13 +312,38 @@ module LogStruct
       data[:evt] ||= Event::Log
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = level_enum # Set level from severity parameter
-      data[:prog] = progname if progname.present?
-      request_id = Thread.current[:logstruct_request_id]
-      if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
-        data[:req_id] = request_id
-      end
+      add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context)
 
       generate_json(data)
+    end
+
+    # The program name, request ID and job context, filtered and scrubbed like the rest of the line:
+    # an X-Request-Id header can carry anything
+    sig do
+      params(
+        data: T::Hash[T.untyped, T.untyped],
+        progname: T.nilable(String),
+        request_id: T.untyped,
+        context: T.nilable(T::Hash[T.untyped, T.untyped])
+      ).void
+    end
+    def add_metadata(data, progname:, request_id:, context:)
+      metadata = {}
+      metadata[:prog] = progname if progname.present?
+      if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
+        metadata[:req_id] = request_id
+      end
+      metadata[:ctx] = symbolize_keys(context) if context.present?
+      return if metadata.empty?
+
+      processed = process_values(metadata)
+      job_context = processed.delete(:ctx)
+      data.merge!(processed)
+      return if job_context.nil?
+
+      line_context = data[:ctx]
+      # A logged Hash's own ctx keeps its keys and gains the job's
+      data[:ctx] = line_context.is_a?(Hash) ? job_context.merge(line_context) : (line_context || job_context)
     end
 
     # Output as JSON with a newline. We mock this method in tests so we can
@@ -275,18 +353,27 @@ module LogStruct
       "#{data.to_json}\n"
     end
 
-    sig { params(array: T::Array[T.untyped], recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T::Array[T.untyped]) }
-    def process_array(array, recursion_depth:, ancestors:)
+    # An array's items keep the array's path, as in Rails (users.name filters each user's name)
+    sig do
+      params(
+        array: T::Array[T.untyped],
+        recursion_depth: Integer,
+        ancestors: T::Hash[T.untyped, T::Boolean],
+        path: T.nilable(T::Array[String]),
+        root: T.untyped
+      ).returns(T::Array[T.untyped])
+    end
+    def process_array(array, recursion_depth:, ancestors:, path: nil, root: nil)
       return [] if array.empty?
 
       if looks_like_backtrace_array?(array)
-        array.map { |value| process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors) }
+        array.map { |value| process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root) }
       else
         processed = []
         array.each_with_index do |value, index|
           break if index >= 10
 
-          processed << process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors)
+          processed << process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root)
         end
 
         if array.size > 10

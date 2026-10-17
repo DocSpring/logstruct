@@ -69,6 +69,38 @@ class ErrorHandlingTest < Minitest::Test
     assert_equal [true], reported
   end
 
+  def test_reporters_get_the_context_filtered_and_scrubbed
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+    reported = T.let([], T::Array[T.untyped])
+    context = {password: "hunter2", to: ["ada@example.com"], path: "/reset?token=abc123"}
+
+    LogStruct.stub(:error, ->(_log) {}) do
+      LogStruct::MultiErrorReporter.stub(:report_error, ->(_err, ctx) { reported << ctx }) do
+        LogStruct.handle_exception(RuntimeError.new("report me"), source: LogStruct::Source::App, context: context)
+      end
+    end
+
+    reported_context = T.must(reported.first)
+
+    assert_equal({_filtered: {_class: String}}, reported_context[:password])
+    assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, reported_context[:to].first)
+    assert_equal "/reset?token=[FILTERED]", reported_context[:path]
+    # The caller's context is left as it was
+    assert_equal "hunter2", context[:password]
+  end
+
+  def test_custom_reporting_handlers_get_the_filtered_context
+    reported = []
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+    LogStruct.config.error_reporting_handler = ->(_error, ctx, _source) { reported << ctx }
+
+    LogStruct.stub(:error, ->(_log) {}) do
+      LogStruct.handle_exception(RuntimeError.new("report me"), source: LogStruct::Source::App, context: {api_key: "k1"})
+    end
+
+    assert_equal [{api_key: {_filtered: {_class: String}}}], reported
+  end
+
   def test_handle_exception_log_production_raises_when_not_production
     LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::LogProduction
     error = RuntimeError.new("prod log")

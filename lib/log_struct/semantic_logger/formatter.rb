@@ -64,14 +64,22 @@ module LogStruct
         # Extract LogStruct from various locations where it might be stored
         logstruct = extract_logstruct(log)
 
+        # The request ID and the running Sidekiq job's context, from named_tags
+        request_id = log.named_tags[:request_id]
+        job_context = log.named_tags[:sidekiq_context]
+        metadata = {
+          request_id: request_id.is_a?(String) ? request_id : nil,
+          context: job_context.is_a?(Hash) ? job_context : nil
+        }
+
         json = if logstruct
           # Use our formatter to process LogStruct types directly
-          @logstruct_formatter.call(log.level, log.time, log.name, logstruct)
+          @logstruct_formatter.call(log.level, log.time, log.name, logstruct, **metadata)
         elsif log.payload.is_a?(Hash)
           # Process hashes through our formatter
-          @logstruct_formatter.call(log.level, log.time, log.name, without_reserved_keys(log.payload))
+          @logstruct_formatter.call(log.level, log.time, log.name, without_reserved_keys(log.payload), **metadata)
         elsif log.payload.is_a?(T::Struct)
-          @logstruct_formatter.call(log.level, log.time, log.name, log.payload)
+          @logstruct_formatter.call(log.level, log.time, log.name, log.payload, **metadata)
         else
           # For plain messages, create a Plain log entry
           message_data = log.payload || log.message
@@ -79,21 +87,7 @@ module LogStruct
             message: message_data,
             timestamp: log.time
           )
-          @logstruct_formatter.call(log.level, log.time, log.name, plain_log)
-        end
-
-        # Add the request ID and the running Sidekiq job's context from named_tags
-        request_id = log.named_tags[:request_id]
-        sidekiq_context = log.named_tags[:sidekiq_context]
-        if request_id || sidekiq_context
-          data = JSON.parse(json)
-          data["req_id"] = request_id if request_id
-          if sidekiq_context
-            ctx = data["ctx"]
-            # A logged Hash's own ctx keeps its keys and gains the job's
-            data["ctx"] = ctx.is_a?(Hash) ? sidekiq_context.transform_keys(&:to_s).merge(ctx) : (ctx || sidekiq_context)
-          end
-          json = data.to_json
+          @logstruct_formatter.call(log.level, log.time, log.name, plain_log, **metadata)
         end
 
         # SemanticLogger appenders typically add their own newline. Avoid double newlines by stripping ours.

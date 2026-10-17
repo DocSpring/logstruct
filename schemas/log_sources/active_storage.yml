@@ -46,6 +46,6 @@ events:
     fields:
       Prefix: String
 
+  # The URL is left out: it's signed, and anyone with it can read the file until it expires
   Url:
-    fields:
-      Url: String
+    fields: {}

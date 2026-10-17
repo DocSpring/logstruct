@@ -141,6 +141,14 @@ module LogStruct
         assert_equal "application/json", options[:accept]
       end
 
+      def test_request_lines_log_the_referer_without_its_query
+        log = LogStruct::Integrations::Lograge.build_request_log(
+          {method: "GET", path: "/dashboard", referer: "https://example.test/reset?token=abc123#done"}
+        )
+
+        assert_equal "https://example.test/reset", log.referer
+      end
+
       def test_extracts_request_id_from_action_dispatch_header
         event = ActiveSupport::Notifications::Event.new(
           "process_action.action_controller",

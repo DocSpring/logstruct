@@ -250,6 +250,8 @@ export class LogGenerator extends RandomDataGenerator {
   }
 
   private applyFilters(log: JsonRecord): JsonRecord {
+    // Like LogStruct's defaults: keys filtered by name, and emails and phone numbers scrubbed
+    // out of every string
     const SENSITIVE_KEYS = new Set<string>([
       'password',
       'password_confirmation',
@@ -259,34 +261,28 @@ export class LogGenerator extends RandomDataGenerator {
       'api_key',
       'authorization',
       'credit_card',
-      'phone',
       'ssn',
-      'tax_id',
-      'email',
     ]);
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+    const emailRe = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+    const phoneRe = /\b\d{3}[\s-]\d{3}[\s-]\d{4}\b/g;
 
     const filterValue = (key: string, value: any): any => {
       const k = key.toLowerCase();
-      if (typeof value === 'string') {
-        if (SENSITIVE_KEYS.has(k)) {
-          if (k.includes('password')) return this.randomPassword(true);
-          if (k.includes('credit')) return this.randomCreditCard(true);
-          if (k.includes('phone')) return this.randomPhone(true);
-          if (k.includes('email')) return this.randomFilteredEmailString();
-          return '[FILTERED]';
-        }
-        if (emailRe.test(value)) return this.randomFilteredEmailString();
+      if (SENSITIVE_KEYS.has(k)) {
+        if (typeof value === 'string') return this.filteredString();
+        if (Array.isArray(value)) return this.filteredArray(value.length);
+        if (value && typeof value === 'object') return this.filteredHash('password');
         return value;
       }
+      if (typeof value === 'string') {
+        return value
+          .replace(emailRe, () => this.randomFilteredEmailString())
+          .replace(phoneRe, '[PHONE]');
+      }
       if (Array.isArray(value)) {
-        if (SENSITIVE_KEYS.has(k)) return this.filteredArray(value.length);
         return value.map((v) => filterValue(key, v));
       }
       if (value && typeof value === 'object') {
-        if (['data', 'payload', 'attributes', 'request_body'].includes(k)) {
-          return this.filteredHash('json');
-        }
         return walk(value as Record<string, any>);
       }
       return value;

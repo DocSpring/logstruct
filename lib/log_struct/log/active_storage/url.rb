@@ -32,9 +32,6 @@ module LogStruct
         const :storage, Symbol
         const :file_id, String
 
-        # Event-specific fields
-        const :url, String
-
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
@@ -44,7 +41,6 @@ module LogStruct
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
           h[LogField::FileId] = file_id
-          h[LogField::Url] = url
           h
         end
       end

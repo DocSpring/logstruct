@@ -78,3 +78,8 @@ wordlists
 xorshift
 yardoc
 tsort
+HMAC
+otps
+crypted
+jwts
+Luhn

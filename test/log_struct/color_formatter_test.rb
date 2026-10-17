@@ -105,6 +105,22 @@ module LogStruct
       assert_includes result, "\e[0m"
     end
 
+    test "scrubs plain messages, payloads, exceptions and tags" do
+      clear_log_buffer(@io)
+
+      @logger.tagged("ada@example.com") do
+        @logger.info("Signed in as bob@example.com")
+        @logger.error("Failed", RuntimeError.new("no card 4111111111111111"))
+      end
+      ::SemanticLogger.flush
+
+      result = @io.string
+
+      assert_includes result, "Signed in as [EMAIL:"
+      assert_not_includes result, "@example.com"
+      assert_not_includes result, "4111111111111111"
+    end
+
     test "uses custom color map when provided" do
       # Use a fresh StringIO to avoid reuse issues
       custom_io = StringIO.new

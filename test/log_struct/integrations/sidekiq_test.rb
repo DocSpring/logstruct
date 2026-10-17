@@ -47,6 +47,19 @@ module LogStruct
         assert_nil T.must(after)["ctx"]
       end
 
+      test "the job's context is filtered and scrubbed like the rest of the line" do
+        ::SemanticLogger.named_tagged(sidekiq_context: {jid: "abc123", api_token: "tok-1", note: "ada@example.com"}) do
+          LogStruct::SemanticLogger::Logger.new("Rails").info("Rendering PDF")
+        end
+        ::SemanticLogger.flush
+
+        line = JSON.parse(T.must(@io.string.lines.last))
+
+        assert_equal "abc123", line.dig("ctx", "jid")
+        assert_equal({"_filtered" => {"_class" => "String"}}, line.dig("ctx", "api_token"))
+        assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, line.dig("ctx", "note"))
+      end
+
       test "a logged Hash's own ctx keeps its keys and gains the job's" do
         job_hash = {"jid" => "abc123", "class" => "HardJob"}
 

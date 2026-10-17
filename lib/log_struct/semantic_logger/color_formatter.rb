@@ -73,7 +73,38 @@ module LogStruct
         end
       end
 
+      # The parts of a plain line that hold what was logged, scrubbed like the strings in a JSON line
+      sig { returns(T.untyped) }
+      def message
+        scrub_text(super)
+      end
+
+      sig { returns(T.untyped) }
+      def payload
+        scrub_text(super)
+      end
+
+      sig { returns(T.untyped) }
+      def exception
+        scrub_text(super)
+      end
+
+      sig { returns(T.untyped) }
+      def tags
+        scrub_text(super)
+      end
+
+      sig { returns(T.untyped) }
+      def named_tags
+        scrub_text(super)
+      end
+
       private
+
+      sig { params(text: T.untyped).returns(T.untyped) }
+      def scrub_text(text)
+        text.is_a?(String) ? StringScrubber.scrub(text) : text
+      end
 
       sig { returns(LogStruct::Formatter) }
       attr_reader :logstruct_formatter
