@@ -15,6 +15,9 @@ module LogStruct
           end
         end
 
+        class TestMailer < ::ActionMailer::Base
+        end
+
         setup do
           @original_logger = ::ActiveJob::Base.logger
           @log_output = setup_isolated_logger
@@ -86,6 +89,42 @@ module LogStruct
           log = parse_first_log(@log_output)
 
           assert_equal %w[job error NotImplementedError], log.values_at("src", "evt", "error_class")
+        end
+
+        test "logs only the mailer, the mail and the delivery method for a mail delivery job" do
+          clear_log_buffer(@log_output)
+
+          # Devise's deliver_later passes the raw token as a plain string
+          mailer = TestMailer.name
+          job = ::ActionMailer::MailDeliveryJob.new(
+            mailer,
+            "reset_password_instructions",
+            "deliver_now",
+            args: ["gid://app/User/1", "raw-reset-password-token", {}]
+          )
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          @subscriber.perform_start(build_event("perform_start.active_job", start_time, start_time, {job: job}))
+          @subscriber.perform(build_event("perform.active_job", start_time, start_time + 0.1, {job: job}))
+          ::SemanticLogger.flush
+
+          logs = @log_output.string.lines.select { |line| line.strip.start_with?("{") }.map { |line| JSON.parse(line) }
+
+          assert_equal 2, logs.size
+          logs.each do |log|
+            assert_equal [mailer, "reset_password_instructions", "deliver_now"], log["arguments"]
+          end
+          refute_includes @log_output.string, "raw-reset-password-token"
+        end
+
+        test "logs other jobs' arguments" do
+          clear_log_buffer(@log_output)
+
+          job = TestActiveJob.new("report", 42)
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          @subscriber.perform(build_event("perform.active_job", start_time, start_time + 0.1, {job: job}))
+          ::SemanticLogger.flush
+
+          assert_equal ["report", 42], parse_first_log(@log_output)["arguments"]
         end
 
         private

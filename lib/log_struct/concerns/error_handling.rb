@@ -42,10 +42,16 @@ module LogStruct
           LogStruct.error(error_log)
         end
 
-        # Report an error using the configured handler or MultiErrorReporter
+        # Log an error and report it using the configured handler or MultiErrorReporter
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def log_and_report_error(error, source:, context: nil)
           log_error(error, source: source, context: context)
+          report_error(error, source: source, context: context)
+        end
+
+        # Report an error using the configured handler or MultiErrorReporter, without logging it
+        sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
+        def report_error(error, source:, context: nil)
           error_handler = LogStruct.config.error_reporting_handler
           if error_handler
             # Use the configured handler
@@ -56,9 +62,10 @@ module LogStruct
           end
         end
 
-        # Handle an error according to the configured error handling mode (log, report, raise, etc)
-        sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
-        def handle_exception(error, source:, context: nil)
+        # Handle an error according to the configured error handling mode (log, report, raise, etc).
+        # Pass `log: false` when the caller has already logged the error in its own structured line.
+        sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped]), log: T::Boolean).void }
+        def handle_exception(error, source:, context: nil, log: true)
           mode = error_handling_mode_for(source)
 
           # Log / report in production, raise locally (dev/test)
@@ -74,10 +81,11 @@ module LogStruct
             raise(error)
 
           when ErrorHandlingMode::Log, ErrorHandlingMode::LogProduction
-            log_error(error, source: source, context: context)
+            log_error(error, source: source, context: context) if log
 
           when ErrorHandlingMode::Report, ErrorHandlingMode::ReportProduction
-            log_and_report_error(error, source: source, context: context)
+            log_error(error, source: source, context: context) if log
+            report_error(error, source: source, context: context)
 
           else
             # Ensures the case statement is exhaustive

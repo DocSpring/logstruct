@@ -93,4 +93,31 @@ class ErrorHandlingTest < Minitest::Test
 
     assert_equal 1, logged.length
   end
+
+  def test_handle_exception_report_without_logging
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
+    error = RuntimeError.new("already logged")
+    logged = []
+    reported = []
+
+    LogStruct.stub(:error, ->(log) { logged << log }) do
+      LogStruct::MultiErrorReporter.stub(:report_error, ->(err, _ctx) { reported << err }) do
+        LogStruct.handle_exception(error, source: LogStruct::Source::App, log: false)
+      end
+    end
+
+    assert_empty logged
+    assert_equal [error], reported
+  end
+
+  def test_handle_exception_log_mode_without_logging_does_nothing
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Log
+    logged = []
+
+    LogStruct.stub(:error, ->(log) { logged << log }) do
+      LogStruct.handle_exception(RuntimeError.new("already logged"), source: LogStruct::Source::App, log: false)
+    end
+
+    assert_empty logged
+  end
 end

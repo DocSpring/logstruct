@@ -146,7 +146,7 @@ export function getEventsForLogType(logType: LogType): Event[] {
     case LogType.ACTIVESTORAGE:
       return [Event.Upload, Event.Download, Event.Delete, Event.Metadata, Event.Exist, Event.Url];
     case LogType.ACTIONMAILER:
-      return [Event.Delivery, Event.Delivered];
+      return [Event.Delivery, Event.Delivered, Event.Error];
     case LogType.CARRIERWAVE:
       return [Event.Upload, Event.Delete];
     case LogType.GOODJOB:

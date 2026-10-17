@@ -15,6 +15,58 @@ module LogStruct
         extend T::Sig
         extend ActiveSupport::Concern
 
+        # ActionMailer::MailDeliveryJob passes errors to the mailer class (`handle_exception`), which
+        # looks the rescue_from handlers up on the class, so the handlers are defined there too.
+        # (ActiveSupport::Concern extends the class with ClassMethods when it's included or prepended.)
+        module ClassMethods
+          extend T::Sig
+
+          # Just log the error without reporting or retrying
+          sig { params(ex: StandardError).void }
+          def log_and_ignore_error(ex)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: false, reraise: false)
+          end
+
+          # Log and report to error service, but doesn't reraise
+          sig { params(ex: StandardError).void }
+          def log_and_report_error(ex)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: false)
+          end
+
+          # Log, report to error service, and reraise for retry
+          sig { params(ex: StandardError).void }
+          def log_and_reraise_error(ex)
+            ErrorHandling.handle_mailer_class_error(self, ex, report: true, reraise: true)
+          end
+        end
+
+        # An error that reaches the class handler from the delivery itself was logged (and reported)
+        # by the mailer's handler, which let it through: it re-raised it for the job to retry, or
+        # LogStruct.handle_exception raised it (Raise mode). It's raised again, without logging it
+        # twice, so the job fails as deliver_now would.
+        sig { params(mailer_class: T.untyped, error: StandardError, report: T::Boolean, reraise: T::Boolean).void }
+        def self.handle_mailer_class_error(mailer_class, error, report:, reraise:)
+          Kernel.raise error if LogStruct::LoggedErrors.logged?(error)
+
+          message = if reraise
+            "#{error.class}: Email delivery error, will retry. Error message: #{error.message}"
+          else
+            "#{error.class}: Cannot send email. Error message: #{error.message}"
+          end
+          LogStruct.error(Log::ActionMailer::Error.new(
+            mailer_class: mailer_class.to_s,
+            error_class: error.class,
+            message: message,
+            backtrace: error.backtrace,
+            level: Level::Error
+          ))
+          if report
+            LogStruct.handle_exception(error, source: Source::Mailer, context: {mailer_class: mailer_class.to_s}, log: false)
+          end
+
+          Kernel.raise error if reraise
+        end
+
         sig { returns(T.nilable(T::Boolean)) }
         attr_accessor :logstruct_mail_failed
 
@@ -127,6 +179,9 @@ module LogStruct
 
           # Use structured error logging
           log_structured_error(self, error, message)
+          # The mailer class handler gets the error if it's raised from here (re-raised, or raised by
+          # LogStruct.handle_exception in Raise mode), and mustn't log or report it again
+          LogStruct::LoggedErrors.mark(error)
 
           # Handle notifications and reporting
           handle_error_notifications(error, notify, report, reraise)
@@ -148,21 +203,14 @@ module LogStruct
           # Log a notification event if requested
           log_notification_event(error) if notify
 
-          # Report to error reporting service if requested
+          # Report to error reporting service if requested. The structured error line is already logged.
           if report
-            context_data = {recipients: recipients(error)}
-            exception_data = build_exception_data(error, Level::Error, context_data)
-
-            # Log the exception with structured data
-            LogStruct.error(exception_data)
-
-            # Call the error handler with flat context for compatibility
             context = {
               mailer_class: self.class.to_s,
               mailer_action: respond_to?(:action_name) ? action_name : nil,
               recipients: recipients(error)
             }
-            LogStruct.handle_exception(error, source: Source::Mailer, context: context)
+            LogStruct.handle_exception(error, source: Source::Mailer, context: context, log: false)
           end
 
           # Re-raise the error if requested
