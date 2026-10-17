@@ -30,6 +30,19 @@ class PumaIntegrationUnitTest < Minitest::Test
     PUMA::STATE[:installed] = installed
   end
 
+  def test_a_problem_in_the_puma_integration_is_a_logstruct_error
+    handled = []
+    error = RuntimeError.new("patch broke")
+
+    LogStruct.stub(:server_mode?, true) do
+      LogStruct.stub(:handle_exception, ->(e, source:, context: nil) { handled << [e, source, context] }) do
+        PUMA.handle_integration_error(error)
+      end
+    end
+
+    assert_equal [[error, LogStruct::Source::Internal, {integration: :puma}]], handled
+  end
+
   def test_puma_lifecycle_initializer_does_nothing_when_logstruct_is_disabled
     initializer = LogStruct::Railtie.instance.initializers.find { |i| i.name == "logstruct.puma_lifecycle" }
     logged = []

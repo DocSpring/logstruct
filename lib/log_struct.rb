@@ -67,7 +67,7 @@ module LogStruct
       if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env.test?
         raise e
       else
-        LogStruct.handle_exception(e, source: LogStruct::Source::Puma)
+        LogStruct.handle_exception(e, source: LogStruct::Source::Internal, context: {integration: :puma})
       end
     end
   end

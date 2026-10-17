@@ -13,7 +13,7 @@ module LogStruct
         end
         unless defined?(::Ahoy::Tracker)
           tracker_class = Class.new do
-            def track(name, properties = nil, _options = nil)
+            def track(name, properties = {}, _options = {})
               # Return a simple value to verify passthrough
               [:ok, name, properties]
             end
@@ -57,6 +57,38 @@ module LogStruct
         # Ensure some data made it through
         assert_equal "signup", json["ahoy_event"]
         assert_kind_of Hash, json["properties"]
+      end
+
+      test "properties that aren't a Hash and Symbol event names are logged without raising" do
+        logs = []
+
+        LogStruct.stub(:info, ->(log) { logs << log }) do
+          assert_equal [:ok, :signup, "not a hash"], ::Ahoy::Tracker.new.track(:signup, "not a hash")
+        end
+
+        json = logs.fetch(0).as_json
+
+        assert_equal "signup", json["ahoy_event"]
+        assert_equal({_class: "String"}, json["properties"])
+      end
+
+      test "Ahoy gets the arguments as they were given, so its defaults still apply" do
+        LogStruct.stub(:info, ->(_log) {}) do
+          assert_equal [:ok, "signup", {}], ::Ahoy::Tracker.new.track("signup")
+        end
+      end
+
+      test "a problem with the log line doesn't fail the tracking call in production" do
+        handled = []
+        LogStruct.stub(:is_production?, true) do
+          LogStruct.stub(:info, ->(_log) { raise "formatter broke" }) do
+            LogStruct.stub(:handle_exception, ->(error, source:, context:) { handled << [error.message, source, context] }) do
+              assert_equal [:ok, "signup", {}], ::Ahoy::Tracker.new.track("signup")
+            end
+          end
+        end
+
+        assert_equal [["formatter broke", LogStruct::Source::Internal, {integration: :ahoy}]], handled
       end
     end
   end

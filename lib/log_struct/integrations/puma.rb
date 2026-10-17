@@ -148,7 +148,8 @@ module LogStruct
           if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env.test? && !server_mode
             raise e
           else
-            LogStruct.handle_exception(e, source: Source::Puma)
+            # LogStruct's own error: logged in production, so Puma keeps running
+            LogStruct.handle_exception(e, source: Source::Internal, context: {integration: :puma})
           end
         end
 
