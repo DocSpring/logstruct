@@ -59,7 +59,6 @@ module LogStruct
           config.integrations.enable_host_authorization = true
           config.integrations.enable_lograge = true
           config.integrations.enable_rack_error_handler = true
-          config.integrations.enable_semantic_logger = true
           config.integrations.enable_shrine = true
           config.integrations.enable_sidekiq = true
           config.integrations.enable_puma = true
