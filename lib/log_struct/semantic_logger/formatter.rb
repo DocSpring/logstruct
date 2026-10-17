@@ -7,7 +7,7 @@ require_relative "../formatter"
 module LogStruct
   module SemanticLogger
     # Writes each SemanticLogger line as LogStruct's JSON: LogStruct entries, Hashes, messages and exceptions, with
-    # the request ID and the running Sidekiq job's context from SemanticLogger's named tags. LogStruct::Formatter
+    # SemanticLogger's tags and named tags (the request ID and the running Sidekiq job's context among them). LogStruct::Formatter
     # filters and scrubs every value, within the size limits in config.limits.
     class Formatter < ::SemanticLogger::Formatters::Json
       extend T::Sig
@@ -23,12 +23,17 @@ module LogStruct
         # Extract LogStruct from various locations where it might be stored
         logstruct = extract_logstruct(log)
 
-        # The request ID and the running Sidekiq job's context, from named_tags
-        request_id = log.named_tags[:request_id]
-        job_context = log.named_tags[:sidekiq_context]
+        # The request ID, the running Sidekiq job's context and the other named tags (logger.tagged(user_id: 1))
+        # go in req_id and ctx, and tags (logger.tagged("billing"), config.log_tags, ActiveJob's) in tags
+        named_tags = log.named_tags
+        request_id = named_tags[:request_id]
+        job_context = named_tags[:sidekiq_context]
+        context = named_tags.except(:request_id, :sidekiq_context)
+        context = context.merge(job_context) if job_context.is_a?(Hash)
         metadata = {
           request_id: request_id.is_a?(String) ? request_id : nil,
-          context: job_context.is_a?(Hash) ? job_context : nil
+          context: context.empty? ? nil : context,
+          tags: log.tags.empty? ? nil : log.tags
         }
 
         json = if logstruct

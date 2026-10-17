@@ -353,6 +353,7 @@ module LogStruct
     # Serializes Log (or string) into JSON.
     # request_id: the request's ID (default: the one RequestContext stored for this thread).
     # context: fields for the line's ctx, like the running job's ID and class. The line's own ctx keys win.
+    # tags: the logger's tags (logger.tagged("billing")), written as tags unless the line has its own.
     sig do
       params(
         severity: T.any(String, Symbol, Integer),
@@ -360,10 +361,11 @@ module LogStruct
         progname: T.nilable(String),
         log_value: T.untyped,
         request_id: T.nilable(String),
-        context: T.nilable(T::Hash[T.untyped, T.untyped])
+        context: T.nilable(T::Hash[T.untyped, T.untyped]),
+        tags: T.nilable(T::Array[T.untyped])
       ).returns(String)
     end
-    def call(severity, time, progname, log_value, request_id: nil, context: nil)
+    def call(severity, time, progname, log_value, request_id: nil, context: nil, tags: nil)
       level_enum = Level.from_severity(severity)
 
       data = log_value_to_hash(log_value, time: time)
@@ -376,7 +378,7 @@ module LogStruct
       data[:evt] ||= Event::Log
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = level_enum # Set level from severity parameter
-      add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context)
+      add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context, tags: tags)
 
       begin
         generate_json(data)
@@ -416,12 +418,14 @@ module LogStruct
         data: T::Hash[T.untyped, T.untyped],
         progname: T.nilable(String),
         request_id: T.untyped,
-        context: T.nilable(T::Hash[T.untyped, T.untyped])
+        context: T.nilable(T::Hash[T.untyped, T.untyped]),
+        tags: T.nilable(T::Array[T.untyped])
       ).void
     end
-    def add_metadata(data, progname:, request_id:, context:)
+    def add_metadata(data, progname:, request_id:, context:, tags:)
       metadata = {}
       metadata[:prog] = progname if progname.present?
+      metadata[:tags] = tags if tags.is_a?(Array) && !tags.empty? && !data.key?(:tags)
       if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
         metadata[:req_id] = request_id
       end

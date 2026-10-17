@@ -244,20 +244,34 @@ module LogStruct
       assert_equal ["A logged Hash attempted to set reserved key: ts", "A logged Hash attempted to set reserved key: lvl"], reported.uniq
     end
 
-    test "supports tagged logging" do
-      @logger.tagged("request-123") do
-        @logger.info("Processing request")
+    test "writes the logger's tags, and its named tags in ctx" do
+      @logger.tagged("billing", "request-123") do
+        @logger.tagged(user_id: 42) do
+          @logger.info("Processing request")
+        end
       end
-      ::SemanticLogger.flush  # Flush to ensure output is written
+      ::SemanticLogger.flush
 
-      output = @io.string
+      line = JSON.parse(T.must(@io.string.lines.last))
 
-      assert_includes output, "Processing request"
+      assert_equal "Processing request", line["msg"]
+      assert_equal ["billing", "request-123"], line["tags"]
+      assert_equal({"user_id" => 42}, line["ctx"])
+    end
 
-      # Tags should be included in the log
-      # For now just check the message is there
-      # log = JSON.parse(output.lines.last)
-      # assert_includes log["tags"] || [], "request-123"
+    test "tags and named tags are filtered and scrubbed like the rest of the line" do
+      @logger.tagged("user@example.com") do
+        @logger.tagged(password: "hunter2") do
+          @logger.info("Signed in")
+        end
+      end
+      ::SemanticLogger.flush
+
+      line = JSON.parse(T.must(@io.string.lines.last))
+
+      refute_includes line.to_s, "user@example.com"
+      refute_includes line.to_s, "hunter2"
+      assert_match(/\A\[EMAIL:\h+\]\z/, line["tags"].first)
     end
 
     test "maintains backward compatibility with Rails.logger interface" do
