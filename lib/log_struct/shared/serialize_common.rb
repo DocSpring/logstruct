@@ -25,13 +25,8 @@ module LogStruct
           field_hash.each do |log_field, value|
             next if value.nil?
             key = log_field.serialize
-
-            # Limit backtrace to first 5 lines
-            if key == :backtrace && value.is_a?(Array)
-              value = value.first(5)
-            end
-
-            out[key] = value.is_a?(::Time) ? value.iso8601 : value
+            # (The formatter cuts a backtrace to config.limits.max_backtrace_lines)
+            out[key] = value.is_a?(::Time) ? value.iso8601(3) : value
           end
 
           # Merge any additional_data at top level if available

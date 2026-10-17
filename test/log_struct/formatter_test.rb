@@ -541,8 +541,18 @@ module LogStruct
     def test_writes_the_first_lines_of_a_backtrace_like_array
       result = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Trace", lines: ["a:0"] * 150}))
 
-      assert_equal 101, result["lines"].size
-      assert_equal "... and 50 more lines", result["lines"].last
+      assert_equal 21, result["lines"].size
+      assert_equal "... and 130 more lines", result["lines"].last
+    end
+
+    def test_an_error_lines_backtrace_has_max_backtrace_lines
+      error = ArgumentError.new("bad input")
+      error.set_backtrace((1..30).map { |line| "app/models/user.rb:#{line}:in 'save'" })
+
+      result = JSON.parse(@formatter.call(::Logger::ERROR, @time, @progname, error))
+
+      assert_equal 21, result["backtrace"].size
+      assert_equal "... and 10 more lines", result["backtrace"].last
     end
 
     def test_logs_exceptions_with_their_class_message_and_backtrace
