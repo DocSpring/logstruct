@@ -8,7 +8,6 @@ rescue LoadError
 end
 
 if defined?(::ActionMailer)
-  require "logger"
   require_relative "action_mailer/metadata_collection"
   require_relative "action_mailer/event_logging"
   require_relative "action_mailer/error_handling"
@@ -32,8 +31,9 @@ module LogStruct
         # Register our custom observers and handlers on all mailers. The hook runs right away
         # if ActionMailer::Base is already loaded.
         ActiveSupport.on_load(:action_mailer) do
-          # Silence default ActionMailer logs (we use our own structured logging)
-          self.logger = ::Logger.new(File::NULL)
+          # LogStruct's delivery lines replace Rails' mail lines, which also log the whole mail at debug level.
+          # Mailers keep their logger, so an app's own logger calls in a mailer are still logged.
+          ::ActionMailer::LogSubscriber.detach_from(:action_mailer) if defined?(::ActionMailer::LogSubscriber)
 
           prepend LogStruct::Integrations::ActionMailer::EventLogging
           prepend LogStruct::Integrations::ActionMailer::ErrorHandling
