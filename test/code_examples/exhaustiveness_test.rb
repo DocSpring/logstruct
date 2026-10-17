@@ -34,6 +34,18 @@ module LogStruct
         )
       end
 
+      def test_limits_configuration_is_exhaustive
+        block = extract_example_block("limits_configuration")
+        props = props_from_struct(File.join(ROOT, "lib", "log_struct", "config_struct", "limits.rb"))
+
+        assert_props_present!(
+          block: block,
+          props: props,
+          prefixes: ["config.limits."],
+          hint: "config.limits.NAME_HERE = ..."
+        )
+      end
+
       def test_error_handling_modes_configuration_is_exhaustive
         block = extract_example_block("error_handling_modes")
         props = props_from_struct(File.join(ROOT, "lib", "log_struct", "config_struct", "error_handling_modes.rb"))

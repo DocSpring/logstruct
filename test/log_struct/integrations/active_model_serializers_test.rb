@@ -14,6 +14,10 @@ module LogStruct
       end
 
       teardown do
+        # Each setup subscribes again
+        ActiveSupport::Notifications.notifier.listeners_for("render.active_model_serializers").each do |listener|
+          ActiveSupport::Notifications.unsubscribe(listener)
+        end
         if defined?(::ActiveModelSerializers)
           Object.send(:remove_const, :ActiveModelSerializers)
         end
@@ -58,6 +62,19 @@ module LogStruct
         assert_equal "ActiveModelSerializers::Adapter::Json", json["adapter"]
         assert_equal "OpenStruct", json["resource_class"]
         assert_in_delta 0.0, json["duration_ms"], 50.0
+      end
+
+      test "a problem with the log line doesn't fail the render in production" do
+        handled = []
+        LogStruct.stub(:is_production?, true) do
+          LogStruct.stub(:info, ->(_log) { raise "formatter broke" }) do
+            LogStruct.stub(:handle_exception, ->(error, source:, context:) { handled << [error.message, source, context] }) do
+              assert_equal :rendered, ActiveSupport::Notifications.instrument("render.active_model_serializers") { :rendered }
+            end
+          end
+        end
+
+        assert_equal [["formatter broke", LogStruct::Source::Internal, {integration: :active_model_serializers}]], handled
       end
     end
   end

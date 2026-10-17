@@ -88,7 +88,8 @@ module LogStruct
 
           log = parse_first_log(@log_output)
 
-          assert_equal %w[job error NotImplementedError], log.values_at("src", "evt", "error_class")
+          assert_equal ["job", "error", "NotImplementedError", TestActiveJob.name], log.values_at("src", "evt", "error_class", "job_class")
+          assert_equal "not yet", log["msg"]
         end
 
         test "logs only the mailer, the mail and the delivery method for a mail delivery job" do

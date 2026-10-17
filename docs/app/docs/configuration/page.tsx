@@ -175,15 +175,30 @@ end`}
         docs for more information.
       </Callout>
 
+      <HeadingWithAnchor id="limits">Limits</HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        LogStruct writes only part of very large values, so a huge request body or Hash can&apos;t
+        slow down the thread that writes your logs. Long strings are scrubbed before they&apos;re
+        cut.
+      </p>
+
+      <RubyCodeExample name="limits_configuration" />
+
       <HeadingWithAnchor id="error-handling-configuration">
         Error Handling Configuration
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct provides customizable error handling modes to control how errors are processed.
-        You probably don&apos;t want type-checking errors or internal logging-related errors to
-        crash your application, so our default behavior is to log and report those errors without
-        crashing. We automatically detect which error reporting service you use (Sentry, Bugsnag,
-        Rollbar, etc.). If you use a service that we don&apos;t support yet, you can configure a{' '}
+        LogStruct sorts the errors it handles into four groups, each with its own mode (the example
+        below shows all four with their defaults). Type-checking errors and errors inside LogStruct
+        are raised in development and test, so you see them early. In production they don&apos;t
+        crash your app: type-checking errors are logged and reported, and LogStruct&apos;s own
+        errors are logged. The modes are <code>Ignore</code>, <code>Log</code>, <code>Report</code>{' '}
+        (log and report), <code>LogProduction</code> and <code>ReportProduction</code> (log, or log
+        and report, in production; raise in development and test) and <code>Raise</code>.
+      </p>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        We automatically detect which error reporting service you use (Sentry, Bugsnag, Rollbar,
+        Honeybadger). If you use a service that we don&apos;t support yet, you can configure a{' '}
         <Link href="#custom-error-reporting">custom error handler</Link>. (Or you can send a PR!)
       </p>
 
@@ -259,10 +274,10 @@ end`}
 
       <HeadingWithAnchor id="sorbet-integration">Sorbet Integration</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct integrates with Sorbet to handle type checking errors based on the environment. We
-        raise type errors or logging-related errors in test/development so you can catch them early,
-        but we only log or report them in production. You can configure a different error handling
-        mode to change this behavior.
+        LogStruct sets Sorbet&apos;s runtime error handlers, so a type error anywhere in your app or
+        its gems is raised in development and test, and logged and reported in production while your
+        app carries on (<code>error_handling_modes.type_checking_errors</code>). Without LogStruct,
+        Sorbet raises them everywhere.
       </p>
 
       <CodeBlock language="ruby">

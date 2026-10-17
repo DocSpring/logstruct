@@ -28,6 +28,16 @@ class RailsBootBannerSilencerTest < Minitest::Test
     end
   end
 
+  def test_install_skips_patch_when_logstruct_is_disabled
+    ARGV.replace(["server"])
+
+    LogStruct.stub(:enabled?, false) do
+      SILENCER.stub(:patch!, proc { flunk("patch! should not run when LogStruct is disabled") }) do
+        SILENCER.install!
+      end
+    end
+  end
+
   def test_patch_handles_missing_rails_gracefully
     with_kernel_require_raising_load_error do
       SILENCER.instance_variable_set(:@installed, false)

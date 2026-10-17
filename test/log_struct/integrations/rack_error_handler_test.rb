@@ -4,41 +4,42 @@
 require "test_helper"
 
 class LogStruct::Integrations::RackErrorHandlerTest < Minitest::Test
-  def setup
-    @middleware = LogStruct::Integrations::RackErrorHandler::Middleware.new(
-      ->(_env) { [200, {}, ["ok"]] }
-    )
+  ErrorLines = LogStruct::Integrations::RackErrorHandler::ErrorLines
+
+  def test_csrf_and_ip_spoofing_errors_are_security_errors
+    csrf_error = Class.new(StandardError) do
+      def self.name = "ActionController::InvalidAuthenticityToken"
+    end
+    cross_origin_error = Class.new(StandardError) do
+      def self.name = "ActionController::InvalidCrossOriginRequest"
+    end
+
+    assert ErrorLines.security_error?(csrf_error.new("csrf"))
+    assert ErrorLines.security_error?(cross_origin_error.new("csrf"))
+    assert ErrorLines.security_error?(ActionDispatch::RemoteIp::IpSpoofAttackError.new("spoof"))
+    refute ErrorLines.security_error?(RuntimeError.new("boom"))
   end
 
-  def test_csrf_error_handles_invalid_authenticity_token
-    defined_auth_token = false
-    unless ::ActionController.const_defined?(:InvalidAuthenticityToken)
-      ::ActionController.const_set(:InvalidAuthenticityToken, Class.new(StandardError))
-      defined_auth_token = true
+  def test_the_middleware_logs_an_escaped_error_once_and_raises_it_again
+    io = StringIO.new
+    logger = Logger.new(io)
+    logger.formatter = LogStruct::Formatter.new
+    error = RuntimeError.new("boom")
+    middleware = LogStruct::Integrations::RackErrorHandler::Middleware.new(->(_env) { raise error })
+    env = Rack::MockRequest.env_for("/orders?page=2", "HTTP_REFERER" => "https://app.example.com/reset?token=t1")
+
+    LogStruct.stub(:error, ->(line) { logger.error(line) }) do
+      2.times do
+        raised = assert_raises(RuntimeError) { middleware.call(env) }
+
+        assert_same error, raised
+      end
     end
 
-    error = ::ActionController::InvalidAuthenticityToken.new("csrf")
+    lines = io.string.lines.map { |line| JSON.parse(line) }
 
-    assert(@middleware.send(:csrf_error?, error))
-  ensure
-    if defined_auth_token
-      ::ActionController.send(:remove_const, :InvalidAuthenticityToken)
-    end
-  end
-
-  def test_csrf_error_handles_invalid_cross_origin_request
-    defined_cross_origin = false
-    unless ::ActionController.const_defined?(:InvalidCrossOriginRequest)
-      ::ActionController.const_set(:InvalidCrossOriginRequest, Class.new(StandardError))
-      defined_cross_origin = true
-    end
-
-    error = ::ActionController::InvalidCrossOriginRequest.new("csrf")
-
-    assert(@middleware.send(:csrf_error?, error))
-  ensure
-    if defined_cross_origin
-      ::ActionController.send(:remove_const, :InvalidCrossOriginRequest)
-    end
+    assert_equal 1, lines.size
+    assert_equal ["rails", "error", "RuntimeError", "boom", "/orders", "GET", "https://app.example.com/reset"],
+      lines.first.values_at("src", "evt", "error_class", "msg", "path", "method", "referer")
   end
 end

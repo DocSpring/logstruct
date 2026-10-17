@@ -48,6 +48,12 @@ module LogStruct
           end
         end
 
+        # A problem with a Dotenv log line is LogStruct's own: raised in development and test, logged in production
+        sig { params(error: StandardError).void }
+        def handle_log_error(error)
+          LogStruct.handle_exception(error, source: LogStruct::Source::Internal, context: {integration: :dotenv})
+        end
+
         sig { void }
         def subscribe!
           # Guard against double subscription
@@ -66,11 +72,7 @@ module LogStruct
             ts = event.time ? Time.at(event.time) : Time.now
             LogStruct.info(Log::Dotenv::Load.new(file: file, timestamp: ts))
           rescue => e
-            if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env == "test"
-              raise
-            else
-              LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
-            end
+            handle_log_error(e)
           end
 
           instrumenter.subscribe("update.dotenv") do |*args|
@@ -82,11 +84,7 @@ module LogStruct
             ts = event.time ? Time.at(event.time) : Time.now
             LogStruct.debug(Log::Dotenv::Update.new(vars: vars, timestamp: ts))
           rescue => e
-            if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env == "test"
-              raise
-            else
-              LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
-            end
+            handle_log_error(e)
           end
 
           instrumenter.subscribe("save.dotenv") do |*args|
@@ -95,11 +93,7 @@ module LogStruct
             ts = event.time ? Time.at(event.time) : Time.now
             LogStruct.info(Log::Dotenv::Save.new(snapshot: true, timestamp: ts))
           rescue => e
-            if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env == "test"
-              raise
-            else
-              LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
-            end
+            handle_log_error(e)
           end
 
           instrumenter.subscribe("restore.dotenv") do |*args|
@@ -111,11 +105,7 @@ module LogStruct
             ts = event.time ? Time.at(event.time) : Time.now
             LogStruct.info(Log::Dotenv::Restore.new(vars: vars, timestamp: ts))
           rescue => e
-            if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env == "test"
-              raise
-            else
-              LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
-            end
+            handle_log_error(e)
           end
 
           STATE.subscribed = true
@@ -143,7 +133,7 @@ module LogStruct
           ts = event.time ? Time.at(event.time) : Time.now
           LogStruct::BootBuffer.add(Log::Dotenv::Load.new(file: file, timestamp: ts))
         rescue => e
-          LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
+          handle_log_error(e)
         end
 
         instrumenter.subscribe("update.dotenv") do |*args|
@@ -153,7 +143,7 @@ module LogStruct
           ts = event.time ? Time.at(event.time) : Time.now
           LogStruct::BootBuffer.add(Log::Dotenv::Update.new(vars: vars, timestamp: ts))
         rescue => e
-          LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
+          handle_log_error(e)
         end
 
         instrumenter.subscribe("save.dotenv") do |*args|
@@ -161,7 +151,7 @@ module LogStruct
           ts = event.time ? Time.at(event.time) : Time.now
           LogStruct::BootBuffer.add(Log::Dotenv::Save.new(snapshot: true, timestamp: ts))
         rescue => e
-          LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
+          handle_log_error(e)
         end
 
         instrumenter.subscribe("restore.dotenv") do |*args|
@@ -171,7 +161,7 @@ module LogStruct
           ts = event.time ? Time.at(event.time) : Time.now
           LogStruct::BootBuffer.add(Log::Dotenv::Restore.new(vars: vars, timestamp: ts))
         rescue => e
-          LogStruct.handle_exception(e, source: LogStruct::Source::Dotenv)
+          handle_log_error(e)
         end
 
         @@boot_subscribed = true

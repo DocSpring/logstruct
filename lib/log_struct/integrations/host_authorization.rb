@@ -35,8 +35,50 @@ module LogStruct
         return nil unless config.enabled
         return nil unless config.integrations.enable_host_authorization
 
-        # Define the response app as a separate variable to fix block alignment
-        response_app = lambda do |env|
+        # Merge our response_app into existing host_authorization config to preserve excludes
+        existing = Rails.application.config.host_authorization
+        unless existing.is_a?(Hash)
+          existing = {}
+        end
+        existing = existing.dup
+        app_response_app = existing[:response_app]
+        # Set up once: don't wrap our own response app again
+        app_response_app = app_response_app.app_response_app if app_response_app.is_a?(ResponseApp)
+        existing[:response_app] = ResponseApp.new(app_response_app)
+        Rails.application.config.host_authorization = existing
+
+        true
+      end
+
+      # Logs the blocked host, then responds with the app's own response_app if it set one
+      class ResponseApp
+        extend T::Sig
+
+        sig { returns(T.untyped) }
+        attr_reader :app_response_app
+
+        sig { params(app_response_app: T.untyped).void }
+        def initialize(app_response_app)
+          @app_response_app = app_response_app
+        end
+
+        sig { params(env: T::Hash[String, T.untyped]).returns(T.untyped) }
+        def call(env)
+          begin
+            log_blocked_host(env)
+          rescue => e
+            LogStruct.handle_exception(e, source: LogStruct::Source::Internal, context: {integration: :host_authorization})
+          end
+          return @app_response_app.call(env) if @app_response_app
+
+          # Dup the headers so they can be modified by downstream middleware
+          [FORBIDDEN_STATUS, RESPONSE_HEADERS.dup, [RESPONSE_HTML]]
+        end
+
+        private
+
+        sig { params(env: T::Hash[String, T.untyped]).void }
+        def log_blocked_host(env)
           request = ::ActionDispatch::Request.new(env)
           # Include the blocked hosts app configuration in the log entry
           # This can be helpful later when reviewing logs.
@@ -54,7 +96,6 @@ module LogStruct
             allow_ip_hosts_value = blocked_hosts.allow_ip_hosts
           end
 
-          # Create structured log entry for blocked host
           log_entry = LogStruct::Log::Security::BlockedHost.new(
             message: "Blocked host detected: #{request.host}",
             blocked_host: request.host,
@@ -68,24 +109,8 @@ module LogStruct
             allow_ip_hosts: allow_ip_hosts_value
           )
 
-          # Log the blocked host
           LogStruct.warn(log_entry)
-
-          # Use pre-defined headers and response if we are only logging or reporting
-          # Dup the headers so they can be modified by downstream middleware
-          [FORBIDDEN_STATUS, RESPONSE_HEADERS.dup, [RESPONSE_HTML]]
         end
-
-        # Merge our response_app into existing host_authorization config to preserve excludes
-        existing = Rails.application.config.host_authorization
-        unless existing.is_a?(Hash)
-          existing = {}
-        end
-        existing = existing.dup
-        existing[:response_app] = response_app
-        Rails.application.config.host_authorization = existing
-
-        true
       end
     end
   end

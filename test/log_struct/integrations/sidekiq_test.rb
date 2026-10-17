@@ -30,6 +30,24 @@ module LogStruct
         ActiveSupport::Notifications.unsubscribe(subscriber)
       end
 
+      test "Hashes and payloads logged through Sidekiq's logger are filtered, not turned into strings" do
+        logger = Sidekiq::Logger.new("Sidekiq-Server")
+        logger.info({event: "settings", password: "hunter2"})
+        logger.info("Synced", order_id: 7, api_token: "tok-1")
+        error = ArgumentError.new("bad")
+        logger.warn("Retrying", error)
+        ::SemanticLogger.flush
+
+        lines = @io.string.lines.map { |line| JSON.parse(line) }.last(3)
+
+        assert_not_includes @io.string, "hunter2"
+        assert_not_includes @io.string, "tok-1"
+        assert_equal({"_filtered" => {"_class" => "String"}}, lines[0]["password"])
+        assert_equal %w[sidekiq Synced], lines[1].values_at("src", "msg")
+        assert_equal 7, lines[1]["order_id"]
+        assert_equal %w[error ArgumentError Retrying bad], lines[2].values_at("evt", "error_class", "msg", "error_message")
+      end
+
       test "lines logged while a job runs include the job's ID and class" do
         job_hash = {"jid" => "abc123", "class" => "Sidekiq::ActiveJob::Wrapper", "wrapped" => "HardJob"}
 

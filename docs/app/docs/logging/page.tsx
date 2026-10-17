@@ -37,9 +37,11 @@ export default function LoggingDocsPage() {
           logs go to STDOUT.
         </li>
         <li>
-          <b>LogStruct:</b> when enabled, replaces the logger with SemanticLogger and emits JSON to
-          STDOUT in test/production by default. In development, you can opt‑in to the same JSON to
-          avoid surprises.
+          <b>LogStruct:</b> when enabled, replaces the logger with SemanticLogger and emits JSON. In
+          production it logs to STDOUT only, with no log file. In development it logs to STDOUT and
+          Rails&apos; log file, and in test to the log file only. With{' '}
+          <code>RAILS_LOG_TO_STDOUT</code> set, both log to STDOUT only. In development, you can
+          opt‑in to the same JSON to avoid surprises.
         </li>
       </ul>
 
@@ -74,7 +76,8 @@ config.logger = ActiveSupport::TaggedLogging.new(logger)`}
       </HeadingWithAnchor>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          Ensure <code>RAILS_LOG_TO_STDOUT=1</code> (many platforms set this by default).
+          LogStruct logs to STDOUT in production whether or not <code>RAILS_LOG_TO_STDOUT</code> is
+          set, so your platform collects the lines from the process&apos;s output.
         </li>
         <li>
           Keep LogStruct enabled in production (default) to emit structured JSON for all

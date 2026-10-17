@@ -484,6 +484,99 @@ module LogStruct
       end
     end
 
+    def test_writes_binary_and_invalid_strings_and_keys_as_utf8
+      user_agent = (+"Agent \xFF").force_encoding(Encoding::BINARY)
+      key = (+"k\xFE").force_encoding(Encoding::BINARY)
+
+      log_line = @formatter.call(@severity, @time, @progname, {:msg => "Request", :user_agent => user_agent, key => 1, :note => "caf\xE9"})
+      result = JSON.parse(log_line)
+
+      assert_equal "Agent \uFFFD", result["user_agent"]
+      assert_equal 1, result["k\uFFFD"]
+      assert_equal "caf\uFFFD", result["note"]
+    end
+
+    def test_writes_nan_and_infinity_as_strings
+      result = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Ratios", nan: Float::NAN, inf: -Float::INFINITY}))
+
+      assert_equal "NaN", result["nan"]
+      assert_equal "-Infinity", result["inf"]
+    end
+
+    def test_cuts_long_strings_after_scrubbing_them
+      LogStruct.config.limits.max_string_bytes = 100
+      # An email address across the cut is scrubbed whole
+      long = "#{"a" * 90} ada@example.com #{"b" * 200}"
+
+      value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+      assert_operator value.bytesize, :<, 150
+      assert_match(/\.\.\. \(cut from #{long.bytesize} bytes\)\z/, value)
+      assert_not_includes value, "ada@"
+      assert_includes value, "[EMAIL:"
+    end
+
+    def test_writes_the_first_keys_of_a_large_hash
+      LogStruct.config.limits.max_hash_keys = 3
+
+      result = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Big", data: (1..10).to_h { |i| ["k#{i}", i] }}))
+
+      assert_equal({"k1" => 1, "k2" => 2, "k3" => 3, "_more_keys" => 7}, result["data"])
+    end
+
+    def test_writes_the_first_lines_of_a_backtrace_like_array
+      result = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Trace", lines: ["a:0"] * 150}))
+
+      assert_equal 101, result["lines"].size
+      assert_equal "... and 50 more lines", result["lines"].last
+    end
+
+    def test_logs_exceptions_with_their_class_message_and_backtrace
+      error = ArgumentError.new("bad input")
+      error.set_backtrace(["app/models/user.rb:3:in 'save'"])
+
+      result = JSON.parse(@formatter.call(::Logger::ERROR, @time, @progname, error))
+
+      assert_equal %w[app error error ArgumentError bad\ input], result.values_at("src", "evt", "lvl", "error_class", "msg")
+      assert_equal ["app/models/user.rb:3:in 'save'"], result["backtrace"]
+    end
+
+    def test_writes_a_placeholder_line_when_a_line_cant_be_written
+      formatter = Class.new(Formatter) do
+        def generate_json(data)
+          raise JSON::GeneratorError, "can't write" if data[:msg] == "unwritable"
+
+          super
+        end
+      end.new
+      reported = []
+
+      log_line = LogStruct.stub(:is_production?, true) do
+        LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
+          formatter.call(@severity, @time, @progname, {msg: "unwritable", job: "SyncJob"})
+        end
+      end
+      result = JSON.parse(log_line)
+
+      assert_equal ["can't write"], reported
+      assert_equal "LogStruct couldn't write this line as JSON", result["msg"]
+      assert_equal %w[app log info JSON::GeneratorError], result.values_at("src", "evt", "lvl", "error_class")
+    end
+
+    def test_summarizes_objects_whose_as_json_overflows_the_stack
+      looping = Class.new do
+        def as_json(*)
+          raise SystemStackError, "stack level too deep"
+        end
+      end.new
+
+      log_line = LogStruct.stub(:is_production?, true) do
+        @formatter.call(@severity, @time, @progname, {msg: "Loop", value: looping})
+      end
+
+      assert_equal "Loop", JSON.parse(log_line)["msg"]
+    end
+
     private
 
     def create_user_class

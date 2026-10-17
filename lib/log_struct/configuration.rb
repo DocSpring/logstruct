@@ -5,6 +5,7 @@ require_relative "handlers"
 require_relative "config_struct/error_handling_modes"
 require_relative "config_struct/integrations"
 require_relative "config_struct/filters"
+require_relative "config_struct/limits"
 
 module LogStruct
   # Core configuration class that provides a type-safe API
@@ -35,6 +36,7 @@ module LogStruct
 
     const :integrations, ConfigStruct::Integrations, factory: -> { ConfigStruct::Integrations.new }
     const :filters, ConfigStruct::Filters, factory: -> { ConfigStruct::Filters.new }
+    const :limits, ConfigStruct::Limits, factory: -> { ConfigStruct::Limits.new }
 
     # Custom log scrubbing handler for any additional string scrubbing
     # Default: nil

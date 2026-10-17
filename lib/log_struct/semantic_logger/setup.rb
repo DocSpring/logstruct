@@ -5,6 +5,7 @@ require "semantic_logger"
 require_relative "formatter"
 require_relative "color_formatter"
 require_relative "logger"
+require_relative "reopen_after_fork"
 
 module LogStruct
   # SemanticLogger Integration
@@ -111,6 +112,7 @@ module LogStruct
 
         # Add appropriate appenders based on environment
         add_appenders(app)
+        ReopenAfterFork.install!
 
         # Replace Rails.logger with SemanticLogger
         replace_rails_logger(app)
@@ -176,9 +178,11 @@ module LogStruct
           )
         end
 
-        # Add file appender if Rails has a log path configured (normal Rails behavior), unless
-        # RAILS_LOG_TO_STDOUT says to log to STDOUT instead: in a container the file only fills the disk
-        if app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
+        # Log to Rails' log file too in development and test (config.local_environments), unless
+        # RAILS_LOG_TO_STDOUT says not to. Production and other servers log to STDOUT only: nothing
+        # rotates the file, and in a container it only fills the disk.
+        local = config.local_environments.include?(Rails.env.to_sym)
+        if local && app.config.paths["log"].first && ENV["RAILS_LOG_TO_STDOUT"].blank?
           ::SemanticLogger.add_appender(
             file_name: app.config.paths["log"].first,
             formatter: LogStruct::SemanticLogger::Formatter.new,

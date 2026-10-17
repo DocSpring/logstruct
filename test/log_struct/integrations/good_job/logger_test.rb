@@ -35,6 +35,20 @@ module LogStruct
           assert_kind_of LogStruct::SemanticLogger::Logger, @logger
         end
 
+        test "logs a message with an exception, as SemanticLogger's loggers take them" do
+          clear_log_buffer(@io)
+          error = RuntimeError.new("boom")
+
+          @logger.error("Notifier errored", nil, error)
+          @logger.error("Notifier errored", error)
+          ::SemanticLogger.flush
+
+          lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+          assert_equal [%w[Notifier\ errored RuntimeError boom]] * 2,
+            lines.map { |line| line.values_at("msg", "error_class", "error_message") }
+        end
+
         test "logs info messages with GoodJob structure" do
           clear_log_buffer(@io)
 

@@ -77,9 +77,8 @@ export default function IntegrationsPage() {
       <div className="mt-10">
         <HeadingWithAnchor id="sorbet-integration">Sorbet Integration</HeadingWithAnchor>
         <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-          LogStruct integrates with Sorbet to handle type checking errors appropriately based on the
-          environment. We raise any logging-related errors in test/development and log or report
-          them in production to avoid crashing your application.
+          LogStruct sets Sorbet&apos;s runtime error handlers: type errors are raised in development
+          and test, and logged and reported in production so they don&apos;t crash your app.
         </p>
 
         <HeadingWithAnchor

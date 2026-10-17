@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { EnumsList } from '@/components/enums-list';
@@ -65,10 +66,14 @@ bundle exec srb init`}
 
       <HeadingWithAnchor id="error-handling">Error Handling for Type Errors</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct configures Sorbet error handlers to log and report type-checking errors. If you
-        already use Sorbet and you want to keep using your own error handlers, set{' '}
-        <code>enable_sorbet_error_handlers</code> to <code>false</code>. This will prevent LogStruct
-        from overriding your handlers.
+        LogStruct sets Sorbet&apos;s runtime error handlers: type errors are raised in development
+        and test, and logged and reported in production. The{' '}
+        <Link href="/docs/configuration#error-handling-configuration">
+          <code>type_checking_errors</code> mode
+        </Link>{' '}
+        changes this. If you already use Sorbet and you want to keep using your own error handlers,
+        set <code>enable_sorbet_error_handlers</code> to <code>false</code>. This will prevent
+        LogStruct from overriding your handlers.
       </p>
       <RubyCodeExample name="test_disable_sorbet_error_handler" />
 
