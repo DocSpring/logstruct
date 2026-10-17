@@ -26,7 +26,6 @@ module LogStruct
       Delete = new(:delete)
       Metadata = new(:metadata)
       Exist = new(:exist)
-      Stream = new(:stream)
       Url = new(:url)
 
       # Data generation events

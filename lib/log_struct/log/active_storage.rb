@@ -11,7 +11,6 @@ require_relative "active_storage/download"
 require_relative "active_storage/delete"
 require_relative "active_storage/metadata"
 require_relative "active_storage/exist"
-require_relative "active_storage/stream"
 require_relative "active_storage/url"
 
 module LogStruct
@@ -20,12 +19,12 @@ module LogStruct
       class BaseFields < T::Struct
         extend T::Sig
         const :storage, Symbol
-        const :file_id, String
+        const :file_id, T.nilable(String), default: nil
 
         Kwargs = T.type_alias do
           {
             storage: Symbol,
-            file_id: String
+            file_id: T.nilable(String)
           }
         end
 

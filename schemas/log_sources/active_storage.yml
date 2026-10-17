@@ -6,7 +6,10 @@ consts:
 base:
   fields:
     Storage: Symbol
-    FileId: String
+    # Left out when a prefix of keys is deleted
+    FileId:
+      type: String
+      required: false
 
 events:
   Upload:
@@ -29,7 +32,11 @@ events:
         type: Float
         required: false
 
+  # One file, or every file whose key starts with prefix (a blob's variants)
   Delete:
+    default_required: false
+    fields:
+      Prefix: String
 
   Metadata:
     default_required: false
@@ -40,11 +47,6 @@ events:
     default_required: false
     fields:
       Exist: T::Boolean
-
-  Stream:
-    default_required: false
-    fields:
-      Prefix: String
 
   # The URL is left out: it's signed, and anyone with it can read the file until it expires
   Url:
