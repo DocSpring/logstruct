@@ -220,6 +220,18 @@ module LogStruct
       assert_includes secondary_output, "Test broadcast message"
     end
 
+    test "broadcast loggers get scrubbed messages" do
+      secondary_io = StringIO.new
+      @logger.broadcast_to(Logger.new(secondary_io))
+
+      @logger.info("Signed in as ada@example.com")
+      @logger.warn { "Card 4111111111111111 declined" }
+
+      assert_includes secondary_io.string, "Signed in as [EMAIL:"
+      assert_includes secondary_io.string, "Card [CREDIT_CARD] declined"
+      assert_not_includes secondary_io.string, "ada@example.com"
+    end
+
     test "broadcast_to ignores SemanticLogger loggers, which share its appenders" do
       sidekiq_logger = LogStruct::Integrations::Sidekiq::Logger.new("Sidekiq-Server")
 
