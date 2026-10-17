@@ -824,8 +824,8 @@ export default function FilteringSensitiveDataPage() {
       <p className="text-neutral-600 dark:text-neutral-300">
         A string longer than <code>limits.max_string_bytes</code> is scrubbed before it&apos;s cut:
         the scrubbers see its first <code>max_string_bytes</code> plus 256 bytes, so data at the cut
-        is replaced whole (the replacement itself can be cut), and a URL password the cut leaves
-        without its <code>@</code> is replaced however long it is. A{' '}
+        is replaced whole (the replacement itself can be cut). A URL password or <code>Basic</code>{' '}
+        credentials that the cut runs through are replaced however long they are. A{' '}
         <code>string_scrubbing_handler</code> sees the same part of the string. Values nested more
         than 20 levels deep, and circular references, would skip filtering, so they&apos;re replaced
         with a summary like a filtered value&apos;s (

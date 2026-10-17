@@ -24,10 +24,13 @@ module LogStruct
       # cspell:ignore Fuser Asecret
       ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&])+(%40)}i
       URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]\2'
-      # A URL's user info that a cut string ends in, before the @ that would close it
-      CUT_URL_PASSWORD_REGEX = %r{(//[^\s/:@]*:)[^\s/@]*\z}
-      CUT_ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F|%40)[^\s/&])*\z}i
+      # A URL's user info that a cut string ends in, where the cut can separate the password from the @ that
+      # closes it. Everything after the user's colon goes: the password can contain an @ of its own (p@ss).
+      CUT_URL_PASSWORD_REGEX = %r{(//[^\s/:@]*:)[^\s/"'<>]*\z}
+      CUT_ENCODED_URL_PASSWORD_REGEX = %r{(%2F%2F(?:(?!%3A|%2F|%40)[^\s/&])*%3A)(?:(?!%2F)[^\s/&"'<>])*\z}i
       CUT_URL_PASSWORD_REPLACEMENT = '\1[PASSWORD]'
+      # Basic credentials that a cut string ends in: a cut token doesn't decode, so it can't be checked
+      CUT_BASIC_CREDENTIALS_REGEX = %r{\b(Basic\s+)[A-Za-z0-9+/]+=*\z}i
 
       # A URL's query string, for the sensitive params in it
       QUERY_STRING_REGEX = /\?([^\s#"'<>]+)/
@@ -135,13 +138,20 @@ module LogStruct
         string
       end
 
-      # The end of a scrubbed string that was cut: a URL password the cut separated from its closing @ (which
-      # URL_PASSWORD_REGEX needs) is replaced, however long it was
+      # The end of a scrubbed string that was cut. The scrubbers saw only part of a value the cut runs through, so
+      # a URL password separated from its closing @ (which URL_PASSWORD_REGEX needs) and Basic credentials cut
+      # short (which no longer decode) are replaced, however long they were.
       sig { params(string: String).returns(String) }
       def scrub_cut_end(string)
-        return string unless LogStruct.config.filters.url_passwords
-
-        string.sub(CUT_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT).sub(CUT_ENCODED_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT)
+        filters = LogStruct.config.filters
+        if filters.url_passwords
+          string = string.sub(CUT_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT)
+            .sub(CUT_ENCODED_URL_PASSWORD_REGEX, CUT_URL_PASSWORD_REPLACEMENT)
+        end
+        if filters.authorization_credentials
+          string = string.sub(CUT_BASIC_CREDENTIALS_REGEX, "\\1#{AUTHORIZATION_CREDENTIALS_REPLACEMENT}")
+        end
+        string
       end
 
       # The hash of a value (HashUtils.hash_value). Email addresses are hashed in lowercase, so an address has

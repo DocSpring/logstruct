@@ -546,6 +546,33 @@ module LogStruct
       end
     end
 
+    def test_scrubs_a_long_url_password_with_an_at_sign_that_the_cut_separates_from_its_host
+      LogStruct.config.limits.max_string_bytes = 100
+      # The scrubbers see the password's own @ and take it for the one before the host
+      secret = "s3cr3t" * 60
+      plain = "#{"a" * 10} https://user:p@#{secret}@db.example.com/app"
+      encoded = "#{"a" * 10} https%3A%2F%2Fuser%3Ap%40#{secret}%40db.example.com"
+
+      [plain, encoded].each do |long|
+        value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+        assert_not_includes value, "s3cr3t", long[0, 30]
+        assert_includes value, "[PASSWORD]", long[0, 30]
+      end
+    end
+
+    def test_scrubs_basic_credentials_that_the_cut_runs_through
+      LogStruct.config.limits.max_string_bytes = 100
+      credentials = Base64.strict_encode64("ada:#{"s3cr3t" * 60}")
+      # The scrubbers see a part of the credentials that is no Base64 value
+      long = "#{"a" * 31} Authorization: Basic #{credentials}"
+
+      value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
+
+      assert_not_includes value, credentials[0, 8]
+      assert_includes value, "Basic [FILTERED]"
+    end
+
     def test_leaves_a_cut_url_without_a_password
       LogStruct.config.limits.max_string_bytes = 100
       long = "#{"a" * 70} https://example.com/#{"b" * 200}"
