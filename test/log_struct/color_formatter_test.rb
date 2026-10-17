@@ -122,6 +122,27 @@ module LogStruct
       assert_not_includes result, "4111111111111111"
     end
 
+    test "filters named tags and Hash lines as the JSON lines are filtered" do
+      clear_log_buffer(@io)
+
+      @logger.tagged(password: "pr-named-tag-value", user_id: 7) do
+        @logger.info("Plain line")
+        @logger.info("Hash line", {evt: "checkout", api_key: "pr-hash-value"})
+      end
+      ::SemanticLogger.flush
+
+      result = @io.string
+
+      assert_not_includes result, "pr-named-tag-value"
+      assert_not_includes result, "pr-hash-value"
+      assert_includes result, "_filtered"
+      assert_includes result, "user_id: 7"
+      # A Hash line has the message, and the named tags in ctx, as its JSON line does
+      assert_includes result, "Hash line"
+      assert_match(/ctx: \{.*user_id: 7/m, result.gsub(/\e\[\d+m/, ""))
+      assert_not_includes result, "\n\n"
+    end
+
     test "uses custom color map when provided" do
       # Use a fresh StringIO to avoid reuse issues
       custom_io = StringIO.new
