@@ -6,9 +6,9 @@ import { SampleData } from './sample-data';
 export interface FilteredValue {
   _filtered: {
     _class: string;
-    _bytes: number;
+    _bytes?: number;
     _hash?: string;
-    _length?: number;
+    _count?: number;
     _keys?: string[];
     _keys_count?: number;
   };
@@ -110,7 +110,7 @@ export class RandomDataGenerator {
    * Generate a filtered email address string (for sensitive data)
    */
   randomFilteredEmailString(): string {
-    const emailHash = this.randomHex(6);
+    const emailHash = this.randomHex(16);
     // Return the simple [EMAIL:hash] format
     return `[EMAIL:${emailHash}]`;
   }
@@ -119,15 +119,21 @@ export class RandomDataGenerator {
    * Generate a filtered email address as an object (for sensitive data)
    */
   randomFilteredEmailObject(): FilteredValue {
-    const emailHash = this.randomHex(6);
+    const emailHash = this.randomHex(16);
     // Return the object format with _filtered property
     return {
       _filtered: {
         _class: 'String',
-        _bytes: 24 + this.randomInt(0, 10), // Randomize byte size a bit
         _hash: emailHash,
       },
     };
+  }
+
+  /**
+   * A filtered String: LogStruct logs only its class, not its length
+   */
+  filteredString(): FilteredValue {
+    return { _filtered: { _class: 'String' } };
   }
 
   /**
@@ -187,12 +193,13 @@ export class RandomDataGenerator {
         keys = ['data', 'payload', 'attributes', 'request_body'];
     }
 
+    // The size is left out when any of the keys are sensitive
     return {
       _filtered: {
         _class: 'Hash',
         _keys_count: keys.length,
         _keys: keys,
-        _bytes: this.randomInt(20, 500),
+        ...(sensitivity === 'json' ? { _bytes: this.randomInt(20, 500) } : {}),
       },
     };
   }
@@ -208,7 +215,7 @@ export class RandomDataGenerator {
     return {
       _filtered: {
         _class: 'Array',
-        _length: itemCount,
+        _count: itemCount,
         _bytes: itemCount * this.randomInt(10, 50),
       },
     };

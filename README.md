@@ -14,7 +14,7 @@ We support all your other favorite gems too, like Sidekiq, Sentry, and Shrine. (
 - Error handling and reporting
 - Metadata collection for rich context
 - Lograge integration for structured request logging
-- Sensitive data scrubbing for strings (inspired by the Logstop gem)
+- Sensitive data filtering by key name, and scrubbing for strings: emails, card numbers, URL passwords and tokens (inspired by the Logstop gem)
 - Host authorization logging for security violations
 - Rack middleware for enhanced error logging
 - Type checking with Sorbet and RBS annotations
@@ -52,10 +52,10 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 - `ActiveSupport::TaggedLogging` is patched to support both Hashes and Strings (only when LogStruct is enabled)
 - `ActionMailer::Base` includes error handling and event logging modules
 - We configure `Lograge` for request logging
-- Lograge request logs include request metadata (request_id, source_ip, user_agent, referer, host, content_type, accept) and custom fields from `lograge_custom_options`
+- Lograge request logs include request metadata (request_id, source_ip, user_agent, referer without its query string, host, content_type, accept) and custom fields from `lograge_custom_options`
 - A Rack middleware is inserted to catch and log errors, including security violations (IP spoofing, CSRF, blocked hosts, etc.)
 - Structured logging is set up for ActiveJob, Sidekiq, Shrine, etc.
-- LogStruct also filters the keys in Rails' `config.filter_parameters`, matched the way Rails matches them (`:passw` filters `user_password`), so the same keys are filtered in every log line. Rails' own list is left in place, so `request.filtered_parameters`, `ActiveRecord::Base.filter_attributes` and other Rails features keep filtering, and values Rails has already replaced are logged as `[FILTERED]`. Configure extra sensitive keys via `LogStruct.config.filters`.
+- LogStruct also filters the keys in Rails' `config.filter_parameters`, matched the way Rails matches them (`:passw` filters `user_password`, `"card.number"` filters a nested key by its path, and filter blocks get the parameters), so the same keys are filtered in every log line. Rails' own list is left in place, so `request.filtered_parameters`, `ActiveRecord::Base.filter_attributes` and other Rails features keep filtering, and values Rails has already replaced are logged as `[FILTERED]`. Configure extra sensitive keys via `LogStruct.config.filters`.
 - When `RAILS_LOG_TO_STDOUT` is set, we log to STDOUT only. Otherwise, we log to STDOUT by default without adding a file appender to avoid duplicate logs.
 
 ### Default behavior by process type
