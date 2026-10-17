@@ -161,23 +161,35 @@ module LogStruct
         # perform_all_later raised: the adapter did (Redis down, say), or with the inline adapter a job did
         sig { params(error: Exception, jobs: T::Array[::ActiveJob::Base], ts: Time).void }
         def log_enqueue_all_error(error, jobs, ts)
-          # Rails' own enqueue loop (for adapters without enqueue_all) marks each job it tried
+          # Rails' own enqueue loop (for adapters without enqueue_all) marks each job it tries, keeps an
+          # ActiveJob::EnqueueError on its job and goes on, and stops at a job that raises anything else
           tried = jobs.reject { |job| job.successfully_enqueued?.nil? }
-          unless tried.empty?
-            tried.each { |job| log_enqueued(job, ts) if job.successfully_enqueued? }
-            failed = tried.find { |job| !job.successfully_enqueued? }
-            # With the inline adapter, the error is a job's own, which its perform line has logged
-            log_exception(error, failed) if failed && !LogStruct::LoggedErrors.logged?(error)
-            return
+          tried.each do |job|
+            enqueue_error = job.enqueue_error
+            if job.successfully_enqueued?
+              log_enqueued(job, ts)
+            elsif enqueue_error
+              log_exception(enqueue_error, job)
+            end
           end
+          # With the inline adapter, the error is a job's own, which its perform line has logged
           return if LogStruct::LoggedErrors.logged?(error)
 
-          # An adapter's own enqueue_all (Sidekiq's) doesn't say which jobs it enqueued before it raised
+          raised_by = tried.last
+          if raised_by && !raised_by.successfully_enqueued? && raised_by.enqueue_error.nil?
+            log_exception(error, raised_by)
+            return
+          end
+
+          # Which job it was isn't known: an adapter's own enqueue_all (Sidekiq's) doesn't say which jobs it
+          # enqueued before it raised
           classes = jobs.map { |job| job.class.to_s }.uniq.join(", ")
+          message = "perform_all_later of #{jobs.size} jobs (#{classes}) failed"
+          message += "; the queue adapter doesn't say which it enqueued" if tried.empty?
           logger.error(Log::Error.new(
             source: Source::Job,
             error_class: error.class,
-            message: "perform_all_later of #{jobs.size} jobs (#{classes}) failed; the queue adapter doesn't say which it enqueued",
+            message: message,
             error_message: error.message,
             backtrace: error.backtrace,
             level: Level::Error,

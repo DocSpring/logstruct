@@ -25,7 +25,23 @@ module LogStruct
         # An adapter without enqueue_all, so perform_all_later enqueues each job itself
         class FlakyAdapter < ::ActiveJob::QueueAdapters::AbstractAdapter
           def enqueue(job)
+            raise ::ActiveJob::EnqueueError, "Queue is full" if job.queue_name == "rejected"
             raise PushFailed, "Redis connection lost" if job.queue_name == "unavailable"
+          end
+        end
+
+        # An adapter with its own enqueue_all that marks every job enqueued, then raises
+        class FlaggingAdapter < ::ActiveJob::QueueAdapters::AbstractAdapter
+          def enqueue_all(jobs)
+            jobs.each { |job| job.successfully_enqueued = true }
+            raise PushFailed, "Couldn't notify the workers"
+          end
+        end
+
+        class FlaggingAdapterJob < ::ActiveJob::Base
+          self.queue_adapter = FlaggingAdapter.new
+
+          def perform
           end
         end
 
@@ -294,6 +310,39 @@ module LogStruct
 
           assert_equal [["enqueue", first.job_id], ["error", second.job_id]],
             json_lines(@log_output).select { |log| log["src"] == "job" }.map { |log| log.values_at("evt", "job_id") }
+        end
+
+        test "perform_all_later on an adapter without enqueue_all keeps a rejected job's error, and names the job that raised" do
+          rejected = FlakyAdapterJob.new.tap { |job| job.queue_name = "rejected" }
+          accepted = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          unavailable = FlakyAdapterJob.new.tap { |job| job.queue_name = "unavailable" }
+          untried = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          clear_log_buffer(@log_output)
+
+          assert_raises(PushFailed) { ::ActiveJob.perform_all_later(rejected, accepted, unavailable, untried) }
+          ::SemanticLogger.flush
+
+          expected = [
+            ["error", rejected.job_id, "ActiveJob::EnqueueError"],
+            ["enqueue", accepted.job_id, nil],
+            ["error", unavailable.job_id, PushFailed.name]
+          ]
+
+          assert_equal expected, json_lines(@log_output).select { |log| log["src"] == "job" }.map { |log| log.values_at("evt", "job_id", "error_class") }
+        end
+
+        test "perform_all_later on an adapter that marks every job enqueued and then raises writes their lines and the error" do
+          jobs = Array.new(2) { FlaggingAdapterJob.new }
+          clear_log_buffer(@log_output)
+
+          assert_raises(PushFailed) { ::ActiveJob.perform_all_later(jobs) }
+          ::SemanticLogger.flush
+
+          lines = json_lines(@log_output).select { |log| log["src"] == "job" }
+
+          assert_equal [["enqueue", jobs[0].job_id], ["enqueue", jobs[1].job_id], ["error", nil]], lines.map { |log| log.values_at("evt", "job_id") }
+          assert_equal [PushFailed.name, "Couldn't notify the workers"], lines.last.values_at("error_class", "error_message")
+          assert_match(/\Aperform_all_later of 2 jobs \(.*FlaggingAdapterJob\) failed\z/, lines.last["msg"])
         end
 
         test "retry_on writes a retry line with the exception and the wait" do

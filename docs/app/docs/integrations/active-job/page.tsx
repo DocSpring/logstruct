@@ -105,8 +105,8 @@ export default function ActiveJobIntegrationPage() {
         counts instead, since the adapter doesn&apos;t say which jobs it enqueued. If the adapter
         raises (Redis is down), <code>perform_all_later</code> raises too, and there&apos;s one{' '}
         <code>error</code> line with the error and the number of jobs. With other adapters, the jobs
-        enqueued before the error have their lines and the job that failed has an <code>error</code>{' '}
-        line.
+        enqueued before the error have their lines, and so do the jobs the adapter refused (
+        <code>ActiveJob::EnqueueError</code>) and the job that raised.
       </p>
 
       <HeadingWithAnchor id="schedule" level={3} className="text-xl font-semibold mt-6 mb-3">
