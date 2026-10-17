@@ -532,28 +532,17 @@ module LogStruct
 
     def test_scrubs_a_long_url_password_that_the_cut_separates_from_its_host
       LogStruct.config.limits.max_string_bytes = 100
-      # The password runs past the scrubbers' margin, so its closing @ is beyond what they see
+      # The password runs past the scrubbers' margin, so its closing @ is beyond what they see. When the password has
+      # an @ of its own, the scrubbers see that one and take it for the one before the host.
       secret = "s3cr3t" * 60
-      plain = "#{"a" * 10} https://user:#{secret}@db.example.com/app"
       # cspell:ignore Fuser
-      encoded = "#{"a" * 10} https%3A%2F%2Fuser%3A#{secret}%40db.example.com"
-
-      [plain, encoded].each do |long|
-        value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
-
-        assert_not_includes value, "s3cr3t", long[0, 30]
-        assert_includes value, "[PASSWORD]", long[0, 30]
+      longs = ["", "p@"].flat_map do |start|
+        encoded_start = start.sub("@", "%40")
+        ["#{"a" * 10} https://user:#{start}#{secret}@db.example.com/app",
+          "#{"a" * 10} https%3A%2F%2Fuser%3A#{encoded_start}#{secret}%40db.example.com"]
       end
-    end
 
-    def test_scrubs_a_long_url_password_with_an_at_sign_that_the_cut_separates_from_its_host
-      LogStruct.config.limits.max_string_bytes = 100
-      # The scrubbers see the password's own @ and take it for the one before the host
-      secret = "s3cr3t" * 60
-      plain = "#{"a" * 10} https://user:p@#{secret}@db.example.com/app"
-      encoded = "#{"a" * 10} https%3A%2F%2Fuser%3Ap%40#{secret}%40db.example.com"
-
-      [plain, encoded].each do |long|
+      longs.each do |long|
         value = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Long", body: long}))["body"]
 
         assert_not_includes value, "s3cr3t", long[0, 30]
