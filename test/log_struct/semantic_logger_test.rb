@@ -59,6 +59,42 @@ module LogStruct
       assert_equal({"_filtered" => {"_class" => "String"}}, JSON.parse(T.must(@io.string.lines.last))["req_id"])
     end
 
+    test "keeps the message logged beside a Hash" do
+      clear_log_buffer(@io)
+      @logger.info("Saved", id: 1)
+      @logger.info("Renamed", msg: "Its own message")
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal [["Saved", 1], ["Its own message", nil]], lines.map { |line| line.values_at("msg", "id") }
+    end
+
+    test "logs exceptions with their class, message and backtrace" do
+      error = ArgumentError.new("bad input")
+      error.set_backtrace(["app/jobs/sync_job.rb:3:in 'perform'"])
+      clear_log_buffer(@io)
+
+      @logger.error(error)
+      @logger.error("Sync failed", error)
+      @logger.error("Sync failed", {order_id: 7}, error)
+      @logger.error({order_id: 8}, error)
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal(
+        [
+          ["error", "ArgumentError", "bad input", nil, nil],
+          ["error", "ArgumentError", "Sync failed", "bad input", nil],
+          ["error", "ArgumentError", "Sync failed", "bad input", 7],
+          ["error", "ArgumentError", "bad input", nil, 8]
+        ],
+        lines.map { |line| line.values_at("evt", "error_class", "msg", "error_message", "order_id") }
+      )
+      assert_equal ["app/jobs/sync_job.rb:3:in 'perform'"], lines.first["backtrace"]
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush

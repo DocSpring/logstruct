@@ -177,6 +177,25 @@ module LogStruct
         assert_equal 16, filters.hash_length
       end
 
+      def test_limits_configuration
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: limits_configuration
+        # ----------------------------------------------------------
+        LogStruct.configure do |config|
+          # How much of each logged value is written (the defaults)
+          config.limits.max_hash_keys = 100           # The rest are counted in _more_keys
+          config.limits.max_array_items = 10          # Followed by "... and N more items"
+          config.limits.max_backtrace_lines = 100     # Arrays that look like backtraces
+          config.limits.max_string_bytes = 32_768     # Longer strings are cut, and say how long they were
+        end
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: limits_configuration
+        # ----------------------------------------------------------
+
+        assert_equal 100, LogStruct.config.limits.max_hash_keys
+        assert_equal 32_768, LogStruct.config.limits.max_string_bytes
+      end
+
       def test_error_handling_modes
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: error_handling_modes

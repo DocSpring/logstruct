@@ -175,6 +175,15 @@ end`}
         docs for more information.
       </Callout>
 
+      <HeadingWithAnchor id="limits">Limits</HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        LogStruct writes only part of very large values, so a huge request body or Hash can&apos;t
+        slow down the thread that writes your logs. Long strings are scrubbed before they&apos;re
+        cut.
+      </p>
+
+      <RubyCodeExample name="limits_configuration" />
+
       <HeadingWithAnchor id="error-handling-configuration">
         Error Handling Configuration
       </HeadingWithAnchor>

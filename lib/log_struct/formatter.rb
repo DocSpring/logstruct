@@ -114,11 +114,14 @@ module LogStruct
       when Source, Event
         arg.serialize
       when String
-        scrub_string(arg)
+        scrub_limited_string(valid_utf8(arg))
       when Time
         arg.iso8601(3)
       when Symbol
         StringScrubber.scrub_name(arg)
+      when Float
+        # JSON has no NaN or Infinity
+        arg.finite? ? arg : arg.to_s
       when Numeric, TrueClass, FalseClass, NilClass
         arg
       else
@@ -126,7 +129,9 @@ module LogStruct
         # to_json would write
         process_values(arg.as_json, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root)
       end
-    rescue => e
+    rescue SystemStackError, StandardError => e
+      # A SystemStackError comes from an object whose as_json refers back to itself
+      e = RuntimeError.new("#{e.class}: #{e.message}") unless e.is_a?(StandardError)
       # Report error through LogStruct's framework
       context = {
         processor_method: "process_values",
@@ -152,7 +157,14 @@ module LogStruct
       # Rails gives filter blocks the request's parameters with indifferent access
       line_root = (path && recursion_depth == 0) ? with_indifferent_access(hash) : nil
 
-      hash.each do |key, value|
+      max_keys = LogStruct.config.limits.max_hash_keys
+      hash.each_with_index do |(key, value), index|
+        if index >= max_keys
+          result[:_more_keys] = hash.size - max_keys
+          break
+        end
+
+        key = valid_utf8_key(key)
         logstruct_field = recursion_depth == 0 && LOG_FIELD_KEYS.include?(key)
         key_path = path && [*path, key.to_s]
         # A top-level key's root is the line; the keys below it get the top-level field's value
@@ -172,6 +184,54 @@ module LogStruct
       end
 
       result
+    end
+
+    # The string as valid UTF-8. JSON can't hold other bytes: Puma passes headers as binary
+    # strings, and a byte like \xFF in a User-Agent would stop the whole line from being written.
+    # Bytes that aren't valid UTF-8 become U+FFFD.
+    sig { params(string: String).returns(String) }
+    def valid_utf8(string)
+      return string if string.ascii_only? || (string.encoding == Encoding::UTF_8 && string.valid_encoding?)
+
+      utf8 = if string.encoding == Encoding::BINARY || string.encoding == Encoding::US_ASCII
+        string.dup.force_encoding(Encoding::UTF_8)
+      else
+        begin
+          string.encode(Encoding::UTF_8)
+        rescue EncodingError
+          string.dup.force_encoding(Encoding::UTF_8)
+        end
+      end
+      utf8.valid_encoding? ? utf8 : utf8.scrub
+    end
+
+    # A String or Symbol key as valid UTF-8 (symbolize_keys makes Symbols of binary String keys)
+    sig { params(key: T.untyped).returns(T.untyped) }
+    def valid_utf8_key(key)
+      case key
+      when String
+        valid_utf8(key)
+      when Symbol
+        name = key.name
+        fixed = valid_utf8(name)
+        fixed.equal?(name) ? key : fixed.to_sym
+      else
+        key
+      end
+    end
+
+    # The scrubbers see a little more than a cut string keeps, so data at the cut is scrubbed whole
+    SCRUB_MARGIN_BYTES = 256
+
+    # A string scrubbed, and cut to limits.max_string_bytes
+    sig { params(string: String).returns(String) }
+    def scrub_limited_string(string)
+      max_bytes = LogStruct.config.limits.max_string_bytes
+      return scrub_string(string) if string.bytesize <= max_bytes
+
+      scrubbed = scrub_string(T.must(string.byteslice(0, max_bytes + SCRUB_MARGIN_BYTES)).scrub(""))
+      kept = T.must(scrubbed.byteslice(0, max_bytes)).scrub("")
+      "#{kept}... (cut from #{string.bytesize} bytes)"
     end
 
     sig { params(value: T.untyped).returns(T.untyped) }
@@ -239,6 +299,10 @@ module LogStruct
       when Hash
         # Use hash as is and convert string keys to symbols
         symbolize_keys(log_value)
+
+      when Exception
+        # logger.error(exception): its class, message and backtrace
+        Log.from_exception(Source::App, log_value, {}, time).serialize
 
       else
         # Create a Plain log with the message as a string and serialize it with symbol keys
@@ -314,7 +378,35 @@ module LogStruct
       data[:lvl] = level_enum # Set level from severity parameter
       add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context)
 
-      generate_json(data)
+      begin
+        generate_json(data)
+      rescue SystemStackError, StandardError => e
+        unwritable_line_json(data, e)
+      end
+    end
+
+    # A line that can't be written as JSON is replaced by one that says so, instead of being lost
+    sig { params(data: T::Hash[T.untyped, T.untyped], error: Exception).returns(String) }
+    def unwritable_line_json(data, error)
+      level = data[:lvl]
+      line = {
+        src: enum_or_string(data[:src]) || Source::Internal.serialize,
+        evt: enum_or_string(data[:evt]) || Event::Error.serialize,
+        ts: data[:ts].is_a?(String) ? data[:ts] : Time.now.iso8601(3),
+        lvl: level.is_a?(Level) ? level.serialize : Level::Error.serialize,
+        msg: "LogStruct couldn't write this line as JSON",
+        error_class: error.class.name
+      }
+      unless Thread.current[:logstruct_reporting_unwritable_line]
+        begin
+          Thread.current[:logstruct_reporting_unwritable_line] = true
+          reported = error.is_a?(StandardError) ? error : RuntimeError.new("#{error.class}: #{error.message}")
+          LogStruct.handle_exception(reported, source: Source::Internal, context: {src: line[:src], evt: line[:evt]})
+        ensure
+          Thread.current[:logstruct_reporting_unwritable_line] = nil
+        end
+      end
+      "#{::JSON.generate(line)}\n"
     end
 
     # The program name, request ID and job context, filtered and scrubbed like the rest of the line:
@@ -346,6 +438,15 @@ module LogStruct
       data[:ctx] = line_context.is_a?(Hash) ? job_context.merge(line_context) : (line_context || job_context)
     end
 
+    sig { params(value: T.untyped).returns(T.nilable(String)) }
+    def enum_or_string(value)
+      if value.is_a?(Source) || value.is_a?(Event)
+        value.serialize.to_s
+      elsif value.is_a?(String)
+        value
+      end
+    end
+
     # Output as JSON with a newline. We mock this method in tests so we can
     # inspect the data right before it gets turned into a JSON string.
     sig { params(data: T::Hash[T.untyped, T.untyped]).returns(String) }
@@ -366,22 +467,17 @@ module LogStruct
     def process_array(array, recursion_depth:, ancestors:, path: nil, root: nil)
       return [] if array.empty?
 
-      if looks_like_backtrace_array?(array)
-        array.map { |value| process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root) }
-      else
-        processed = []
-        array.each_with_index do |value, index|
-          break if index >= 10
-
-          processed << process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root)
-        end
-
-        if array.size > 10
-          processed << "... and #{array.size - 10} more items"
-        end
-
-        processed
+      limits = LogStruct.config.limits
+      backtrace = looks_like_backtrace_array?(array)
+      max_items = backtrace ? limits.max_backtrace_lines : limits.max_array_items
+      processed = array.first(max_items).map do |value|
+        process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root)
       end
+      if array.size > max_items
+        processed << "... and #{array.size - max_items} more #{backtrace ? "lines" : "items"}"
+      end
+
+      processed
     end
 
     # Check if an array looks like a backtrace (array of strings with file:line pattern)

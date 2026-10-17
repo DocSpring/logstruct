@@ -31,6 +31,7 @@ module LogStruct
       # Event-specific fields
       const :error_class, T.class_of(Exception)
       const :message, String
+      const :error_message, T.nilable(String), default: nil
       const :backtrace, T.nilable(T::Array[String]), default: nil
 
       # Additional data
@@ -47,6 +48,7 @@ module LogStruct
         h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
         h[LogField::ErrorClass] = error_class
         h[LogField::Message] = message
+        h[LogField::ErrorMessage] = error_message unless error_message.nil?
         h[LogField::Backtrace] = backtrace unless backtrace.nil?
         h
       end
