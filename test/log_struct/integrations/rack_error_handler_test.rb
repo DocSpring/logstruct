@@ -5,6 +5,7 @@ require "test_helper"
 
 class LogStruct::Integrations::RackErrorHandlerTest < Minitest::Test
   ErrorLines = LogStruct::Integrations::RackErrorHandler::ErrorLines
+  ParseErrorLogging = LogStruct::Integrations::RackErrorHandler::ParseErrorLogging
 
   def test_csrf_and_ip_spoofing_errors_are_security_errors
     csrf_error = Class.new(StandardError) do
@@ -45,6 +46,19 @@ class LogStruct::Integrations::RackErrorHandlerTest < Minitest::Test
     assert_nil line.additional_data
     assert_equal 2, lines.size
     assert_kind_of String, T.cast(lines.fetch(1), LogStruct::Log::Error).backtrace&.first
+  end
+
+  def test_a_body_rails_cant_parse_is_logged_as_its_size_not_its_contents
+    ActionDispatch::Request.prepend(ParseErrorLogging) unless ActionDispatch::Request <= ParseErrorLogging
+    output = StringIO.new
+    body = '{"password":"synthetic-raw-secret",'
+    env = Rack::MockRequest.env_for("/sessions", :method => "POST", :input => body, "CONTENT_TYPE" => "application/json")
+    env["action_dispatch.logger"] = ::Logger.new(output)
+    request = ActionDispatch::Request.new(env)
+
+    assert_raises(ActionDispatch::Http::Parameters::ParseError) { request.request_parameters }
+    assert_includes output.string, "(#{body.bytesize} bytes of application/json)"
+    refute_includes output.string, "synthetic-raw-secret"
   end
 
   def test_the_middleware_logs_an_escaped_error_once_and_raises_it_again

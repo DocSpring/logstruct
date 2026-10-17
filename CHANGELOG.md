@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sorbet**: LogStruct installs Sorbet's four runtime error handlers once. It also installed one that the next replaced
 - **Security**: LogStruct no longer empties Rails' `filter_parameters` or loads ActiveRecord and the other frameworks before the app's initializers run, so `filter_attributes` and Rails' own parameter filtering keep working (GHSA-cpp6-p4hf-383g)
 - **Security**: Values nested deeper than the depth limit are summarized instead of logged raw, skipping filtering and scrubbing (#15)
+- **Security**: When Rails can't parse a request's body (malformed JSON), its debug line gives the body's size and type. Rails logged the whole body there, so a password in it was logged unfiltered
 - **Security**: Structs, `ActionController::Parameters` and other objects in a log line are filtered and scrubbed like Hashes, instead of being serialized unfiltered
 - **Fix**: A value that refers back to itself (a Hash or Array containing its own parent) is logged once instead of being expanded up to the depth limit, which took seconds and produced very large lines
 - **ActiveRecord**: Verbose query logs (the "↳ caller" lines) are turned off as intended. The integration set them on `ActiveRecord::Base`, which loaded it early and never matched, because the setting is on the `ActiveRecord` module

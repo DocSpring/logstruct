@@ -269,7 +269,9 @@ export default function SecurityIntegrationPage() {
         <li>
           <code>config.integrations.enable_rack_error_handler</code> (default <code>true</code>):
           CSRF and IP spoofing lines, and the error lines for errors that get past Rails&apos;{' '}
-          <code>ShowExceptions</code>.
+          <code>ShowExceptions</code>. With it on, when Rails can&apos;t parse a request&apos;s body
+          (malformed JSON), its debug line gives the body&apos;s size and type instead of the body,
+          which nothing would filter.
         </li>
         <li>
           <code>config.error_handling_modes.security_errors</code> (default <code>Report</code>).

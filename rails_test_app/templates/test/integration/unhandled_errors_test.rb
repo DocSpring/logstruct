@@ -48,6 +48,14 @@ class UnhandledErrorsTest < ActionDispatch::IntegrationTest
     assert_empty(lines.select { |line| line["msg"].to_s.include?("InvalidAuthenticityToken (") })
   end
 
+  test "a body Rails can't parse is left out of the logs" do
+    # Rails parses it for the request's instrumentation, before the action raises its CSRF error
+    post "/security/submit", params: '{"password":"synthetic-raw-secret",', headers: {"CONTENT_TYPE" => "application/json"}
+
+    assert(lines.any? { |line| line["msg"].to_s.start_with?("Error occurred while parsing request parameters") })
+    assert_not_includes @log_output.string, "synthetic-raw-secret"
+  end
+
   test "a routing error is an error line with its 404 status" do
     get "/no/such/route"
 

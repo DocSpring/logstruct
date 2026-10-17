@@ -5,6 +5,7 @@ require "rack"
 require "action_dispatch/middleware/debug_exceptions"
 require_relative "rack_error_handler/middleware"
 require_relative "rack_error_handler/debug_exceptions_logging"
+require_relative "rack_error_handler/parse_error_logging"
 require_relative "rack_setup"
 
 module LogStruct
@@ -37,6 +38,8 @@ module LogStruct
         unless ::ActionDispatch::DebugExceptions <= DebugExceptionsLogging
           ::ActionDispatch::DebugExceptions.prepend(DebugExceptionsLogging)
         end
+        # The size of a body Rails can't parse, instead of the body
+        ::ActionDispatch::Request.prepend(ParseErrorLogging) unless ::ActionDispatch::Request <= ParseErrorLogging
 
         true
       end
