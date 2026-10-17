@@ -46,6 +46,19 @@ module LogStruct
       ::SemanticLogger.clear_appenders!
     end
 
+    test "request IDs are scrubbed and filtered like the rest of the line" do
+      ::SemanticLogger.named_tagged(request_id: "4111111111111111") { @logger.info("Card request") }
+      ::SemanticLogger.flush
+
+      assert_equal "[CREDIT_CARD]", JSON.parse(T.must(@io.string.lines.last))["req_id"]
+
+      LogStruct.config.filters.filter_keys += [:req_id]
+      ::SemanticLogger.named_tagged(request_id: "req-1") { @logger.info("Filtered request") }
+      ::SemanticLogger.flush
+
+      assert_equal({"_filtered" => {"_class" => "String"}}, JSON.parse(T.must(@io.string.lines.last))["req_id"])
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush

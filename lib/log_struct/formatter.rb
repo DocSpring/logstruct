@@ -286,9 +286,20 @@ module LogStruct
       end
     end
 
-    # Serializes Log (or string) into JSON
-    sig { params(severity: T.any(String, Symbol, Integer), time: Time, progname: T.nilable(String), log_value: T.untyped).returns(String) }
-    def call(severity, time, progname, log_value)
+    # Serializes Log (or string) into JSON.
+    # request_id: the request's ID (default: the one RequestContext stored for this thread).
+    # context: fields for the line's ctx, like the running job's ID and class. The line's own ctx keys win.
+    sig do
+      params(
+        severity: T.any(String, Symbol, Integer),
+        time: Time,
+        progname: T.nilable(String),
+        log_value: T.untyped,
+        request_id: T.nilable(String),
+        context: T.nilable(T::Hash[T.untyped, T.untyped])
+      ).returns(String)
+    end
+    def call(severity, time, progname, log_value, request_id: nil, context: nil)
       level_enum = Level.from_severity(severity)
 
       data = log_value_to_hash(log_value, time: time)
@@ -301,13 +312,38 @@ module LogStruct
       data[:evt] ||= Event::Log
       data[:ts] ||= time.iso8601(3)
       data[:lvl] = level_enum # Set level from severity parameter
-      data[:prog] = progname if progname.present?
-      request_id = Thread.current[:logstruct_request_id]
-      if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
-        data[:req_id] = request_id
-      end
+      add_metadata(data, progname: progname, request_id: request_id || Thread.current[:logstruct_request_id], context: context)
 
       generate_json(data)
+    end
+
+    # The program name, request ID and job context, filtered and scrubbed like the rest of the line:
+    # an X-Request-Id header can carry anything
+    sig do
+      params(
+        data: T::Hash[T.untyped, T.untyped],
+        progname: T.nilable(String),
+        request_id: T.untyped,
+        context: T.nilable(T::Hash[T.untyped, T.untyped])
+      ).void
+    end
+    def add_metadata(data, progname:, request_id:, context:)
+      metadata = {}
+      metadata[:prog] = progname if progname.present?
+      if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
+        metadata[:req_id] = request_id
+      end
+      metadata[:ctx] = symbolize_keys(context) if context.present?
+      return if metadata.empty?
+
+      processed = process_values(metadata)
+      job_context = processed.delete(:ctx)
+      data.merge!(processed)
+      return if job_context.nil?
+
+      line_context = data[:ctx]
+      # A logged Hash's own ctx keeps its keys and gains the job's
+      data[:ctx] = line_context.is_a?(Hash) ? job_context.merge(line_context) : (line_context || job_context)
     end
 
     # Output as JSON with a newline. We mock this method in tests so we can
