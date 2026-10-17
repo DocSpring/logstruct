@@ -271,6 +271,8 @@ export const SampleByLogField: Readonly<
   [LogField.Vars]: (_gen: RandomGen) => ['API_KEY'],
   [LogField.ErrorMessage]: (_gen: RandomGen) => 'Something failed',
   [LogField.ErrorContext]: (_gen: RandomGen) => 'Job raised exception',
+  [LogField.CauseClass]: (_gen: RandomGen) => 'PG::ConnectionBad',
+  [LogField.CauseMessage]: (_gen: RandomGen) => 'connection to server was lost',
   [LogField.ProcessId]: SampleHelpers.processId,
   [LogField.Snapshot]: (_gen: RandomGen) => true,
   // Sidekiq's context while a job runs

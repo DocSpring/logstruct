@@ -76,7 +76,9 @@ module LogStruct
             source_ip: source_ip(request),
             user_agent: request.user_agent,
             referer: StringScrubber.without_query(request.referer),
-            additional_data: {status: wrapper.status_code, cause_class: cause&.class&.name, cause_message: cause&.message}.compact
+            status: wrapper.status_code,
+            cause_class: cause&.class&.name,
+            cause_message: cause&.message
           )
           case request.get_header("action_dispatch.debug_exception_log_level")
           when ::Logger::DEBUG then LogStruct.debug(line)

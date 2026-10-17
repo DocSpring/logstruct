@@ -93,6 +93,9 @@ module LogStruct
       ErrorMessage = new(:error_message)
       # What the integration was doing when the error happened, e.g. Sidekiq's "Job raised exception"
       ErrorContext = new(:error_context)
+      # The cause of an error the app didn't handle in a request (Exception#cause)
+      CauseClass = new(:cause_class)
+      CauseMessage = new(:cause_message)
       Result = new(:result)
       EnqueueCaller = new(:enqueue_caller)
 
