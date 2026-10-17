@@ -2,3 +2,7 @@ onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - sharp
   - unrs-resolver
+
+overrides:
+  # Next 15.5 pins postcss 8.4.31, which has open advisories; Next 16 moved to 8.5
+  'next>postcss': ^8.5.23
