@@ -5,6 +5,7 @@ require "semantic_logger"
 require_relative "formatter"
 require_relative "color_formatter"
 require_relative "logger"
+require_relative "reopen_after_fork"
 
 module LogStruct
   # SemanticLogger Integration
@@ -111,6 +112,7 @@ module LogStruct
 
         # Add appropriate appenders based on environment
         add_appenders(app)
+        ReopenAfterFork.install!
 
         # Replace Rails.logger with SemanticLogger
         replace_rails_logger(app)

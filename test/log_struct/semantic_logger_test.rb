@@ -118,6 +118,28 @@ module LogStruct
       ::SemanticLogger.clear_appenders!
     end
 
+    test "forked processes still write their lines" do
+      LogStruct::SemanticLogger::ReopenAfterFork.install!
+      reader, writer = IO.pipe
+      ::SemanticLogger.clear_appenders!
+      ::SemanticLogger.add_appender(io: writer, formatter: LogStruct::SemanticLogger::Formatter.new, async: false)
+
+      # SemanticLogger's writer thread isn't copied into the child
+      pid = fork do
+        reader.close
+        @logger.info("from the child")
+        ::SemanticLogger.flush
+        exit!(0)
+      end
+      Process.wait(pid)
+      ::SemanticLogger.clear_appenders!
+      writer.close
+
+      assert_includes reader.read, "from the child"
+    ensure
+      reader&.close
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush
