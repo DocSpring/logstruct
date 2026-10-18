@@ -262,18 +262,34 @@ jobs:
 
       - name: Commit, push and tag the provider
         env:
-          PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
+          # A deploy key with write access to terraform-provider-logstruct only. Deploy keys don't expire: the PAT
+          # this replaced had expired by the 0.2.0 release.
+          DEPLOY_KEY: ${{ secrets.TF_PROVIDER_DEPLOY_KEY }}
         run: |
+          if [[ -z "$DEPLOY_KEY" ]]; then
+            echo "::error::TF_PROVIDER_DEPLOY_KEY isn't set in the release environment."
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/provider_deploy_key
+          chmod 600 ~/.ssh/provider_deploy_key
+          # GitHub's published host keys, so the key is only ever offered to github.com
+          curl -fsS https://api.github.com/meta | jq -r '.ssh_keys[] | "github.com " + .' > ~/.ssh/github_known_hosts
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/provider_deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/github_known_hosts"
+          REMOTE=git@github.com:DocSpring/terraform-provider-logstruct.git
+          # Stop before changing anything if GitHub doesn't accept the key
+          if ! git ls-remote "$REMOTE" HEAD >/dev/null; then
+            echo "::error::GitHub didn't accept TF_PROVIDER_DEPLOY_KEY for terraform-provider-logstruct: check the repo's deploy key (with write access) matches the secret."
+            exit 1
+          fi
           git config --global user.name "DocSpring Bot"
           git config --global user.email "docspring-bot@docspring.com"
-          git clone https://github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
+          git clone "$REMOTE" terraform-provider-logstruct
           cd terraform-provider-logstruct
-          # The token is passed to the two pushes only, not stored in the clone's config
-          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)"
           if [[ -s ../provider-changes.patch ]]; then
             git apply --index ../provider-changes.patch
             git commit -m "Sync catalog from logstruct $TAG_NAME"
-            git -c "http.https://github.com/.extraheader=$AUTH" push origin HEAD:main
+            git push origin HEAD:main
           else
             echo "No provider changes to commit."
           fi
@@ -282,4 +298,4 @@ jobs:
             exit 0
           fi
           git tag -a "$TAG_NAME" -m "Release $TAG_NAME (logstruct sync)"
-          git -c "http.https://github.com/.extraheader=$AUTH" push origin "$TAG_NAME"
+          git push origin "$TAG_NAME"

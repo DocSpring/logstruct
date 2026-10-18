@@ -127,8 +127,12 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 
 ## Required secrets
 
-- `TF_PROVIDER_GITHUB_TOKEN` (a `release` environment secret): PAT with write access to
-  `DocSpring/terraform-provider-logstruct` for syncing/tagging.
+- `TF_PROVIDER_DEPLOY_KEY` (a `release` environment secret): the private half of a deploy key with write access to
+  `DocSpring/terraform-provider-logstruct`, for syncing and tagging it. To replace it, generate an ed25519 key, add the
+  public half as a write deploy key on the provider repo and set the private half as this secret.
+- The provider repo's own release (GoReleaser, on its `v*` tags) signs with the GPG key in its `GPG_PRIVATE_KEY`
+  secret. The Terraform Registry only accepts releases signed by a key registered for the DocSpring namespace, so a
+  new signing key must be added to the registry before the next provider release.
 - RubyGems needs no secret: the `logstruct` gem has a trusted publisher for this repository's Release workflow and its
   `release` environment.
 
