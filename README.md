@@ -1,6 +1,6 @@
 # LogStruct
 
-Adds secure JSON structured logging to any Rails app (>= 7.1). Simply add the gem to your Gemfile and add an initializer to configure it. By default, your Rails app prints JSON logs to STDOUT (or to the configured destination when `RAILS_LOG_TO_STDOUT` is set). They're easy to search and filter, you can turn them into metrics and alerts, and they're great for building dashboards in CloudWatch, Grafana, or Datadog.
+Adds secure JSON structured logging to any Rails app (>= 7.1). Simply add the gem to your Gemfile and add an initializer to configure it. In production, your Rails app prints JSON logs to STDOUT. They're easy to search and filter, you can turn them into metrics and alerts, and they're great for building dashboards in CloudWatch, Grafana, or Datadog.
 
 We support all your other favorite gems too, like Sidekiq, Sentry, and Shrine. (And if not, please open a PR!)
 
@@ -53,10 +53,10 @@ Once initialized (and enabled), the gem automatically includes its modules into 
 - `ActionMailer::Base` includes error handling and event logging modules
 - We configure `Lograge` for request logging
 - Lograge request logs include request metadata (request_id, source_ip, user_agent, referer without its query string, host, content_type, accept) and custom fields from `lograge_custom_options`
-- A Rack middleware is inserted to catch and log errors, including security violations (IP spoofing, CSRF, blocked hosts, etc.)
+- CSRF and IP spoofing errors are logged as security lines and reported (`error_handling_modes.security_errors`), and Rails still responds to them as usual (422 for a CSRF error). A Rack middleware logs errors that get past Rails' ShowExceptions. Blocked hosts are logged by the host authorization integration.
 - Structured logging is set up for ActiveJob, Sidekiq, Shrine, etc.
 - LogStruct also filters the keys in Rails' `config.filter_parameters`, matched the way Rails matches them (`:passw` filters `user_password`, `"card.number"` filters a nested key by its path, and filter blocks get the parameters), so the same keys are filtered in every log line. Rails' own list is left in place, so `request.filtered_parameters`, `ActiveRecord::Base.filter_attributes` and other Rails features keep filtering, and values Rails has already replaced are logged as `[FILTERED]`. Configure extra sensitive keys via `LogStruct.config.filters`.
-- When `RAILS_LOG_TO_STDOUT` is set, we log to STDOUT only. Otherwise, we log to STDOUT by default without adding a file appender to avoid duplicate logs.
+- In production (and any environment that isn't in `config.local_environments`), we log to STDOUT only, with no log file to rotate or fill the disk. In development we log to STDOUT and Rails' log file, and in test to the log file only. With `RAILS_LOG_TO_STDOUT` set, both log to STDOUT only.
 
 ### Default behavior by process type
 

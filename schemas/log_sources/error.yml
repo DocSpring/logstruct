@@ -4,6 +4,8 @@ consts:
   # Can be any source
   source: Source
 
+# The request an error happened in, when there was one
+add_request_fields: true
 additional_data: true
 
 events:
@@ -11,6 +13,10 @@ events:
     fields:
       ErrorClass: 'T.class_of(Exception)'
       Message: String
+      # The exception's message, when the line's message is the one logged with it
+      ErrorMessage:
+        type: String
+        required: false
       Backtrace:
         type: 'T::Array[String]'
         required: false

@@ -16,28 +16,21 @@ module LogStruct
           mod = Module.new do
             extend T::Sig
 
-            sig { params(name: T.untyped, properties: T.nilable(T::Hash[T.untyped, T.untyped]), options: T.untyped).returns(T.untyped) }
-            def track(name, properties = nil, options = {})
+            # Takes whatever Ahoy's track takes and passes it on as given, so Ahoy's defaults still apply
+            sig { params(name: T.untyped, args: T.untyped).returns(T.untyped) }
+            def track(name, *args)
               result = super
               begin
-                # Emit a lightweight structured log about the analytics event
-                data = {
-                  ahoy_event: T.let(name, T.untyped)
-                }
-                data[:properties] = properties if properties
                 LogStruct.info(
                   LogStruct::Log::Ahoy.new(
                     message: "ahoy.track",
-                    ahoy_event: T.must(T.let(name, T.nilable(String))),
-                    properties: T.let(
-                      properties && properties.transform_keys { |k| k.to_sym },
-                      T.nilable(T::Hash[Symbol, T.untyped])
-                    )
+                    ahoy_event: name.to_s,
+                    properties: Integrations::Ahoy.properties_for_log(args.first)
                   )
                 )
               rescue => e
-                # Never raise from logging; rely on global error handling policies
-                LogStruct.handle_exception(e, source: LogStruct::Source::App, context: {integration: :ahoy})
+                # A problem with the log line is LogStruct's, and never fails the app's tracking call in production
+                LogStruct.handle_exception(e, source: LogStruct::Source::Internal, context: {integration: :ahoy})
               end
               result
             end
@@ -47,6 +40,17 @@ module LogStruct
         end
 
         true
+      end
+
+      # Event properties can come from the browser, so they can be anything; a non-Hash is logged as its class
+      sig { params(properties: T.untyped).returns(T.nilable(T::Hash[Symbol, T.untyped])) }
+      def self.properties_for_log(properties)
+        properties = properties.to_unsafe_h if properties.respond_to?(:to_unsafe_h)
+        case properties
+        when nil then nil
+        when Hash then properties.to_h { |key, value| [key.to_s.to_sym, value] }
+        else {_class: properties.class.name}
+        end
       end
     end
   end

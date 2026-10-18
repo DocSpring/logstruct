@@ -13,6 +13,7 @@ module LogStruct
           boot_emitted: false,
           shutdown_emitted: false,
           handler_pending_started: false,
+          signals_trapped: false,
           start_info: {
             mode: nil,
             puma_version: nil,
@@ -67,8 +68,9 @@ module LogStruct
               handle_integration_error(e)
             end
             begin
-              %w[TERM INT].each do |sig|
-                Signal.trap(sig) { emit_shutdown!(sig) }
+              unless STATE[:signals_trapped]
+                STATE[:signals_trapped] = true
+                %w[TERM INT].each { |signal| trap_shutdown_signal(signal) }
               end
             rescue => e
               handle_integration_error(e)
@@ -95,8 +97,10 @@ module LogStruct
           begin
             begin
               require "puma"
-            rescue => e
-              handle_integration_error(e)
+            rescue LoadError
+              # Puma isn't installed (another server, or a command with "server" in its arguments)
+              STATE[:installed] = false
+              return
             end
             puma_mod = ::Object.const_defined?(:Puma) ? ::Object.const_get(:Puma) : nil # rubocop:disable Sorbet/ConstantsFromStrings
             # rubocop:disable Sorbet/ConstantsFromStrings
@@ -109,13 +113,6 @@ module LogStruct
             if puma_mod&.const_defined?(:Events)
               ev = ::Object.const_get("Puma::Events")
               ev.prepend(EventsPatch)
-            end
-            if puma_mod&.const_defined?(:Cluster)
-              cluster_mod = T.cast(puma_mod.const_get(:Cluster), Module)
-              if cluster_mod.const_defined?(:Worker)
-                worker_class = T.cast(cluster_mod.const_get(:Worker), T::Class[T.anything])
-                worker_class.prepend(ClusterWorkerPatch)
-              end
             end
             # Patch Rack::Handler::Puma.run to emit lifecycle logs using options
             if ::Object.const_defined?(:Rack)
@@ -144,7 +141,8 @@ module LogStruct
           if defined?(::Rails) && ::Rails.respond_to?(:env) && ::Rails.env.test? && !server_mode
             raise e
           else
-            LogStruct.handle_exception(e, source: Source::Puma)
+            # LogStruct's own error: logged in production, so Puma keeps running
+            LogStruct.handle_exception(e, source: Source::Internal, context: {integration: :puma})
           end
         end
 
@@ -316,6 +314,31 @@ module LogStruct
           # Only use LogStruct; SemanticLogger routes to STDOUT in test
         end
 
+        # Logs the shutdown when the signal arrives, then runs the handler that was there before
+        # (Puma's, which stops the server gracefully), or does what the signal does by default
+        sig { params(signal: String).void }
+        def trap_shutdown_signal(signal)
+          previous = T.let(nil, T.untyped)
+          previous = Signal.trap(signal) do |signal_number|
+            emit_shutdown!(signal)
+            run_previous_signal_handler(previous, signal, signal_number)
+          end
+        end
+
+        sig { params(previous: T.untyped, signal: String, signal_number: T.untyped).void }
+        def run_previous_signal_handler(previous, signal, signal_number)
+          if previous.respond_to?(:call)
+            (previous.respond_to?(:arity) && previous.arity == 0) ? previous.call : previous.call(signal_number)
+          elsif previous == "EXIT"
+            Kernel.exit
+          elsif previous.nil? || previous == "DEFAULT" || previous == "SYSTEM_DEFAULT"
+            # Put back the default and send the signal again, so the process ends as it would have
+            Signal.trap(signal, previous || "DEFAULT")
+            Process.kill(signal, Process.pid)
+          end
+          # "IGNORE": nothing more to do
+        end
+
         sig { params(_message: String).void }
         def emit_shutdown!(_message)
           return if STATE[:shutdown_emitted]
@@ -418,20 +441,6 @@ module LogStruct
         def log(str)
           consumed = ::LogStruct::Integrations::Puma.process_line(str)
           super unless consumed
-        end
-      end
-
-      module ClusterWorkerPatch
-        extend T::Sig
-
-        sig { returns(T.untyped) }
-        def run
-          begin
-            ::SemanticLogger.reopen
-          rescue => e
-            ::LogStruct::Integrations::Puma.handle_integration_error(e)
-          end
-          super
         end
       end
 

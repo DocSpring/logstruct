@@ -3,6 +3,9 @@ source: Sidekiq
 consts:
   source: Source::Sidekiq
 
+# The keys of a Hash logged beside a message (Sidekiq.logger.info("Synced", order_id: 1))
+additional_data: true
+
 events:
   Log:
     default_required: false

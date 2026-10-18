@@ -26,10 +26,11 @@ module LogStruct
 
         # Override log methods to create GoodJob-specific log structs
         %i[debug info warn error fatal].each do |level|
-          define_method(level) do |message = nil, payload = nil, &block|
-            # LogStruct log entries and Hashes (like the thread error handler's) are logged as they are
-            unless message.nil? || message.is_a?(String)
-              next super(message, payload, &block)
+          define_method(level) do |message = nil, payload = nil, exception = nil, &block|
+            # LogStruct log entries and Hashes (like the thread error handler's) are logged as they are, and a
+            # message with an exception is an error line with both
+            if !(message.nil? || message.is_a?(String)) || exception || payload.is_a?(Exception)
+              next super(message, payload, exception, &block)
             end
 
             job_context = Logger.current_job_context

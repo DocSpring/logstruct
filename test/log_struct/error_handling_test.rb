@@ -126,6 +126,22 @@ class ErrorHandlingTest < Minitest::Test
     assert_equal 1, logged.length
   end
 
+  def test_type_checking_errors_are_logged_and_reported_in_production_by_default
+    error = TypeError.new("Expected type String, got type Integer")
+    logged = []
+    reported = []
+    LogStruct.config.error_reporting_handler = ->(e, _context, source) { reported << [e, source] }
+
+    LogStruct.stub(:is_production?, true) do
+      LogStruct.stub(:error, ->(log) { logged << log }) do
+        LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
+      end
+    end
+
+    assert_equal 1, logged.length
+    assert_equal [[error, LogStruct::Source::TypeChecking]], reported
+  end
+
   def test_handle_exception_report_without_logging
     LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Report
     error = RuntimeError.new("already logged")

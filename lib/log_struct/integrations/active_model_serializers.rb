@@ -44,7 +44,8 @@ module LogStruct
             )
           )
         rescue => e
-          LogStruct.handle_exception(e, source: LogStruct::Source::Rails, context: {integration: :active_model_serializers})
+          # A problem with the log line is LogStruct's own, and never fails the render in production
+          LogStruct.handle_exception(e, source: LogStruct::Source::Internal, context: {integration: :active_model_serializers})
         end
 
         true

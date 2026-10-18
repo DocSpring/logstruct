@@ -35,6 +35,11 @@ module LogStruct
         const :process_id, T.nilable(Integer), default: nil
         const :thread_id, T.nilable(T.any(Integer, String)), default: nil
 
+        # Additional data
+        include LogStruct::Log::Interfaces::AdditionalDataField
+        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+        include LogStruct::Log::Shared::MergeAdditionalDataFields
+
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

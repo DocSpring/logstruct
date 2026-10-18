@@ -39,3 +39,16 @@ events:
     fields:
       DurationMs: Float
       FinishedAt: Time
+
+  # The job raised an exception
+  Error:
+    fields:
+      ErrorClass:
+        type: 'T.class_of(Exception)'
+        required: true
+      Message:
+        type: String
+        required: true
+      Backtrace:
+        type: 'T::Array[String]'
+        required: false

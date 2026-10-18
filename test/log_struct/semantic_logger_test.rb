@@ -59,6 +59,87 @@ module LogStruct
       assert_equal({"_filtered" => {"_class" => "String"}}, JSON.parse(T.must(@io.string.lines.last))["req_id"])
     end
 
+    test "keeps the message logged beside a Hash" do
+      clear_log_buffer(@io)
+      @logger.info("Saved", id: 1)
+      @logger.info("Renamed", msg: "Its own message")
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal [["Saved", 1], ["Its own message", nil]], lines.map { |line| line.values_at("msg", "id") }
+    end
+
+    test "logs exceptions with their class, message and backtrace" do
+      error = ArgumentError.new("bad input")
+      error.set_backtrace(["app/jobs/sync_job.rb:3:in 'perform'"])
+      clear_log_buffer(@io)
+
+      @logger.error(error)
+      @logger.error("Sync failed", error)
+      @logger.error("Sync failed", {order_id: 7}, error)
+      @logger.error({order_id: 8}, error)
+      ::SemanticLogger.flush
+
+      lines = @io.string.lines.map { |line| JSON.parse(line) }
+
+      assert_equal(
+        [
+          ["error", "ArgumentError", "bad input", nil, nil],
+          ["error", "ArgumentError", "Sync failed", "bad input", nil],
+          ["error", "ArgumentError", "Sync failed", "bad input", 7],
+          ["error", "ArgumentError", "bad input", nil, 8]
+        ],
+        lines.map { |line| line.values_at("evt", "error_class", "msg", "error_message", "order_id") }
+      )
+      assert_equal ["app/jobs/sync_job.rb:3:in 'perform'"], lines.first["backtrace"]
+    end
+
+    test "logs only to STDOUT in production" do
+      ::SemanticLogger.clear_appenders!
+      Rails.stub(:env, ActiveSupport::EnvironmentInquirer.new("production")) do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+      end
+
+      assert_empty(::SemanticLogger.appenders.select { |appender| appender.is_a?(::SemanticLogger::Appender::File) })
+      assert_equal 1, ::SemanticLogger.appenders.size
+    ensure
+      ::SemanticLogger.clear_appenders!
+    end
+
+    test "logs to the log file too in test" do
+      ::SemanticLogger.clear_appenders!
+      ClimateControl.modify(RAILS_LOG_TO_STDOUT: nil) do
+        LogStruct::SemanticLogger::Setup.add_appenders(Rails.application)
+      end
+
+      assert_equal 1, ::SemanticLogger.appenders.count { |appender| appender.is_a?(::SemanticLogger::Appender::File) }
+    ensure
+      ::SemanticLogger.clear_appenders!
+    end
+
+    test "forked processes still write their lines" do
+      LogStruct::SemanticLogger::ReopenAfterFork.install!
+      reader, writer = IO.pipe
+      ::SemanticLogger.clear_appenders!
+      ::SemanticLogger.add_appender(io: writer, formatter: LogStruct::SemanticLogger::Formatter.new, async: false)
+
+      # SemanticLogger's writer thread isn't copied into the child
+      pid = fork do
+        reader.close
+        @logger.info("from the child")
+        ::SemanticLogger.flush
+        exit!(0)
+      end
+      Process.wait(pid)
+      ::SemanticLogger.clear_appenders!
+      writer.close
+
+      assert_includes reader.read, "from the child"
+    ensure
+      reader&.close
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush

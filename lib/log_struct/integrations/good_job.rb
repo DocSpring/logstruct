@@ -92,6 +92,10 @@ module LogStruct
         sig { params(exception: Exception).void }
         def _on_thread_error(exception)
           LogStruct::Integrations::GoodJob.log_thread_error(exception)
+        rescue => e
+          LogStruct.handle_exception(e, source: LogStruct::Source::Internal, context: {integration: :good_job})
+        ensure
+          # The app's handler runs even if LogStruct's line failed
           super
         end
       end

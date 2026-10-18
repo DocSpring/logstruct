@@ -23,12 +23,15 @@ module LogStruct
         # Override log methods to create Sidekiq log structs
         %i[debug info warn error fatal].each do |level|
           define_method(level) do |message = nil, payload = nil, &block|
-            # Ensure message is a String (Sidekiq may pass Hash for config logs)
-            msg = if message.nil?
-              block ? block.call.to_s : ""
-            else
-              message.to_s
+            # Hashes, LogStruct log entries and exceptions are logged as they are, so their keys are
+            # filtered (Sidekiq logs some settings as a Hash)
+            unless message.nil? || message.is_a?(String)
+              next super(message, payload, &block)
             end
+            # A message with an exception is an error line with both
+            next super(message, payload, &block) if payload.is_a?(Exception)
+
+            msg = message || (block ? block.call.to_s : "")
 
             # Create a Sidekiq log struct with the message
             log_struct = Log::Sidekiq::Log.new(
@@ -39,11 +42,12 @@ module LogStruct
               thread_id: Sidekiq.tid,
               # Log a copy: SemanticLogger may still be serializing the struct on its appender
               # thread when Sidekiq adds :elapsed to the live context after the job finishes.
-              context: (::Sidekiq::Context.current || {}).dup
+              context: (::Sidekiq::Context.current || {}).dup,
+              additional_data: payload.is_a?(Hash) ? payload : nil
             )
 
             # Pass the struct to SemanticLogger
-            super(log_struct, payload, &nil)
+            super(log_struct, nil, &nil)
           end
         end
       end

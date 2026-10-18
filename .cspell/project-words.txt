@@ -83,3 +83,8 @@ otps
 crypted
 jwts
 Luhn
+byteslice
+unwritable
+FFFD
+signm
+SIGUSR
