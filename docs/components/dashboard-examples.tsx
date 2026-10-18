@@ -120,7 +120,7 @@ const generateChartData = () => {
     return data;
   };
 
-  // Data for Sidekiq job processing
+  // ActiveJob lines by queue_name (Sidekiq's own lines don't have the queue)
   const generateSidekiqData = () => {
     const queues = ['default', 'critical', 'mailers', 'low'];
     const days = 7;
@@ -150,53 +150,7 @@ const generateChartData = () => {
     return data;
   };
 
-  // Data for rack attack rate limiting - broken down by category
-  const generateRackAttackData = () => {
-    const days = 14;
-    const data: Array<Record<string, number | string>> = [];
-
-    // Days with pentester spikes
-    const pentesterSpikes = [4, 11]; // Specific days with pentester activities
-
-    // Days with API limit spikes
-    const apiSpikes = [7];
-
-    // Days with signup spikes
-    const signupSpikes = [2, 9];
-
-    for (let day = 0; day < days; day++) {
-      const entry: Record<string, number | string> = {
-        date: new Date(Date.now() - (days - day) * 24 * 60 * 60 * 1000).toLocaleDateString(
-          'en-US',
-          { month: 'short', day: 'numeric' },
-        ),
-      };
-
-      // Base low levels for each category
-      entry['api'] = generator.randomInt(0, 100) < 70 ? 0 : generator.randomInt(1, 10);
-      entry['signup'] = generator.randomInt(0, 100) < 80 ? 0 : generator.randomInt(1, 5);
-      entry['pentesters'] = generator.randomInt(0, 100) < 90 ? 0 : generator.randomInt(1, 3);
-
-      // Add spikes on specific days
-      if (apiSpikes.includes(day)) {
-        entry['api'] = generator.randomInt(30, 70);
-      }
-
-      if (signupSpikes.includes(day)) {
-        entry['signup'] = generator.randomInt(15, 25);
-      }
-
-      if (pentesterSpikes.includes(day)) {
-        entry['pentesters'] = generator.randomInt(80, 150);
-      }
-
-      data.push(entry);
-    }
-
-    return data;
-  };
-
-  // Data for security events with mostly zeros and occasional spikes
+  // Security lines (src: security) by event: blocked hosts, IP spoofing and CSRF violations
   const generateSecurityData = () => {
     // Security event types
     const days = 14;
@@ -294,7 +248,6 @@ const generateChartData = () => {
     requestDurationData: generateRequestDurationData(),
     mailerData: generateMailerData(),
     sidekiqData: generateSidekiqData(),
-    rackAttackData: generateRackAttackData(),
     securityData: generateSecurityData(),
     errorData: generateErrorData(),
   };
@@ -351,7 +304,7 @@ const DashboardExamples = () => {
 
         {/* Sidekiq Job Chart */}
         <Card className="p-5 shadow-sm hidden sm:block">
-          <h3 className="text-lg font-semibold mb-2">Sidekiq Jobs</h3>
+          <h3 className="text-lg font-semibold mb-2">Jobs by Queue</h3>
           <div className="h-64">
             <Chart aspectRatio={1.6}>
               <AreaChart data={chartData.sidekiqData}>
@@ -424,8 +377,8 @@ const DashboardExamples = () => {
           </div>
         </Card> */}
 
-        {/* Security Events Chart */}
-        {/* <Card className="p-5 shadow-sm hidden sm:block">
+        {/* Security lines by event */}
+        <Card className="p-5 shadow-sm hidden lg:block">
           <h3 className="text-lg font-semibold mb-2">Security Events</h3>
           <div className="h-64">
             <Chart aspectRatio={1.6}>
@@ -445,50 +398,8 @@ const DashboardExamples = () => {
                 />
                 <Area
                   type="monotone"
-                  dataKey="ip_spoof"
-                  name="IP Spoofing"
-                  stroke={chartColors.darkBlue.line}
-                  fill={chartColors.darkBlue.area}
-                  fillOpacity={0.5}
-                  dot={false}
-                />
-                <Area
-                  type="monotone"
                   dataKey="csrf_violation"
                   name="CSRF Violations"
-                  stroke={chartColors.lightBlue.line}
-                  fill={chartColors.lightBlue.area}
-                  fillOpacity={0.5}
-                  dot={false}
-                />
-              </AreaChart>
-            </Chart>
-          </div>
-        </Card> */}
-
-        {/* Rack Attack Rate Limiting */}
-        <Card className="p-5 shadow-sm hidden lg:block">
-          <h3 className="text-lg font-semibold mb-2">Rate Limiting</h3>
-          <div className="h-64">
-            <Chart aspectRatio={1.6}>
-              <AreaChart data={chartData.rackAttackData}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                {/* <Area
-                  type="monotone"
-                  dataKey="pentesters"
-                  name="Pentesters"
-                  stroke={chartColors.purple.line}
-                  fill={chartColors.purple.area}
-                  fillOpacity={0.5}
-                  dot={false}
-                /> */}
-                <Area
-                  type="monotone"
-                  dataKey="signup"
-                  name="Sign Ups"
                   stroke={chartColors.darkBlue.line}
                   fill={chartColors.darkBlue.area}
                   fillOpacity={0.5}
@@ -496,8 +407,8 @@ const DashboardExamples = () => {
                 />
                 <Area
                   type="monotone"
-                  dataKey="api"
-                  name="API Requests"
+                  dataKey="ip_spoof"
+                  name="IP Spoofing"
                   stroke={chartColors.lightBlue.line}
                   fill={chartColors.lightBlue.area}
                   fillOpacity={0.5}

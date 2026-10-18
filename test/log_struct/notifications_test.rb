@@ -124,3 +124,51 @@ class LogStructNotificationsTest < Minitest::Test
     ActiveSupport::Notifications.unsubscribe(subscription)
   end
 end
+
+class LogStructNotificationSubscriberTest < ActiveSupport::TestCase
+  setup do
+    @log_output = setup_isolated_logger
+    @logger = LogStruct::SemanticLogger::Logger.new("Test")
+    @entry = LogStruct::Log::Plain.new(message: "Invoice sent")
+  end
+
+  teardown do
+    ActiveSupport::Notifications.unsubscribe(@subscription) if @subscription
+    teardown_isolated_logger
+  end
+
+  test "subscribers get the entry after its line is queued" do
+    written_before = T.let(nil, T.nilable(T::Boolean))
+    @subscription = ActiveSupport::Notifications.subscribe("log.logstruct") do
+      # Writes what was queued before the subscriber ran
+      ::SemanticLogger.flush
+      written_before = @log_output.string.include?("Invoice sent")
+    end
+
+    @logger.info(@entry)
+
+    assert written_before
+  end
+
+  test "a subscriber that raises doesn't lose the line, and its error is handled like the app's errors" do
+    LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Log
+    @subscription = ActiveSupport::Notifications.subscribe("log.logstruct") { raise ArgumentError, "bad subscriber" }
+
+    @logger.info(@entry)
+    ::SemanticLogger.flush
+
+    lines = @log_output.string.lines.map { |line| JSON.parse(line) }
+
+    assert_equal [["log", "Invoice sent"], ["error", "bad subscriber"]], lines.map { |line| line.values_at("evt", "msg") }
+    assert_equal ["app", "ArgumentError"], lines.last.values_at("src", "error_class")
+  end
+
+  test "in tests a subscriber's error raises from the log call, and the line is still written" do
+    @subscription = ActiveSupport::Notifications.subscribe("log.logstruct") { raise ArgumentError, "bad subscriber" }
+
+    assert_raises(ArgumentError) { @logger.info(@entry) }
+    ::SemanticLogger.flush
+
+    assert_includes @log_output.string, "Invoice sent"
+  end
+end

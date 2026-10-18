@@ -30,7 +30,7 @@ module LogStruct
         const :level, Level, default: Level::Info
 
         const :storage, Symbol
-        const :file_id, String
+        const :file_id, T.nilable(String), default: nil
 
         # Event-specific fields
         const :exist, T.nilable(T::Boolean), default: nil
@@ -43,7 +43,7 @@ module LogStruct
         def to_h
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
-          h[LogField::FileId] = file_id
+          h[LogField::FileId] = file_id unless file_id.nil?
           h[LogField::Exist] = exist unless exist.nil?
           h
         end

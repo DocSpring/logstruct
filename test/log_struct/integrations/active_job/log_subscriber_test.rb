@@ -4,6 +4,8 @@
 require "test_helper"
 require "log_struct/integrations/active_job/log_subscriber"
 require "active_support/notifications"
+require "minitest/mock"
+require "sidekiq"
 require "time"
 
 module LogStruct
@@ -16,6 +18,45 @@ module LogStruct
         end
 
         class TestMailer < ::ActionMailer::Base
+        end
+
+        class PushFailed < StandardError; end
+
+        # An adapter without enqueue_all, so perform_all_later enqueues each job itself
+        class FlakyAdapter < ::ActiveJob::QueueAdapters::AbstractAdapter
+          def enqueue(job)
+            raise ::ActiveJob::EnqueueError, "Queue is full" if job.queue_name == "rejected"
+            raise PushFailed, "Redis connection lost" if job.queue_name == "unavailable"
+          end
+        end
+
+        # An adapter with its own enqueue_all that marks every job enqueued, then raises
+        class FlaggingAdapter < ::ActiveJob::QueueAdapters::AbstractAdapter
+          def enqueue_all(jobs)
+            jobs.each { |job| job.successfully_enqueued = true }
+            raise PushFailed, "Couldn't notify the workers"
+          end
+        end
+
+        class FlaggingAdapterJob < ::ActiveJob::Base
+          self.queue_adapter = FlaggingAdapter.new
+
+          def perform
+          end
+        end
+
+        class FlakyAdapterJob < ::ActiveJob::Base
+          self.queue_adapter = FlakyAdapter.new
+
+          def perform
+          end
+        end
+
+        class SidekiqBulkJob < ::ActiveJob::Base
+          self.queue_adapter = :sidekiq
+
+          def perform
+          end
         end
 
         setup do
@@ -128,10 +169,252 @@ module LogStruct
           assert_equal ["report", 42], parse_first_log(@log_output)["arguments"]
         end
 
+        test "the finish line's ts is when the job finished, and its times have milliseconds" do
+          clear_log_buffer(@log_output)
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+
+          @subscriber.perform(build_event("perform.active_job", start_time - 2.5, start_time, {job: TestActiveJob.new}))
+          ::SemanticLogger.flush
+
+          log = parse_first_log(@log_output)
+
+          assert_equal log["finished_at"], log["ts"]
+          assert_match(/\.\d{3}/, log["finished_at"])
+        end
+
+        test "a job the queue couldn't take writes an error line, not an enqueue line" do
+          clear_log_buffer(@log_output)
+          job = TestActiveJob.new
+          # perform_later rescues EnqueueError and keeps it on the job
+          job.enqueue_error = ::ActiveJob::EnqueueError.new("Redis is down")
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+
+          @subscriber.enqueue(build_event("enqueue.active_job", start_time, start_time, {job: job}))
+          ::SemanticLogger.flush
+
+          log = parse_first_log(@log_output)
+
+          assert_equal ["error", "error", "ActiveJob::EnqueueError", "Redis is down", job.job_id], log.values_at("evt", "lvl", "error_class", "msg", "job_id")
+        end
+
+        test "a scheduled job that raised while enqueuing writes an error line" do
+          clear_log_buffer(@log_output)
+          job = TestActiveJob.new
+          job.scheduled_at = ::Time.now + 60
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          payload = {job: job, exception_object: ArgumentError.new("bad queue")}
+
+          @subscriber.enqueue_at(build_event("enqueue_at.active_job", start_time, start_time, payload))
+          ::SemanticLogger.flush
+
+          assert_equal ["error", "ArgumentError"], parse_first_log(@log_output).values_at("evt", "error_class")
+        end
+
+        # The inline adapter runs the job inside perform_later, and its error raises out of the enqueue
+        test "an enqueue error the perform line already logged isn't logged again" do
+          clear_log_buffer(@log_output)
+          error = RuntimeError.new("boom")
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+
+          @subscriber.perform(build_event("perform.active_job", start_time, start_time + 0.1, {job: TestActiveJob.new, exception_object: error}))
+          @subscriber.enqueue(build_event("enqueue.active_job", start_time, start_time + 0.1, {job: TestActiveJob.new, exception_object: error}))
+          ::SemanticLogger.flush
+
+          assert_equal ["error"], json_lines(@log_output).map { |log| log["evt"] }
+        end
+
+        test "a job a before_enqueue callback stopped writes no line" do
+          clear_log_buffer(@log_output)
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+
+          @subscriber.enqueue(build_event("enqueue.active_job", start_time, start_time, {job: TestActiveJob.new, aborted: true}))
+          ::SemanticLogger.flush
+
+          assert_empty json_lines(@log_output)
+        end
+
+        test "perform_all_later writes a line for each job it enqueued or scheduled" do
+          clear_log_buffer(@log_output)
+          now_job = TestActiveJob.new
+          now_job.successfully_enqueued = true
+          later_job = TestActiveJob.new
+          later_job.scheduled_at = ::Time.now + 60
+          later_job.successfully_enqueued = true
+          failed_job = TestActiveJob.new
+          failed_job.successfully_enqueued = false
+          failed_job.enqueue_error = ::ActiveJob::EnqueueError.new("Redis is down")
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          payload = {adapter: nil, jobs: [now_job, later_job, failed_job], enqueued_count: 2}
+
+          @subscriber.enqueue_all(build_event("enqueue_all.active_job", start_time, start_time, payload))
+          ::SemanticLogger.flush
+
+          assert_equal(
+            [["enqueue", now_job.job_id], ["schedule", later_job.job_id], ["error", failed_job.job_id]],
+            json_lines(@log_output).map { |log| log.values_at("evt", "job_id") }
+          )
+        end
+
+        test "perform_all_later on Sidekiq's adapter, which says only how many jobs it enqueued, writes a line for each" do
+          event = sidekiq_enqueue_all_event(2) { |args| Array.new(args.size) { SecureRandom.hex(12) } }
+
+          @subscriber.enqueue_all(event)
+          ::SemanticLogger.flush
+
+          jobs = event.payload[:jobs]
+
+          assert_equal [false, false], jobs.map { |job| !!job.successfully_enqueued? }
+          assert_equal [["enqueue", jobs[0].job_id], ["enqueue", jobs[1].job_id]], json_lines(@log_output).map { |log| log.values_at("evt", "job_id") }
+        end
+
+        test "perform_all_later on Sidekiq's adapter that enqueued fewer jobs than it was given writes one warning" do
+          # A client middleware can stop a job: push_bulk returns nil for it
+          event = sidekiq_enqueue_all_event(2) { |args| [SecureRandom.hex(12), *Array.new(args.size - 1)] }
+
+          @subscriber.enqueue_all(event)
+          ::SemanticLogger.flush
+
+          lines = json_lines(@log_output)
+
+          assert_equal 1, lines.size
+          assert_equal "warn", lines.first["lvl"]
+          assert_match(/enqueued 1 of 2 jobs \(.*SidekiqBulkJob\)/, lines.first["msg"])
+        end
+
+        test "perform_all_later on Sidekiq's adapter that raises writes one error line for the jobs" do
+          # Sidekiq pushes each queue's jobs separately: the first push succeeds, then Redis goes away
+          first = SidekiqBulkJob.new.tap { |job| job.queue_name = "accepted" }
+          second = SidekiqBulkJob.new.tap { |job| job.queue_name = "unavailable" }
+          push_bulk = ->(payload) { (payload.fetch("queue") == "unavailable") ? raise(PushFailed, "Redis connection lost") : [SecureRandom.hex(12)] }
+          clear_log_buffer(@log_output)
+
+          ::Sidekiq::Client.stub(:push_bulk, push_bulk) do
+            assert_raises(PushFailed) { ::ActiveJob.perform_all_later(first, second) }
+          end
+          ::SemanticLogger.flush
+
+          lines = json_lines(@log_output).select { |log| log["src"] == "job" }
+
+          assert_equal [["error", PushFailed.name, "Redis connection lost", nil]], lines.map { |log| log.values_at("evt", "error_class", "error_message", "job_id") }
+          assert_match(/\Aperform_all_later of 2 jobs \(.*SidekiqBulkJob\) failed; the queue adapter doesn't say which it enqueued\z/, lines.first["msg"])
+        end
+
+        test "perform_all_later on an adapter without enqueue_all writes the lines of the jobs it enqueued before it raised" do
+          first = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          second = FlakyAdapterJob.new.tap { |job| job.queue_name = "unavailable" }
+          third = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          clear_log_buffer(@log_output)
+
+          assert_raises(PushFailed) { ::ActiveJob.perform_all_later(first, second, third) }
+          ::SemanticLogger.flush
+
+          assert_equal [["enqueue", first.job_id], ["error", second.job_id]],
+            json_lines(@log_output).select { |log| log["src"] == "job" }.map { |log| log.values_at("evt", "job_id") }
+        end
+
+        test "perform_all_later on an adapter without enqueue_all keeps a rejected job's error, and names the job that raised" do
+          rejected = FlakyAdapterJob.new.tap { |job| job.queue_name = "rejected" }
+          accepted = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          unavailable = FlakyAdapterJob.new.tap { |job| job.queue_name = "unavailable" }
+          untried = FlakyAdapterJob.new.tap { |job| job.queue_name = "accepted" }
+          clear_log_buffer(@log_output)
+
+          assert_raises(PushFailed) { ::ActiveJob.perform_all_later(rejected, accepted, unavailable, untried) }
+          ::SemanticLogger.flush
+
+          expected = [
+            ["error", rejected.job_id, "ActiveJob::EnqueueError"],
+            ["enqueue", accepted.job_id, nil],
+            ["error", unavailable.job_id, PushFailed.name]
+          ]
+
+          assert_equal expected, json_lines(@log_output).select { |log| log["src"] == "job" }.map { |log| log.values_at("evt", "job_id", "error_class") }
+        end
+
+        test "perform_all_later on an adapter that marks every job enqueued and then raises writes their lines and the error" do
+          jobs = Array.new(2) { FlaggingAdapterJob.new }
+          clear_log_buffer(@log_output)
+
+          assert_raises(PushFailed) { ::ActiveJob.perform_all_later(jobs) }
+          ::SemanticLogger.flush
+
+          lines = json_lines(@log_output).select { |log| log["src"] == "job" }
+
+          assert_equal [["enqueue", jobs[0].job_id], ["enqueue", jobs[1].job_id], ["error", nil]], lines.map { |log| log.values_at("evt", "job_id") }
+          assert_equal [PushFailed.name, "Couldn't notify the workers"], lines.last.values_at("error_class", "error_message")
+          assert_match(/\Aperform_all_later of 2 jobs \(.*FlaggingAdapterJob\) failed\z/, lines.last["msg"])
+        end
+
+        test "retry_on writes a retry line with the exception and the wait" do
+          clear_log_buffer(@log_output)
+          job = TestActiveJob.new
+          job.executions = 1
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          payload = {job: job, error: Timeout::Error.new("API timed out"), wait: 3.seconds}
+
+          @subscriber.enqueue_retry(build_event("enqueue_retry.active_job", start_time, start_time, payload))
+          ::SemanticLogger.flush
+
+          log = parse_first_log(@log_output)
+
+          assert_equal ["retry", "info", "Timeout::Error", "API timed out", 3000.0, 1], log.values_at("evt", "lvl", "error_class", "msg", "wait_ms", "executions")
+        end
+
+        test "retry_on running out of attempts writes a retry_stopped line" do
+          clear_log_buffer(@log_output)
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          payload = {job: TestActiveJob.new, error: Timeout::Error.new("API timed out")}
+
+          @subscriber.retry_stopped(build_event("retry_stopped.active_job", start_time, start_time, payload))
+          ::SemanticLogger.flush
+
+          assert_equal ["retry_stopped", "error", "Timeout::Error"], parse_first_log(@log_output).values_at("evt", "lvl", "error_class")
+        end
+
+        test "discard_on writes a discard line" do
+          clear_log_buffer(@log_output)
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+          payload = {job: TestActiveJob.new, error: ArgumentError.new("Unknown invoice")}
+
+          @subscriber.discard(build_event("discard.active_job", start_time, start_time, payload))
+          ::SemanticLogger.flush
+
+          assert_equal ["discard", "error", "ArgumentError", "Unknown invoice"],
+            parse_first_log(@log_output).values_at("evt", "lvl", "error_class", "msg")
+        end
+
+        test "a job a before_perform callback stopped writes no finish line" do
+          clear_log_buffer(@log_output)
+          start_time = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
+
+          @subscriber.perform(build_event("perform.active_job", start_time, start_time + 0.1, {job: TestActiveJob.new, aborted: true}))
+          ::SemanticLogger.flush
+
+          assert_empty json_lines(@log_output)
+        end
+
         private
+
+        def json_lines(io)
+          io.string.lines.select { |line| line.strip.start_with?("{") }.map { |line| JSON.parse(line) }
+        end
 
         def build_event(name, start_time, finish_time, payload)
           ::ActiveSupport::Notifications::Event.new(name, start_time, finish_time, "test", payload)
+        end
+
+        # The enqueue_all event of a real perform_all_later on the Sidekiq adapter, with Redis replaced by the block
+        # (given the jobs' arguments, it returns their JIDs). The lines it wrote itself are cleared.
+        def sidekiq_enqueue_all_event(count, &push_bulk)
+          events = []
+          subscription = ::ActiveSupport::Notifications.subscribe("enqueue_all.active_job") { |event| events << event }
+          ::Sidekiq::Client.stub(:push_bulk, ->(payload) { yield(payload.fetch("args")) }) do
+            ::ActiveJob.perform_all_later(Array.new(count) { SidekiqBulkJob.new })
+          end
+          ::ActiveSupport::Notifications.unsubscribe(subscription)
+          ::SemanticLogger.flush
+          clear_log_buffer(@log_output)
+          events.fetch(0)
         end
 
         def parse_first_log(io)

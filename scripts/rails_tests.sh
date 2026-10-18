@@ -72,7 +72,7 @@ cd "$TEST_APP_DIR"
 unset BUNDLE_GEMFILE BUNDLE_PATH BUNDLE_WITH BUNDLE_WITHOUT RUBYOPT GEM_HOME GEM_PATH
 export RUBYOPT="-W0"
 
-# Set CI=true so LogStruct is enabled for integration tests
+# The generated app eager loads in test when CI is set, as it does on CI
 export CI=true
 
 # Install gems locally to avoid issues with world-writable system gem directories on CI

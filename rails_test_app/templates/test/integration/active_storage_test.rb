@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "minitest/mock"
 
 class ActiveStorageTest < ActiveSupport::TestCase
   setup do
@@ -101,6 +102,56 @@ class ActiveStorageTest < ActiveSupport::TestCase
     assert_not_nil download_log["duration_ms"]
   end
 
+  test "a streaming download is logged as a download" do
+    document = Document.create_with_file(filename: "stream_test.txt", content: "Streamed content")
+    @log_output.truncate(0)
+    @log_output.rewind
+
+    chunks = []
+    document.active_storage_file.download { |chunk| chunks << chunk }
+
+    assert_equal "Streamed content", chunks.join
+    assert_not_empty find_log_entries("download"), "Expected a download line"
+    assert_empty find_log_entries("metadata")
+  end
+
+  test "url and exist lines are debug lines, as Rails logs them" do
+    document = Document.create_with_file(filename: "levels_test.txt", content: "Content")
+    @log_output.truncate(0)
+    @log_output.rewind
+
+    ActiveStorage::Current.url_options = {host: "files.example.com"}
+    document.active_storage_file.blob.url
+    ActiveStorage::Blob.service.exist?(document.active_storage_file.key)
+
+    assert_equal ["debug"], (find_log_entries("url") + find_log_entries("exist")).map { |line| line["lvl"] }.uniq
+  ensure
+    ActiveStorage::Current.url_options = nil
+  end
+
+  test "Rails' own ActiveStorage lines are replaced by LogStruct's" do
+    rails_subscribers = ActiveSupport::LogSubscriber.log_subscribers.select do |subscriber|
+      subscriber.is_a?(ActiveStorage::LogSubscriber)
+    end
+
+    assert_empty rails_subscribers
+  end
+
+  test "a problem building a line doesn't stop the upload in production" do
+    saved = LogStruct.config.local_environments
+    LogStruct.config.local_environments = []
+    document = LogStruct::Log::ActiveStorage::Upload.stub(:new, ->(**) { raise ArgumentError, "bad field" }) do
+      Document.create_with_file(filename: "failing_line.txt", content: "Content")
+    end
+
+    assert_equal "Content", document.active_storage_file.download
+    errors = @log_output.string.lines.filter_map { |line| JSON.parse(line[/\{.+\}/]) if line.include?('"evt":"error"') }
+
+    assert_equal [["ArgumentError", "bad field"]], errors.map { |line| line.values_at("error_class", "msg") }
+  ensure
+    LogStruct.config.local_environments = saved
+  end
+
   test "logs are created when checking if a file exists" do
     # Create a document with a file for testing
     document = Document.create_with_file(
@@ -163,6 +214,19 @@ class ActiveStorageTest < ActiveSupport::TestCase
     assert_not_nil delete_log["file_id"]
   end
 
+  # Purging an image deletes its variants too, by prefix
+  test "deleting files by prefix logs a delete with the prefix" do
+    @log_output.truncate(0)
+    @log_output.rewind
+
+    ActiveStorage::Blob.service.delete_prefixed("variants/abc123/")
+
+    delete_log = find_log_entries("delete").first
+
+    assert_equal ["Disk", "variants/abc123/"], delete_log&.values_at("storage", "prefix")
+    assert_not delete_log&.key?("file_id")
+  end
+
   test "url logs leave out the signed URL" do
     document = Document.create_with_file(filename: "url_test.txt", content: "Signed URL content")
     @log_output.truncate(0)
@@ -218,12 +282,26 @@ class ActiveStorageTest < ActiveSupport::TestCase
     # The checksum should be present
     assert_not_nil upload_log["checksum"]
 
-    # Check file size if available - from the blob service
-    if upload_log["size"]
-      assert_kind_of Integer, upload_log["size"]
-    end
-
     # Check for duration which should always be present
     assert_not_nil upload_log["duration_ms"]
+    # Rails' event has the blob's key, not its filename
+    assert_empty upload_log.keys & %w[filename mime_type size metadata]
+  end
+
+  test "a metadata update logs the content type, not the disposition's filename" do
+    @log_output.truncate(0)
+    @log_output.rewind
+
+    ActiveSupport::Notifications.instrument("service_update_metadata.active_storage",
+      key: "m3k9x2q7",
+      service: "S3",
+      content_type: "application/pdf",
+      disposition: 'inline; filename="Jane Doe lease.pdf"')
+    ::SemanticLogger.flush
+
+    line = find_log_entries("metadata").last
+
+    assert_equal ["m3k9x2q7", "application/pdf"], line&.values_at("file_id", "mime_type")
+    assert_not_includes @log_output.string, "Jane Doe"
   end
 end

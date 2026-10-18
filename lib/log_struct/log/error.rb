@@ -39,6 +39,9 @@ module LogStruct
       const :message, String
       const :error_message, T.nilable(String), default: nil
       const :backtrace, T.nilable(T::Array[String]), default: nil
+      const :status, T.nilable(Integer), default: nil
+      const :cause_class, T.nilable(String), default: nil
+      const :cause_message, T.nilable(String), default: nil
 
       # Additional data
       include LogStruct::Log::Interfaces::AdditionalDataField
@@ -65,6 +68,9 @@ module LogStruct
         h[LogField::Message] = message
         h[LogField::ErrorMessage] = error_message unless error_message.nil?
         h[LogField::Backtrace] = backtrace unless backtrace.nil?
+        h[LogField::Status] = status unless status.nil?
+        h[LogField::CauseClass] = cause_class unless cause_class.nil?
+        h[LogField::CauseMessage] = cause_message unless cause_message.nil?
         h
       end
     end

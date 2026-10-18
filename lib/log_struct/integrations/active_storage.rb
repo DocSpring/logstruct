@@ -19,12 +19,27 @@ module LogStruct
         return nil unless config.enabled
         return nil unless config.integrations.enable_activestorage
 
+        detach_rails_log_subscriber
+
         # Subscribe to all ActiveStorage service events
         ::ActiveSupport::Notifications.subscribe(/service_.*\.active_storage/) do |*args|
           process_active_storage_event(::ActiveSupport::Notifications::Event.new(*args), config)
+        rescue => e
+          # A problem with a line mustn't fail the upload or download it describes
+          LogStruct.handle_exception(e, source: Source::Internal, context: {integration: :active_storage})
         end
 
         true
+      end
+
+      # LogStruct's lines replace Rails' own ActiveStorage lines. Rails loads its log subscriber with
+      # the storage service, after LogStruct is set up, so it's loaded here to detach it.
+      sig { void }
+      def self.detach_rails_log_subscriber
+        require "active_storage/log_subscriber"
+        RailsLogSubscribers.detach(::ActiveStorage::LogSubscriber, :active_storage)
+      rescue LoadError
+        nil
       end
 
       private_class_method
@@ -54,18 +69,14 @@ module LogStruct
           Event::Exist
         when "service_url"
           Event::Url
-        when "service_download_chunk"
+        when "service_download_chunk", "service_streaming_download"
           Event::Download
-        when "service_stream"
-          Event::Stream
         when "service_update_metadata"
           Event::Metadata
         else
-          Event::Unknown
+          # Events with no line of their own, such as service_mirror
+          return
         end
-
-        # Map the event name to an operation
-        event_name.sub(/^service_/, "").to_sym
 
         # Create structured log event using generated classes
         log_data = case event_type
@@ -74,30 +85,27 @@ module LogStruct
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
             checksum: event.payload[:checksum]&.to_s,
-            duration_ms: duration_ms,
-            metadata: event.payload[:metadata],
-            filename: event.payload[:filename],
-            mime_type: event.payload[:content_type],
-            size: event.payload[:byte_size]
+            duration_ms: duration_ms
           )
         when Event::Download
           Log::ActiveStorage::Download.new(
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
-            filename: event.payload[:filename],
             range: event.payload[:range],
             duration_ms: duration_ms
           )
         when Event::Delete
+          # delete_prefixed has a prefix instead of a key
           Log::ActiveStorage::Delete.new(
             storage: service_name.to_sym,
-            file_id: event.payload[:key]&.to_s
+            file_id: event.payload[:key]&.to_s,
+            prefix: event.payload[:prefix]&.to_s
           )
         when Event::Metadata
           Log::ActiveStorage::Metadata.new(
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s,
-            metadata: event.payload[:metadata]
+            mime_type: event.payload[:content_type]&.to_s
           )
         when Event::Exist
           Log::ActiveStorage::Exist.new(
@@ -105,28 +113,20 @@ module LogStruct
             file_id: event.payload[:key]&.to_s,
             exist: event.payload[:exist]
           )
-        when Event::Stream
-          Log::ActiveStorage::Stream.new(
-            storage: service_name.to_sym,
-            file_id: event.payload[:key]&.to_s,
-            prefix: event.payload[:prefix]
-          )
         when Event::Url
           # Without the URL: it's signed, and anyone who has it can read the file until it expires
           Log::ActiveStorage::Url.new(
             storage: service_name.to_sym,
             file_id: event.payload[:key]&.to_s
           )
-        else
-          Log::ActiveStorage::Metadata.new(
-            storage: service_name.to_sym,
-            file_id: event.payload[:key]&.to_s,
-            metadata: event.payload[:metadata]
-          )
         end
 
-        # Log structured data
-        LogStruct.info(log_data)
+        # Rails logs existence checks and URLs at debug level: an app generates a URL for each file it shows
+        if event_type == Event::Exist || event_type == Event::Url
+          LogStruct.debug(log_data)
+        else
+          LogStruct.info(log_data)
+        end
       end
     end
   end

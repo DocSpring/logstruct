@@ -1,6 +1,7 @@
 import { Event, Level, Source } from '@/generated/logstruct';
 import { RandomDataGenerator } from '../random-data-generator';
 import { SampleData } from '../sample-data';
+import { scrubString } from '../string-scrubber';
 
 describe('RandomDataGenerator', () => {
   let generator: RandomDataGenerator;
@@ -20,89 +21,36 @@ describe('RandomDataGenerator', () => {
   });
 
   test('should generate random enum values', () => {
-    const level = generator.randomEnum(Level);
-    expect(Object.values(Level)).toContain(level);
-
-    const source = generator.randomEnum(Source);
-    expect(Object.values(Source)).toContain(source);
-
-    const event = generator.randomEnum(Event);
-    expect(Object.values(Event)).toContain(event);
+    expect(Object.values(Level)).toContain(generator.randomEnum(Level));
+    expect(Object.values(Source)).toContain(generator.randomEnum(Source));
+    expect(Object.values(Event)).toContain(generator.randomEnum(Event));
   });
 
   test('should generate random email addresses', () => {
     const email = generator.randomEmail();
+    const [namePart, domain] = email.split('@');
+    const [firstName, lastName] = namePart.split('.');
 
-    expect(email).toContain('@');
-    expect(email.split('@').length).toBe(2);
-
-    // Should include a name from our sample data
-    const firstNames = SampleData.FIRST_NAMES.map((name) => name.toLowerCase());
-    const lastNames = SampleData.LAST_NAMES.map((name) => name.toLowerCase());
-
-    const namePart = email.split('@')[0];
-    const domain = email.split('@')[1];
-
-    // Check first part is firstName.lastName format
-    const nameParts = namePart.split('.');
-    expect(nameParts.length).toBe(2);
-    expect(firstNames).toContain(nameParts[0]);
-    expect(lastNames).toContain(nameParts[1]);
-
-    // Check domain is from our list
+    expect(SampleData.FIRST_NAMES.map((name) => name.toLowerCase())).toContain(firstName);
+    expect(SampleData.LAST_NAMES.map((name) => name.toLowerCase())).toContain(lastName);
     expect(SampleData.DOMAINS).toContain(domain);
   });
 
-  test('should generate filtered email addresses', () => {
-    const filteredEmail = generator.randomFilteredEmailString();
-
-    expect(filteredEmail).toMatch(/^\[EMAIL:[a-f0-9]{16}\]$/);
+  test('generates UUIDs', () => {
+    expect(generator.randomUuid()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
   });
 
-  test('should generate filtered email address objects', () => {
-    const filteredEmailObj = generator.randomFilteredEmailObject();
-
-    expect(filteredEmailObj).toHaveProperty('_filtered');
-    expect(filteredEmailObj._filtered).toHaveProperty('_class', 'String');
-    expect(filteredEmailObj._filtered).not.toHaveProperty('_bytes');
-    expect(filteredEmailObj._filtered).toHaveProperty('_hash');
-    expect(filteredEmailObj._filtered._hash).toMatch(/^[a-f0-9]{16}$/);
+  test("generates card and phone numbers that LogStruct's scrubbers find", () => {
+    for (let i = 0; i < 10; i++) {
+      expect(scrubString(generator.randomCreditCard())).toBe('[CREDIT_CARD]');
+      expect(scrubString(generator.randomPhone())).toBe('[PHONE]');
+    }
   });
 
-  test('should generate filtered hash objects', () => {
-    const filteredHash = generator.filteredHash('password');
-
-    expect(filteredHash).toHaveProperty('_filtered');
-    expect(filteredHash._filtered).toHaveProperty('_class', 'Hash');
-    expect(filteredHash._filtered).toHaveProperty('_keys_count');
-    expect(filteredHash._filtered).toHaveProperty('_keys');
-    // Sensitive keys hide the size
-    expect(filteredHash._filtered).not.toHaveProperty('_bytes');
-
-    // Check that keys include password-related fields
-    expect(filteredHash._filtered._keys).toContain('password');
-  });
-
-  test('should generate filtered array objects', () => {
-    const filteredArray = generator.filteredArray(5);
-
-    expect(filteredArray).toHaveProperty('_filtered');
-    expect(filteredArray._filtered).toHaveProperty('_class', 'Array');
-    expect(filteredArray._filtered).toHaveProperty('_count', 5);
-    expect(filteredArray._filtered).toHaveProperty('_bytes');
-  });
-
-  test('should generate filtered sensitive values', () => {
-    expect(generator.randomPassword()).toBe('[PASSWORD]');
-    expect(generator.randomCreditCard()).toBe('[CREDIT_CARD]');
-    expect(generator.randomPhone()).toBe('[PHONE]');
-    expect(generator.randomIP(true)).toBe('[IP]');
-  });
-
-  test('should generate unfiltered sensitive values when requested', () => {
-    expect(generator.randomPassword(false)).toContain('password');
-    expect(generator.randomCreditCard(false)).toMatch(/^\d{4}-\d{4}-\d{4}-\d{4}$/);
-    expect(generator.randomPhone(false)).toMatch(/^\+1-\d{3}-\d{3}-\d{4}$/);
-    expect(SampleData.IP_ADDRESSES).toContain(generator.randomIP(false));
+  test('generates raw values, for the filters to filter', () => {
+    expect(generator.randomPassword()).toMatch(/^[a-z-]+\d{3}!$/);
+    expect(SampleData.IP_ADDRESSES).toContain(generator.randomIP());
   });
 });

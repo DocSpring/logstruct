@@ -49,7 +49,9 @@ module LogStruct
           report_error(error, source: source, context: context)
         end
 
-        # Report an error using the configured handler or MultiErrorReporter, without logging it
+        # Report an error using the configured handler or MultiErrorReporter, without logging it. A reporter that
+        # raises (a timeout calling its service) doesn't change what happens to the error: its own error is logged,
+        # and not reported through the same reporter.
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def report_error(error, source:, context: nil)
           context = filtered_context(context)
@@ -61,6 +63,15 @@ module LogStruct
             # Fall back to MultiErrorReporter (detects Sentry, Bugsnag, etc.)
             LogStruct::MultiErrorReporter.report_error(error, context || {})
           end
+        rescue => e
+          LogStruct.error(Log::Error.new(
+            source: Source::Internal,
+            error_class: e.class,
+            message: "The error reporter raised while reporting #{error.class}",
+            error_message: e.message,
+            backtrace: e.backtrace,
+            level: Level::Error
+          ))
         end
 
         # The context filtered and scrubbed like a log line, for error reporters: it can hold a

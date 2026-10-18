@@ -112,6 +112,7 @@ class ActiveSupport::TestCase
   extend T::Sig
 
   setup do
+    ::SemanticLogger.flush
     TEST_LOG_IO.truncate(0)
     TEST_LOG_IO.rewind
     # Each test gets its own copy of the configuration: tests change filters in place and set
@@ -148,8 +149,8 @@ class ActiveSupport::TestCase
   sig { returns(StringIO) }
   def setup_isolated_logger
     io = T.let(StringIO.new, StringIO)
-    @saved_appenders = T.let(::SemanticLogger.appenders.dup, T.nilable(T::Array[T.untyped]))
-    ::SemanticLogger.clear_appenders!
+    @saved_appenders = T.let(::SemanticLogger.appenders.to_a, T.nilable(T::Array[T.untyped]))
+    clear_test_appenders
     ::SemanticLogger.add_appender(
       io: io,
       formatter: LogStruct::SemanticLogger::Formatter.new,
@@ -160,8 +161,20 @@ class ActiveSupport::TestCase
 
   sig { void }
   def teardown_isolated_logger
-    ::SemanticLogger.clear_appenders!
+    clear_test_appenders
     @saved_appenders&.each { |appender| ::SemanticLogger.appenders << appender }
+    # Restart SemanticLogger's thread if a test's clear_appenders! stopped it
+    ::SemanticLogger::Logger.processor.start
+  end
+
+  # Removes every appender, after writing the lines queued for them. Tests don't call
+  # SemanticLogger.clear_appenders!: it stops SemanticLogger's thread, and lines logged after that
+  # wait in its queue until a later test's add_appender starts it again.
+  sig { void }
+  def clear_test_appenders
+    ::SemanticLogger::Logger.processor.start
+    ::SemanticLogger.flush
+    ::SemanticLogger.appenders.clear
   end
 
   # Clear the isolated logger buffer (call this at the start of each test method)

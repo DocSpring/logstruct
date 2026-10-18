@@ -68,6 +68,7 @@ export class <%= source_name %><%= event.name %> {
 
   static random(gen: RandomGen, overrides: Partial<<%= source_name %><%= event.name %>Ctor> = {}): <%= source_name %><%= event.name %> {
     const args: <%= source_name %><%= event.name %>Ctor = {
+      timestamp: gen.isoNow(),
 <% if source_enum == 'Source' -%>
       source: (gen.sample(Object.values(Source) as unknown as Source[])),
 <% end -%>

@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require_relative "integrations/integration_interface"
+require_relative "integrations/rails_log_subscribers"
 require_relative "integrations/request_context"
 require_relative "integrations/active_job"
 require_relative "integrations/active_record"

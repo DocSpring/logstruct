@@ -39,19 +39,9 @@ module LogStruct
       assert_equal({_class: String}, s)
     end
 
-    test "summarize_hash includes keys and optional bytes when no sensitive keys" do
-      summary = ParamFilters.summarize_hash({a: 1, b: 2})
-
-      assert_equal Hash, summary[:_class]
-      assert_equal 2, summary[:_keys_count]
-      assert_equal [:a, :b], summary[:_keys]
-      assert_kind_of Integer, summary[:_bytes]
-
-      # Presence of sensitive key removes _bytes
-      summary2 = ParamFilters.summarize_hash({password: "x", a: 1})
-
-      assert_equal Hash, summary2[:_class]
-      refute summary2.key?(:_bytes)
+    test "summarize_hash has the keys, not the size" do
+      assert_equal({_class: Hash, _keys_count: 2, _keys: [:a, :b]}, ParamFilters.summarize_hash({a: 1, b: 2}))
+      assert_equal({_class: Hash, _keys_count: 1, _keys: [:value]}, ParamFilters.summarize_hash({value: "secret"}))
     end
 
     test "summarize_hash handles non symbol keys" do
@@ -62,12 +52,10 @@ module LogStruct
       assert_equal ["1"], summary[:_keys]
     end
 
-    test "summarize_array reports count/bytes and handles empty" do
-      s = ParamFilters.summarize_array([1, 2, 3])
+    test "summarize_array reports the count, not the size, and handles empty" do
+      s = ParamFilters.summarize_array(["token-1234567890"])
 
-      assert_equal Array, s[:_class]
-      assert_equal 3, s[:_count]
-      assert_operator s[:_bytes], :>, 0
+      assert_equal({_class: Array, _count: 1}, s)
 
       empty = ParamFilters.summarize_array([])
 
@@ -166,8 +154,27 @@ module LogStruct
 
       # Normal fields should not be filtered
       refute ParamFilters.should_filter_key?(:username)
-      refute ParamFilters.should_filter_key?(:email_address)
       refute ParamFilters.should_filter_key?(:first_name)
+      refute ParamFilters.should_filter_key?(:card_id)
+      refute ParamFilters.should_filter_key?(:pin_count)
+    end
+
+    test "the default pattern filters API keys, passcodes, card numbers and SSNs" do
+      LogStruct.configuration = LogStruct::Configuration.new
+
+      %i[apikey apiKeys passcode credit_card_number creditCard card_number cardNumber social_security_number].each do |key|
+        assert ParamFilters.should_filter_key?(key), "#{key} wasn't filtered"
+      end
+    end
+
+    test "keys in filter_keys_with_hashes are filtered, with a hash of the value" do
+      LogStruct.configuration = LogStruct::Configuration.new
+      LogStruct.config.filters.filter_keys_with_hashes += [:username]
+
+      assert ParamFilters.should_filter_key?(:username)
+      assert ParamFilters.should_filter_key?(:userName)
+      assert ParamFilters.should_filter_key?(:email_address)
+      assert ParamFilters.should_include_string_hash?(:userName)
     end
   end
 end

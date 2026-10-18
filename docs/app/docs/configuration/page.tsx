@@ -1,10 +1,9 @@
-import Link from 'next/dist/client/link';
+import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { RubyCodeExample } from '@/components/ruby-code-example';
 import { Callout } from '@/components/ui/callout';
-import { getCodeExample } from '@/lib/codeExamples';
 
 export default function ConfigurationPage() {
   return (
@@ -13,166 +12,170 @@ export default function ConfigurationPage() {
         Configuration
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct is designed to be highly configurable while working with sensible defaults. You
-        can customize how and where logs are generated, which integrations are enabled, and how
-        errors are handled.
+        LogStruct works without any configuration. To change its defaults, create{' '}
+        <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
+          config/initializers/logstruct.rb
+        </code>
+        . This page lists every setting.
       </p>
 
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        Create a file at{' '}
-        <code className="px-1 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded">
-          config/initializers/logstruct.rb
-        </code>{' '}
-        with your desired configuration.
+        A typical initializer looks like this:
       </p>
 
-      <RubyCodeExample name="basic_configuration" />
+      <RubyCodeExample name="rails_initializer" />
+
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4 mb-4">
+        Rails passes each request&apos;s instrumentation payload to Lograge, so a controller can add
+        fields for <code>lograge_custom_options</code> to read:
+      </p>
+
+      <CodeBlock language="ruby" title="app/controllers/application_controller.rb">
+        {`class ApplicationController < ActionController::Base
+  def append_info_to_payload(payload)
+    super
+    payload[:user_id] = current_user&.id
+  end
+end`}
+      </CodeBlock>
+
+      <Callout type="info">
+        Configure LogStruct in <code>config/initializers</code> (or earlier, in{' '}
+        <code>config/application.rb</code> or <code>config/environments/*.rb</code>). LogStruct sets
+        up its logger and integrations after the initializers run. A setting changed after the app
+        has booted only affects what LogStruct reads as it writes each line, such as the filters and
+        limits.
+      </Callout>
 
       <HeadingWithAnchor id="enabling-logstruct">Enabling LogStruct</HeadingWithAnchor>
 
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct follows a simple philosophy:{' '}
-        <strong>machines get JSON, humans get readable logs</strong>. By default:
-      </p>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">By default LogStruct is on:</p>
 
       <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
         <li>
-          <strong>Production servers</strong> → JSON logs (for parsing and analysis)
+          <strong>In production</strong>, for the processes it recognizes: Puma, Unicorn, Thin,
+          Falcon, <code>rails server</code>, a Sidekiq server and <code>good_job start</code>.
         </li>
         <li>
-          <strong>Test runs</strong> → JSON logs (to catch production bugs in both local and CI
-          environments)
-        </li>
-        <li>
-          <strong>Local development</strong> → Human-readable logs (disabled by default)
-        </li>
-        <li>
-          <strong>Rails console</strong> → Human-readable logs (always)
-        </li>
-        <li>
-          <strong>Rake tasks</strong> → Human-readable logs
+          <strong>In test</strong>, for every process except the console, locally and on CI. Keeping
+          test close to production catches logging problems (a value that can&apos;t be written, a
+          broken integration) before they reach production.
         </li>
       </ul>
+
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        It&apos;s off in development, in consoles, and in production Rake tasks,{' '}
+        <code>rails runner</code> and job runners it doesn&apos;t recognize (such as Solid
+        Queue&apos;s <code>bin/jobs</code>, Resque or Delayed Job), which keep Rails&apos; usual
+        logger. <Link href="/docs/when-logstruct-runs">When LogStruct runs</Link> has the details.
+      </p>
 
       <HeadingWithAnchor id="overriding-defaults" level={3}>
         Overriding the Defaults
       </HeadingWithAnchor>
 
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        You can override this behavior in several ways, with the following precedence (highest to
-        lowest):
+        These settings decide whether LogStruct is on, from highest precedence to lowest:
       </p>
 
       <ol className="list-decimal list-outside ml-6 space-y-3 text-neutral-600 dark:text-neutral-300 mb-6">
         <li>
-          <strong>Environment variable override</strong>
+          <strong>
+            The <code>LOGSTRUCT_ENABLED</code> environment variable
+          </strong>
           <br />
-          Set <code>LOGSTRUCT_ENABLED=true</code> to force JSON logs, or{' '}
-          <code>LOGSTRUCT_ENABLED=false</code> to disable completely.
+          <code>true</code>, <code>t</code>, <code>yes</code>, <code>y</code> or <code>1</code>{' '}
+          turns LogStruct on in any process and environment, consoles included. Any other value
+          turns it off.
           <div className="mt-2">
             <CodeBlock language="bash">
-              {`# Force JSON logs in console for debugging\nLOGSTRUCT_ENABLED=true rails console\n\n# Disable JSON logs in tests (not recommended)\nLOGSTRUCT_ENABLED=false rails test`}
+              {`# See the JSON lines in development, or in a console or Rake task
+LOGSTRUCT_ENABLED=true bin/rails server
+LOGSTRUCT_ENABLED=true bin/rails console
+LOGSTRUCT_ENABLED=true bin/rails db:migrate
+
+# Turn LogStruct on for a job runner it doesn't recognize
+LOGSTRUCT_ENABLED=true bin/jobs
+
+# Turn it off in tests
+LOGSTRUCT_ENABLED=false bin/rails test`}
             </CodeBlock>
           </div>
         </li>
         <li>
-          <strong>Initializer configuration</strong>
+          <strong>
+            <code>config.enabled</code> in an initializer
+          </strong>
           <br />
-          Manually set <code>config.enabled = true</code> in your initializer to enable in all
-          development processes.
+          It has no environment check of its own: it applies to every process that loads the
+          initializer, in every environment. Wrap it in a condition:
           <div className="mt-2">
-            <CodeBlock language="ruby">
-              {`LogStruct.configure do |c|\n  c.enabled = true\nend`}
-            </CodeBlock>
+            <RubyCodeExample name="enable_in_development" />
           </div>
         </li>
         <li>
-          <strong>Environment list</strong>
+          <strong>
+            <code>config.enabled_environments</code>
+          </strong>
           <br />
-          Modify <code>config.enabled_environments</code> to change which environments have JSON
-          logs by default (currently <code>[:test, :production]</code>).
+          The environments where LogStruct switches on for the processes it recognizes (default{' '}
+          <code>[:test, :production]</code>).
         </li>
       </ol>
-
-      <Callout type="info">
-        The <code>CI</code> environment variable is automatically detected by most CI systems
-        (GitHub Actions, GitLab CI, CircleCI, Travis, etc.). If your CI doesn&apos;t set it, add{' '}
-        <code>CI=true</code> to your CI configuration.
-      </Callout>
 
       <HeadingWithAnchor id="environment-configuration">
         Environment Configuration
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct supports different environments and handles them appropriately:
-      </p>
 
       <RubyCodeExample name="environment_configuration" />
 
-      <HeadingWithAnchor id="development-preview">
-        Preview Production Logs in Development
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct is disabled by default in development. When you explicitly enable it (for example,{' '}
-        <code>LOGSTRUCT_ENABLED=true rails s</code> or setting <code>config.enabled = true</code>),
-        LogStruct uses the same JSON formatter as production so you can validate structured logs
-        locally. If you prefer the colorful human formatter for day‑to‑day debugging, set:
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
+        In the environments that aren&apos;t local (production, staging and any other), LogStruct
+        logs to STDOUT only. In local environments it also writes Rails&apos; log file (
+        <code>log/development.log</code>, <code>log/test.log</code>). In test it writes{' '}
+        <em>only</em> the log file, so test output stays clean. With{' '}
+        <code>RAILS_LOG_TO_STDOUT</code> set, every environment logs to STDOUT only. See{' '}
+        <Link href="/docs/logging">Logging to STDOUT</Link>.
       </p>
 
-      <CodeBlock language="ruby">
-        {`LogStruct.configure do |c|
-  c.prefer_json_in_development = false
-  c.enable_color_output = true
-end`}
-      </CodeBlock>
+      <HeadingWithAnchor id="development-preview">Logger Settings</HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        When LogStruct is on in development, it writes the same JSON as production, so you can check
+        your lines locally. For colored, pretty-printed lines instead, set{' '}
+        <code>prefer_json_in_development</code> to <code>false</code>. These are the logger settings
+        and their defaults:
+      </p>
 
-      <Callout type="info">
-        The <code>ActiveSupport::TaggedLogging</code> compatibility patch is only applied when
-        LogStruct is enabled. This ensures third‑party gems that write Hashes to{' '}
-        <code>Rails.logger</code> (e.g., dotenv‑rails) do not affect your default development
-        logging when LogStruct is disabled.
-      </Callout>
-
-      <Callout type="info">
-        We enable LogStruct in <code>test</code> as well as production by default. Keeping test and
-        production behavior as close as possible helps catch logging issues early (for example,
-        unexpected serialization errors, missing fields, or broken integrations) before they reach
-        prod. If you prefer to disable it in test, remove <code>:test</code> from{' '}
-        <code>config.enabled_environments</code>.
-      </Callout>
-
-      <Callout type="info">
-        To force JSON logs in console or other Rake tasks (e.g., for debugging or inspecting the
-        exact JSON output), set <code>LOGSTRUCT_ENABLED=true</code> when running the command:
-        <br />
-        <code>LOGSTRUCT_ENABLED=true rails console</code>
-        <br />
-        <code>LOGSTRUCT_ENABLED=true rake db:migrate</code>
-      </Callout>
+      <RubyCodeExample name="logger_settings" />
 
       <HeadingWithAnchor id="integration-configuration">
         Integration Configuration
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct integrates with many popular gems. You can enable or disable specific
-        integrations:
+        Each integration can be turned off. The <Link href="/docs/integrations">integrations</Link>{' '}
+        page describes the lines each one writes.
       </p>
 
       <RubyCodeExample name="integrations_configuration" />
 
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4 mb-4">
+        The integrations&apos; other settings, with their defaults:
+      </p>
+
+      <RubyCodeExample name="integration_settings" />
+
       <HeadingWithAnchor id="filtering-sensitive-data">Filtering Sensitive Data</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct includes robust filtering for sensitive data to ensure privacy and security:
+        Every setting for filtering keys and scrubbing strings, with the defaults where the example
+        doesn&apos;t change them:
       </p>
 
       <RubyCodeExample name="filter_configuration" />
 
       <Callout type="info">
-        See the{' '}
-        <Link href="/docs/filtering-sensitive-data" className="text-blue-200 hover:text-white">
-          Filtering Sensitive Data
-        </Link>{' '}
-        docs for more information.
+        Add to the default lists with <code>+=</code> (as above). Assigning a new list replaces the
+        defaults. The <Link href="/docs/filtering-sensitive-data">Filtering Sensitive Data</Link>{' '}
+        page explains what each setting matches.
       </Callout>
 
       <HeadingWithAnchor id="limits">Limits</HeadingWithAnchor>
@@ -188,101 +191,108 @@ end`}
         Error Handling Configuration
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct sorts the errors it handles into four groups, each with its own mode (the example
-        below shows all four with their defaults). Type-checking errors and errors inside LogStruct
-        are raised in development and test, so you see them early. In production they don&apos;t
-        crash your app: type-checking errors are logged and reported, and LogStruct&apos;s own
-        errors are logged. The modes are <code>Ignore</code>, <code>Log</code>, <code>Report</code>{' '}
-        (log and report), <code>LogProduction</code> and <code>ReportProduction</code> (log, or log
-        and report, in production; raise in development and test) and <code>Raise</code>.
+        LogStruct sorts the errors it handles into four groups, each with a mode. The modes are:
       </p>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        We automatically detect which error reporting service you use (Sentry, Bugsnag, Rollbar,
-        Honeybadger). If you use a service that we don&apos;t support yet, you can configure a{' '}
-        <Link href="#custom-error-reporting">custom error handler</Link>. (Or you can send a PR!)
-      </p>
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300 mb-4">
+        <li>
+          <code>Ignore</code>: do nothing.
+        </li>
+        <li>
+          <code>Log</code>: write an error line.
+        </li>
+        <li>
+          <code>Report</code>: write an error line and report the error.
+        </li>
+        <li>
+          <code>LogProduction</code> and <code>ReportProduction</code>: log, or log and report,
+          outside the <code>local_environments</code>; raise in them (development and test by
+          default).
+        </li>
+        <li>
+          <code>Raise</code>: raise the error everywhere, without logging or reporting it.
+        </li>
+      </ul>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">The groups and their defaults:</p>
 
       <RubyCodeExample name="error_handling_modes" />
 
-      <HeadingWithAnchor id="actionmailer-id-mapping">ActionMailer ID Mapping</HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        Configure which instance variables on your mailers should be logged as IDs in{' '}
-        <code>additional_data</code>. This is useful for tracking which account, user, organization,
-        etc. sent an email.
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
+        A raised error reaches your app as usual, so your error reporter still sees it. Reports go
+        to the first of Sentry, Bugsnag, Rollbar and Honeybadger that your app loads; with none of
+        them, LogStruct logs the error instead. To use another service, set a{' '}
+        <Link href="#custom-error-reporting">custom error reporting handler</Link>.
       </p>
 
-      <CodeBlock language="ruby">
-        {`LogStruct.configure do |c|
-  # Default mapping
-  c.integrations.actionmailer_id_mapping = {
-    account: :account_id,
-    user: :user_id
-  }
-
-  # Custom mapping for your app
-  c.integrations.actionmailer_id_mapping = {
-    organization: :org_id,
-    company: :company_id,
-    tenant: :tenant_id
-  }
-end`}
-      </CodeBlock>
-
-      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
-        In your mailer, set the instance variables and they&apos;ll automatically be logged:
+      <HeadingWithAnchor id="actionmailer-id-mapping">ActionMailer ID Mapping</HeadingWithAnchor>
+      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+        <code>config.integrations.actionmailer_id_mapping</code> lists the mailer instance variables
+        whose IDs are added to mail lines, so you can see which account or user an email was sent
+        for. With the default mapping (<code>{'{account: :account_id, user: :user_id}'}</code>),
+        this mailer&apos;s lines get <code>account_id</code> and <code>user_id</code> fields:
       </p>
 
       <CodeBlock language="ruby">
         {`class UserMailer < ApplicationMailer
   def welcome_email(user, account)
-    @user = user      # Logs user_id
-    @account = account  # Logs account_id
-    mail(to: user.email, subject: 'Welcome')
+    @user = user        # user_id
+    @account = account  # account_id
+    mail(to: user.email, subject: "Welcome")
   end
 end`}
       </CodeBlock>
 
       <HeadingWithAnchor id="custom-lograge-options">Custom Lograge Options</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        You can extend Lograge request logging with custom fields:
+        Request lines include the method, path, format, controller, action, status, durations (
+        <code>duration_ms</code>, <code>view</code>, <code>db</code>), params (as Rails filtered
+        them), <code>source_ip</code>, <code>host</code>, <code>user_agent</code>,{' '}
+        <code>referer</code> (without its query string), <code>content_type</code> and{' '}
+        <code>accept</code>, and <code>req_id</code>. To add your own fields:
       </p>
 
       <RubyCodeExample name="lograge_custom_options" />
       <p className="text-neutral-600 dark:text-neutral-300 mt-4">
-        Custom options are merged into the request log output at the top level. LogStruct also
-        captures request metadata like <code>request_id</code>, <code>source_ip</code>,
-        <code>user_agent</code>, <code>referer</code>, <code>host</code>, <code>content_type</code>,
-        and <code>accept</code> automatically when present.
+        The fields are added at the top level of the request line, and filtered like everything
+        else.
       </p>
 
       <HeadingWithAnchor id="custom-string-scrubbing">Custom String Scrubbing</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        You can implement custom string scrubbers to filter out sensitive data that isn&apos;t
-        caught by the built-in filters:
+        To scrub values the built-in scrubbers don&apos;t know about:
       </p>
 
       <RubyCodeExample name="custom_string_scrubber" />
 
       <HeadingWithAnchor id="custom-error-reporting">Custom Error Reporting</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        {/* cspell:ignore doesn */}
-        If LogStruct doesn&apos;t support your error reporting service, you can register a custom
-        error reporting handler. (Or submit a PR!)
+        If LogStruct doesn&apos;t support your error reporting service, register a handler. (Or send
+        a PR!)
       </p>
 
       <RubyCodeExample name="error_reporting_handler" />
+
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4 mb-4">
+        If the handler raises (a timeout calling your service), LogStruct logs its error as a{' '}
+        <code>logstruct</code> error line, and the error it was reporting is handled as it would
+        have been.
+      </p>
+
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4 mb-4">
+        When your app loads more than one of the supported services, choose one:
+      </p>
+
+      <RubyCodeExample name="choose_error_reporter" />
 
       <HeadingWithAnchor id="sorbet-integration">Sorbet Integration</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
         LogStruct sets Sorbet&apos;s runtime error handlers, so a type error anywhere in your app or
         its gems is raised in development and test, and logged and reported in production while your
         app carries on (<code>error_handling_modes.type_checking_errors</code>). Without LogStruct,
-        Sorbet raises them everywhere.
+        Sorbet raises them everywhere. The handlers replace any your app set before LogStruct&apos;s
+        initializer ran.
       </p>
 
-      <CodeBlock language="ruby">
-        {getCodeExample('sorbet_error_handlers_configuration').code}
-      </CodeBlock>
+      <RubyCodeExample name="sorbet_error_handlers_configuration" />
 
       <EditPageLink />
     </div>

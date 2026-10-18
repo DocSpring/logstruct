@@ -27,78 +27,82 @@ module LogStruct
         true
       end
 
-      # Methods to add logging to CarrierWave operations
+      # Logs the operations that store, delete or fetch a file: store! (an upload, when there's a
+      # cached file to store), remove! (a delete) and download! (a remote URL fetched into the cache).
+      # retrieve_from_store! isn't logged: it only points the uploader at a stored file, and runs
+      # each time a record's mounted file is read.
       module LoggingMethods
         extend T::Sig
         extend T::Helpers
         requires_ancestor { ::CarrierWave::Uploader::Base }
 
-        # Log file storage operations
         sig { params(args: T.untyped).returns(T.untyped) }
         def store!(*args)
+          # CarrierWave only stores a cached file; a record's save calls store! on every uploader
+          storing = !cache_only && (cached? || !args.first.nil?)
           start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result = super
-          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+          return result unless storing && !cached?
 
-          # Extract file information
-          file_size = file.size if file.respond_to?(:size)
-          {
-            identifier: identifier,
-            filename: file.filename,
-            content_type: file.content_type,
-            size: file_size,
-            store_path: store_path,
-            extension: file.extension
-          }
-
-          # Log the store operation with structured data
-          log_data = Log::CarrierWave::Upload.new(
-            storage: storage.class.name.split("::").last.downcase.to_sym,
-            file_id: identifier,
-            filename: file.filename,
-            mime_type: file.content_type,
-            size: file_size,
-            duration_ms: (duration * 1000.0).to_f,
-            uploader: self.class.name,
-            model: model.class.name,
-            mount_point: mounted_as.to_s,
-            version: version_name.to_s,
-            store_path: store_path,
-            extension: file.extension
-          )
-
-          ::Rails.logger.info(log_data)
+          duration_ms = (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000.0
+          log_file_operation do
+            # file_fields is a Hash Sorbet can't check against the struct's keyword arguments
+            Log::CarrierWave::Upload.new(
+              **T.unsafe(file_fields),
+              filename: file&.filename,
+              mime_type: file&.content_type,
+              size: file&.size,
+              duration_ms: duration_ms
+            )
+          end
           result
         end
 
-        # Log file retrieve operations
-        sig { params(identifier: T.untyped, args: T.untyped).returns(T.untyped) }
-        def retrieve_from_store!(identifier, *args)
-          Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        sig { returns(T.untyped) }
+        def remove!
+          fields = file ? file_fields : nil
           result = super
-          Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          log_file_operation { Log::CarrierWave::Delete.new(**T.unsafe(fields)) } if fields
+          result
+        end
 
-          # Extract file information if available
-          file_size = file.size if file&.respond_to?(:size)
+        sig { params(uri: T.untyped, remote_headers: T.untyped).returns(T.untyped) }
+        def download!(uri, remote_headers = {})
+          result = super
+          log_file_operation do
+            Log::CarrierWave::Download.new(
+              **T.unsafe(file_fields),
+              filename: file&.filename,
+              mime_type: file&.content_type,
+              size: file&.size
+            )
+          end
+          result
+        end
 
-          # Log the retrieve operation with structured data
-          log_data = Log::CarrierWave::Download.new(
-            storage: storage.class.name.split("::").last.downcase.to_sym,
-            file_id: identifier,
-            filename: file&.filename,
-            mime_type: file&.content_type,
-            size: file_size,
-            # No duration field on Download event schema
+        private
+
+        # The fields every CarrierWave line has
+        sig { returns(T::Hash[Symbol, T.untyped]) }
+        def file_fields
+          {
+            storage: storage.class.name.to_s.split("::").last.to_s.downcase.to_sym,
+            file_id: identifier.to_s,
             uploader: self.class.name,
-            model: model.class.name,
-            mount_point: mounted_as.to_s,
-            version: version_name.to_s,
+            model: model&.class&.name,
+            mount_point: mounted_as&.to_s,
+            version: version_name&.to_s,
             store_path: store_path,
             extension: file&.extension
-          )
+          }
+        end
 
-          ::Rails.logger.info(log_data)
-          result
+        # A problem with a log line mustn't stop the file operation that has already happened
+        sig { params(block: T.proc.returns(Log::Interfaces::CommonFields)).void }
+        def log_file_operation(&block)
+          LogStruct.info(yield)
+        rescue => e
+          LogStruct.handle_exception(e, source: Source::Internal, context: {integration: :carrierwave})
         end
       end
     end

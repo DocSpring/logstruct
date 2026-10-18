@@ -1,18 +1,4 @@
-import { SampleData } from './sample-data';
-
-/**
- * Represents a filtered value in LogStruct
- */
-export interface FilteredValue {
-  _filtered: {
-    _class: string;
-    _bytes?: number;
-    _hash?: string;
-    _count?: number;
-    _keys?: string[];
-    _keys_count?: number;
-  };
-}
+import { isoAt, SampleData } from './sample-data';
 
 /**
  * Utility for generating random data with seed support
@@ -20,10 +6,24 @@ export interface FilteredValue {
 export class RandomDataGenerator {
   private seed: number;
   protected random: () => number;
+  // The time the lines are written at (milliseconds since the epoch), or the clock's time if unset. A page
+  // rendered on the server passes the same time to the browser, so both render the same lines.
+  private fixedNow: number | undefined;
 
-  constructor(seed?: number) {
+  constructor(seed?: number, now?: number) {
     this.seed = seed || Math.floor(Math.random() * 1000000);
     this.random = this.createRandomGenerator(this.seed);
+    this.fixedNow = now;
+  }
+
+  /** The time now, in milliseconds since the epoch */
+  nowMs(): number {
+    return this.fixedNow ?? Date.now();
+  }
+
+  /** The time now, as LogStruct writes ts on a server whose time zone is UTC */
+  isoNow(): string {
+    return isoAt(this.nowMs());
   }
 
   /**
@@ -96,10 +96,17 @@ export class RandomDataGenerator {
   }
 
   /**
-   * Generate a random email address
+   * A random UUID, like Rails' request IDs and ActiveJob's job IDs
+   */
+  randomUuid(): string {
+    const variant = this.sample(['8', '9', 'a', 'b']);
+    return `${this.randomHex(8)}-${this.randomHex(4)}-4${this.randomHex(3)}-${variant}${this.randomHex(3)}-${this.randomHex(12)}`;
+  }
+
+  /**
+   * Generate a random email address (some names have accents)
    */
   randomEmail(): string {
-    // Return an actual (fake) email address
     const firstName = this.sample(SampleData.FIRST_NAMES).toLowerCase();
     const lastName = this.sample(SampleData.LAST_NAMES).toLowerCase();
     const domain = this.sample(SampleData.DOMAINS);
@@ -107,126 +114,38 @@ export class RandomDataGenerator {
   }
 
   /**
-   * Generate a filtered email address string (for sensitive data)
+   * A password as a user would type it
    */
-  randomFilteredEmailString(): string {
-    const emailHash = this.randomHex(16);
-    // Return the simple [EMAIL:hash] format
-    return `[EMAIL:${emailHash}]`;
+  randomPassword(): string {
+    return `${this.sample(['hunter', 'sunshine', 'correct-horse'])}${this.randomInt(100, 999)}!`;
   }
 
   /**
-   * Generate a filtered email address as an object (for sensitive data)
+   * A test card number that passes the Luhn check, as LogStruct's scrubber needs
    */
-  randomFilteredEmailObject(): FilteredValue {
-    const emailHash = this.randomHex(16);
-    // Return the object format with _filtered property
-    return {
-      _filtered: {
-        _class: 'String',
-        _hash: emailHash,
-      },
-    };
+  randomCreditCard(): string {
+    return this.sample(SampleData.TEST_CARD_NUMBERS);
   }
 
   /**
-   * A filtered String: LogStruct logs only its class, not its length
+   * A US phone number, in a format LogStruct's scrubber matches
    */
-  filteredString(): FilteredValue {
-    return { _filtered: { _class: 'String' } };
+  randomPhone(): string {
+    return `+1-555-${this.randomInt(200, 999)}-${this.randomInt(1000, 9999)}`;
   }
 
   /**
-   * Generate a filtered password
+   * An IP address from the ranges set aside for documentation
    */
-  randomPassword(filtered = true): string {
-    if (filtered) {
-      return '[PASSWORD]';
-    }
-    return `password${this.randomInt(100, 999)}!`;
-  }
-
-  /**
-   * Generate a filtered credit card number
-   */
-  randomCreditCard(filtered = true): string {
-    if (filtered) {
-      return '[CREDIT_CARD]';
-    }
-    return `${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}-${this.randomInt(1000, 9999)}`;
-  }
-
-  /**
-   * Generate a filtered phone number
-   */
-  randomPhone(filtered = true): string {
-    if (filtered) {
-      return '[PHONE]';
-    }
-    return `+1-${this.randomInt(100, 999)}-${this.randomInt(100, 999)}-${this.randomInt(1000, 9999)}`;
-  }
-
-  /**
-   * Generate a filtered IP address
-   */
-  randomIP(filtered = false): string {
-    if (filtered) {
-      return '[IP]';
-    }
+  randomIP(): string {
     return this.sample(SampleData.IP_ADDRESSES);
-  }
-
-  /**
-   * Generate a filtered hash (for nested objects that contain sensitive data)
-   */
-  filteredHash(sensitivity: 'password' | 'pii' | 'json' = 'json'): FilteredValue {
-    let keys: string[];
-
-    switch (sensitivity) {
-      case 'password':
-        keys = ['password', 'password_confirmation', 'current_password', 'token'];
-        break;
-      case 'pii':
-        keys = ['ssn', 'tax_id', 'credit_card', 'phone', 'address'];
-        break;
-      default: // json
-        keys = ['data', 'payload', 'attributes', 'request_body'];
-    }
-
-    // The size is left out when any of the keys are sensitive
-    return {
-      _filtered: {
-        _class: 'Hash',
-        _keys_count: keys.length,
-        _keys: keys,
-        ...(sensitivity === 'json' ? { _bytes: this.randomInt(20, 500) } : {}),
-      },
-    };
-  }
-
-  /**
-   * Generate a filtered array
-   */
-  filteredArray(itemCount: number = 0): FilteredValue {
-    if (itemCount === 0) {
-      itemCount = this.randomInt(3, 20);
-    }
-
-    return {
-      _filtered: {
-        _class: 'Array',
-        _count: itemCount,
-        _bytes: itemCount * this.randomInt(10, 50),
-      },
-    };
   }
 
   /**
    * Generate a random timestamp in ISO format
    */
   randomTimestamp(daysBack = 7): string {
-    const now = new Date();
-    const past = new Date(now.getTime() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000));
+    const past = new Date(this.nowMs() - this.randomInt(0, daysBack * 24 * 60 * 60 * 1000));
     return past.toISOString();
   }
 

@@ -32,7 +32,6 @@ module LogStruct
         # Event-specific fields
         const :storage, Symbol
         const :location, String
-        const :exist, T.nilable(T::Boolean), default: nil
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -43,7 +42,6 @@ module LogStruct
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
           h[LogField::Location] = location
-          h[LogField::Exist] = exist unless exist.nil?
           h
         end
       end

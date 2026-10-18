@@ -10,60 +10,37 @@ module LogStruct
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: lograge_custom_options
         # ----------------------------------------------------------
-        # Provide a custom proc to extend Lograge options
         LogStruct.configure do |config|
-          config.integrations.lograge_custom_options = T.let(->(event, options) do
-            # Add custom fields to the options hash
-            options[:user_id] = event.payload[:user_id] if event.payload[:user_id]
-            options[:account_id] = event.payload[:account_id] if event.payload[:account_id]
-            options
-          end,
-            LogStruct::Handlers::LogrageCustomOptions)
+          # Add fields to every request line: return a Hash of fields, or change options in place.
+          # Fields that are nil are left out.
+          config.integrations.lograge_custom_options = ->(event, _options) {
+            {user_id: event.payload[:user_id], account_id: event.payload[:account_id]}
+          }
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: lograge_custom_options
         # ----------------------------------------------------------
 
-        # Test that the lograge custom options handler is properly set
-        assert_kind_of Proc, LogStruct.configuration.integrations.lograge_custom_options
+        event = ActiveSupport::Notifications::Event.new(
+          "process_action.action_controller", Time.now.to_f, Time.now.to_f, "event-id", {user_id: 123, headers: {}}
+        )
+        options = LogStruct::Integrations::Lograge.lograge_default_options(event)
+        line = LogStruct::Integrations::Lograge.build_request_log(options.merge(method: "GET", path: "/")).serialize
 
-        # In a test context, we need a mock for ActiveSupport::Notifications::Event
-        # Create a simple struct to act as our event
-        mock_payload = {user_id: 123, account_id: 456, other_data: "test"}
-
-        # Simple event class with just a payload attribute
-        event = Struct.new(:payload).new(mock_payload)
-
-        # Create a stub handler that ignores the event type for testing
-        stub_handler = lambda do |evt, opts|
-          # Copy the relevant fields from the payload
-          opts[:user_id] = evt.payload[:user_id] if evt.payload[:user_id]
-          opts[:account_id] = evt.payload[:account_id] if evt.payload[:account_id]
-          opts
-        end
-
-        # Call the handler to verify it works
-        options = {}
-        result = stub_handler.call(event, options)
-
-        # Verify it adds the expected fields
-        assert_equal 123, result[:user_id]
-        assert_equal 456, result[:account_id]
+        assert_equal 123, line[:user_id]
+        refute line.key?(:account_id)
       end
 
       def test_custom_string_scrubber
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: custom_string_scrubber
         # ----------------------------------------------------------
-        # Set a custom string scrubbing handler that will be called
-        # after the built-in scrubbers run
+        # Called with every string LogStruct writes, after its own scrubbers. Return the scrubbed string.
         LogStruct.configure do |config|
-          config.string_scrubbing_handler = T.let(->(value) {
-            # Custom string scrubbing logic here
-            # Example: Remove all bank account numbers that match the pattern
+          config.string_scrubbing_handler = ->(value) {
+            # Replace numbers that look like bank account numbers
             value.gsub(/\b\d{10,12}\b/, "[BANK_ACCOUNT]")
-          },
-            LogStruct::Handlers::StringScrubber)
+          }
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: custom_string_scrubber
@@ -89,66 +66,57 @@ module LogStruct
         assert_equal "Customer with account 12345 needs help", result
       end
 
+      class ErrorTracker
+        class << self
+          def notifications = (@notifications ||= [])
+
+          def notify(error, context:, source:) = notifications << [error, context, source]
+        end
+      end
+
       def test_error_reporting_handler
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: error_reporting_handler
         # ----------------------------------------------------------
         LogStruct.configure do |config|
-          config.error_reporting_handler = T.let(->(error, context, source) {
-            # Custom error reporting logic here
-            # You could send errors to a custom service, log them specially, etc.
-            # This is just a simple example:
-
-            # Extract info from the error
-            error_class = error.class.name
-            error_message = error.message
-
-            # Log to a custom target
-            puts "[CUSTOM ERROR REPORTER] #{error_class}: #{error_message}"
-            puts "Context: #{context.inspect}"
-            puts "Backtrace: #{error.backtrace&.first(5)&.join("\n  ")}"
-          },
-            LogStruct::Handlers::ErrorReporter)
+          # Called for each error LogStruct reports, in place of Sentry, Bugsnag, Rollbar or Honeybadger.
+          # The context is filtered and scrubbed like a log line.
+          config.error_reporting_handler = ->(error, context, source) {
+            ErrorTracker.notify(error, context: context, source: source.serialize)
+          }
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: error_reporting_handler
         # ----------------------------------------------------------
 
-        # Test that the error reporter is properly set
-        assert_kind_of Proc, LogStruct.configuration.error_reporting_handler
+        error = RuntimeError.new("Test error message")
+        LogStruct.report_error(error, source: LogStruct::Source::App, context: {user_id: 123, password: "hunter2"})
 
-        # Create a test error
-        test_error = RuntimeError.new("Test error message")
-        test_context = {user_id: 123, action: "test"}
-        # Use a real Source enum value instead of a string
-        test_source = LogStruct::Source::App
+        reported_error, context, source = ErrorTracker.notifications.last
 
-        # Capture stdout to verify the error reporter works
-        stdout = capture_stdout do
-          handler = T.must(LogStruct.configuration.error_reporting_handler)
-          handler.call(test_error, test_context, test_source)
-        end
-
-        # Verify it logged the expected output
-        assert_match(/\[CUSTOM ERROR REPORTER\] RuntimeError: Test error message/, stdout)
-        # The context might be formatted differently depending on Ruby version
-        assert_includes stdout, "Context:"
-        assert_includes stdout, "user_id"
-        assert_includes stdout, "123"
-        assert_includes stdout, "action"
-        assert_includes stdout, "test"
+        assert_same error, reported_error
+        assert_equal 123, context[:user_id]
+        assert_equal({_filtered: {_class: String}}, context[:password])
+        assert_equal :app, source
+      ensure
+        ErrorTracker.notifications.clear
       end
 
-      private
+      def test_choose_error_reporter
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: choose_error_reporter
+        # ----------------------------------------------------------
+        # LogStruct reports to the first of Sentry, Bugsnag, Rollbar and Honeybadger that's loaded
+        # (with none, it logs the error). To choose one when your app loads several:
+        LogStruct::MultiErrorReporter.reporter = :bugsnag
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: choose_error_reporter
+        # ----------------------------------------------------------
 
-      # Helper to capture stdout
-      def capture_stdout
-        original_stdout = $stdout
-        $stdout = StringIO.new
-        yield
-        $stdout.string
+        assert_equal LogStruct::ErrorReporter::Bugsnag, LogStruct::MultiErrorReporter.reporter
       ensure
-        $stdout = original_stdout
+        # Detect the reporter again
+        LogStruct::MultiErrorReporter.instance_variable_set(:@reporter_impl, nil)
       end
     end
   end

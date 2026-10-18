@@ -4,6 +4,8 @@
 require "rack"
 require "action_dispatch/middleware/debug_exceptions"
 require_relative "rack_error_handler/middleware"
+require_relative "rack_error_handler/debug_exceptions_logging"
+require_relative "rack_error_handler/parse_error_logging"
 require_relative "rack_setup"
 
 module LogStruct
@@ -15,8 +17,8 @@ module LogStruct
 
       @interceptor_registered = T.let(false, T::Boolean)
 
-      # Set up structured lines for CSRF and IP spoofing errors, and for errors that get past
-      # ShowExceptions
+      # Set up structured lines for CSRF and IP spoofing errors, errors the app didn't handle, and
+      # errors that get past ShowExceptions
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)
         return nil unless RackSetup.enabled?(config)
@@ -32,6 +34,12 @@ module LogStruct
           ::ActionDispatch::DebugExceptions.register_interceptor(ErrorLines.method(:intercept))
           @interceptor_registered = true
         end
+        # An error line instead of the text Rails logs for an error the app didn't handle
+        unless ::ActionDispatch::DebugExceptions <= DebugExceptionsLogging
+          ::ActionDispatch::DebugExceptions.prepend(DebugExceptionsLogging)
+        end
+        # The size of a body Rails can't parse, instead of the body
+        ::ActionDispatch::Request.prepend(ParseErrorLogging) unless ::ActionDispatch::Request <= ParseErrorLogging
 
         true
       end

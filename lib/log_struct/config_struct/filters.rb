@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require "active_support/hash_with_indifferent_access"
+
 module LogStruct
   # A key's words, lowercase and joined by underscores, so that keys match however they're written:
   # apiKey, api-key, X-Api-Key and HTTP_X_API_KEY all contain "api_key"
@@ -36,16 +38,44 @@ module LogStruct
     # A filter that needs more than the key: Rails' entries with a dot (`card.number`) match a key by its
     # path, and Rails gives filter blocks with three arguments the parameters around the key. The path
     # starts at the line's top-level field (`["params", "card", "number"]`); `root` is that field's value,
-    # or the whole line for a top-level key.
+    # or the whole line for a top-level key, with indifferent access as Rails gives it. Building it copies
+    # every value inside it, so a matcher that doesn't read it sets uses_root to false and gets nil.
     class PathFilterMatcher < T::Struct
       extend T::Sig
 
       const :callable, T.proc.params(path: T::Array[String], value: T.untyped, root: T.untyped).returns(T::Boolean)
       const :label, String
+      const :uses_root, T::Boolean, default: true
 
       sig { params(path: T::Array[String], value: T.untyped, root: T.untyped).returns(T::Boolean) }
       def matches?(path, value, root)
-        callable.call(path, value, root)
+        root = nil unless uses_root
+        callable.call(path, value, root.is_a?(LazyRoot) ? root.value : root)
+      end
+    end
+
+    # The root a PathFilterMatcher gets, built the first time a matcher reads it
+    class LazyRoot
+      extend T::Sig
+
+      sig { params(value: T.untyped).void }
+      def initialize(value)
+        @source = value
+        @built = T.let(false, T::Boolean)
+        @value = T.let(nil, T.untyped)
+      end
+
+      # The value with indifferent access, as Rails gives filter blocks the request's parameters
+      sig { returns(T.untyped) }
+      def value
+        return @value if @built
+
+        @built = true
+        @value = begin
+          @source.is_a?(Hash) ? ActiveSupport::HashWithIndifferentAccess.new(@source) : @source
+        rescue SystemStackError, StandardError
+          @source
+        end
       end
     end
 
@@ -53,19 +83,16 @@ module LogStruct
       include Sorbet::SerializeSymbolKeys
 
       # Keys that should be filtered in nested structures such as request params and job arguments.
-      # A filtered value is replaced by a summary of it:
+      # A filtered value is replaced by a summary of it, with no length (which would say how long a
+      # secret is):
       #
-      # { _filtered: {
-      #     _class: "Hash",                # Class of the filtered value
-      #     _bytes: 1234,                  # Length as JSON (Hashes without sensitive keys, and Arrays)
-      #     _keys_count: 3,                # Number of keys in the hash
-      #     _keys: [:key1, :key2, :key3],  # First 10 keys in the hash
-      #   }
-      # }
+      # { _filtered: { _class: "Hash", _keys_count: 3, _keys: [:key1, :key2, :key3] } }  # first 10 keys
+      # { _filtered: { _class: "Array", _count: 2 } }
+      # { _filtered: { _class: "String" } }  # plus its _hash for filter_keys_with_hashes
       #
-      # A filtered String has only its _class (no length), plus its _hash for filter_keys_with_hashes.
-      #
-      # Names are matched by their words, so :api_key also filters apiKey and X-Api-Key.
+      # A key matches when its name, or its words joined by underscores (KeyWords.normalize), equal an
+      # entry: :api_key also filters apiKey and X-Api-Key, but doesn't by itself filter api_key_id (the
+      # default filter_matchers' sensitive words do).
       #
       # Default: [:password, :password_confirmation, :pass, :pw, :token, :secret, :credentials, :auth,
       #           :authentication, :authorization, :credit_card, :ssn, :social_security]
@@ -80,8 +107,8 @@ module LogStruct
           ]
         }
 
-      # Keys where string values should include a hash (see hash_salt).
-      # Useful for tracing emails across requests (e.g. sign in, sign up) while protecting privacy.
+      # Keys that are filtered like filter_keys, and whose String values also get a _hash in their summary
+      # (see hash_salt), so lines about the same person can be followed without logging the address.
       # Default: [:email, :email_address]
       prop :filter_keys_with_hashes,
         T::Array[Symbol],
@@ -111,6 +138,12 @@ module LogStruct
       # Default: true
       prop :url_query_params, T::Boolean, default: true
 
+      # Scrub the credentials after Bearer and Basic in strings (an Authorization header's value,
+      # logged as text): Bearer tokens of 16 or more characters, and Basic credentials that decode to
+      # user:password
+      # Default: true
+      prop :authorization_credentials, T::Boolean, default: true
+
       # Filter credit card numbers
       # Default: true
       prop :credit_card_numbers, T::Boolean, default: true
@@ -133,14 +166,15 @@ module LogStruct
 
       # Default pattern for sensitive keys, matched against a key's words joined by underscores
       # (KeyWords.normalize: apiKey, api-key and API_KEY are all "api_key"):
-      # - these words anywhere in the key: password, passwd, passphrase, pwd, token, secret, auth,
-      #   authorization, authentication, cred, credential, cookie, session, jwt, bearer, otp, cvv, cvc,
-      #   ssn, crypt, crypted (and their plurals): access_token, newPassword, Set-Cookie, HTTP_AUTHORIZATION
+      # - these words anywhere in the key: password, passwd, passphrase, passcode, pwd, token, secret, auth,
+      #   authorization, authentication, cred, credential, cookie, session, jwt, bearer, otp, apikey, cvv,
+      #   cvc, ssn, social_security, social_security_number, credit_card, card_number, crypt, crypted (and
+      #   their plurals): access_token, newPassword, Set-Cookie, HTTP_AUTHORIZATION, credit_card_number
       # - api_key, secret_key, private_key, access_key, encryption_key, signing_key, master_key: X-Api-Key
       # - signature, sig, salt and certificate as the last word: X-Amz-Signature (but not signature_field_id)
       # Matching whole words avoids false positives like "keyboard", "author" or "cron_key".
       DEFAULT_SENSITIVE_KEY_PATTERN = T.let(
-        /(?:\A|_)(?:passwords?|passwd|passphrases?|pwd|tokens?|secrets?|auth|authorization|authentication|creds?|credentials?|cookies?|sessions?|jwts?|bearer|otps?|cvv|cvc|ssn|crypt|crypted)(?:_|\z)|(?:\A|_)(?:api|secret|private|access|encryption|signing|master)_keys?(?:_|\z)|(?:\A|_)(?:signature|sig|salt|certificate)s?\z/,
+        /(?:\A|_)(?:passwords?|passwd|passphrases?|passcodes?|pwd|tokens?|secrets?|auth|authorization|authentication|creds?|credentials?|cookies?|sessions?|jwts?|bearer|otps?|apikeys?|cvv|cvc|ssn|social_security(?:_numbers?)?|credit_cards?|card_numbers?|crypt|crypted)(?:_|\z)|(?:\A|_)(?:api|secret|private|access|encryption|signing|master)_keys?(?:_|\z)|(?:\A|_)(?:signature|sig|salt|certificate)s?\z/,
         Regexp
       )
 

@@ -301,6 +301,31 @@ module LogStruct
       refute ParamFilters.should_filter_key?("nickname", "x")
     end
 
+    # A Hash that counts its conversions to indifferent access
+    class CountedHash < Hash
+      class << self
+        attr_accessor :conversions
+      end
+
+      def nested_under_indifferent_access
+        CountedHash.conversions += 1
+        super
+      end
+    end
+
+    def test_rails_dotted_filters_make_no_copy_of_the_line
+      with_rails_filter_parameters(["card.number"]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+      CountedHash.conversions = 0
+      items = Array.new(1_000) { CountedHash[{visible: "ordinary"}] }
+
+      Formatter.new.call(::Logger::INFO, Time.now, nil, Log::Plain.new(message: items))
+
+      # Only filter blocks with three arguments read the parameters around a key, with indifferent access
+      assert_equal 0, CountedHash.conversions
+    end
+
     # Test that development server process is DISABLED by default
     # (development is not in enabled_environments by default)
     def test_disabled_for_development_server_with_default_environments

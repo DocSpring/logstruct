@@ -25,13 +25,43 @@ env:
   TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
 
 jobs:
+  # Every other job needs this one, so a tag that doesn't match version.rb publishes nothing
   wait_ci:
-    name: Wait for CI success on tag
+    name: Validate the tag and wait for CI success
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read # to read the CI runs for the tagged commit
+    outputs:
+      version: ${{ steps.ver.outputs.version_tag }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Determine version and validate tag
+        id: ver
+        shell: bash
+        run: |
+          TAG="$TAG_NAME"
+          if [[ -z "$TAG" ]]; then
+            TAG="v0.0.0-dryrun"
+            echo "DRY-RUN: Using placeholder tag $TAG" >&2
+          fi
+          VERSION_FROM_TAG="${TAG#v}"
+          VERSION_RB=$(sed -n 's/^ *VERSION *= *"\([^"]*\)".*/\1/p' lib/log_struct/version.rb)
+          echo "version_tag=$VERSION_FROM_TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
+          if [[ -z "$VERSION_RB" ]]; then
+            echo "::error::Couldn't read VERSION from lib/log_struct/version.rb."
+            exit 1
+          fi
+          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
+            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
+            exit 1
+          fi
+
       - name: Wait for CI workflow
         env:
           GH_TOKEN: ${{ github.token }}
@@ -76,7 +106,7 @@ jobs:
       gem_file: ${{ steps.build.outputs.gem_file }}
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -87,28 +117,10 @@ jobs:
         with:
           ruby-version: '.ruby-version'
 
-      - name: Determine version and validate tag
-        id: ver
-        shell: bash
-        run: |
-          TAG="$TAG_NAME"
-          if [[ -z "$TAG" ]]; then
-            TAG="v0.0.0-dryrun"
-            echo "DRY-RUN: Using placeholder tag $TAG" >&2
-          fi
-          VERSION_FROM_TAG="${TAG#v}"
-          VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
-          echo "version_tag=$VERSION_FROM_TAG" >> "$GITHUB_OUTPUT"
-          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
-          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
-            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
-            exit 1
-          fi
-
       - name: Build gem
         id: build
         env:
-          VERSION: ${{ steps.ver.outputs.version_tag }}
+          VERSION: ${{ needs.wait_ci.outputs.version }}
         run: |
           gem build logstruct.gemspec
           ls -la ./*.gem
@@ -129,7 +141,7 @@ jobs:
           echo "gem_file=$GEM_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Upload the gem
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: gem
           path: ${{ steps.build.outputs.gem_file }}
@@ -153,7 +165,7 @@ jobs:
       id-token: write # RubyGems trusted publishing: exchanges this job's OIDC token for a short-lived API key
     steps:
       - name: Download the gem
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: gem
 
@@ -176,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -203,7 +215,7 @@ jobs:
         run: ruby scripts/export_provider_catalog.rb
 
       - name: Setup Go
-        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: '1.22'
           cache: false
@@ -229,7 +241,7 @@ jobs:
           fi
 
       - name: Upload the provider changes
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: provider-changes
           path: provider-changes.patch
@@ -244,7 +256,7 @@ jobs:
     environment: release
     steps:
       - name: Download the provider changes
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: provider-changes
 

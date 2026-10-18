@@ -37,7 +37,7 @@ end
 
 # Core Dependencies
 
-This gem requires Rails 7.0+ and will always have access to these core Rails modules:
+This gem requires Ruby 3.3+ and Rails 7.1+, and will always have access to these core Rails modules:
 
 - `::Rails`
 - `::ActiveSupport`

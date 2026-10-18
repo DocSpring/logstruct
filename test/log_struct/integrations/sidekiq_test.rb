@@ -30,6 +30,16 @@ module LogStruct
         ActiveSupport::Notifications.unsubscribe(subscriber)
       end
 
+      test "a line logged outside a job has no ctx" do
+        Sidekiq::Logger.new("Sidekiq-Server").info("Booted")
+        ::SemanticLogger.flush
+
+        line = JSON.parse(T.must(@io.string.lines.last))
+
+        assert_equal "Booted", line["msg"]
+        assert_not line.key?("ctx")
+      end
+
       test "Hashes and payloads logged through Sidekiq's logger are filtered, not turned into strings" do
         logger = Sidekiq::Logger.new("Sidekiq-Server")
         logger.info({event: "settings", password: "hunter2"})

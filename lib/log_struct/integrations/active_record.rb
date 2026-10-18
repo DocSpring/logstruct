@@ -56,7 +56,7 @@ module LogStruct
         # is enabled. We still receive notifications via ActiveSupport.
         if defined?(::ActiveRecord::LogSubscriber)
           begin
-            ::ActiveRecord::LogSubscriber.detach_from(:active_record)
+            RailsLogSubscribers.detach(::ActiveRecord::LogSubscriber, :active_record)
           rescue => e
             LogStruct.handle_exception(e, source: LogStruct::Source::Internal)
           end
@@ -291,16 +291,17 @@ module LogStruct
         end
       end
 
-      # Check if a string value looks sensitive and should be filtered
+      # Whether a String value is shaped like a secret: a token, a digest or a Bearer header. Values are
+      # filtered by their column names first; this catches binds without one. Text that mentions a
+      # password or a key isn't a secret.
       sig { params(value: String).returns(T::Boolean) }
       def self.looks_sensitive?(value)
-        # Filter very long strings that might be tokens
-        return true if value.length > 50
+        # A long value with no spaces, which might be a token
+        return true if value.length > 50 && !value.match?(/\s/)
 
         # Filter strings that look like hashed passwords, API keys, tokens
         return true if value.match?(/\A[a-f0-9]{32,}\z/i)  # MD5, SHA, etc.
         return true if value.match?(/\A[A-Za-z0-9+\/]{20,}={0,2}\z/)  # Base64
-        return true if value.match?(/(password|secret|token|key|auth)/i)
 
         # Filter JWT tokens (header.payload.signature format, starts with "ey")
         return true if value.match?(/\Aey[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\z/)

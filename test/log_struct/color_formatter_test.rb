@@ -13,7 +13,7 @@ module LogStruct
       @saved_appenders = ::SemanticLogger.appenders.dup
       @formatter = LogStruct::SemanticLogger::ColorFormatter.new
 
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ::SemanticLogger.add_appender(
         io: @io,
         formatter: @formatter,
@@ -24,8 +24,9 @@ module LogStruct
     end
 
     teardown do
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       @saved_appenders&.each { |appender| ::SemanticLogger.appenders << appender }
+      ::SemanticLogger::Logger.processor.start
     end
 
     test "colorizes LogStruct types with proper JSON structure" do
@@ -121,6 +122,27 @@ module LogStruct
       assert_not_includes result, "4111111111111111"
     end
 
+    test "filters named tags and Hash lines as the JSON lines are filtered" do
+      clear_log_buffer(@io)
+
+      @logger.tagged(password: "pr-named-tag-value", user_id: 7) do
+        @logger.info("Plain line")
+        @logger.info("Hash line", {evt: "checkout", api_key: "pr-hash-value"})
+      end
+      ::SemanticLogger.flush
+
+      result = @io.string
+
+      assert_not_includes result, "pr-named-tag-value"
+      assert_not_includes result, "pr-hash-value"
+      assert_includes result, "_filtered"
+      assert_includes result, "user_id: 7"
+      # A Hash line has the message, and the named tags in ctx, as its JSON line does
+      assert_includes result, "Hash line"
+      assert_match(/ctx: \{.*user_id: 7/m, result.gsub(/\e\[\d+m/, ""))
+      assert_not_includes result, "\n\n"
+    end
+
     test "uses custom color map when provided" do
       # Use a fresh StringIO to avoid reuse issues
       custom_io = StringIO.new
@@ -134,7 +156,7 @@ module LogStruct
       )
 
       # Update appender with custom formatter
-      ::SemanticLogger.clear_appenders!
+      clear_test_appenders
       ::SemanticLogger.add_appender(
         io: custom_io,
         formatter: custom_formatter,
@@ -157,6 +179,50 @@ module LogStruct
       assert_includes result, "test"
       assert_includes result, "count"
       assert_includes result, "42"
+    end
+
+    test "a params error's colored exception and causes leave out the input its parser quoted" do
+      parse_error = assert_raises(ActionDispatch::Http::Parameters::ParseError) do
+        JSON.parse('{"password":synthetic-raw-secret}')
+      rescue JSON::ParserError
+        raise ActionDispatch::Http::Parameters::ParseError, "Error occurred while parsing request parameters"
+      end
+
+      LogStruct::SemanticLogger::Logger.new("TestLogger").error("Sign-in failed", parse_error)
+      ::SemanticLogger.flush
+
+      assert_includes @io.string, "Error occurred while parsing request parameters"
+      assert_includes @io.string, "JSON::ParserError: (left out: it quotes the request's input)"
+      assert_not_includes @io.string, "synthetic-raw-secret"
+    end
+
+    test "a params error raised without a message keeps its class name in the colored output" do
+      error = assert_raises(ActionController::BadRequest) do
+        Rack::Utils.parse_nested_query("a" + "[a]" * 200 + "=1")
+      rescue RangeError => e
+        raise ActionController::BadRequest, "Invalid query parameters: #{e.message}"
+      end
+      cause_class = error.cause&.class&.name
+
+      LogStruct::SemanticLogger::Logger.new("TestLogger").error("Search failed", error)
+      ::SemanticLogger.flush
+
+      assert_includes @io.string, "ActionController::BadRequest: Invalid query parameters"
+      assert_includes @io.string, "Cause: #{cause_class}: #{cause_class}"
+      assert_not_includes @io.string, LogStruct::ParamsErrors::CAUSE_MESSAGE_LEFT_OUT
+    end
+
+    test "a color map changes only the colors it names" do
+      io = StringIO.new
+      clear_test_appenders
+      ::SemanticLogger.add_appender(io: io, formatter: LogStruct::SemanticLogger::ColorFormatter.new(color_map: {key: :red}), async: false)
+
+      LogStruct::SemanticLogger::Logger.new("TestLogger").info({plan: "pro", count: 42})
+      ::SemanticLogger.flush
+
+      assert_includes io.string, "\e[31mplan\e[0m"
+      assert_includes io.string, "\e[32mpro\e[0m"
+      assert_includes io.string, "\e[34m42\e[0m"
     end
 
     test "handles different data types correctly" do

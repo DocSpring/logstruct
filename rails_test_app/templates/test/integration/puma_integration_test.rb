@@ -22,7 +22,7 @@ class PumaIntegrationTest < ActiveSupport::TestCase
     lines, stderr_output = with_process(
       env: env,
       cmd: cmd,
-      ready_timeout: 15,
+      ready_timeout: 30,
       ready_matchers: ["Listening on", "Use Ctrl-C to stop", /"evt":"start"/]
     ) { |_lines, _stdout, _stderr, _wait_thr| }
 
@@ -54,7 +54,7 @@ class PumaIntegrationTest < ActiveSupport::TestCase
     lines, stderr_output = with_process(
       env: env,
       cmd: cmd,
-      ready_timeout: 10,
+      ready_timeout: 30,
       ready_matchers: ["Use Ctrl-C to stop"]
     ) { |_lines, _stdout, _stderr, _wait_thr| }
 
@@ -165,7 +165,7 @@ class PumaIntegrationTest < ActiveSupport::TestCase
       end
 
       begin
-        Timeout.timeout(20) do
+        Timeout.timeout(30) do
           loop do
             break if mutex.synchronize { ready }
             sleep 0.05

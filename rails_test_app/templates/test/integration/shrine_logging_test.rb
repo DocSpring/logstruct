@@ -50,6 +50,61 @@ class ShrineLoggingTest < ActionDispatch::IntegrationTest
     assert parsed.key?("duration_ms"), "Must have 'duration_ms' field for duration"
   end
 
+  def test_an_upload_line_leaves_out_the_original_filename
+    io = StringIO.new("hello")
+    io.define_singleton_method(:original_filename) { "Jane Doe lease.pdf" }
+
+    uploaded = DocumentUploader.upload(io, :store)
+    ::SemanticLogger.flush
+
+    assert_equal "Jane Doe lease.pdf", uploaded.original_filename
+    upload = @log_output.string.lines.map { |line| JSON.parse(line) }.find { |line| line["src"] == "shrine" && line["evt"] == "upload" }
+
+    assert_equal ["store", 5], upload&.values_at("storage", "size")
+    assert_not_includes @log_output.string, "Jane Doe"
+  end
+
+  def test_an_upload_line_leaves_out_the_file_name_in_a_content_disposition
+    disposition = %(attachment; filename="Jane Doe lease.pdf"; filename*=UTF-8''Jane%20Doe%20lease.pdf)
+
+    DocumentUploader.upload(StringIO.new("hello"), :store, upload_options: {content_disposition: disposition, cache_control: "private"})
+    ::SemanticLogger.flush
+
+    upload = @log_output.string.lines.map { |line| JSON.parse(line) }.find { |line| line["src"] == "shrine" && line["evt"] == "upload" }
+
+    assert_equal({"content_disposition" => "attachment; filename=[FILENAME]; filename*=[FILENAME]", "cache_control" => "private"}, upload&.fetch("upload_opts"))
+    assert_not_includes @log_output.string, "Jane"
+  end
+
+  def test_each_shrine_operation_logs_what_shrine_reports
+    uploaded = DocumentUploader.upload(StringIO.new("hello"), :store)
+    uploaded.exists?
+    uploaded.download.close!
+    uploaded.delete
+    ::SemanticLogger.flush
+
+    lines = @log_output.string.lines.map { |line| JSON.parse(line) }.select { |line| line["src"] == "shrine" }
+    by_event = lines.group_by { |line| line["evt"] }
+
+    upload = by_event.fetch("upload").last
+
+    assert_equal ["store", uploaded.id, 5], upload.values_at("storage", "location", "size")
+    assert_not upload.key?("filename")
+    # Shrine's metadata event has the storage and the time it took, not the metadata it extracted
+    metadata = by_event.fetch("metadata").last
+
+    assert_equal "store", metadata["storage"]
+    assert_kind_of Float, metadata["duration_ms"]
+    assert_empty metadata.keys & ["metadata", "location"]
+    # Nor does its exists event have the answer
+    exists = by_event.fetch("exist").last
+
+    assert_equal uploaded.id, exists["location"]
+    assert_not exists.key?("exist")
+    assert_equal [uploaded.id], by_event.fetch("download").map { |line| line["location"] }
+    assert_equal [uploaded.id], by_event.fetch("delete").map { |line| line["location"] }
+  end
+
   def test_shrine_log_not_wrapped_in_message_key
     get "/logging/shrine_upload"
 

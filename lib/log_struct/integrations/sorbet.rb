@@ -17,12 +17,10 @@ module LogStruct
       def self.setup(config)
         return nil unless config.integrations.enable_sorbet_error_handlers
 
-        clear_sig_error_handler!
-        install_error_handler!
-
         # Install inline type error handler
         # Called when T.let, T.cast, T.must, etc. fail
         T::Configuration.inline_type_error_handler = lambda do |error, _opts|
+          add_backtrace(error)
           LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
         end
 
@@ -30,67 +28,33 @@ module LogStruct
         # Called when method signature validation fails
         T::Configuration.call_validation_error_handler = lambda do |_signature, opts|
           error = TypeError.new(opts[:pretty_message])
+          add_backtrace(error)
           LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
         end
 
         # Install sig builder error handler
         # Called when there's a problem with a signature definition
         T::Configuration.sig_builder_error_handler = lambda do |error, _location|
+          add_backtrace(error)
           LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
         end
 
         # Install sig validation error handler
         # Called when there's a problem with a signature validation
         T::Configuration.sig_validation_error_handler = lambda do |error, _opts|
+          add_backtrace(error)
           LogStruct.handle_exception(error, source: LogStruct::Source::TypeChecking)
         end
 
         true
       end
 
-      @installed = T.let(false, T::Boolean)
-
-      class << self
-        extend T::Sig
-
-        private
-
-        sig { void }
-        def install_error_handler!
-          return if installed?
-
-          T::Configuration.sig_builder_error_handler = lambda do |error, source|
-            LogStruct.handle_exception(error, source: source, context: nil)
-          end
-
-          @installed = true
-        end
-
-        sig do
-          returns(
-            T.nilable(
-              T.proc.params(error: StandardError, location: Thread::Backtrace::Location).void
-            )
-          )
-        end
-        def clear_sig_error_handler!
-          previous_handler = T.cast(
-            T::Configuration.instance_variable_get(:@sig_builder_error_handler),
-            T.nilable(
-              T.proc.params(error: StandardError, location: Thread::Backtrace::Location).void
-            )
-          )
-          T::Configuration.sig_builder_error_handler = nil
-
-          @installed = false
-
-          previous_handler
-        end
-
-        sig { returns(T::Boolean) }
-        def installed?
-          @installed
-        end
+      # Starts the error's backtrace at the code that failed, below sorbet-runtime's frames (and this file's).
+      # sorbet-runtime passes some errors without raising them, which have no backtrace at all.
+      sig { params(error: Exception).void }
+      def self.add_backtrace(error)
+        frames = error.backtrace || caller
+        error.set_backtrace(frames.drop_while { |frame| frame.include?(__FILE__) || frame.include?("sorbet-runtime") })
       end
     end
   end

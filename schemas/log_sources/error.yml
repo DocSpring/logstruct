@@ -20,3 +20,13 @@ events:
       Backtrace:
         type: 'T::Array[String]'
         required: false
+      # An error the app didn't handle in a request: the response's status, and the error's cause
+      Status:
+        type: Integer
+        required: false
+      CauseClass:
+        type: String
+        required: false
+      CauseMessage:
+        type: String
+        required: false

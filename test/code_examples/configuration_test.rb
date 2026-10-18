@@ -11,14 +11,20 @@ module LogStruct
         # BEGIN CODE EXAMPLE: basic_configuration
         # ----------------------------------------------------------
         LogStruct.configure do |config|
-          # your configuration here
+          # Filter these keys too, on top of LogStruct's defaults and Rails' filter_parameters
+          config.filters.filter_keys += [:date_of_birth]
+
+          # Log SQL queries slower than 100 ms (off by default)
+          config.integrations.enable_sql_logging = true
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: basic_configuration
         # ----------------------------------------------------------
 
-        # Simply assert that we can configure LogStruct
-        assert_instance_of LogStruct::Configuration, LogStruct.configuration
+        assert_includes LogStruct.config.filters.filter_keys, :date_of_birth
+        assert_includes LogStruct.config.filters.filter_keys, :password
+        assert LogStruct.config.integrations.enable_sql_logging
+        assert_in_delta 100.0, LogStruct.config.integrations.sql_slow_query_threshold
       end
 
       def test_environment_configuration
@@ -26,11 +32,11 @@ module LogStruct
         # BEGIN CODE EXAMPLE: environment_configuration
         # ----------------------------------------------------------
         LogStruct.configure do |config|
+          # The environments where LogStruct switches on for the processes it recognizes (the default)
           config.enabled_environments = [:test, :production]
 
-          # LogStruct will raise errors in local environments,
-          # and log or report errors in production.
-          # (This can be configured with config.error_handling_modes)
+          # The environments where the LogProduction and ReportProduction error modes raise instead
+          # of logging, and where LogStruct also writes Rails' log file (the default)
           config.local_environments = [:development, :test]
         end
         # ----------------------------------------------------------
@@ -42,12 +48,59 @@ module LogStruct
         assert_equal [:development, :test], LogStruct.configuration.local_environments
       end
 
+      def test_enable_in_development
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: enable_in_development
+        # ----------------------------------------------------------
+        LogStruct.configure do |config|
+          # config.enabled applies to every process that loads this initializer, in every
+          # environment, so limit it to the environment you mean
+          config.enabled = true if Rails.env.development?
+        end
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: enable_in_development
+        # ----------------------------------------------------------
+
+        # The test app runs in test, where LogStruct is already on
+        assert LogStruct.config.enabled
+      end
+
+      def test_logger_settings
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: logger_settings
+        # ----------------------------------------------------------
+        LogStruct.configure do |config|
+          # In development (when LogStruct is on there), write the same JSON as production (the
+          # default). Set it to false for colored, pretty-printed lines instead.
+          config.prefer_json_in_development = true
+          config.enable_color_output = true
+
+          # The colors for those lines. Types you leave out keep their default color.
+          config.color_map = {key: :yellow, string: :green, number: :blue, bool: :magenta, nil: :red, name: :cyan}
+
+          # Leave out the lines from ActionView, ActionController::RoutingError and
+          # ActiveRecord::SchemaMigration (off by default)
+          config.filter_noisy_loggers = false
+        end
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: logger_settings
+        # ----------------------------------------------------------
+
+        config = LogStruct.config
+
+        assert config.prefer_json_in_development
+        assert config.enable_color_output
+        assert_equal :yellow, config.color_map&.fetch(:key)
+        refute config.filter_noisy_loggers
+      end
+
       def test_integrations_configuration
         # ----------------------------------------------------------
         # BEGIN CODE EXAMPLE: integrations_configuration
         # ----------------------------------------------------------
         LogStruct.configure do |config|
-          # Enable/disable specific integrations
+          # Turn integrations on or off. These are the defaults: every integration is on, except SQL
+          # logging. An integration does nothing unless its gem is loaded.
           config.integrations.enable_actionmailer = true
           config.integrations.enable_active_model_serializers = true
           config.integrations.enable_activejob = true
@@ -59,24 +112,37 @@ module LogStruct
           config.integrations.enable_host_authorization = true
           config.integrations.enable_lograge = true
           config.integrations.enable_rack_error_handler = true
-          config.integrations.enable_semantic_logger = true
           config.integrations.enable_shrine = true
           config.integrations.enable_sidekiq = true
           config.integrations.enable_puma = true
           config.integrations.enable_sorbet_error_handlers = true
-          config.integrations.enable_sql_logging = true
-
-          # Configure custom options for Lograge
-          config.integrations.lograge_custom_options = ->(event, _) {
-            {
-              # Add custom fields to your Lograge output
-              user_id: event.payload[:user_id],
-              correlation_id: event.payload[:correlation_id]
-            }
-          }
+          # Logs queries slower than sql_slow_query_threshold, in place of Rails' own SQL lines
+          config.integrations.enable_sql_logging = false
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: integrations_configuration
+        # ----------------------------------------------------------
+
+        # ----------------------------------------------------------
+        # BEGIN CODE EXAMPLE: integration_settings
+        # ----------------------------------------------------------
+        LogStruct.configure do |config|
+          # Add fields to request lines (see "Custom Lograge Options" below). Default: nil
+          config.integrations.lograge_custom_options = ->(event, _options) { {user_id: event.payload[:user_id]} }
+
+          # The mailer instance variables whose IDs are logged on mail lines. Default:
+          config.integrations.actionmailer_id_mapping = {account: :account_id, user: :user_id}
+
+          # With SQL logging on, log queries that take at least this many milliseconds (0 or nil logs
+          # every query). Default: 100.0
+          config.integrations.sql_slow_query_threshold = 100.0
+
+          # Log SQL queries' bind values, filtered by column name. Default: false in production, true
+          # elsewhere
+          config.integrations.sql_log_bind_params = !Rails.env.production?
+        end
+        # ----------------------------------------------------------
+        # END CODE EXAMPLE: integration_settings
         # ----------------------------------------------------------
 
         LogStruct.configure do |config|
@@ -107,7 +173,11 @@ module LogStruct
         assert LogStruct.configuration.integrations.enable_sidekiq
         assert LogStruct.configuration.integrations.enable_sorbet_error_handlers
 
-        # Verify the lograge custom options proc is set
+        # The example shows the defaults
+        defaults = LogStruct::ConfigStruct::Integrations.new
+
+        assert_equal defaults.serialize.except(:lograge_custom_options),
+          LogStruct.configuration.integrations.serialize.except(:lograge_custom_options)
         assert_kind_of Proc, LogStruct.configuration.integrations.lograge_custom_options
       end
 
@@ -117,10 +187,12 @@ module LogStruct
         # ----------------------------------------------------------
         LogStruct.configure do |config|
           # Filter more keys, as well as the defaults (password, token, secret, credentials, auth, ...).
-          # Keys match by their words, so :account_number also filters accountNumber and Account-Number.
+          # Keys match by their words, so :account_number also filters accountNumber and
+          # Account-Number, but not longer keys like account_number_last4.
           config.filters.filter_keys += [:account_number, :routing_number]
 
-          # Log a hash of these values instead of only filtering them (default: email, email_address)
+          # Filter these keys too, and log a hash of their values, so lines about the same value can
+          # be found (default: email, email_address)
           config.filters.filter_keys_with_hashes += [:username]
 
           # Sensitive data in every string
@@ -132,6 +204,7 @@ module LogStruct
           config.filters.ssns = true                 # Filter social security numbers
           config.filters.url_passwords = true        # Filter passwords in URLs
           config.filters.url_query_params = true     # Filter sensitive params in URLs (?token=...)
+          config.filters.authorization_credentials = true # Bearer tokens and Basic credentials in text
 
           # More rules for key names, beside the default pattern for sensitive keys
           config.filters.filter_matchers << LogStruct::ConfigStruct::FilterMatcher.new(
@@ -141,9 +214,11 @@ module LogStruct
 
           # Rules that need a key's path from the line's top-level field, or the parameters around it.
           # Rails' dotted filter_parameters (like "card.number") become path matchers at boot.
+          # uses_root: false for a rule that doesn't read the parameters, so they aren't copied for it.
           config.filters.path_matchers << LogStruct::ConfigStruct::PathFilterMatcher.new(
             callable: ->(path, _value, _root) { path.last(2) == ["bank", "number"] },
-            label: "bank account numbers"
+            label: "bank account numbers",
+            uses_root: false
           )
 
           # The HMAC key for hashed values. Default: a key derived from the Rails app's secret_key_base
@@ -172,6 +247,9 @@ module LogStruct
         assert_includes filters.filter_matchers.map(&:label), "default_sensitive_pattern"
         assert_includes filters.filter_matchers.map(&:label), "internal prefix"
         assert LogStruct::ParamFilters.should_filter_key?("accountNumber")
+        refute LogStruct::ParamFilters.should_filter_key?("account_number_last4")
+        assert LogStruct::ParamFilters.should_filter_key?("username")
+        assert LogStruct::ParamFilters.should_include_string_hash?("username")
         assert LogStruct::ParamFilters.should_filter_key?("internal_note")
         assert LogStruct::ParamFilters.should_filter_key?("number", "1", path: ["params", "bank", "number"])
         assert_equal 16, filters.hash_length
@@ -185,15 +263,15 @@ module LogStruct
           # How much of each logged value is written (the defaults)
           config.limits.max_hash_keys = 100           # The rest are counted in _more_keys
           config.limits.max_array_items = 10          # Followed by "... and N more items"
-          config.limits.max_backtrace_lines = 100     # Arrays that look like backtraces
+          config.limits.max_backtrace_lines = 20      # Arrays that look like backtraces
           config.limits.max_string_bytes = 32_768     # Longer strings are cut, and say how long they were
         end
         # ----------------------------------------------------------
         # END CODE EXAMPLE: limits_configuration
         # ----------------------------------------------------------
 
-        assert_equal 100, LogStruct.config.limits.max_hash_keys
-        assert_equal 32_768, LogStruct.config.limits.max_string_bytes
+        # The example shows the defaults
+        assert_equal LogStruct::ConfigStruct::Limits.new.serialize, LogStruct.config.limits.serialize
       end
 
       def test_error_handling_modes

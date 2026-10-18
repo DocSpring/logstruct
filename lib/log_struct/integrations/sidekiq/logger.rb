@@ -32,6 +32,8 @@ module LogStruct
             next super(message, payload, &block) if payload.is_a?(Exception)
 
             msg = message || (block ? block.call.to_s : "")
+            # Lines logged outside a job have no context
+            context = ::Sidekiq::Context.current
 
             # Create a Sidekiq log struct with the message
             log_struct = Log::Sidekiq::Log.new(
@@ -42,7 +44,7 @@ module LogStruct
               thread_id: Sidekiq.tid,
               # Log a copy: SemanticLogger may still be serializing the struct on its appender
               # thread when Sidekiq adds :elapsed to the live context after the job finishes.
-              context: (::Sidekiq::Context.current || {}).dup,
+              context: context.blank? ? nil : context.dup,
               additional_data: payload.is_a?(Hash) ? payload : nil
             )
 

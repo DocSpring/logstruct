@@ -1,259 +1,233 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { CodeBlock } from '@/components/code-block';
 import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
+import { RubyCodeExample } from '@/components/ruby-code-example';
 import { Callout } from '@/components/ui/callout';
 
 export const metadata: Metadata = {
-  title: 'SOC 2 Compliance | LogStruct',
+  title: 'SOC 2 and Your Logs | LogStruct',
   description:
-    'How LogStruct helps companies meet SOC 2 compliance requirements through type-safe, accurate logging with comprehensive sensitive data protection.',
+    'What LogStruct does for the logs a SOC 2 audit looks at, where it stops, and what your app still has to do.',
 };
 
 export default function SOC2CompliancePage() {
   return (
     <div className="space-y-6">
       <HeadingWithAnchor id="soc2-compliance" level={1}>
-        SOC 2 Compliance
+        SOC 2 and Your Logs
       </HeadingWithAnchor>
       <p className="text-lg text-neutral-600 dark:text-neutral-300">
-        LogStruct is designed to help companies meet SOC 2 compliance requirements through
-        type-safe, accurate logging with comprehensive sensitive data protection.
+        SOC 2 auditors look at how you record what happens in your systems and how you protect the
+        data in those records. LogStruct can help with part of that: it writes consistent JSON
+        lines, and it filters common secrets and personal data out of them. It doesn&apos;t make an
+        app compliant, and this page isn&apos;t audit advice. It says what LogStruct does, where it
+        stops, and what your app still has to do.
       </p>
 
-      <HeadingWithAnchor id="why-logging-matters-for-soc2" level={2}>
-        Why Logging Matters for SOC 2
+      <HeadingWithAnchor id="what-logstruct-does">What LogStruct Does</HeadingWithAnchor>
+
+      <HeadingWithAnchor id="consistent-lines" level={3}>
+        Consistent lines
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        SOC 2 audits require organizations to demonstrate robust security controls and incident
-        response capabilities. Logging plays a critical role in two key areas:
-      </p>
-
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          <strong>Forensic Analysis</strong> - Logs must be accurate and reliable for investigating
-          security incidents and breaches
+          In production, every line LogStruct writes is one JSON object with the same keys for the
+          same things: <code>src</code> and <code>evt</code> say what happened, <code>lvl</code> and{' '}
+          <code>ts</code> its level and time, and <code>req_id</code> ties a request&apos;s lines
+          together (see{' '}
+          <Link href="/docs/log-fields" className="underline">
+            Log Fields
+          </Link>
+          ). You can search and alert on them in your log platform without parsing text.
         </li>
         <li>
-          <strong>Data Privacy</strong> - Logs must not contain sensitive customer data that could
-          violate privacy requirements
+          LogStruct&apos;s own lines (requests, jobs, mail, security events, errors) are built from
+          Sorbet-typed structs. A field with the wrong type raises an error in development and test,
+          so a test that runs that code fails. In production the type error is logged and reported
+          (the <code>type_checking_errors</code> mode, <code>ReportProduction</code> by default),
+          and the line is still written with the value it was given. Hashes and strings you log, the
+          message of a <code>Log::Plain</code> and <code>additional_data</code> aren&apos;t
+          type-checked.
+        </li>
+        <li>
+          Security events have their own lines (<code>src</code> <code>security</code>): requests to
+          hosts Rails blocks, invalid CSRF tokens and IP spoofing errors (see{' '}
+          <Link href="/docs/integrations/security" className="underline">
+            Security
+          </Link>
+          ).
+        </li>
+        <li>
+          Request lines don&apos;t say which user made a request unless you add it, for example a{' '}
+          <code>user_id</code> with{' '}
+          <Link href="/docs/configuration#custom-lograge-options" className="underline">
+            custom Lograge options
+          </Link>
+          .
         </li>
       </ul>
 
-      <p className="text-neutral-600 dark:text-neutral-300 mb-6">
-        LogStruct addresses both requirements by ensuring log accuracy through type safety and
-        protecting sensitive data through comprehensive filtering.
-      </p>
-
-      <HeadingWithAnchor id="type-safe-logs-for-forensics" level={2}>
-        Type-Safe Logs for Forensic Analysis
+      <HeadingWithAnchor id="filtering" level={3}>
+        Filtering and scrubbing
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct guarantees that your logs contain only known, expected values by enforcing strict
-        type checking at runtime. If any value in your logs has the wrong type, your integration
-        tests will immediately fail with a clear error.
+      <p className="text-neutral-600 dark:text-neutral-300">
+        LogStruct filters each line before it writes it, by key and by pattern (details in{' '}
+        <Link href="/docs/filtering-sensitive-data" className="underline">
+          Filtering Sensitive Data
+        </Link>
+        ):
       </p>
-
-      <Callout type="success">
-        <strong>Catch bugs before production:</strong> Type errors in logs are caught in your test
-        suite, not in production where they could compromise forensic investigations.
-      </Callout>
-
-      <HeadingWithAnchor id="sensitive-data-protection" level={2}>
-        Sensitive Data Protection
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct provides powerful filtering capabilities enabled by default to keep sensitive data
-        out of your logs while preserving the information needed for debugging and request tracing.
-      </p>
-
-      <HeadingWithAnchor id="what-gets-filtered" level={3}>
-        What Gets Filtered
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct automatically filters common sensitive fields including:
-      </p>
-
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
-        <li>Passwords, tokens, API keys, cookies and sessions, filtered by their key names</li>
-        <li>Credit card numbers, CVV codes and social security numbers</li>
-        <li>Email addresses, phone numbers and passwords in URLs, scrubbed out of every string</li>
-        <li>Sensitive query params in URLs, such as reset tokens and OAuth codes</li>
-        <li>Any custom sensitive fields you configure</li>
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
+        <li>
+          <strong>Keys.</strong> A value under a sensitive key name (passwords, tokens, secrets, API
+          keys, cookies, sessions, authorization headers, card numbers, social security numbers and
+          the like), or a key in Rails&apos; <code>filter_parameters</code> or your{' '}
+          <code>filter_keys</code>, is replaced by a summary: its class, plus a Hash&apos;s key
+          count and first 10 keys or an Array&apos;s item count. <code>email</code> and{' '}
+          <code>email_address</code> values get a hash of the address too.
+        </li>
+        <li>
+          <strong>Strings.</strong> In every string, LogStruct replaces email addresses with{' '}
+          <code>[EMAIL:&lt;hash&gt;]</code>, and scrubs passwords in URLs, sensitive URL query
+          params (<code>?token=</code>, OAuth&apos;s <code>?code=</code>), the credentials after{' '}
+          <code>Bearer</code> and <code>Basic</code>, card numbers that pass the Luhn check, US
+          phone numbers and social security numbers written like <code>123-45-6789</code> or{' '}
+          <code>123 45 6789</code>. IP and MAC addresses are scrubbed only if you turn that on.
+        </li>
       </ul>
-
-      <HeadingWithAnchor id="smart-filtering-preserves-context" level={3}>
-        Smart Filtering Preserves Context
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        Unlike simple redaction that removes all information, LogStruct preserves valuable context
-        for debugging:
-      </p>
-
+      <p className="text-neutral-600 dark:text-neutral-300">For example, this line:</p>
+      <RubyCodeExample name="soc2_filtered_line" />
+      <p className="text-neutral-600 dark:text-neutral-300">is written as:</p>
       <CodeBlock language="json">
         {`{
-  "email": "[EMAIL:a1b2c3d4e5f6a7b8]",  // The same hash for the same address
+  "msg": "Password reset requested",
+  "email": {
+    "_filtered": {
+      "_class": "String",
+      "_hash": "0d68e00d48aadbd7"
+    }
+  },
+  "note": "Reset link sent to [EMAIL:0d68e00d48aadbd7]",
   "credentials": {
     "_filtered": {
       "_class": "Hash",
-      "_keys_count": 2,  // How much was filtered, without the values
-      "_keys": ["username", "password"]
+      "_keys_count": 2,
+      "_keys": [
+        "username",
+        "password"
+      ]
     }
-  }
+  },
+  "reset_url": "https://app.example.com/reset?token=[FILTERED]&step=2",
+  "card": "[CREDIT_CARD]",
+  "name": "Jo Smith",
+  "src": "app",
+  "evt": "log",
+  "ts": "2026-10-17T05:20:38.341+00:00",
+  "lvl": "info",
+  "prog": "Rails"
 }`}
       </CodeBlock>
-
-      <HeadingWithAnchor id="deterministic-hashes" level={4}>
-        Deterministic Email Hashes
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        For email addresses, LogStruct logs a deterministic hash (an HMAC keyed with your app&apos;s{' '}
-        <code>secret_key_base</code>, or with <code>hash_salt</code>) that allows you to:
+      <p className="text-neutral-600 dark:text-neutral-300">
+        The name is logged as it is: nothing matches it.
       </p>
 
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
-        <li>
-          <strong>Trace requests across services</strong> - The same email always produces the same
-          hash in one app, and in every app that sets the same <code>hash_salt</code>
-        </li>
-        <li>
-          <strong>Correlate user actions</strong> - Follow a user&apos;s journey without exposing
-          their email
-        </li>
-        <li>
-          <strong>Debug user-specific issues</strong> - Identify patterns for a specific user using
-          their hash
-        </li>
-      </ul>
-
-      <HeadingWithAnchor id="filtered-type-information" level={4}>
-        Filtered Type Information
+      <HeadingWithAnchor id="email-hashes" level={3}>
+        Email hashes
       </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        Knowing the type of filtered data helps with debugging:
+      <p className="text-neutral-600 dark:text-neutral-300">
+        The hash is an HMAC-SHA256, keyed with <code>config.filters.hash_salt</code> or, by default,
+        with a key derived from your app&apos;s <code>secret_key_base</code>. An address gets the
+        same hash however it&apos;s capitalized, under a key or inside a string, so you can follow
+        one person&apos;s lines without logging their address. The hashes change when the key
+        changes. Anyone with the key and a list of addresses can match them to the hashes, so a
+        hashed address is still personal data (a pseudonym), and the key must stay secret.
       </p>
 
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
+      <HeadingWithAnchor id="where-it-stops">Where It Stops</HeadingWithAnchor>
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          <strong>_class</strong> - Shows whether it was a String, Hash, Array, etc.
+          <strong>Only where LogStruct is on.</strong> By default it&apos;s on in production only in
+          the web servers and job runners it recognizes, and never in a console. Rake tasks,{' '}
+          <code>rails runner</code> and job runners it doesn&apos;t recognize (Solid Queue&apos;s{' '}
+          <code>bin/jobs</code>, for example) use Rails&apos; own logger, with no filtering, unless
+          you set <code>LOGSTRUCT_ENABLED=true</code> for them (see{' '}
+          <Link href="/docs/when-logstruct-runs" className="underline">
+            When LogStruct Runs
+          </Link>
+          ).
         </li>
         <li>
-          <strong>_keys_count</strong> and <strong>_keys</strong> - For Hashes, how many keys were
-          filtered and the first 10 of them
+          <strong>Only the lines LogStruct writes.</strong> Filtering happens in LogStruct&apos;s
+          formatter. An appender you add to SemanticLogger with another formatter gets the values
+          unfiltered, and so does a subscriber to LogStruct&apos;s <code>log.logstruct</code>{' '}
+          notifications. Output that doesn&apos;t go through Rails&apos; logger (<code>puts</code>,
+          a gem with its own logger) isn&apos;t filtered either.
         </li>
         <li>
-          <strong>_count</strong> - For Arrays, how many items were filtered
+          <strong>Only what its keys and patterns match.</strong> Everything else is logged in full:
+          names, postal addresses, dates of birth, free text, phone numbers outside the US formats,
+          secrets in formats it doesn&apos;t know (an API key in a sentence), and numbers. A card
+          number logged as an Integer isn&apos;t scrubbed. A <code>_filtered</code> summary shows
+          that one value was filtered, not that nothing else got through.
         </li>
         <li>
-          <strong>_hash</strong> - Deterministic hash for correlation (email addresses, and any keys
-          you add to <code>filter_keys_with_hashes</code>)
-        </li>
-      </ul>
-
-      <HeadingWithAnchor id="soc2-audit-benefits" level={2}>
-        Benefits for SOC 2 Audits
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct helps satisfy multiple SOC 2 trust service criteria:
-      </p>
-
-      <HeadingWithAnchor id="security-availability" level={3}>
-        Security & Availability (CC6.1, CC7.2)
-      </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
-        <li>
-          <strong>Incident detection</strong> - Type-safe logs ensure reliable security monitoring
-          and alerting
+          <strong>Error reports.</strong> When LogStruct reports an error, it filters the context it
+          adds, but the exception goes to Sentry, Bugsnag, Rollbar, Honeybadger or your handler as
+          it is, message and backtrace included. Errors your error tracker catches itself don&apos;t
+          go through LogStruct at all.
         </li>
         <li>
-          <strong>Forensic analysis</strong> - Accurate, structured logs enable effective incident
-          investigation
-        </li>
-        <li>
-          <strong>Audit trails</strong> - Consistent log format makes it easy to track system
-          activities
+          <strong>Storage and alerts.</strong> LogStruct writes lines to STDOUT in production. It
+          doesn&apos;t store, ship, rotate, sign or delete them. Apart from the errors it reports to
+          your error tracker, it doesn&apos;t alert anyone.
         </li>
       </ul>
 
-      <HeadingWithAnchor id="confidentiality" level={3}>
-        Confidentiality (CC6.6)
-      </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
+      <HeadingWithAnchor id="what-your-app-does">What Your App Still Has to Do</HeadingWithAnchor>
+      <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          <strong>Data protection</strong> - Automatic filtering prevents sensitive data from
-          entering logs
+          Ship the lines from STDOUT to a log platform, and set its retention, access control and
+          protection against changes or deletion there (see{' '}
+          <Link href="/docs/logging" className="underline">
+            Logging to STDOUT
+          </Link>
+          ).
         </li>
         <li>
-          <strong>On by default</strong> - Filtering and scrubbing apply to every line without any
-          setup
+          Set up alerts in that platform, for example on <code>src</code> <code>security</code> or{' '}
+          <code>lvl</code> <code>error</code> lines.
         </li>
         <li>
-          <strong>Audit evidence</strong> - Clear filtering metadata demonstrates data protection
-          controls
-        </li>
-      </ul>
-
-      <HeadingWithAnchor id="privacy" level={3}>
-        Privacy (P3.1, P3.2)
-      </HeadingWithAnchor>
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
-        <li>
-          <strong>PII protection</strong> - Email addresses, phone numbers and other PII are
-          filtered or scrubbed automatically
+          Turn LogStruct on in every kind of process you run in production, including Rake tasks and
+          job runners it doesn&apos;t recognize.
         </li>
         <li>
-          <strong>Retention</strong> - Filtered logs hold far less personal data. Hashed emails are
-          still pseudonymous personal data, and scrubbing works by pattern, so keep your usual
-          retention limits
-        </li>
-        <li>
-          <strong>Data minimization</strong> - Only necessary debugging metadata is preserved
-        </li>
-      </ul>
-
-      <HeadingWithAnchor id="getting-started" level={2}>
-        Getting Started
-      </HeadingWithAnchor>
-      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct&apos;s security features work out of the box with zero configuration. For more
-        details on customizing filtering rules, see:
-      </p>
-
-      <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
-        <li>
-          <a
-            href="/docs/filtering-sensitive-data"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Filtering Sensitive Data
-          </a>{' '}
-          - Comprehensive guide to filtering configuration
-        </li>
-        <li>
-          <a href="/docs/sorbet-types" className="text-blue-600 dark:text-blue-400 hover:underline">
-            Sorbet Types
-          </a>{' '}
-          - Learn more about type safety in logs
-        </li>
-        <li>
-          <a
-            href="/docs/configuration"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
+          Read the lines your app writes for its main flows, with LogStruct on, and add what the
+          defaults miss: your own keys to <code>filter_keys</code>, a{' '}
+          <code>string_scrubbing_handler</code> for your own formats, and the IP address scrubber if
+          you mustn&apos;t keep IP addresses (see{' '}
+          <Link href="/docs/configuration#filtering-sensitive-data" className="underline">
             Configuration
-          </a>{' '}
-          - General configuration options
+          </Link>
+          ).
+        </li>
+        <li>Configure your error tracker&apos;s own data scrubbing for exception messages.</li>
+        <li>
+          Keep <code>secret_key_base</code> (or <code>hash_salt</code>) secret, and treat hashed
+          addresses as personal data in your retention and deletion policies.
         </li>
       </ul>
 
       <Callout type="info">
-        <strong>Need help with SOC 2?</strong> LogStruct is used by companies that have passed SOC 2
-        audits. If you have any questions or concerns about compliance, please{' '}
+        Questions about LogStruct and compliance are welcome on{' '}
         <a
           href="https://github.com/DocSpring/logstruct/issues"
           className="text-blue-600 dark:text-blue-400 hover:underline"
         >
-          reach out on GitHub
+          GitHub
         </a>
         .
       </Callout>

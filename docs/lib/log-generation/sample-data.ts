@@ -109,44 +109,67 @@ export const SampleData = {
     'invoice',
     'notification',
   ],
-  ERROR_TYPES: ['NoMethodError', 'ArgumentError', 'RuntimeError', 'TypeError', 'NameError'],
-  ERROR_MESSAGES: [
-    'undefined method for nil:NilClass',
-    'wrong number of arguments (given 2, expected 1)',
-    'unexpected token',
-    'invalid value for Integer()',
-    'uninitialized constant',
-    'timeout error connecting to service',
-    'database connection failed',
-  ],
-  STATUS_CODES: [200, 201, 204, 301, 302, 400, 401, 403, 404, 422, 500],
+  STATUS_CODES: [200, 200, 200, 201, 204, 301, 302, 304, 400, 401, 403, 404, 422, 500],
   FILE_TYPES: ['image/jpeg', 'image/png', 'application/pdf', 'text/csv', 'text/plain'],
   FILE_NAMES: ['profile.jpg', 'document.pdf', 'report.csv', 'data.xlsx', 'avatar.png'],
   STORAGE_SERVICES: ['s3', 'google', 'cloud_storage', 'disk', 'local'],
-  IP_ADDRESSES: ['192.168.1.1', '10.0.0.123', '172.16.254.1', '8.8.8.8', '1.1.1.1'],
+  // The ranges set aside for documentation
+  IP_ADDRESSES: ['203.0.113.7', '198.51.100.23', '192.0.2.44', '203.0.113.81'],
+  // Test card numbers, which pass the Luhn check
+  TEST_CARD_NUMBERS: ['4111 1111 1111 1111', '5555 5555 5555 4444', '3782 822463 10005'],
+  // cspell:ignore KHTML YJIT
+  USER_AGENTS: [
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1',
+  ],
+  SIDEKIQ_WORKERS: ['InvoiceSyncWorker', 'WebhookDeliveryWorker', 'SearchIndexWorker'],
   BACKTRACE_LINES: [
-    "app/models/user.rb:45:in `process_data'",
-    "app/controllers/accounts_controller.rb:78:in `update'",
-    "app/services/authentication_service.rb:32:in `authenticate'",
-    "app/jobs/report_generation_job.rb:56:in `perform'",
-    "lib/data_processor.rb:123:in `process'",
-    "app/models/order.rb:67:in `calculate_total'",
-    "app/helpers/formatting_helper.rb:19:in `format_currency'",
-    "app/services/notification_service.rb:88:in `send_email'",
-    "lib/validators/email_validator.rb:27:in `validate'",
-    "app/models/product.rb:92:in `update_inventory'",
-    "app/controllers/api/v1/sessions_controller.rb:41:in `create'",
-    "lib/payment_gateway.rb:134:in `process_payment'",
-    "app/models/subscription.rb:76:in `renew'",
-    "app/workers/import_worker.rb:58:in `perform'",
-    "app/services/search_service.rb:112:in `execute_query'",
+    "app/models/user.rb:45:in 'process_data'",
+    "app/controllers/accounts_controller.rb:78:in 'update'",
+    "app/services/authentication_service.rb:32:in 'authenticate'",
+    "app/jobs/report_generation_job.rb:56:in 'perform'",
+    "lib/data_processor.rb:123:in 'process'",
+    "app/models/order.rb:67:in 'calculate_total'",
+    "app/helpers/formatting_helper.rb:19:in 'format_currency'",
+    "app/services/notification_service.rb:88:in 'send_email'",
+    "lib/validators/email_validator.rb:27:in 'validate'",
+    "app/models/product.rb:92:in 'update_inventory'",
+    "app/controllers/api/v1/sessions_controller.rb:41:in 'create'",
+    "lib/payment_gateway.rb:134:in 'process_payment'",
+    "app/models/subscription.rb:76:in 'renew'",
+    "app/workers/import_worker.rb:58:in 'perform'",
+    "app/services/search_service.rb:112:in 'execute_query'",
   ],
 };
 
 import { LogField } from '@/generated/logstruct/enums';
 export type AdditionalData = Record<string, unknown>;
+// LogStruct writes times with the UTC offset of the server's time zone: +00:00 on a server in UTC
+const withUtcOffset = (iso: string): string => iso.replace(/Z$/, '+00:00');
+
+// The clock the generated types' constructors read when they're given no timestamp
+let clock: () => number = () => Date.now();
+
+/** The time now, as LogStruct writes ts on a server whose time zone is UTC (the generated types' default) */
 export function isoNow(): string {
-  return new Date().toISOString();
+  return withUtcOffset(new Date(clock()).toISOString());
+}
+
+/** Runs fn with isoNow reading the given clock */
+export function withClock<T>(now: () => number, fn: () => T): T {
+  const saved = clock;
+  clock = now;
+  try {
+    return fn();
+  } finally {
+    clock = saved;
+  }
+}
+
+/** A time (milliseconds since the epoch), as LogStruct writes every time in a line: like ts */
+export function isoAt(epochMs: number): string {
+  return withUtcOffset(new Date(epochMs).toISOString());
 }
 
 export interface RandomGen {
@@ -154,14 +177,19 @@ export interface RandomGen {
   randomFloat(min: number, max: number, decimals?: number): number;
   randomHex(length: number): string;
   sample<T>(arr: T[]): T;
+  isoNow(): string;
 }
 
 export const SampleHelpers = {
   duration: (gen: RandomGen) => gen.randomFloat(1, 2000),
   hex8: (gen: RandomGen) => gen.randomHex(8),
+  uuid: (gen: RandomGen) =>
+    `${gen.randomHex(8)}-${gen.randomHex(4)}-4${gen.randomHex(3)}-${gen.sample(['8', '9', 'a', 'b'])}${gen.randomHex(3)}-${gen.randomHex(12)}`,
+  // Sidekiq's job IDs
+  jid: (gen: RandomGen) => gen.randomHex(24),
   httpMethod: (gen: RandomGen) => gen.sample(['GET', 'POST', 'PUT', 'DELETE']),
   path: (gen: RandomGen) => `/api/${gen.randomInt(1, 100)}`,
-  status: (gen: RandomGen) => gen.randomInt(200, 599),
+  status: (gen: RandomGen) => gen.sample(SampleData.STATUS_CODES),
   queue: (gen: RandomGen) => gen.sample(['default', 'mailers', 'critical', 'low']),
   email: (gen: RandomGen) => `user${gen.randomInt(1, 999)}@example.com`,
   emailArray: (gen: RandomGen) => [`user${gen.randomInt(1, 999)}@example.com`],
@@ -169,14 +197,20 @@ export const SampleHelpers = {
   mime: (gen: RandomGen) => gen.sample(['text/plain', 'image/png', 'application/json']),
   url: (_gen: RandomGen) => 'https://example.com/file',
   ip: (gen: RandomGen) => gen.sample(['127.0.0.1', '10.0.0.1', '192.168.1.1']),
-  threadId: (gen: RandomGen) => `thread-${gen.randomHex(4)}`,
+  // Sidekiq and LogStruct's GoodJob logger write thread IDs in base 36
+  threadId: (gen: RandomGen) => gen.randomInt(46656, 1679615).toString(36),
   processId: (gen: RandomGen) => gen.randomInt(1000, 99999),
   errClass: (gen: RandomGen) => gen.sample(['RuntimeError', 'ArgumentError', 'TimeoutError']),
   name: (gen: RandomGen) => gen.sample(['User Load', 'Project Load', 'Order Load']),
   sql: (_gen: RandomGen) => 'SELECT 1',
 } as const;
 
-export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unknown>> = {
+// LogFields whose fields the schemas removed (the enum keeps them), so they need no sample
+type RemovedLogField = LogField.AllowedHosts | LogField.AllowIpHosts | LogField.Retries;
+
+export const SampleByLogField: Readonly<
+  Record<Exclude<LogField, RemovedLogField>, (gen: RandomGen) => unknown>
+> = {
   [LogField.Path]: SampleHelpers.path,
   [LogField.Range]: (_gen: RandomGen) => '0-100',
   [LogField.Backtrace]: (_gen: RandomGen) => [
@@ -185,14 +219,14 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   ],
   [LogField.Location]: (_gen: RandomGen) => 'store/file.txt',
   [LogField.Storage]: (_gen: RandomGen) => 'store',
-  [LogField.Timestamp]: (_gen: RandomGen) => new Date().toISOString(),
+  [LogField.Timestamp]: (gen: RandomGen) => gen.isoNow(),
   [LogField.Source]: (_gen: RandomGen) => 'app',
   [LogField.Message]: (_gen: RandomGen) => 'Example message',
   [LogField.HttpMethod]: SampleHelpers.httpMethod,
   [LogField.SourceIp]: SampleHelpers.ip,
   [LogField.UserAgent]: (_gen: RandomGen) => 'Mozilla/5.0',
   [LogField.Referer]: (_gen: RandomGen) => 'https://example.com',
-  [LogField.RequestId]: SampleHelpers.hex8,
+  [LogField.RequestId]: SampleHelpers.uuid,
   [LogField.Host]: (_gen: RandomGen) => 'example.test',
   [LogField.ContentType]: (_gen: RandomGen) => 'application/json',
   [LogField.Accept]: (_gen: RandomGen) => 'application/json',
@@ -200,9 +234,7 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.Action]: (_gen: RandomGen) => 'index',
   [LogField.View]: (gen: RandomGen) => gen.randomFloat(0, 200),
   [LogField.Params]: (_gen: RandomGen) => ({}),
-  [LogField.BlockedHosts]: (_gen: RandomGen) => ['malicious.example.com'],
-  [LogField.AllowedHosts]: (_gen: RandomGen) => ['example.com', 'trusted.com'],
-  [LogField.AllowIpHosts]: (_gen: RandomGen) => false,
+  [LogField.BlockedHosts]: (_gen: RandomGen) => ['admin.example.net'],
   [LogField.ClientIp]: SampleHelpers.ip,
   [LogField.XForwardedFor]: (_gen: RandomGen) => '203.0.113.1, 70.41.3.18',
   [LogField.To]: SampleHelpers.emailArray,
@@ -213,19 +245,18 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.MailerAction]: (_gen: RandomGen) => 'welcome_email',
   [LogField.AttachmentCount]: (gen: RandomGen) => gen.randomInt(0, 3),
   [LogField.ErrorClass]: SampleHelpers.errClass,
-  [LogField.JobId]: SampleHelpers.hex8,
+  [LogField.JobId]: SampleHelpers.uuid,
   [LogField.JobClass]: (_gen: RandomGen) => 'HardJob',
   [LogField.QueueName]: SampleHelpers.queue,
   [LogField.Arguments]: (_gen: RandomGen) => [1],
   [LogField.RetryCount]: (gen: RandomGen) => gen.randomInt(0, 5),
-  [LogField.Retries]: (gen: RandomGen) => gen.randomInt(0, 5),
   [LogField.Attempt]: (gen: RandomGen) => gen.randomInt(1, 3),
   [LogField.Executions]: (gen: RandomGen) => gen.randomInt(0, 5),
   [LogField.ExceptionExecutions]: (gen: RandomGen) => gen.randomInt(0, 3),
-  [LogField.ProviderJobId]: SampleHelpers.hex8,
-  [LogField.ScheduledAt]: (_gen: RandomGen) => new Date().toISOString(),
-  [LogField.StartedAt]: (_gen: RandomGen) => new Date().toISOString(),
-  [LogField.FinishedAt]: (_gen: RandomGen) => new Date().toISOString(),
+  [LogField.ProviderJobId]: SampleHelpers.jid,
+  [LogField.ScheduledAt]: (gen: RandomGen) => gen.isoNow(),
+  [LogField.StartedAt]: (gen: RandomGen) => gen.isoNow(),
+  [LogField.FinishedAt]: (gen: RandomGen) => gen.isoNow(),
   [LogField.DurationMs]: SampleHelpers.duration,
   [LogField.WaitMs]: SampleHelpers.duration,
   [LogField.ExecutionTime]: SampleHelpers.duration,
@@ -240,9 +271,15 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.Vars]: (_gen: RandomGen) => ['API_KEY'],
   [LogField.ErrorMessage]: (_gen: RandomGen) => 'Something failed',
   [LogField.ErrorContext]: (_gen: RandomGen) => 'Job raised exception',
+  [LogField.CauseClass]: (_gen: RandomGen) => 'PG::ConnectionBad',
+  [LogField.CauseMessage]: (_gen: RandomGen) => 'connection to server was lost',
   [LogField.ProcessId]: SampleHelpers.processId,
   [LogField.Snapshot]: (_gen: RandomGen) => true,
-  [LogField.Context]: (_gen: RandomGen) => ({ ctx: 'demo' }),
+  // Sidekiq's context while a job runs
+  [LogField.Context]: (gen: RandomGen) => ({
+    class: gen.sample(SampleData.SIDEKIQ_WORKERS),
+    jid: SampleHelpers.jid(gen),
+  }),
   [LogField.ThreadId]: SampleHelpers.threadId,
   [LogField.Prefix]: (_gen: RandomGen) => 'logstruct',
   [LogField.Checksum]: SampleHelpers.hex8,
@@ -266,7 +303,8 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.OperationType]: (_gen: RandomGen) => 'SELECT',
   [LogField.TableNames]: (_gen: RandomGen) => ['users'],
   [LogField.Serializer]: (_gen: RandomGen) => 'UserSerializer',
-  [LogField.Adapter]: (_gen: RandomGen) => 'attributes',
+  // The database adapter on SQL lines (ActiveModelSerializers lines name their own adapter)
+  [LogField.Adapter]: (_gen: RandomGen) => 'PostgreSQLAdapter',
   [LogField.ResourceClass]: (_gen: RandomGen) => 'User',
   [LogField.AhoyEvent]: (_gen: RandomGen) => 'signup',
   [LogField.Filename]: SampleHelpers.filename,
@@ -279,7 +317,8 @@ export const SampleByLogField: Readonly<Record<LogField, (gen: RandomGen) => unk
   [LogField.Exist]: (_gen: RandomGen) => true,
   [LogField.Url]: SampleHelpers.url,
   [LogField.Status]: SampleHelpers.status,
-  [LogField.Database]: (_gen: RandomGen) => 'primary',
+  // The time spent in the database, in milliseconds
+  [LogField.Database]: (gen: RandomGen) => gen.randomFloat(0.5, 60),
   [LogField.BlockedHost]: (_gen: RandomGen) => 'malicious.example.com',
   [LogField.Format]: (_gen: RandomGen) => 'html',
   [LogField.Mode]: (_gen: RandomGen) => 'single',

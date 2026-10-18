@@ -31,8 +31,7 @@ module LogStruct
 
         # Event-specific fields
         const :storage, Symbol
-        const :location, T.nilable(String), default: nil
-        const :metadata, T.nilable(T::Hash[String, T.untyped]), default: nil
+        const :duration_ms, T.nilable(Float), default: nil
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -42,8 +41,7 @@ module LogStruct
         def to_h
           h = T.let({}, T::Hash[LogStruct::LogField, T.untyped])
           h[LogField::Storage] = storage
-          h[LogField::Location] = location unless location.nil?
-          h[LogField::Metadata] = metadata unless metadata.nil?
+          h[LogField::DurationMs] = duration_ms unless duration_ms.nil?
           h
         end
       end

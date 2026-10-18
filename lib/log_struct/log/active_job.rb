@@ -10,6 +10,9 @@ require_relative "active_job/enqueue"
 require_relative "active_job/schedule"
 require_relative "active_job/start"
 require_relative "active_job/finish"
+require_relative "active_job/retry"
+require_relative "active_job/retry_stopped"
+require_relative "active_job/discard"
 require_relative "active_job/error"
 
 module LogStruct
