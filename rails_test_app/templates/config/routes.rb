@@ -18,6 +18,9 @@ Rails.application.routes.draw do
   post "/security/submit", to: "security#submit"
   get "/security/remote_ip", to: "security#remote_ip"
 
+  # Error pages, for config.exceptions_app = routes
+  %w[400 404 422 500].each { |status| match "/#{status}", to: "errors#show", via: :all }
+
   # Healthcheck route
   get "/health", to: proc { [200, {}, ["OK"]] }
 end

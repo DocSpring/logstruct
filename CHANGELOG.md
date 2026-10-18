@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-10-18
+
+### Fixed
+
+- **Lograge**: With `config.exceptions_app = routes`, a request whose action raises has one request line, the action's: the error page's controller no longer logs a second line as `GET /500`. When the error comes before any action (a routing error) or after it (in a middleware), the error page's line has the request's own method and path instead of `GET /404` (#28)
+
 ## [0.2.0] - 2026-10-18
 
 ### Changed

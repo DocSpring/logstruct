@@ -180,6 +180,10 @@ You do not need to check if these are defined with `defined?` - they are guarant
 - When handling objects with as_json method in Rails apps, consider whether ActiveSupport's default implementation or a custom implementation is being used
 - Use minitest mocks and stubs, not `def`, `Object`, etc.
 
+## Commits and PRs
+
+- Refer to a GitHub issue as "Addresses #N" in commit messages and PR descriptions, never "Fixes #N" or "Closes #N". GitHub closes an issue when a commit that says "Fixes #N" reaches `main`, before the fix is released and without a reply, so the reporter isn't told which version has the fix. After the release, reply on the issue with the version and close it.
+
 ## Code Comments
 
 - Comments should explain why code exists, not what it does
