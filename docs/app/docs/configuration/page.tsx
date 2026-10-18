@@ -255,6 +255,14 @@ end`}
         The fields are added at the top level of the request line, and filtered like everything
         else.
       </p>
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
+        With <code>config.exceptions_app = routes</code>, Rails renders an error page by sending the
+        request through your routes again as <code>GET /500</code> (or <code>/404</code>,{' '}
+        <code>/422</code>). Each request still has one request line: when an action raises, its line
+        has the error&apos;s status and the error page logs none. When the error comes before any
+        action (a routing error) or after it (in a middleware), the error page&apos;s line is
+        logged, with the request&apos;s own method and path.
+      </p>
 
       <HeadingWithAnchor id="custom-string-scrubbing">Custom String Scrubbing</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">

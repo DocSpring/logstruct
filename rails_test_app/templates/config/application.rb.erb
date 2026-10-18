@@ -24,6 +24,14 @@ module LogstructTestApp
     # Only use API mode
     config.api_only = true
 
+    # Rails' default error pages, or the app's own from its routes (config.exceptions_app = routes), which
+    # ErrorPagesTest turns on. An unset config.x setting is an empty, truthy OrderedOptions.
+    config.x.error_pages_from_routes = false
+    config.exceptions_app = lambda do |env|
+      exceptions_app = config.x.error_pages_from_routes ? routes : ActionDispatch::PublicExceptions.new(Rails.public_path)
+      exceptions_app.call(env)
+    end
+
     # Use test adapter for ActiveJob in all environments for testing
     config.active_job.queue_adapter = :test
 
