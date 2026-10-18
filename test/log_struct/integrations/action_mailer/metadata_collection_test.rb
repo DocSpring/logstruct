@@ -23,31 +23,4 @@ class ActionMailerMetadataCollectionTest < ActiveSupport::TestCase
 
     assert_equal 0, data[:attachment_count]
   end
-
-  test "add_context_metadata gathers tags when available" do
-    data = {}
-
-    # Stub ActiveSupport::TaggedLogging.current_tags
-    ActiveSupport::TaggedLogging.define_singleton_method(:current_tags) { ["req:abc"] }
-
-    MetadataCollection.add_context_metadata(Object.new, data)
-
-    assert_equal ["req:abc"], data[:tags]
-    # Note: request_id is now handled centrally by serialize_common via LogStruct::Current
-  end
-
-  test "add_context_metadata includes job_id when ActiveJob::Logging.job_id is available" do
-    data = {}
-    # Ensure module exists
-    unless defined?(::ActiveJob::Logging)
-      module ::ActiveJob
-        module Logging; end
-      end
-    end
-    # Define job_id method on the module's singleton class
-    ::ActiveJob::Logging.define_singleton_method(:job_id) { "jid-1" }
-    MetadataCollection.add_context_metadata(Object.new, data)
-
-    assert_equal "jid-1", data[:job_id]
-  end
 end

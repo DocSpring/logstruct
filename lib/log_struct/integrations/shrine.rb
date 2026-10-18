@@ -25,7 +25,7 @@ module LogStruct
 
         # Create a structured log subscriber for Shrine
         # ActiveSupport::Notifications::Event has name, time, end, transaction_id, payload, and duration
-        shrine_log_subscriber = T.unsafe(lambda do |event|
+        shrine_log_subscriber = lambda do |event|
           payload = event.payload.except(:io, :metadata, :name).dup
 
           # Map event name to Event type
@@ -86,14 +86,14 @@ module LogStruct
           # Log directly through SemanticLogger, NOT through Shrine.logger
           # Shrine.logger is a basic Logger that would just call .to_s on the struct
           ::SemanticLogger[::Shrine].info(log_data)
-        end)
+        end
 
         # Load the instrumentation plugin without Shrine's default log subscriber, which logs
         # each event as a line of text (a no-op if the app has loaded it already). Shrine
         # ignores a subscriber that's already subscribed.
         ::Shrine.plugin :instrumentation, log_subscriber: nil
         SHRINE_EVENTS.each do |event_name|
-          T.unsafe(::Shrine).subscribe(event_name, &shrine_log_subscriber)
+          ::Shrine.subscribe(event_name, &shrine_log_subscriber)
         end
 
         # The app may load the plugin with the default log subscriber too, before or after this

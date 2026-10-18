@@ -176,7 +176,6 @@ module LogStruct
     end
 
     def test_process_values_does_not_process_beyond_limit_for_large_arrays
-      T.unsafe(nil)
       exploding_class = Class.new do
         attr_reader :index
 
@@ -190,7 +189,6 @@ module LogStruct
         end
       end
 
-      T.unsafe(nil)
       counting_formatter = Class.new(Formatter) do
         attr_reader :touched_indices
 
@@ -215,7 +213,7 @@ module LogStruct
       result = counting_formatter.process_values(values)
 
       assert_equal 11, result.length
-      assert_equal((0...10).to_a, T.unsafe(counting_formatter).touched_indices)
+      assert_equal((0...10).to_a, counting_formatter.touched_indices)
     end
 
     def test_process_values_handles_recursive_structures
@@ -466,7 +464,6 @@ module LogStruct
     private
 
     def create_user_class
-      T.unsafe(nil)
       Class.new do
         include GlobalID::Identification
         attr_accessor :id

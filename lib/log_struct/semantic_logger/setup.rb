@@ -259,7 +259,7 @@ module LogStruct
         # initializers run, e.g. ActiveRecord would copy an empty filter_parameters into
         # filter_attributes.
         COMPONENT_LOAD_HOOKS.each do |hook|
-          ActiveSupport.on_load(hook) { T.unsafe(self).logger = logger }
+          ActiveSupport.on_load(hook) { self.logger = logger }
         end
 
         # Store reference in app config
@@ -282,7 +282,7 @@ module LogStruct
         # components that are already loaded
         COMPONENT_LOAD_HOOKS.each do |hook|
           ActiveSupport.on_load(hook) do
-            T.unsafe(self).logger = original_logger if T.unsafe(self).logger.equal?(logger)
+            self.logger = original_logger if self.logger.equal?(logger)
           end
         end
 

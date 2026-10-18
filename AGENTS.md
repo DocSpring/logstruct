@@ -144,7 +144,18 @@ You do not need to check if these are defined with `defined?` - they are guarant
 - Method signatures must include proper return types
 - Use `::` prefixes for external modules (Rails/third-party gems)
 - `T.must` may be used very sparingly but only in tests - e.g. `T.must(log_file.path)`
-- `T.unsafe` must NEVER be used. Use proper typing or `T.let`/`T.cast` when necessary
+- `T.unsafe` turns off type checking for one value. Use it only where Sorbet can't type the code another way,
+  with a short comment saying why. Try these first:
+  - Nothing: `const_get`, `instance_variable_get`, `send`/`public_send` and `JSON.parse` already return
+    `T.untyped`, so wrapping their results adds nothing.
+  - Narrowing with `is_a?` or `case`, or `T.cast`/`T.let` when you know the type.
+  - `requires_ancestor` in a module that's included in or prepended to another class.
+  - `T.bind(self, SomeClass)` in a block that runs with a known `self`, or an override in `sorbet/rbi/overrides/`
+    when the block's `self` varies (`ActiveSupport.on_load`).
+  - A shim in `sorbet/rbi/shims/` for an optional gem's API that Tapioca can't see (Shrine's plugins).
+
+  What's left: splatting an Array or Hash whose size Sorbet doesn't know, a duck-typed call after `respond_to?` on
+  another library's object, a `Minitest::Mock`, and a test that passes a wrong type on purpose.
 - Don't call `def` inside a method definition in tests (or anywhere). Use mocks or stubs.
 - For modules included in other classes, use `requires_ancestor`
 - Custom type overrides belong in `sorbet/rbi/overrides/`

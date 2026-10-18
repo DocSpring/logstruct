@@ -43,7 +43,7 @@ module LogStruct
             end
           end
 
-          T.unsafe(::Ahoy::Tracker).prepend(mod)
+          ::Ahoy::Tracker.prepend(mod)
         end
 
         true

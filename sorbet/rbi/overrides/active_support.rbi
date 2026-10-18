@@ -39,3 +39,10 @@ module ActiveSupport
     end
   end
 end
+
+module ActiveSupport::LazyLoadHooks
+  # The block runs with self set to the class that loaded (ActionController::Base,
+  # ActiveRecord::Base, ...), so Sorbet can't type calls on self inside it
+  sig { params(name: Symbol, options: T::Hash[Symbol, T.untyped], block: T.proc.bind(T.untyped).void).void }
+  def on_load(name, options = {}, &block); end
+end

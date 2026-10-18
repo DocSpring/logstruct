@@ -260,6 +260,7 @@ module LogStruct
           additional_data: {}
         }
 
+        # Sorbet can only check a keyword splat of a Hash literal
         LogStruct::Log::SQL.new(**T.unsafe(default_attributes.merge(attributes)))
       end
     end

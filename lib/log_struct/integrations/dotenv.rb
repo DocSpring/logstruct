@@ -130,8 +130,8 @@ module LogStruct
         return unless defined?(::ActiveSupport::Notifications)
 
         instrumenter = if Object.const_defined?(:Dotenv)
-          dm = T.unsafe(Object.const_get(:Dotenv))
-          dm.respond_to?(:instrumenter) ? T.unsafe(dm).instrumenter : ::ActiveSupport::Notifications
+          dm = Object.const_get(:Dotenv)
+          dm.respond_to?(:instrumenter) ? dm.instrumenter : ::ActiveSupport::Notifications
         else
           ::ActiveSupport::Notifications
         end
@@ -183,9 +183,9 @@ module LogStruct
         return unless Object.const_defined?(:Dotenv)
         # Do not intercept when LogStruct is disabled; allow original dotenv replay
         return unless LogStruct.enabled?
-        dotenv_mod = T.unsafe(Object.const_get(:Dotenv))
+        dotenv_mod = Object.const_get(:Dotenv)
         return unless dotenv_mod.const_defined?(:Rails)
-        klass = T.unsafe(dotenv_mod.const_get(:Rails))
+        klass = dotenv_mod.const_get(:Rails)
         return if klass.instance_variable_defined?(:@_logstruct_replay_patched)
 
         original = klass.instance_method(:logger=)
@@ -212,15 +212,15 @@ module LogStruct
       def self.resolve_boot_logs!
         # If LogStruct is disabled, do not alter dotenv behavior at all
         return unless LogStruct.enabled?
-        dotenv_mod = Object.const_defined?(:Dotenv) ? T.unsafe(Object.const_get(:Dotenv)) : nil
-        klass = dotenv_mod&.const_defined?(:Rails) ? T.unsafe(dotenv_mod.const_get(:Rails)) : nil
+        dotenv_mod = Object.const_defined?(:Dotenv) ? Object.const_get(:Dotenv) : nil
+        klass = dotenv_mod&.const_defined?(:Rails) ? dotenv_mod.const_get(:Rails) : nil
 
         pending_logger = nil
         railtie_instance = nil
         if klass&.respond_to?(:instance)
           railtie_instance = klass.instance
           if railtie_instance.respond_to?(:logstruct_pending_dotenv_logger)
-            pending_logger = T.unsafe(railtie_instance).logstruct_pending_dotenv_logger
+            pending_logger = railtie_instance.logstruct_pending_dotenv_logger
           end
         end
 
@@ -242,7 +242,7 @@ module LogStruct
 
           # Detach original subscriber and subscribe runtime structured
           if dotenv_mod&.const_defined?(:LogSubscriber)
-            T.unsafe(dotenv_mod.const_get(:LogSubscriber)).detach_from(:dotenv)
+            dotenv_mod.const_get(:LogSubscriber).detach_from(:dotenv)
           end
           LogStruct::Integrations::Dotenv.subscribe!
 

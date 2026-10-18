@@ -98,16 +98,16 @@ module LogStruct
             rescue => e
               handle_integration_error(e)
             end
-            puma_mod = ::Object.const_defined?(:Puma) ? T.unsafe(::Object.const_get(:Puma)) : nil # rubocop:disable Sorbet/ConstantsFromStrings
+            puma_mod = ::Object.const_defined?(:Puma) ? ::Object.const_get(:Puma) : nil # rubocop:disable Sorbet/ConstantsFromStrings
             # rubocop:disable Sorbet/ConstantsFromStrings
             if puma_mod&.const_defined?(:LogWriter)
-              T.unsafe(::Object.const_get("Puma::LogWriter")).prepend(LogWriterPatch)
+              ::Object.const_get("Puma::LogWriter").prepend(LogWriterPatch)
             end
             if puma_mod&.const_defined?(:ErrorLogger)
-              T.unsafe(::Object.const_get("Puma::ErrorLogger")).prepend(ErrorLoggerPatch)
+              ::Object.const_get("Puma::ErrorLogger").prepend(ErrorLoggerPatch)
             end
             if puma_mod&.const_defined?(:Events)
-              ev = T.unsafe(::Object.const_get("Puma::Events"))
+              ev = ::Object.const_get("Puma::Events")
               ev.prepend(EventsPatch)
             end
             if puma_mod&.const_defined?(:Cluster)
@@ -119,11 +119,11 @@ module LogStruct
             end
             # Patch Rack::Handler::Puma.run to emit lifecycle logs using options
             if ::Object.const_defined?(:Rack)
-              rack_mod = T.unsafe(::Object.const_get(:Rack))
+              rack_mod = ::Object.const_get(:Rack)
               if rack_mod.const_defined?(:Handler)
-                handler_mod = T.unsafe(rack_mod.const_get(:Handler))
+                handler_mod = rack_mod.const_get(:Handler)
                 if handler_mod.const_defined?(:Puma)
-                  handler = T.unsafe(handler_mod.const_get(:Puma))
+                  handler = handler_mod.const_get(:Puma)
                   handler.singleton_class.prepend(RackHandlerPatch)
                 end
               end
@@ -369,7 +369,7 @@ module LogStruct
             return nil
           end
           if ::Kernel.instance_variables.include?(:@stdout)
-            io = T.unsafe(::Kernel.instance_variable_get(:@stdout))
+            io = ::Kernel.instance_variable_get(:@stdout)
             return io.puts(msg)
           end
           super

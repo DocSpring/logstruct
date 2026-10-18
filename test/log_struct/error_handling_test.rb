@@ -41,14 +41,14 @@ class ErrorHandlingTest < Minitest::Test
   def test_handle_exception_log
     LogStruct.config.error_handling_modes.standard_errors = LogStruct::ErrorHandlingMode::Log
     error = RuntimeError.new("log me")
-    logged = []
+    logged = T.let([], T::Array[LogStruct::Log::Error])
 
     LogStruct.stub(:error, ->(log) { logged << log }) do
       LogStruct.handle_exception(error, source: LogStruct::Source::App)
     end
 
     assert_equal 1, logged.length
-    log_entry = T.unsafe(logged).first
+    log_entry = T.must(logged.first)
 
     assert_equal "log me", log_entry.message
   end

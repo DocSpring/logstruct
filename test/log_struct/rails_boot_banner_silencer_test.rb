@@ -192,7 +192,7 @@ class RailsBootBannerSilencerTest < Minitest::Test
     kernel_singleton = Kernel.singleton_class
     kernel_module = Kernel
 
-    T.unsafe(self).instance_eval do
+    instance_eval do
       kernel_module.class_eval do
         alias_method :__logstruct_original_instance_require, :require
         define_method(:require) do |*_args|
@@ -208,7 +208,7 @@ class RailsBootBannerSilencerTest < Minitest::Test
     end
     yield
   ensure
-    T.unsafe(self).instance_eval do
+    instance_eval do
       kernel_module.class_eval do
         remove_method :require
         alias_method :require, :__logstruct_original_instance_require

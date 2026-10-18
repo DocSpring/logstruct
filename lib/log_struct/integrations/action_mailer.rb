@@ -32,7 +32,7 @@ module LogStruct
         # if ActionMailer::Base is already loaded.
         ActiveSupport.on_load(:action_mailer) do
           # Silence default ActionMailer logs (we use our own structured logging)
-          T.unsafe(self).logger = ::Logger.new(File::NULL)
+          self.logger = ::Logger.new(File::NULL)
 
           prepend LogStruct::Integrations::ActionMailer::EventLogging
           prepend LogStruct::Integrations::ActionMailer::ErrorHandling

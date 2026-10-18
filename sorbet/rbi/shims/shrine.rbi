@@ -6,3 +6,9 @@ module Shrine::Plugins::Instrumentation
     def self.call(event); end
   end
 end
+
+class Shrine
+  # Added by the instrumentation plugin, which Shrine loads on demand
+  sig { params(event_name: Symbol, subscriber: T.proc.params(event: T.untyped).void).void }
+  def self.subscribe(event_name, &subscriber); end
+end
