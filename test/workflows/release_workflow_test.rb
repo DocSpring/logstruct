@@ -42,5 +42,15 @@ module LogStruct
 
       assert_equal({"publish_gem" => "release", "publish_provider" => "release"}, environments)
     end
+
+    test "the provider push uses the deploy key and checks it before changing anything" do
+      steps = jobs.fetch("publish_provider").fetch("steps")
+      env = steps.filter_map { |step| step["env"] }.reduce({}, :merge)
+      run = steps.map { |step| step["run"].to_s }.join("\n")
+
+      assert_equal "${{ secrets.TF_PROVIDER_DEPLOY_KEY }}", env["DEPLOY_KEY"]
+      refute_match(/TF_PROVIDER_GITHUB_TOKEN|x-access-token/, run)
+      assert_operator run.index("git ls-remote"), :<, run.index("git clone")
+    end
   end
 end
