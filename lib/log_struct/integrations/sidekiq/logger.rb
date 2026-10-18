@@ -16,7 +16,7 @@ module LogStruct
         Thread.current["sidekiq_tid"] ||= (Thread.current.object_id ^ ::Process.pid).to_s(36)
       end
 
-      # Custom Logger for Sidekiq that creates LogStruct::Log::Sidekiq entries
+      # Custom Logger for Sidekiq that creates LogStruct::Log::Sidekiq::Log entries
       class Logger < LogStruct::SemanticLogger::Logger
         extend T::Sig
 
@@ -31,7 +31,7 @@ module LogStruct
             end
 
             # Create a Sidekiq log struct with the message
-            log_struct = Log::Sidekiq.new(
+            log_struct = Log::Sidekiq::Log.new(
               level: LogStruct::Level.from_severity(level.to_s.upcase),
               event: Event::Log,
               message: msg,

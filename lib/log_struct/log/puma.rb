@@ -8,3 +8,4 @@
 
 require_relative "puma/start"
 require_relative "puma/shutdown"
+require_relative "puma/error"

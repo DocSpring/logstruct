@@ -91,9 +91,26 @@ class PumaIntegrationUnitTest < Minitest::Test
     assert_nil error_logger.written, "Puma's plain text line was written too"
     log = logged.fetch(0)
 
+    assert_instance_of LogStruct::Log::Puma::Error, log
     assert_equal [LogStruct::Source::Puma, RuntimeError, "boom"], [log.source, log.error_class, log.message]
-    assert_equal({context: "Rack app", method: "GET", path: "/submissions/abc"}, log.additional_data)
+    assert_equal ["Rack app", "GET", "/submissions/abc"], [log.error_context, log.http_method, log.path]
+    assert_nil log.additional_data
+    assert_equal({src: "puma", evt: "error", error_context: "Rack app", method: "GET", path: "/submissions/abc"},
+      log.serialize.slice(:src, :evt, :error_context, :method, :path))
     refute_includes log.serialize.to_s, "token=secret"
+  end
+
+  def test_request_errors_other_than_standard_errors_are_logged_too
+    logged = []
+    error = NotImplementedError.new("not yet")
+    error_logger = FakeErrorLogger.new
+
+    LogStruct.stub(:error, ->(log) { logged << log }) do
+      error_logger.info(error: error, req: FakeRequest.new({"REQUEST_METHOD" => "POST", "PATH_INFO" => "/x"}), text: "Rack app")
+    end
+
+    assert_nil error_logger.written
+    assert_equal NotImplementedError, logged.fetch(0).error_class
   end
 
   private

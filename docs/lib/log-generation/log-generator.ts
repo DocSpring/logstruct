@@ -114,8 +114,20 @@ export class LogGenerator extends RandomDataGenerator {
           }
         }
 
-        case LogType.SIDEKIQ:
-          return Sidekiq.SidekiqLog.random(this).serialize();
+        case LogType.SIDEKIQ: {
+          switch (evt ?? this.sample([Event.Log, Event.Error])) {
+            case Event.Error:
+              return Sidekiq.SidekiqError.random(this, {
+                level: Level.Warn,
+                error_class: 'ArgumentError',
+                message: 'Template not found',
+                error_context: 'Job raised exception',
+                queue_name: 'default',
+              }).serialize();
+            default:
+              return Sidekiq.SidekiqLog.random(this).serialize();
+          }
+        }
 
         case LogType.ACTIVESTORAGE: {
           switch (
@@ -202,9 +214,18 @@ export class LogGenerator extends RandomDataGenerator {
         }
 
         case LogType.PUMA: {
-          switch (evt ?? this.sample([Event.Start, Event.Shutdown])) {
+          switch (evt ?? this.sample([Event.Start, Event.Shutdown, Event.Error])) {
             case Event.Shutdown:
               return Puma.PumaShutdown.random(this).serialize();
+            case Event.Error:
+              return Puma.PumaError.random(this, {
+                level: Level.Error,
+                error_class: 'Puma::HttpParserError',
+                message: 'Invalid HTTP format, parsing fails.',
+                error_context: 'HTTP parse error, malformed request',
+                http_method: 'GET',
+                path: '/',
+              }).serialize();
             default:
               return Puma.PumaStart.random(this, {
                 listening_addresses: [`tcp://127.0.0.1:${this.randomInt(3000, 3999)}`],

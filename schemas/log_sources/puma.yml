@@ -22,3 +22,22 @@ events:
     default_required: false
     fields:
       ProcessId: Integer
+
+  # Puma's ErrorLogger reported a request error (an exception the app didn't handle, a
+  # malformed request, an SSL error)
+  Error:
+    fields:
+      ErrorClass: 'T.class_of(Exception)'
+      Message: String
+      Backtrace:
+        type: 'T::Array[String]'
+        required: false
+      ErrorContext:
+        type: String
+        required: false
+      HttpMethod:
+        type: String
+        required: false
+      Path:
+        type: String
+        required: false

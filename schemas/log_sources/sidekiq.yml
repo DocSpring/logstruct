@@ -11,3 +11,21 @@ events:
       Context: 'T::Hash[Symbol, T.untyped]'
       ProcessId: Integer
       ThreadId: 'T.any(Integer, String)'
+  # A job (or Sidekiq itself) raised an error. The job's ID and class are in ctx, as on the
+  # job's other lines.
+  Error:
+    fields:
+      ErrorClass: 'T.class_of(Exception)'
+      Message: String
+      Backtrace:
+        type: 'T::Array[String]'
+        required: false
+      ErrorContext:
+        type: String
+        required: false
+      QueueName:
+        type: String
+        required: false
+      RetryCount:
+        type: Integer
+        required: false

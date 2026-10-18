@@ -27,7 +27,8 @@ module LogStruct
         when "T::Array[T::Boolean]" then "boolean[]"
         when "T::Array[T.untyped]" then "unknown[]"
         when "T.any(Integer, String)" then "number | string"
-        when "T.class_of(StandardError)" then "string"
+        # Error classes are logged by name
+        when "T.class_of(StandardError)", "T.class_of(Exception)" then "string"
         else "any"
         end
       end

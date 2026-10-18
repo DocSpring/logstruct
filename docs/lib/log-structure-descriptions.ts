@@ -24,14 +24,14 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   Url: 'URL generation event for a stored file (ActiveStorage)',
   Shrine: 'For Shrine file upload events',
   CarrierWave: 'For CarrierWave upload events',
-  Sidekiq: 'For Sidekiq job processing',
+  Sidekiq: "For Sidekiq's own log lines and failed jobs",
   Security: 'For security-related events',
   BlockedHost:
     'Request blocked by ActionDispatch::HostAuthorization (host not on the allowed list)',
   CSRFViolation: 'Request rejected due to a CSRF token violation',
   IPSpoof: 'Request rejected because the IP address spoofing check failed',
   GoodJob: "For GoodJob's own log lines and thread errors",
-  Log: 'Structured GoodJob log output captured from the worker process',
+  Log: "A log line: a plain message, or a line from GoodJob's, Sidekiq's or Ahoy's own logger",
   SQL: 'For ActiveRecord SQL query events and performance metrics',
   ActiveModelSerializers:
     'For render events produced by ActiveModelSerializers (serializer, adapter, resource, duration)',
@@ -42,7 +42,7 @@ export const LOG_STRUCTURE_DESCRIPTIONS: Record<string, string> = {
   Restore: 'dotenv-rails restore event rolling back to the last saved state',
   Save: 'dotenv-rails save event persisting environment variables',
   Update: 'dotenv-rails update event after manipulating environment values',
-  Puma: 'For Puma server lifecycle events',
+  Puma: 'For Puma server lifecycle events and request errors',
   Shutdown: 'Puma server shutdown event',
 };
 

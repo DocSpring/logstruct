@@ -119,16 +119,38 @@ module LogStruct
 
         assert_equal ["error", "warn"], [line["evt"], line["lvl"]]
         assert_equal ["ArgumentError", "Template not found"], [line["error_class"], line["msg"]]
-        assert_equal ["abc123", "HardJob", "default", 2], [line["jid"], line["job_class"], line["queue"], line["retry_count"]]
+        # The job's ID and class are in ctx, as on the lines logged while the job ran
+        assert_equal({"jid" => "abc123", "class" => "HardJob"}, line["ctx"])
+        assert_equal ["Job raised exception", "default", 2], [line["error_context"], line["queue_name"], line["retry_count"]]
+        refute line.key?("jid")
         refute_includes @io.string, "secret@example.com"
       end
 
-      test "ActiveJob jobs' errors are left to the ActiveJob integration" do
+      test "an ActiveJob job's error that ActiveJob didn't log is logged" do
+        sidekiq_config = ::Sidekiq::Config.new
+        sidekiq_config.logger = Sidekiq::Logger.new("Sidekiq-Server")
+        Sidekiq.send(:replace_default_error_handler, sidekiq_config)
+        # e.g. the job's class was removed in a deploy, so ActiveJob couldn't deserialize it
+        error = NameError.new("uninitialized constant RemovedJob")
+        job = {"jid" => "def456", "class" => "Sidekiq::ActiveJob::Wrapper", "wrapped" => "RemovedJob", "queue" => "default"}
+
+        sidekiq_config.error_handlers.each { |handler| handler.call(error, {context: "Job raised exception", job: job}, sidekiq_config) }
+        ::SemanticLogger.flush
+
+        line = T.must(sidekiq_lines.first)
+
+        assert_equal ["error", "NameError"], [line["evt"], line["error_class"]]
+        assert_equal({"jid" => "def456", "class" => "RemovedJob"}, line["ctx"])
+      end
+
+      test "errors the ActiveJob integration logged aren't logged again" do
         sidekiq_config = ::Sidekiq::Config.new
         Sidekiq.send(:replace_default_error_handler, sidekiq_config)
         job = {"jid" => "abc123", "class" => "Sidekiq::ActiveJob::Wrapper", "wrapped" => "HardJob"}
+        error = ArgumentError.new("boom")
+        LogStruct::LoggedErrors.mark(error)
 
-        sidekiq_config.error_handlers.each { |handler| handler.call(ArgumentError.new("boom"), {job: job}, sidekiq_config) }
+        sidekiq_config.error_handlers.each { |handler| handler.call(error, {job: job}, sidekiq_config) }
         ::SemanticLogger.flush
 
         assert_empty sidekiq_lines

@@ -392,16 +392,17 @@ module LogStruct
         sig { params(options: T::Hash[Symbol, T.untyped]).returns(T.untyped) }
         def info(options = {})
           error = options[:error]
-          # Log::Error only takes a StandardError
-          return super unless error.is_a?(StandardError)
+          return super unless error.is_a?(Exception)
 
           env = options[:req]&.env
-          details = {
-            context: options[:text],
-            method: env&.dig("REQUEST_METHOD"),
+          ::LogStruct.error(::LogStruct::Log::Puma::Error.new(
+            error_class: error.class,
+            message: error.message,
+            backtrace: error.backtrace,
+            error_context: options[:text]&.to_s,
+            http_method: env&.dig("REQUEST_METHOD"),
             path: env && (env["REQUEST_PATH"] || env["PATH_INFO"])
-          }.compact
-          ::LogStruct.error(::LogStruct::Log.from_exception(::LogStruct::Source::Puma, error, details))
+          ))
           nil
         rescue => e
           ::LogStruct::Integrations::Puma.handle_integration_error(e)
