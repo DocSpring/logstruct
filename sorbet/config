@@ -6,3 +6,6 @@
 --ignore=reference/
 --ignore=rails_test_app/
 --enable-experimental-requires-ancestor
+# Newer net-imap (a dependency of mail) gave these classes new parents; Sorbet's bundled RBI has the old ones
+--suppress-payload-superclass-redefinition-for=Net::IMAP::Literal
+--suppress-payload-superclass-redefinition-for=Net::IMAP::QuotedString

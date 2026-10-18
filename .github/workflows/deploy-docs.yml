@@ -1,52 +1,65 @@
 name: Deploy to GitHub Pages
 
+# Publishes the site with a CI run's coverage report: the calling run's (CI calls this after every job has
+# passed on a push to main), or for a manual deployment the latest successful CI run of a push to main. Never
+# another run's artifacts: a pull request's CI run, a fork's included, uploads an artifact with the same name.
 on:
-  # Run after the test workflow completes on main branch
-  workflow_run:
-    workflows: ['CI']
-    branches: [main]
-    types: [completed]
-
-  # Allow manual deployments
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-  actions: read
-
-concurrency:
-  group: 'pages'
-  cancel-in-progress: false
 
 jobs:
   build:
-    # Only run if the test workflow succeeded or this is a manual run
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # to download the CI run's coverage artifact
+      pages: read # configure-pages reads the site's settings
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Find the CI run to publish
+        id: ci_run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" != "workflow_dispatch" ]]; then
+            echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Pull requests (forks included) run CI as pull_request events, never as pushes to this repository
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow test.yml --branch main --event push \
+            --status success --limit 1 --json databaseId,headSha --jq '.[0] | "\(.databaseId) \(.headSha)"')
+          if [[ -z "$run" ]]; then
+            echo "::error::No successful CI run of a push to main to publish"
+            exit 1
+          fi
+          echo "run_id=${run% *}" >> "$GITHUB_OUTPUT"
+          echo "sha=${run#* }" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the commit that CI run tested
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ steps.ci_run.outputs.sha }}
+          persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '.ruby-version'
           bundler-cache: true
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
         with:
           version: 10.18.3
 
-      - name: Enable pnpm cache
-        uses: actions/setup-node@v4
+      - name: Setup Node with the pnpm cache
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -57,17 +70,17 @@ jobs:
           cd docs && pnpm install --frozen-lockfile
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@1f0c5cde4bc74cd7e1254d0cb4de8d49e9068c7d # v4.0.0
         with:
           static_docs_generator: next
 
-      - name: Download coverage artifacts
-        uses: dawidd6/action-download-artifact@v3 # cspell:ignore dawidd6
+      - name: Download that run's coverage report
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          workflow: test.yml
-          workflow_conclusion: success
           name: coverage-ruby-rails-latest
           path: docs/public/coverage/
+          run-id: ${{ steps.ci_run.outputs.run_id }}
+          github-token: ${{ github.token }}
 
       - name: Generate YARD documentation
         run: |
@@ -81,17 +94,23 @@ jobs:
         run: cd docs && pnpm run build
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: ./docs/out
 
   deploy:
+    concurrency:
+      group: 'pages'
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      pages: write
+      id-token: write # deploy-pages proves the deployment came from this workflow
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

@@ -13,7 +13,7 @@ end
 
 # Use a stable Rails for gem development/test environment.
 # Rails version for the generated test app is controlled by RAILS_VERSION in rails_tests.
-gem "rails", "~> 8.0.2.1", require: false
+gem "rails", "~> 8.0.5", require: false
 
 # Add these gems to silence Ruby 3.4+ warnings
 gem "bigdecimal"
@@ -21,6 +21,10 @@ gem "drb"  # For ActiveSupport::TestCase
 gem "mutex_m"
 gem "openssl"  # For tapioca SSL certificate verification
 gem "ostruct"  # For Ruby 3.5+ compatibility
+
+# ActiveSupport 8.0's JSON encoder passes quirks_mode to JSON.generate, which json 3 rejects
+# (fixed on Rails main). rails_test_app/create_app.rb pins it for the test apps too.
+gem "json", "< 3"
 
 # Sorbet is needed for development
 gem "sorbet", "~> 0.5"
@@ -40,12 +44,6 @@ end
 
 # Development and linting tools that may have higher Ruby version requirements
 group :development do
-  # concurrent-ruby 1.3.5 stopped requiring logger.
-  # This causes Rails 7.0 to crash. (Our gem works fine either way,
-  # but it's annoying that we have to keep uninstalling 1.3.5 to
-  # run our integration tests.)
-  # See: https://github.com/rails/rails/pull/54264
-  gem "concurrent-ruby", "<= 1.3.4"
   gem "debug"
   gem "amazing_print"
   gem "listen", require: false

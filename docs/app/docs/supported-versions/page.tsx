@@ -2,6 +2,7 @@ import { EditPageLink } from '@/components/edit-page-link';
 import { HeadingWithAnchor } from '@/components/heading-with-anchor';
 import { Callout } from '@/components/ui/callout';
 import { Card } from '@/components/ui/card';
+import { getGemDescription } from '@/lib/gem-descriptions';
 import { parseGemspec } from '@/lib/gemspec-parser';
 
 // Make this a server component
@@ -128,34 +129,4 @@ export default async function SupportedVersionsPage() {
       <EditPageLink />
     </div>
   );
-}
-
-// Helper function to provide descriptions for each gem
-function getGemDescription(gemName: string): string {
-  const descriptions: { [key: string]: string } = {
-    rails: 'Web application framework',
-    lograge: "Taming Rails' default request logging",
-    'sorbet-runtime': "Sorbet's runtime type checking component",
-    bugsnag: 'Error monitoring and reporting service',
-    carrierwave: 'File upload solution for Rails',
-    honeybadger: 'Exception, uptime, and performance monitoring',
-    rollbar: 'Error tracking and debugging tool',
-    'sentry-ruby': 'Error tracking that helps developers monitor and fix crashes',
-    shrine: 'File attachment toolkit for Ruby applications',
-    sidekiq: 'Simple, efficient background processing for Ruby',
-    sorbet: 'A type checker for Ruby',
-    semantic_logger: 'A flexible logging framework for Ruby',
-    'dotenv-rails': 'Loads environment variables from `.env` files',
-    active_model_serializers: 'A library for serializing Ruby objects to JSON',
-    ahoy_matey: 'Analytics for Rails',
-  };
-
-  const description = descriptions[gemName];
-  if (!description) {
-    throw new Error(
-      `No description found for gem: ${gemName}. Add it to docs/app/docs/supported-versions/page.tsx`,
-    );
-  }
-
-  return descriptions[gemName];
 }

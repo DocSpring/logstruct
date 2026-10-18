@@ -1,8 +1,9 @@
 name: Release Gem + Sync Terraform Provider
 
+# Pushing a v* tag releases it. Only admins can push v* tags (the "Release tags: admins only" ruleset), and the
+# publishing jobs run in the release environment, which needs an approval. Publishing jobs don't run the
+# repository's code: they get the built gem and the provider changes from the jobs before them.
 on:
-  release:
-    types: [published]
   push:
     tags:
       - 'v*'
@@ -18,57 +19,38 @@ on:
 permissions:
   contents: read
 
+env:
+  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == 'true' && 'true' || 'false' }}
+  # Empty when a dry run is dispatched from a branch
+  TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
 jobs:
   wait_ci:
     name: Wait for CI success on tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # to read the CI runs for the tagged commit
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Determine tag and SHA
-        id: ref
-        shell: bash
-        run: |
-          TAG="${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}"
-          if [[ -z "$TAG" ]]; then
-            echo "No tag from event; using placeholder for dry-run if applicable" >&2
-            TAG="v0.0.0-dryrun"
-          fi
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            SHA="${{ github.sha }}"
-          else
-            SHA=$(git rev-list -n1 "$TAG" || true)
-          fi
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Wait for CI workflow
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
         shell: bash
         run: |
-          # Skip wait for manual dry-run
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.dry_run }}" == "true" ]]; then
-            echo "Dry-run dispatch: skipping CI wait."
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "Dry run: skipping CI wait."
             exit 0
           fi
-          SHA="${{ steps.ref.outputs.sha }}"
-          if [[ -z "$SHA" ]]; then
-            echo "No SHA resolved; skipping CI wait."
-            exit 0
+          if [[ -z "$TAG_NAME" ]]; then
+            echo "::error::Releases run from a v* tag. Push the tag, or dispatch a dry run."
+            exit 1
           fi
           echo "Waiting for CI to succeed for $SHA ..."
           ATTEMPTS=120
           SLEEP=10
           for i in $(seq 1 $ATTEMPTS); do
-            RESP=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=50&head_sha=$SHA")
+            RESP=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?per_page=50&head_sha=$SHA")
             STATUS=$(echo "$RESP" | jq -r '.workflow_runs[] | select(.name=="CI") | .status' | head -n1)
             CONCLUSION=$(echo "$RESP" | jq -r '.workflow_runs[] | select(.name=="CI") | .conclusion' | head -n1)
             if [[ "$STATUS" == "completed" ]]; then
@@ -87,47 +69,36 @@ jobs:
           exit 1
 
   gem:
-    name: Publish RubyGem
+    name: Build RubyGem
     needs: wait_ci
     runs-on: ubuntu-latest
-    env:
-      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
-      TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}
+    outputs:
+      gem_file: ${{ steps.build.outputs.gem_file }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
+      # No bundler cache in release jobs: a cache is shared with other runs, and gem build needs no bundle
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '.ruby-version'
-          bundler-cache: true
 
       - name: Determine version and validate tag
         id: ver
         shell: bash
         run: |
-          TAG="${TAG_NAME:-}"
+          TAG="$TAG_NAME"
           if [[ -z "$TAG" ]]; then
-            echo "No tag resolved; using release event tag." >&2
-            TAG="${{ github.event.release.tag_name }}"
-          fi
-          if [[ -z "$TAG" ]]; then
-            if [[ "$DRY_RUN" == "true" ]]; then
-              TAG="v0.0.0-dryrun"
-              echo "DRY-RUN: Using placeholder tag $TAG" >&2
-            else
-              echo "Error: Could not determine tag name from event." >&2
-              exit 1
-            fi
+            TAG="v0.0.0-dryrun"
+            echo "DRY-RUN: Using placeholder tag $TAG" >&2
           fi
           VERSION_FROM_TAG="${TAG#v}"
           VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version_tag=$VERSION_FROM_TAG" >> $GITHUB_OUTPUT
-          echo "version_rb=$VERSION_RB" >> $GITHUB_OUTPUT
+          echo "version_tag=$VERSION_FROM_TAG" >> "$GITHUB_OUTPUT"
           echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
           if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
             echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
@@ -135,125 +106,107 @@ jobs:
           fi
 
       - name: Build gem
+        id: build
+        env:
+          VERSION: ${{ steps.ver.outputs.version_tag }}
         run: |
           gem build logstruct.gemspec
-          ls -la *.gem
-
-      - name: Publish gem to RubyGems
-        if: env.DRY_RUN != 'true'
-        env:
-          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
-        run: |
-          if [[ -z "$RUBYGEMS_API_KEY" ]]; then
-            echo '::error::RUBYGEMS_API_KEY secret is missing.'
-            exit 1
-          fi
-          mkdir -p ~/.gem
-          umask 077
-          cat > ~/.gem/credentials <<EOF
-          ---
-          :rubygems_api_key: $RUBYGEMS_API_KEY
-          EOF
-          VERSION="${{ steps.ver.outputs.version_tag }}"
+          ls -la ./*.gem
           GEM_FILE="logstruct-${VERSION}.gem"
-          ALT_VERSION="${VERSION/-/.pre.}"
-          ALT_GEM_FILE="logstruct-${ALT_VERSION}.gem"
+          ALT_GEM_FILE="logstruct-${VERSION/-/.pre.}.gem"
           if [[ -f "$GEM_FILE" ]]; then
             echo "Using gem file: $GEM_FILE"
           elif [[ -f "$ALT_GEM_FILE" ]]; then
             echo "Using gem file: $ALT_GEM_FILE (RubyGems prerelease normalization)"
             GEM_FILE="$ALT_GEM_FILE"
+          elif [[ "$DRY_RUN" == "true" ]]; then
+            GEM_FILE=$(find . -maxdepth 1 -name 'logstruct-*.gem' -printf '%f\n' | head -n1)
+            echo "DRY-RUN: using $GEM_FILE"
           else
-            CANDIDATE=$(ls -1t logstruct-*.gem 2>/dev/null | head -n1 || true)
-            if [[ -n "$CANDIDATE" ]]; then
-              echo "Falling back to: $CANDIDATE"
-              GEM_FILE="$CANDIDATE"
-            else
-              echo "::error::Expected gem file for version $VERSION not found."
-              ls -la *.gem || true
-              exit 1
-            fi
+            echo "::error::Expected gem file for version $VERSION not found."
+            exit 1
           fi
-          gem push "$GEM_FILE"
+          echo "gem_file=$GEM_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the gem
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: gem
+          path: ${{ steps.build.outputs.gem_file }}
+          if-no-files-found: error
+          retention-days: 5
 
       - name: Gem publish (dry-run)
         if: env.DRY_RUN == 'true'
-        run: |
-          VERSION="${{ steps.ver.outputs.version_tag }}"
-          ALT_VERSION="${VERSION/-/.pre.}"
-          CANDIDATE="logstruct-${VERSION}.gem"
-          if [[ ! -f "$CANDIDATE" && -f "logstruct-${ALT_VERSION}.gem" ]]; then
-            CANDIDATE="logstruct-${ALT_VERSION}.gem"
-          fi
-          echo "[DRY-RUN] Would push gem $CANDIDATE to RubyGems"
+        env:
+          GEM_FILE: ${{ steps.build.outputs.gem_file }}
+        run: echo "[DRY-RUN] Would push gem $GEM_FILE to RubyGems"
 
-  provider:
-    name: Sync + Tag Provider
-    needs: wait_ci
+  publish_gem:
+    name: Publish RubyGem
+    needs: gem
+    if: github.event_name == 'push' || inputs.dry_run != 'true'
     runs-on: ubuntu-latest
-    env:
-      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' && 'true' || 'false' }}
-      TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || github.event.release.tag_name }}
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # RubyGems trusted publishing: exchanges this job's OIDC token for a short-lived API key
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download the gem
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          fetch-depth: 0
+          name: gem
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        with:
+          ruby-version: ruby
+
+      - name: Configure RubyGems credentials (trusted publishing)
+        uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+
+      - name: Publish gem to RubyGems
+        env:
+          GEM_FILE: ${{ needs.gem.outputs.gem_file }}
+        run: gem push "$GEM_FILE"
+
+  provider:
+    name: Build Terraform provider catalog
+    needs: wait_ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # No bundler cache in release jobs: a cache is shared with other runs
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
         with:
           ruby-version: '.ruby-version'
-          bundler-cache: true
 
-      - name: Determine version and validate tag
-        id: ver
-        shell: bash
-        run: |
-          TAG="${TAG_NAME:-}"
-          if [[ -z "$TAG" ]]; then
-            echo "No tag resolved; using release event tag." >&2
-            TAG="${{ github.event.release.tag_name }}"
-          fi
-          if [[ -z "$TAG" ]]; then
-            if [[ "$DRY_RUN" == "true" ]]; then
-              TAG="v0.0.0-dryrun"
-              echo "DRY-RUN: Using placeholder tag $TAG" >&2
-            else
-              echo "Error: Could not determine tag name from event." >&2
-              exit 1
-            fi
-          fi
-          VERSION_FROM_TAG="${TAG#v}"
-          VERSION_RB=$(ruby -e 'print File.read("lib/log_struct/version.rb")[/VERSION\s*=\s*"([^"]+)"/,1]')
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "version_tag=$VERSION_FROM_TAG" >> $GITHUB_OUTPUT
-          echo "version_rb=$VERSION_RB" >> $GITHUB_OUTPUT
-          echo "Resolved tag: $TAG (version $VERSION_FROM_TAG); code version: $VERSION_RB"
-          if [[ "$DRY_RUN" != "true" && "$VERSION_FROM_TAG" != "$VERSION_RB" ]]; then
-            echo "::error::Tag version ($VERSION_FROM_TAG) does not match lib/log_struct/version.rb ($VERSION_RB). Update version.rb before tagging, or run as dry-run."
-            exit 1
-          fi
+      - name: Install gems
+        run: bundle install
 
       - name: Generate docs exports (enums/structs/keys)
         run: scripts/generate_structs.rb
 
+      # A public repository: cloning it needs no token
       - name: Clone terraform-provider-logstruct repository
-        env:
-          PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
         run: |
-          git config --global user.name "DocSpring Bot"
-          git config --global user.email "docspring-bot@docspring.com"
           rm -rf terraform-provider-logstruct
-          git clone https://x-access-token:${PUSH_TOKEN}@github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
+          git clone https://github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
 
       - name: Export provider catalog (embedded Go data)
         run: ruby scripts/export_provider_catalog.rb
 
-      - name: Build provider to validate catalog
-        uses: actions/setup-go@v5
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version: '1.22'
+          cache: false
 
       - name: Compile
         run: |
@@ -261,38 +214,60 @@ jobs:
           go mod tidy
           go build ./...
 
-      - name: Commit and push provider changes
-        env:
-          PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
+      - name: Save the provider changes
         run: |
           cd terraform-provider-logstruct
-          if git diff --quiet; then
-            echo "No provider changes to commit."
-            exit 0
-          fi
           git add pkg/data/catalog_gen.go pkg/data/catalog.json go.mod go.sum || true
-          if [[ "$DRY_RUN" == "true" ]]; then
-            echo "[DRY-RUN] Would commit and push provider catalog changes with message:"
-            echo "Sync catalog from logstruct ${{ steps.ver.outputs.tag }}"
-            git --no-pager diff --staged || true
+          git diff --cached --binary > ../provider-changes.patch
+          if [[ -s ../provider-changes.patch ]]; then
+            git --no-pager diff --cached --stat
           else
-            git commit -m "Sync catalog from logstruct ${{ steps.ver.outputs.tag }}"
-            git push origin HEAD:main
+            echo "No provider changes to commit."
+          fi
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "[DRY-RUN] Would commit, push and tag the provider"
           fi
 
-      - name: Tag provider with release version
+      - name: Upload the provider changes
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: provider-changes
+          path: provider-changes.patch
+          if-no-files-found: error
+          retention-days: 5
+
+  publish_provider:
+    name: Push + Tag Provider
+    needs: provider
+    if: github.event_name == 'push' || inputs.dry_run != 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Download the provider changes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: provider-changes
+
+      - name: Commit, push and tag the provider
         env:
           PUSH_TOKEN: ${{ secrets.TF_PROVIDER_GITHUB_TOKEN }}
         run: |
+          git config --global user.name "DocSpring Bot"
+          git config --global user.email "docspring-bot@docspring.com"
+          git clone https://github.com/DocSpring/terraform-provider-logstruct.git terraform-provider-logstruct
           cd terraform-provider-logstruct
-          TAG="${{ steps.ver.outputs.tag }}"
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "Tag $TAG already exists; skipping."
+          # The token is passed to the two pushes only, not stored in the clone's config
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)"
+          if [[ -s ../provider-changes.patch ]]; then
+            git apply --index ../provider-changes.patch
+            git commit -m "Sync catalog from logstruct $TAG_NAME"
+            git -c "http.https://github.com/.extraheader=$AUTH" push origin HEAD:main
+          else
+            echo "No provider changes to commit."
+          fi
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            echo "Tag $TAG_NAME already exists; skipping."
             exit 0
           fi
-          if [[ "$DRY_RUN" == "true" ]]; then
-            echo "[DRY-RUN] Would create and push tag $TAG"
-          else
-            git tag -a "$TAG" -m "Release $TAG (logstruct sync)"
-            git push origin "$TAG"
-          fi
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME (logstruct sync)"
+          git -c "http.https://github.com/.extraheader=$AUTH" push origin "$TAG_NAME"
