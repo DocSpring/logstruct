@@ -46,6 +46,19 @@ module LogStruct
       ::SemanticLogger.clear_appenders!
     end
 
+    test "request IDs are scrubbed and filtered like the rest of the line" do
+      ::SemanticLogger.named_tagged(request_id: "4111111111111111") { @logger.info("Card request") }
+      ::SemanticLogger.flush
+
+      assert_equal "[CREDIT_CARD]", JSON.parse(T.must(@io.string.lines.last))["req_id"]
+
+      LogStruct.config.filters.filter_keys += [:req_id]
+      ::SemanticLogger.named_tagged(request_id: "req-1") { @logger.info("Filtered request") }
+      ::SemanticLogger.flush
+
+      assert_equal({"_filtered" => {"_class" => "String"}}, JSON.parse(T.must(@io.string.lines.last))["req_id"])
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush
@@ -205,6 +218,18 @@ module LogStruct
       secondary_output = secondary_io.string
 
       assert_includes secondary_output, "Test broadcast message"
+    end
+
+    test "broadcast loggers get scrubbed messages" do
+      secondary_io = StringIO.new
+      @logger.broadcast_to(Logger.new(secondary_io))
+
+      @logger.info("Signed in as ada@example.com")
+      @logger.warn { "Card 4111111111111111 declined" }
+
+      assert_includes secondary_io.string, "Signed in as [EMAIL:"
+      assert_includes secondary_io.string, "Card [CREDIT_CARD] declined"
+      assert_not_includes secondary_io.string, "ada@example.com"
     end
 
     test "broadcast_to ignores SemanticLogger loggers, which share its appenders" do

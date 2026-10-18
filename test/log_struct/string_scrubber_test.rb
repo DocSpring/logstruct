@@ -87,6 +87,79 @@ module LogStruct
       assert_includes result, "[CREDIT_CARD]"
     end
 
+    def test_scrub_url_passwords_with_colons_and_empty_users
+      # cspell:ignore hunter Bpassword Bname
+      {
+        "postgres://user:pass:word@db/app" => "postgres://user:[PASSWORD]@db/app",
+        "redis://:hunter2@cache:6379/0" => "redis://:[PASSWORD]@cache:6379/0",
+        "https://user:p@ss@example.com/path" => "https://user:[PASSWORD]@example.com/path",
+        "https%3a%2f%2fuser%3asecret%40example.com" => "https%3a%2f%2fuser%3a[PASSWORD]%40example.com",
+        "https://example.com:8080/path" => "https://example.com:8080/path"
+      }.each do |input, expected|
+        assert_equal expected, StringScrubber.scrub(input)
+      end
+    end
+
+    def test_scrub_card_numbers_of_every_length_that_pass_the_luhn_check
+      [
+        "378282246310005",      # American Express, 15 digits
+        "3782 822463 10005",
+        "30569309025904",       # Diners Club, 14 digits
+        "4222222222222",        # Visa, 13 digits
+        "6011111111111117",
+        "4111 1111 1111 1111",
+        "4000056655665556122",  # 19 digits
+        "2223003122003222"      # Mastercard 2-series
+      ].each do |number|
+        assert_equal "Card: [CREDIT_CARD]", StringScrubber.scrub("Card: #{number}"), number
+      end
+    end
+
+    def test_leave_other_numbers_alone
+      [
+        "4111111111111112",     # fails the Luhn check
+        "1700000000000000000",  # a timestamp in nanoseconds
+        "4111-1111 1111-1111",  # mixed separators
+        "id 3.4111111111111111",
+        "a4111111111111111b"
+      ].each do |input|
+        assert_equal input, StringScrubber.scrub(input)
+      end
+    end
+
+    def test_scrub_sensitive_query_params
+      {
+        "/reset?token=abc123&page=2" => "/reset?token=[FILTERED]&page=2",
+        "https://app.test/callback?code=oauth-code&state=xyz" => "https://app.test/callback?code=[FILTERED]&state=xyz",
+        "/login?user%5Bpassword%5D=pw&user%5Bname%5D=ada" => "/login?user%5Bpassword%5D=[FILTERED]&user%5Bname%5D=ada",
+        "/api?apiKey=k1&sort=asc#top" => "/api?apiKey=[FILTERED]&sort=asc#top",
+        "/search?q=tokens" => "/search?q=tokens",
+        "Ready? token=abc" => "Ready? token=abc"
+      }.each do |input, expected|
+        assert_equal expected, StringScrubber.scrub(input)
+      end
+    end
+
+    def test_query_params_can_be_left_alone
+      LogStruct.config.filters.url_query_params = false
+
+      assert_equal "/reset?token=abc123", StringScrubber.scrub("/reset?token=abc123")
+    end
+
+    def test_scrub_name_skips_identifiers
+      assert_equal :user_id, StringScrubber.scrub_name(:user_id)
+      assert_equal "createdAt", StringScrubber.scrub_name("createdAt")
+      assert_equal 1, StringScrubber.scrub_name(1)
+      assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, StringScrubber.scrub_name("ada@example.com"))
+      assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, StringScrubber.scrub_name(:"ada@example.com"))
+    end
+
+    def test_without_query
+      assert_equal "https://app.test/reset", StringScrubber.without_query("https://app.test/reset?token=abc#x")
+      assert_equal "https://app.test/", StringScrubber.without_query("https://app.test/")
+      assert_nil StringScrubber.without_query(nil)
+    end
+
     def test_scrub_phone_numbers
       # Test with a formatted phone number
       input = "Call us at 555-123-4567"

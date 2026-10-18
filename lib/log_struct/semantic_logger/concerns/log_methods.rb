@@ -97,16 +97,20 @@ module LogStruct
 
         private
 
-        # Other loggers get String messages, and the block to call for the rest
+        # Other loggers get String messages, and what blocks return, scrubbed like a log line's strings
         sig { params(level: Symbol, message: T.untyped, block: T.nilable(T.proc.returns(String))).void }
         def broadcast_message(level, message, block)
           broadcasts.each do |logger|
             next unless logger.respond_to?(level)
 
             if message.is_a?(String)
-              logger.public_send(level, message)
+              logger.public_send(level, StringScrubber.scrub(message))
             elsif block
-              logger.public_send(level, &block)
+              logger.public_send(level) do
+                # The block type says String, but nothing checks what a block returns
+                text = T.let(block.call, T.untyped)
+                text.is_a?(String) ? StringScrubber.scrub(text) : text
+              end
             end
           end
         end

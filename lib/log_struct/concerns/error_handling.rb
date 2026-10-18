@@ -52,6 +52,7 @@ module LogStruct
         # Report an error using the configured handler or MultiErrorReporter, without logging it
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
         def report_error(error, source:, context: nil)
+          context = filtered_context(context)
           error_handler = LogStruct.config.error_reporting_handler
           if error_handler
             # Use the configured handler
@@ -60,6 +61,16 @@ module LogStruct
             # Fall back to MultiErrorReporter (detects Sentry, Bugsnag, etc.)
             LogStruct::MultiErrorReporter.report_error(error, context || {})
           end
+        end
+
+        # The context filtered and scrubbed like a log line, for error reporters: it can hold a
+        # request's parameters or a mail's recipients
+        sig { params(context: T.nilable(T::Hash[Symbol, T.untyped])).returns(T.nilable(T::Hash[Symbol, T.untyped])) }
+        def filtered_context(context)
+          return context if context.nil? || context.empty?
+
+          filtered = Formatter.new.process_values(context)
+          filtered.is_a?(Hash) ? filtered : {}
         end
 
         # Handle an error according to the configured error handling mode (log, report, raise, etc).

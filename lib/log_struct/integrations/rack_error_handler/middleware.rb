@@ -70,7 +70,7 @@ module LogStruct
               path: env["PATH_INFO"],
               http_method: env["REQUEST_METHOD"],
               user_agent: env["HTTP_USER_AGENT"],
-              referer: env["HTTP_REFERER"],
+              referer: StringScrubber.without_query(env["HTTP_REFERER"]),
               message: ip_spoof_error.message,
               client_ip: env["HTTP_CLIENT_IP"],
               x_forwarded_for: env["HTTP_X_FORWARDED_FOR"],
@@ -88,7 +88,7 @@ module LogStruct
                 http_method: request.method,
                 source_ip: request.remote_ip,
                 user_agent: request.user_agent,
-                referer: request.referer,
+                referer: StringScrubber.without_query(request.referer),
                 message: error.message,
                 timestamp: Time.now
               )
@@ -138,7 +138,7 @@ module LogStruct
             path: request.path,
             method: request.method,
             user_agent: request.user_agent,
-            referer: request.referer
+            referer: StringScrubber.without_query(request.referer)
           }
         rescue => error
           # If we can't extract request context, return minimal info

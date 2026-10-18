@@ -33,12 +33,10 @@ module LogStruct
       refute s.key?(:_bytes)
     end
 
-    test "summarize_string includes bytes when not hashing" do
-      s = ParamFilters.summarize_string("hello", false)
+    test "summarize_string doesn't say how long the string is" do
+      s = ParamFilters.summarize_string("hunter2", false)
 
-      assert_equal String, s[:_class]
-      assert_equal 5, s[:_bytes]
-      refute s.key?(:_hash)
+      assert_equal({_class: String}, s)
     end
 
     test "summarize_hash includes keys and optional bytes when no sensitive keys" do
@@ -83,10 +81,10 @@ module LogStruct
 
       assert s1.key?(:_hash)
 
-      # String + normal key -> bytes
+      # String + normal key -> class only
       s2 = ParamFilters.summarize_json_attribute(:message, "hello")
 
-      assert s2.key?(:_bytes)
+      assert_equal({_class: String}, s2)
 
       # Hash
       s3 = ParamFilters.summarize_json_attribute(:payload, {a: 1})
@@ -125,6 +123,28 @@ module LogStruct
       # Case insensitive
       assert ParamFilters.should_filter_key?(:ACCESS_TOKEN)
       assert ParamFilters.should_filter_key?(:Api_Key)
+    end
+
+    test "default pattern matches keys by their words, whatever their case or separators" do
+      LogStruct.configuration = LogStruct::Configuration.new
+
+      %w[
+        apiKey X-Api-Key accessToken clientSecret privateKey HTTP_AUTHORIZATION Proxy-Authorization
+        cookie Set-Cookie session jwt passwords tokens newPassword X-Amz-Signature otp_code
+      ].each do |key|
+        assert ParamFilters.should_filter_key?(key), "#{key} should be filtered"
+      end
+      %w[signature_field_id author authority keyboard cron_key primaryKey].each do |key|
+        refute ParamFilters.should_filter_key?(key), "#{key} should not be filtered"
+      end
+    end
+
+    test "filter_keys match keys by their words too" do
+      LogStruct.config.filters.filter_keys = [:account_number]
+
+      assert ParamFilters.should_filter_key?("accountNumber")
+      assert ParamFilters.should_filter_key?("Account-Number")
+      refute ParamFilters.should_filter_key?("account")
     end
 
     test "default regex filter matcher does not match false positives" do

@@ -75,10 +75,10 @@ export default function SOC2CompliancePage() {
       </p>
 
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
-        <li>Passwords, tokens, and API keys</li>
-        <li>Credit card numbers and CVV codes</li>
-        <li>Social security numbers and other PII</li>
-        <li>Email addresses and phone numbers</li>
+        <li>Passwords, tokens, API keys, cookies and sessions, filtered by their key names</li>
+        <li>Credit card numbers, CVV codes and social security numbers</li>
+        <li>Email addresses, phone numbers and passwords in URLs, scrubbed out of every string</li>
+        <li>Sensitive query params in URLs, such as reset tokens and OAuth codes</li>
         <li>Any custom sensitive fields you configure</li>
       </ul>
 
@@ -92,16 +92,12 @@ export default function SOC2CompliancePage() {
 
       <CodeBlock language="json">
         {`{
-  "email": {
-    "_filtered": {
-      "_class": "String",
-      "_hash": "a1b2c3d4e5f6"  // Deterministic hash for correlation
-    }
-  },
-  "payment_data": {
+  "email": "[EMAIL:a1b2c3d4e5f6a7b8]",  // The same hash for the same address
+  "credentials": {
     "_filtered": {
       "_class": "Hash",
-      "_size": 3  // Size helps understand data volume
+      "_keys_count": 2,  // How much was filtered, without the values
+      "_keys": ["username", "password"]
     }
   }
 }`}
@@ -111,13 +107,14 @@ export default function SOC2CompliancePage() {
         Deterministic Email Hashes
       </HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        For email addresses, LogStruct generates deterministic hashes that allow you to:
+        For email addresses, LogStruct logs a deterministic hash (an HMAC keyed with your app&apos;s{' '}
+        <code>secret_key_base</code>, or with <code>hash_salt</code>) that allows you to:
       </p>
 
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
         <li>
           <strong>Trace requests across services</strong> - The same email always produces the same
-          hash
+          hash in one app, and in every app that sets the same <code>hash_salt</code>
         </li>
         <li>
           <strong>Correlate user actions</strong> - Follow a user&apos;s journey without exposing
@@ -141,10 +138,15 @@ export default function SOC2CompliancePage() {
           <strong>_class</strong> - Shows whether it was a String, Hash, Array, etc.
         </li>
         <li>
-          <strong>_size</strong> - For collections, shows how many items were filtered
+          <strong>_keys_count</strong> and <strong>_keys</strong> - For Hashes, how many keys were
+          filtered and the first 10 of them
         </li>
         <li>
-          <strong>_hash</strong> - Deterministic hash for correlation (email addresses only)
+          <strong>_count</strong> - For Arrays, how many items were filtered
+        </li>
+        <li>
+          <strong>_hash</strong> - Deterministic hash for correlation (email addresses, and any keys
+          you add to <code>filter_keys_with_hashes</code>)
         </li>
       </ul>
 
@@ -182,7 +184,8 @@ export default function SOC2CompliancePage() {
           entering logs
         </li>
         <li>
-          <strong>Compliance by default</strong> - No manual scrubbing or post-processing required
+          <strong>On by default</strong> - Filtering and scrubbing apply to every line without any
+          setup
         </li>
         <li>
           <strong>Audit evidence</strong> - Clear filtering metadata demonstrates data protection
@@ -195,11 +198,13 @@ export default function SOC2CompliancePage() {
       </HeadingWithAnchor>
       <ul className="list-disc list-inside space-y-2 text-neutral-600 dark:text-neutral-300 mb-6">
         <li>
-          <strong>PII protection</strong> - Email addresses and other PII are automatically filtered
+          <strong>PII protection</strong> - Email addresses, phone numbers and other PII are
+          filtered or scrubbed automatically
         </li>
         <li>
-          <strong>Retention compliance</strong> - Filtered logs can be retained longer without
-          privacy concerns
+          <strong>Retention</strong> - Filtered logs hold far less personal data. Hashed emails are
+          still pseudonymous personal data, and scrubbing works by pattern, so keep your usual
+          retention limits
         </li>
         <li>
           <strong>Data minimization</strong> - Only necessary debugging metadata is preserved

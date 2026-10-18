@@ -34,6 +34,16 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_equal "GET", log_entry["method"]
   end
 
+  def test_blocked_host_log_has_the_referer_without_its_query
+    host! "blocked-host.example.com"
+    get "/health", headers: {"HTTP_REFERER" => "https://app.example.com/confirm?confirmation_token=confirm-123"}
+
+    assert_response :forbidden
+    log_entry = blocked_host_logs_from_output.first
+
+    assert_equal "https://app.example.com/confirm", log_entry["referer"]
+  end
+
   def test_allowed_host_is_not_blocked
     # Make a request with an allowed host (.localhost is allowed by default)
     host! "www.localhost"

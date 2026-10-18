@@ -41,6 +41,21 @@ class RequestLoggingTest < ActionDispatch::IntegrationTest
     assert parsed.key?("duration_ms"), "Must have 'duration_ms' field"
   end
 
+  def test_request_log_has_the_referer_without_its_query
+    get "/logging/basic", headers: {"HTTP_REFERER" => "https://app.example.com/reset?token=reset-token-123"}
+
+    assert_response :success
+
+    ::SemanticLogger.flush
+    @log_output.rewind
+    output = @log_output.read.to_s
+    request_line = output.lines.find { |line| line.include?('"evt":"request"') }
+
+    assert request_line, "Expected a request log line. Output:\n#{output}"
+    assert_equal "https://app.example.com/reset", JSON.parse(request_line)["referer"]
+    assert_not_includes output, "reset-token-123"
+  end
+
   def test_request_log_not_ruby_hash_inspect_format
     get "/logging/basic"
 

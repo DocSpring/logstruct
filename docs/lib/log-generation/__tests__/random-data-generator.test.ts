@@ -56,7 +56,7 @@ describe('RandomDataGenerator', () => {
   test('should generate filtered email addresses', () => {
     const filteredEmail = generator.randomFilteredEmailString();
 
-    expect(filteredEmail).toMatch(/^\[EMAIL:[a-f0-9]{6}\]$/);
+    expect(filteredEmail).toMatch(/^\[EMAIL:[a-f0-9]{16}\]$/);
   });
 
   test('should generate filtered email address objects', () => {
@@ -64,9 +64,9 @@ describe('RandomDataGenerator', () => {
 
     expect(filteredEmailObj).toHaveProperty('_filtered');
     expect(filteredEmailObj._filtered).toHaveProperty('_class', 'String');
-    expect(filteredEmailObj._filtered).toHaveProperty('_bytes');
+    expect(filteredEmailObj._filtered).not.toHaveProperty('_bytes');
     expect(filteredEmailObj._filtered).toHaveProperty('_hash');
-    expect(filteredEmailObj._filtered._hash).toMatch(/^[a-f0-9]{6}$/);
+    expect(filteredEmailObj._filtered._hash).toMatch(/^[a-f0-9]{16}$/);
   });
 
   test('should generate filtered hash objects', () => {
@@ -76,7 +76,8 @@ describe('RandomDataGenerator', () => {
     expect(filteredHash._filtered).toHaveProperty('_class', 'Hash');
     expect(filteredHash._filtered).toHaveProperty('_keys_count');
     expect(filteredHash._filtered).toHaveProperty('_keys');
-    expect(filteredHash._filtered).toHaveProperty('_bytes');
+    // Sensitive keys hide the size
+    expect(filteredHash._filtered).not.toHaveProperty('_bytes');
 
     // Check that keys include password-related fields
     expect(filteredHash._filtered._keys).toContain('password');
@@ -87,7 +88,7 @@ describe('RandomDataGenerator', () => {
 
     expect(filteredArray).toHaveProperty('_filtered');
     expect(filteredArray._filtered).toHaveProperty('_class', 'Array');
-    expect(filteredArray._filtered).toHaveProperty('_length', 5);
+    expect(filteredArray._filtered).toHaveProperty('_count', 5);
     expect(filteredArray._filtered).toHaveProperty('_bytes');
   });
 

@@ -268,6 +268,39 @@ module LogStruct
       refute ParamFilters.should_filter_key?("name", "Ada")
     end
 
+    def test_rails_filter_blocks_with_three_arguments_get_the_parameters
+      # Rails gives the block the whole params Hash, with indifferent access
+      number_filter = ->(key, _value, params) { key == "number" && params[:kind] == "card" }
+
+      with_rails_filter_parameters([number_filter]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      card_line = Formatter.new.call(::Logger::INFO, Time.now, nil, {msg: "Saved", params: {kind: "card", number: "card-1"}})
+      phone_line = Formatter.new.call(::Logger::INFO, Time.now, nil, {msg: "Saved", params: {kind: "phone", number: "phone-1"}})
+
+      assert_not_includes card_line, "card-1"
+      assert_includes phone_line, "phone-1"
+    end
+
+    def test_rails_dotted_filters_match_nested_keys_by_their_path
+      with_rails_filter_parameters(["profile.nickname", /\Ateam\.motto\z/]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      log_line = Formatter.new.call(::Logger::INFO,
+        Time.now,
+        nil,
+        {msg: "Saved", nickname: "top-level", params: {profile: {nickname: "nested"}, team: {motto: "hidden-motto"}}})
+      result = JSON.parse(log_line)
+
+      assert_equal "top-level", result["nickname"]
+      assert_equal ["_filtered"], result.dig("params", "profile", "nickname").keys
+      assert_not_includes log_line, "hidden-motto"
+      # Rails doesn't apply a dotted entry to a key on its own
+      refute ParamFilters.should_filter_key?("nickname", "x")
+    end
+
     # Test that development server process is DISABLED by default
     # (development is not in enabled_environments by default)
     def test_disabled_for_development_server_with_default_environments
