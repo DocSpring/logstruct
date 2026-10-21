@@ -6,8 +6,8 @@ require "active_support/tagged_logging"
 # Monkey-patch ActiveSupport::TaggedLogging::Formatter to work with structured logging.
 #
 # Problem: Rails' TaggedLogging prepends tags as text and converts messages to strings.
-# When we pass a hash to super(), Rails does "#{tags_text}#{msg}" which calls .to_s
-# on the hash, producing Ruby inspect format {message: "..."} instead of valid JSON.
+# When we pass a hash to super(), Rails does `"#{tags_text}#{msg}"` which calls .to_s
+# on the hash, producing Ruby inspect format `{message: "..."}` instead of valid JSON.
 #
 # Solution: When LogStruct is enabled, we add tags as a hash entry and delegate to
 # LogStruct::Formatter for proper JSON serialization with filtering and standard fields.
@@ -58,4 +58,6 @@ module ActiveSupport
   end
 end
 
-ActiveSupport::TaggedLogging::Formatter.prepend(ActiveSupport::TaggedLogging::FormatterExtension)
+module ActiveSupport::TaggedLogging::Formatter
+  prepend ActiveSupport::TaggedLogging::FormatterExtension
+end

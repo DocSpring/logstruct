@@ -180,9 +180,10 @@ LOGSTRUCT_ENABLED=false bin/rails test`}
 
       <HeadingWithAnchor id="limits">Limits</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct writes only part of very large values, so a huge request body or Hash can&apos;t
-        slow down the thread that writes your logs. Long strings are scrubbed before they&apos;re
-        cut.
+        LogStruct writes only part of very large values to reduce log size and formatting work.
+        These are limits on each value, not a total size or time limit for a line. Custom
+        serializers and filters can still do expensive work. Long strings are scrubbed before
+        they&apos;re cut.
       </p>
 
       <RubyCodeExample name="limits_configuration" />

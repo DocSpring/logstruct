@@ -78,10 +78,15 @@ module LogStruct
         # request's parameters or a mail's recipients
         sig { params(context: T.nilable(T::Hash[Symbol, T.untyped])).returns(T.nilable(T::Hash[Symbol, T.untyped])) }
         def filtered_context(context)
+          previous_internal_error = Thread.current[:logstruct_formatting_internal_error]
+          # The same filter may fail on the error's context. Keep that failure from reporting itself.
+          Thread.current[:logstruct_formatting_internal_error] = true
           return context if context.nil? || context.empty?
 
           filtered = Formatter.new.process_values(context)
           filtered.is_a?(Hash) ? filtered : {}
+        ensure
+          Thread.current[:logstruct_formatting_internal_error] = previous_internal_error
         end
 
         # Handle an error according to the configured error handling mode (log, report, raise, etc).
@@ -93,6 +98,12 @@ module LogStruct
           # Log / report in production, raise locally (dev/test)
           if mode == ErrorHandlingMode::LogProduction || mode == ErrorHandlingMode::ReportProduction
             raise(error) if !LogStruct.is_production?
+          end
+
+          # A broken filter or scrubber can also fail on its own error line. Enqueuing another error
+          # there would repeat forever on SemanticLogger's writer thread. Raise modes still raise.
+          if source == Source::Internal && Thread.current[:logstruct_formatting_internal_error] && mode != ErrorHandlingMode::Raise
+            return
           end
 
           case mode

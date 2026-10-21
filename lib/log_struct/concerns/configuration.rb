@@ -260,7 +260,7 @@ module LogStruct
             !!result || (value.is_a?(String) && value != original_value)
           rescue => e
             handle_filter_error(e, filter, original_key || "")
-            false
+            true
           end
           ConfigStruct::PathFilterMatcher.new(callable: callable, label: filter.inspect)
         end
@@ -291,11 +291,11 @@ module LogStruct
               !!filter.call(key)
             rescue => e
               handle_filter_error(e, filter, key)
-              false
+              true
             end
           rescue => e
             handle_filter_error(e, filter, key)
-            false
+            true
           end
           ConfigStruct::FilterMatcher.new(callable: callable, label: filter.inspect)
         end

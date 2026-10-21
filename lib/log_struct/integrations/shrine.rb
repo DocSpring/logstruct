@@ -104,7 +104,7 @@ module LogStruct
       end
 
       # Upload options with the file names taken out of a Content-Disposition (upload_options:
-      # {content_disposition: ...}, which the upload_options plugin often sets): they can name a person
+      # `{content_disposition: ...}`, which the upload_options plugin often sets): they can name a person
       sig { params(options: T.untyped).returns(T.untyped) }
       def self.without_file_names(options)
         return options unless options.is_a?(Hash)

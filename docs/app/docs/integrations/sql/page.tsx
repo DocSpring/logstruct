@@ -216,9 +216,9 @@ export default function SqlIntegrationPage() {
         </li>
         <li>
           Other strings are written as <code>[FILTERED]</code> when they look like a secret: longer
-          than 50 characters, 32 or more hex digits, 20 or more Base64 characters, a JWT, a{' '}
-          <code>Bearer</code> token, or text containing <code>password</code>, <code>secret</code>,{' '}
-          <code>token</code>, <code>key</code> or <code>auth</code>.
+          than 50 characters with no whitespace, 32 or more hex digits, 20 or more Base64
+          characters, a JWT, or a <code>Bearer</code> token. Merely containing a word such as{' '}
+          <code>password</code> or <code>key</code> does not make a value sensitive.
         </li>
         <li>What&apos;s left is scrubbed like any other value.</li>
       </ul>

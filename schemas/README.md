@@ -29,16 +29,13 @@ This folder contains YAML schemas that declaratively define each log source and 
 
 ### Base Fields
 
-- Preferred form:
-- **base.optional:** Optional boolean. When true, base fields are optional by default; use per-field `required: true` to force required. When omitted/false, fields are required by default.
-  - **base.fields:** Map of `LogField` names to types.
-- Legacy form:
-  - `base_fields:` is still supported (treated as optional-by-default). Prefer `base:` going forward.
+- **base.default_required:** Optional boolean, true by default. Set it to false to make base fields optional, with per-field `required: true` for exceptions.
+- **base.fields:** Map of `LogField` names to types.
 
 ### Events
 
 - **events:** Map of event name → object with keys:
-  - **optional:** Optional boolean. When true, fields are optional by default; use per-field `required: true` to force required. When omitted/false, fields are required by default.
+  - **default_required:** Optional boolean, true by default. Set it to false to make event fields optional, with per-field `required: true` for exceptions.
   - **fields:** Map of `LogField` names to types. Field keys must be valid `LogField` enum names (validated by `log-fields.json`).
 
 - You may also declare an event with no fields by using a bare event key or `null`:
@@ -52,16 +49,18 @@ You can write fields in two styles:
   - Required determined by `default_required` (event/base).
   - Example: `DurationMs: Float`
 
-- **Object form (conditional required):**
-  - `FieldName:
-type: Type
-required: false`
-  - Use when some fields must remain optional even if `default_required: true`.
+- **Object form:** Use when a field's requirement differs from `default_required`:
+
+  ```yaml
+  Message:
+    type: String
+    required: false
+  ```
 
 ### Naming Rules
 
 - Use the exact `LogField` constant name for keys (e.g., `RequestId`, `Database`, `DurationMs`, `WaitMs`).
-- The generator maps these to short JSON keys via `LogField` (e.g., `RequestId` → `:request_id`).
+- The generator maps these to short JSON keys via `LogField` (e.g., `RequestId` → `:req_id`).
 
 ## Units and Conventions
 
@@ -81,26 +80,31 @@ required: false`
   - Serialize `Time` fields as ISO-8601 strings
   - Respect `default_required` and `required` for field nilability
 
-## When To Use `optional`
+## When To Use `default_required`
 
 - Use `default_required: false` when all fields in an event (or base) are optional — this removes per-field `required: false` noise.
 - Do NOT add `default_required: false` when you have a mix of required and optional fields — declare required fields in shorthand and optional fields with `required: false`.
 
 Examples:
 
-- All optional fields:
-  - `default_required: false`
-  - `fields:
-Filename: String
-MimeType: String`
+All optional fields:
 
-- Mixed required/optional fields:
-  - Omit `optional`
-  - `fields:
-Message: String
-AhoyEvent:
-  type: String
-  required: false`
+```yaml
+default_required: false
+fields:
+  Filename: String
+  MimeType: String
+```
+
+Mixed required and optional fields:
+
+```yaml
+fields:
+  Message: String
+  AhoyEvent:
+    type: String
+    required: false
+```
 
 ## Validating and Generating
 

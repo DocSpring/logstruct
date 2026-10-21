@@ -25,6 +25,91 @@ module LogStruct
       refute ParamFilters.should_include_string_hash?(:password)
     end
 
+    test "a failing key matcher filters the value when its error is handled" do
+      LogStruct.config.filters.filter_matchers << ConfigStruct::FilterMatcher.new(
+        callable: ->(key, _value) {
+          raise "matcher failed" if key == "private_data"
+          false
+        },
+        label: "failing matcher"
+      )
+
+      assert_failing_matcher_filters_value
+    end
+
+    test "a failing path matcher filters the value when its error is handled" do
+      LogStruct.config.filters.path_matchers << ConfigStruct::PathFilterMatcher.new(
+        callable: ->(path, _value, _root) {
+          raise "matcher failed" if path.last == "private_data"
+          false
+        },
+        label: "failing matcher"
+      )
+
+      assert_failing_matcher_filters_value
+    end
+
+    private def assert_failing_matcher_filters_value
+      reported = []
+      line = LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
+        Formatter.new.call(:info, Time.now, nil, {private_data: "synthetic-secret", public_data: "visible"})
+      end
+
+      assert_equal ["matcher failed"], reported
+      assert_not_includes line, "synthetic-secret"
+      assert_equal({"_filtered" => {"_class" => "String"}}, JSON.parse(line)["private_data"])
+      assert_equal "visible", JSON.parse(line)["public_data"]
+    end
+
+    test "a filter that fails on every key does not keep logging its own failures" do
+      LogStruct.config.error_handling_modes.logstruct_errors = ErrorHandlingMode::Log
+      LogStruct.config.filters.filter_matchers = [ConfigStruct::FilterMatcher.new(
+        callable: ->(_key, _value) { raise "matcher failed" }, label: "failing matcher"
+      )]
+      pending = []
+      LogStruct.stub(:error, ->(entry) { pending << entry }) do
+        formatter = Formatter.new
+        line = formatter.call(:info, Time.now, nil, {private_data: "synthetic-secret"})
+
+        assert_not_includes line, "synthetic-secret"
+        refute_empty pending
+        errors = pending.dup
+        pending.clear
+        errors.each { |error| JSON.parse(formatter.call(:error, Time.now, nil, error)) }
+
+        assert_empty pending, "Formatting an internal error must not enqueue another internal error"
+      end
+    end
+
+    test "a failing filter does not recursively report failures in its error context" do
+      LogStruct.config.error_handling_modes.logstruct_errors = ErrorHandlingMode::Report
+      attempts = 0
+      LogStruct.config.filters.filter_matchers = [ConfigStruct::FilterMatcher.new(
+        callable: ->(_key, _value) {
+          attempts += 1
+          # Bound the regression so a broken implementation fails without overflowing the stack.
+          raise "matcher failed" if attempts <= 10
+          true
+        },
+        label: "failing matcher"
+      )]
+      reported = T.let([], T::Array[T.untyped])
+      LogStruct.config.error_reporting_handler = ->(error, context, _source) { reported << [error.message, context] }
+
+      LogStruct.stub(:error, ->(_entry) {}) do
+        line = Formatter.new.call(:info, Time.now, nil, {private_data: "synthetic-secret"})
+
+        assert_not_includes line, "synthetic-secret"
+      end
+
+      assert_equal 1, reported.size
+      report = T.must(reported.first)
+
+      assert_equal "matcher failed", report.first
+      assert_equal({_filtered: {_class: String}}, report.last[:matcher])
+      assert_nil Thread.current[:logstruct_formatting_internal_error]
+    end
+
     test "summarize_string includes hash when requested" do
       s = ParamFilters.summarize_string("abc@ex.com", true)
 
