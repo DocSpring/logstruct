@@ -276,6 +276,17 @@ module LogStruct
       assert_nil @formatter.process_values(nil, recursion_depth: too_deep)
     end
 
+    def test_summarizes_symbols_past_the_depth_limit
+      deep = :"synthetic@example.com"
+      Formatter::MAX_RECURSION_DEPTH.times { deep = [deep] }
+
+      log_line = @formatter.call(@severity, @time, @progname, {data: deep})
+
+      assert_not_includes log_line, "synthetic@example.com"
+      assert_includes log_line, '"_class":"Symbol"'
+      JSON.parse(log_line)
+    end
+
     def test_logs_circular_hashes_without_raising
       circular = {name: "loop"}
       circular[:self] = circular
@@ -295,8 +306,8 @@ module LogStruct
       ctx = JSON.parse(log_line).fetch("ctx")
 
       assert_equal "loop", ctx["name"]
-      assert_equal "loop", ctx.dig("first", "name")
-      assert_equal({"_class" => "Hash", "_keys_count" => 3}, ctx.dig("first", "first", "_filtered"))
+      assert_equal({"_class" => "Hash", "_keys_count" => 3}, ctx.dig("first", "_filtered"))
+      assert_equal ctx["first"], ctx["second"]
       assert_operator log_line.bytesize, :<, 1000
     end
 
@@ -407,15 +418,15 @@ module LogStruct
     end
 
     def test_log_value_to_hash_with_hash
-      # Test hash conversion (including string keys)
-      result = @formatter.log_value_to_hash({
-        "string_key" => "value",
-        :symbol_key => "symbol_value"
-      },
-        time: @time)
+      input = {
+        "string_field" => "value",
+        :symbol_field => "symbol_value"
+      }
+      result = JSON.parse(@formatter.call(@severity, @time, @progname, input))
 
-      assert_equal "value", result[:string_key]
-      assert_equal "symbol_value", result[:symbol_key]
+      assert_equal "value", result["string_field"]
+      assert_equal "symbol_value", result["symbol_field"]
+      assert_equal ["string_field", :symbol_field], input.keys
     end
 
     def test_log_value_to_hash_with_struct
@@ -593,6 +604,38 @@ module LogStruct
       result = JSON.parse(@formatter.call(@severity, @time, @progname, {msg: "Big", data: (1..10).to_h { |i| ["k#{i}", i] }}))
 
       assert_equal({"k1" => 1, "k2" => 2, "k3" => 3, "_more_keys" => 7}, result["data"])
+    end
+
+    class KeyProbe
+      attr_reader :visits
+
+      def initialize
+        @visits = 0
+      end
+
+      def to_sym
+        @visits += 1
+        :unvisited
+      end
+    end
+
+    def test_does_not_traverse_values_outside_the_size_limits
+      key = KeyProbe.new
+      skipped = {key => "hidden"}
+      inputs = [
+        {items: Array.new(LogStruct.config.limits.max_array_items, "visible") + [skipped]},
+        {data: (1..LogStruct.config.limits.max_hash_keys).to_h { |i| ["k#{i}", i] }.merge("ignored" => skipped)},
+        {password: {nested: skipped}}
+      ]
+
+      inputs.each do |input|
+        line = @formatter.call(@severity, @time, @progname, input)
+
+        assert_not_includes line, "hidden"
+        JSON.parse(line)
+      end
+
+      assert_equal 0, key.visits
     end
 
     def test_writes_the_first_lines_of_a_backtrace_like_array

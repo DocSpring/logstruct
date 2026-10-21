@@ -208,8 +208,9 @@ const SCRUBBERS: Scrubber[] = [
       <>
         In a URL&apos;s query string (after a <code>?</code>), the value of each param whose name
         would be filtered as a key, and of OAuth&apos;s <code>code</code>. A name like{' '}
-        <code>user[password]</code> is checked by its last part, written plainly or URL-encoded.
-        Replaced with <code>[FILTERED]</code>.
+        <code>user[password]</code> is checked by each part, written plainly or URL-encoded, so{' '}
+        <code>password[]</code> and <code>token[value]</code> are filtered too. Dotted Rails filters
+        match the nested path. Replaced with <code>[FILTERED]</code>.
       </>
     ),
     examples: [
@@ -219,6 +220,8 @@ const SCRUBBERS: Scrubber[] = [
         '/signup?user[password]=[FILTERED]&user[name]=Jo',
       ],
       ['/oauth/callback?code=4/0AY0e&state=xyz', '/oauth/callback?code=[FILTERED]&state=xyz'],
+      ['/login?password[]=hunter2', '/login?password[]=[FILTERED]'],
+      ['/login?token[value]=abc123', '/login?token[value]=[FILTERED]'],
       ['password=hunter2&user=jo', 'password=hunter2&user=jo', 'No ? before the params'],
     ],
   },
@@ -650,6 +653,12 @@ export default function FilteringSensitiveDataPage() {
           Configuration
         </Link>
         .
+      </p>
+
+      <p className="text-neutral-600 dark:text-neutral-300">
+        If a key or path filter raises, LogStruct handles the error using{' '}
+        <code>error_handling_modes.logstruct_errors</code>. When that mode lets logging continue,
+        the value is filtered. A failing filter never counts as permission to write the value.
       </p>
 
       <HeadingWithAnchor id="string-scrubbing">String Scrubbing</HeadingWithAnchor>

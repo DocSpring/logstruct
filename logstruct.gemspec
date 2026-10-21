@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "An opinionated and type-safe structured logging solution. " \
     "Configures any Rails app to log JSON to stdout. " \
     "Structured logging is automatically configured for many gems, including Sidekiq, Carrierwave, Shrine, etc. " \
-    "Log messages, params, and job args are automatically filtered and scrubbed to remove any sensitive info."
+    "Log messages, params, and job args are filtered by sensitive keys and scrubbed for common credential and personal data patterns."
   spec.homepage = "https://logstruct.com"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.3.0"

@@ -1,143 +1,77 @@
-**Purpose**
+# Adding an integration
 
-- Document how to add a new first‑class integration to LogStruct so it’s consistent, type‑safe, well‑tested, and shows up automatically in the docs docs with an auto‑generated example log.
+Built-in log types come from the YAML files in `schemas/log_sources/`. Never edit the generated Ruby
+classes under `lib/log_struct/log/` or the TypeScript files under `docs/generated/` by hand.
 
-**High‑Level Flow**
+## Define the log type
 
-- Add a typed log structure under `lib/log_struct/log/` (so the docs generator picks it up).
-- Add a configuration toggle in `ConfigStruct::Integrations` and wire it into `Integrations.setup_integrations` via the appropriate stage (`:non_middleware` for instrumentation hooks, `:middleware` when the integration inserts Rack middleware).
-- Implement the integration under `lib/log_struct/integrations/…` to produce that log type.
-- Add the dev dependency for the third‑party gem and generate RBIs with Tapioca.
-- Add tests (unit + behavior) under `test/log_struct/integrations` and (if needed) `test/log_struct/log`.
-- Add a short entry in the docs metadata (`docs/lib/integration-helpers.ts`). The Integrations page will render it automatically via `AllLogTypes`.
-- Run type export to update the docs’ TypeScript types.
+1. Add a schema under `schemas/log_sources/<name>.yml`. See [schemas/README.md](schemas/README.md)
+   for the schema format. Use an existing `Source` and `Event`, or add their enum values under
+   `lib/log_struct/enums/` first. Every known field belongs in the schema; `additional_data` is for
+   unknown fields supplied by an app or integration.
+2. Add any new field names and their serialized keys to `lib/log_struct/enums/log_field.rb`.
+3. Add the new source's require to `lib/log_struct/log.rb`.
+4. Run `task generate` to generate the Ruby classes, TypeScript types, field schema and provider catalog. The script writes the Ruby classes before loading them for the type export.
 
-**Conventions**
+For example, the Ahoy schema defines a single `LogStruct::Log::Ahoy` class:
 
-- Files and naming:
-  - Log type: `lib/log_struct/log/<Name>.rb` (class `LogStruct::Log::<Name>`)
-  - Integration: `lib/log_struct/integrations/<name>.rb` (module `LogStruct::Integrations::<Name>`)
-  - Optional submodules (e.g., `logger.rb`, `log_subscriber.rb`) live below a folder `lib/log_struct/integrations/<name>/`.
-  - Tests mirror structure under `test/log_struct/log` and `test/log_struct/integrations`.
-- Type safety:
-  - Every Ruby file must be `# typed: strict` and use `T::Sig`.
-  - For integration setup signatures: `sig { params(config: LogStruct::Configuration).returns(T.nilable(TrueClass)) }`.
-  - Prefer real constants (the gem is a development dependency), but guard runtime with `defined?(::GemModule)` to be safe in user apps.
-- Error handling:
-  - Never raise from the integration path; use `LogStruct.handle_exception(error, source: <Source>, context: {integration: :name})`.
-- Logging:
-  - Produce a dedicated typed log struct (do NOT emit a generic/plain log).
-  - Message naming: concise and stable, e.g., `"ams.render"`, `"ahoy.track"`.
-  - Choose the correct `Source` (Rails/App/Job/Storage/…) and a suitable `Event` (`Event::Log` unless a more specific event applies).
+```yaml
+source: Ahoy
+consts:
+  source: Source::App
+events:
+  Log:
+    fields:
+      Message: String
+      AhoyEvent: String
+      Properties:
+        type: 'T::Hash[Symbol, T.untyped]'
+        required: false
+```
 
-**Step‑by‑Step Checklist**
+Multiple events produce a parent file and one class per event, such as `LogStruct::Log::ActiveJob::Start`.
+Fields are required unless the schema sets `default_required: false` or an individual field sets
+`required: false`.
 
-1. Create the typed log struct
-   - File: `lib/log_struct/log/<name>.rb`
-   - Include: `Interfaces::CommonFields`, `Interfaces::AdditionalDataField`, `SerializeCommon`, `MergeAdditionalDataFields`.
-   - Define required fields and defaults (e.g., `message`, specific properties for the integration), and implement `serialize` to add them to the output.
-   - Example skeleton:
+## Connect the integration
 
-     class LogStruct::Log::Example < T::Struct
-     extend T::Sig
-     include Interfaces::CommonFields
-     include Interfaces::AdditionalDataField
-     include SerializeCommon
-     include MergeAdditionalDataFields
+1. Add `prop :enable_<name>, T::Boolean, default: true` to `ConfigStruct::Integrations`.
+2. Implement `LogStruct::Integrations::<Name>` under `lib/log_struct/integrations/<name>.rb`.
+   Extend `IntegrationInterface`, and give `setup` this signature:
 
-     ExampleEvent = T.type_alias { Event::Log }
-     const :source, Source::Rails, default: T.let(Source::Rails, Source::Rails)
-     const :event, ExampleEvent, default: T.let(Event::Log, ExampleEvent)
-     const :level, Level, default: T.let(Level::Info, Level)
-     const :timestamp, Time, factory: -> { Time.now }
+   ```ruby
+   sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
+   ```
 
-     const :message, String, default: "example.event"
-     const :detail, T.nilable(String), default: nil
-     const :additional_data, T::Hash[Symbol, T.untyped], default: {}
+   Return `nil` when LogStruct or the integration is disabled, or its optional gem is absent. Use
+   `::` for external constants. Subscribe to the gem's events, build the generated log struct, and
+   pass it to `LogStruct.info`, `warn` or `error` as appropriate.
 
-     sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
-     def serialize(strict = true)
-     h = serialize_common(strict)
-     merge_additional_data_fields(h)
-     h[LOG_KEYS.fetch(:message)] = message
-     h[:detail] = detail if detail
-     h
-     end
-     end
+3. Require the integration from `lib/log_struct/integrations.rb` and call its setup in the appropriate
+   stage: `:non_middleware` for subscribers and hooks, `:middleware` for Rack stack changes.
+4. When replacing an existing log subscriber, detach the original so each event is logged once.
+   Keep exceptions and return values behaving as the underlying gem expects. Use
+   `LogStruct.handle_exception(error, source: Source::Internal)` for failures inside the integration;
+   its configured mode decides whether to raise, log or report the error.
+5. Add optional third-party gems as development dependencies in `logstruct.gemspec`, run `bundle install`,
+   and generate their RBIs with `bundle exec tapioca gems`. They must not become required runtime
+   dependencies just to support an optional integration.
 
-2. Register the log type
-   - In `lib/log_struct/log.rb`:
-     - `require_relative "log/<name>"`
+Follow `integrations/ahoy.rb` for a small integration, or `integrations/active_job/log_subscriber.rb`
+for an integration with several events.
 
-3. Add a config toggle
-   - In `lib/log_struct/config_struct/integrations.rb`:
-     - `prop :enable_<name>, T::Boolean, default: true`
-   - In `lib/log_struct/integrations.rb`:
-     - `require_relative "integrations/<name>"`
-     - Call `Integrations::<Name>.setup(config)` inside `setup_integrations`, selecting the stage that matches your integration (`:non_middleware` for subscribers/hooks, `:middleware` for Rack additions). Most integrations belong in the default `:non_middleware` stage; only code that mutates the middleware stack should go in `:middleware`.
+## Test and document it
 
-4. Implement the integration
-   - File: `lib/log_struct/integrations/<name>.rb`
-   - Guard on presence of the third‑party gem (`return nil unless defined?(::ThirdParty)`), subscribe/hook into events, build your typed log, and log it with `LogStruct.info(log)`.
-   - Use `handle_exception` on rescue.
+- Add tests under `test/log_struct/integrations/`. Exercise real events and inspect the emitted JSON:
+  source, event, level, timestamps, expected fields, filtering, errors and duplicate lines.
+- Add Rails integration tests under `rails_test_app/templates/test/integration/` where boot order or
+  framework behavior matters. The test runner copies these templates into its generated app.
+- Add the toggle to the configuration examples in `test/code_examples/configuration_test.rb`, which
+  supply the code shown on the docs site.
+- Add the title, description and any detail-page link to `docs/lib/integration-helpers.ts`.
+  `AllLogTypes` supplies the integration list. Update `docs/lib/gem-descriptions.ts` for an optional gem.
+- Run `task generate`, `task ci`, and `cd docs && pnpm check` before calling the work ready.
 
-5. Add development dependency + RBIs
-   - In `logstruct.gemspec`, add the gem as a development dependency with a supported version:
-     - `spec.add_development_dependency "third_party_gem", "~> X.Y"`
-   - Run:
-     - `bundle install`
-     - `bundle exec tapioca gems` (commits RBIs under `sorbet/rbi/gems/...`).
-
-6. Tests
-   - Unit/behavior tests under `test/log_struct/integrations/<name>_test.rb`.
-   - If the integration exposes a new log struct surface, add a focused test in `test/log_struct/log/<name>_test.rb` when it adds non‑trivial serialization.
-   - Prefer real gem objects with small fakes only where necessary; the gem is available as a dev dependency.
-   - Assertions should inspect `as_json` and verify:
-     - `src`, `evt`, `lvl`, `ts` exist
-     - `msg` matches the agreed name
-     - Integration‑specific fields are present and correct
-
-7. Docs
-   - No custom sections in the Integrations page.
-   - The Integrations page lists all `AllLogTypes` with titles/descriptions from `docs/lib/integration-helpers.ts`.
-   - Add an entry to `getLogTypeInfo` for your new log type (title, concise description, optional `configuration_code: 'integrations_configuration'`).
-   - Run the type export to regenerate the docs’ TypeScript assets so example logs render:
-     - `ruby scripts/generate_structs.rb`
-
-8. Sorbet + CI
-   - Run `scripts/typecheck.sh` (must be clean).
-   - Run `scripts/test.rb` and `scripts/rails_tests.sh` (must be green).
-   - CI will enforce Tapioca verification and coverage threshold (80%+ merged).
-
-**Patterns to Follow (Examples)**
-
-- GoodJob:
-  - Log type: `lib/log_struct/log/good_job.rb`
-  - Integration: `lib/log_struct/integrations/good_job.rb` (+ `logger.rb`)
-  - Toggle: `enable_goodjob`
-- SQL (ActiveRecord):
-  - Log type: `lib/log_struct/log/sql.rb`
-  - Integration: `lib/log_struct/integrations/active_record.rb`
-  - Toggle: `enable_sql_logging`
-- ActiveModelSerializers:
-  - Log type: `lib/log_struct/log/active_model_serializers.rb` (msg: "ams.render")
-  - Integration: `lib/log_struct/integrations/active_model_serializers.rb`
-  - Toggle: `enable_active_model_serializers`
-- Ahoy:
-  - Log type: `lib/log_struct/log/ahoy.rb` (msg: "ahoy.track")
-  - Integration: `lib/log_struct/integrations/ahoy.rb`
-  - Toggle: `enable_ahoy`
-
-**Gotchas**
-
-- Don’t emit generic/plain logs for integrations that deserve a first‑class type.
-- Keep message names short and stable; avoid dumping raw payloads into `msg`.
-- Don’t raise in integration hooks; always call `handle_exception` with the correct `Source`.
-
-**One‑Time Commands (after adding or changing log types)**
-
-- `bundle install`
-- `bundle exec tapioca gems`
-- `ruby scripts/generate_structs.rb`
-- `scripts/typecheck.sh`
-- `scripts/test.rb` and (optionally) `scripts/rails_tests.sh`
+The generator writes the provider catalog under `terraform-provider-logstruct/pkg/data/`, a path
+ignored by this repository. When working in the separate provider checkout, commit its changes from
+that repository.

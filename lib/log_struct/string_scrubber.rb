@@ -239,7 +239,7 @@ module LogStruct
       def authorization_credentials?(scheme, credentials)
         return credentials.length >= 16 if scheme.casecmp?("bearer")
 
-        credentials.length >= 8 && Base64.strict_decode64(credentials).include?(":")
+        Base64.strict_decode64(credentials).include?(":")
       rescue ArgumentError
         false
       end
@@ -260,7 +260,7 @@ module LogStruct
         end
       end
 
-      # user[password] is checked as password, written plainly or URL-encoded
+      # Every part of a nested name is checked: both password[] and token[value] carry secrets.
       sig { params(name: String, value: String).returns(T::Boolean) }
       def sensitive_query_param?(name, value)
         decoded = begin
@@ -268,10 +268,11 @@ module LogStruct
         rescue ArgumentError
           name
         end
-        key = decoded[/\[([^\[\]]*)\]\z/, 1] || decoded
-        return false if key.empty?
-
-        SENSITIVE_QUERY_PARAMS.include?(key.downcase) || ParamFilters.should_filter_key?(key, value)
+        path = T.let([], T::Array[String])
+        decoded.split(/[\[\]]/).reject(&:empty?).any? do |key|
+          path << key
+          SENSITIVE_QUERY_PARAMS.include?(key.downcase) || ParamFilters.should_filter_key?(key, value, path: path)
+        end
       end
 
       # The Luhn checksum that every card number passes

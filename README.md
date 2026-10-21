@@ -28,7 +28,7 @@ any other log platform. Sensitive values are filtered and scrubbed before a line
   `Bearer` and `Basic` credentials and sensitive URL query params (`?token=`) are replaced too. IP and MAC address
   scrubbing are opt-in.
 - **Limits.** Huge values are cut down (100 keys per Hash, 10 items per Array, 20 lines per backtrace, 32 KB per
-  String by default), so one large request body can't slow down your logging.
+  String by default), reducing log size and the work spent formatting large values.
 - **Error handling.** A mode for each kind of error decides whether it's raised, logged or reported, and whether
   that differs between development and production. Reports go to Sentry, Bugsnag, Rollbar, Honeybadger or your own
   reporter.

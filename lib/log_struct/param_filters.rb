@@ -44,7 +44,8 @@ module LogStruct
           matcher.matches?(normalized_key, value)
         rescue => e
           handle_filter_matcher_error(e, matcher.label, normalized_key)
-          false
+          # An unsuccessful filter must never expose the value it was meant to protect.
+          true
         end
         return true if matched
         return false if filters.path_matchers.empty?
@@ -55,7 +56,7 @@ module LogStruct
           matcher.matches?(path, value, root)
         rescue => e
           handle_filter_matcher_error(e, matcher.label, normalized_key)
-          false
+          true
         end
       end
 
@@ -101,8 +102,8 @@ module LogStruct
 
         {
           _class: Hash,
-          _keys_count: hash.keys.size,
-          _keys: hash.keys.take(10).map { |key| normalize_summary_key(StringScrubber.scrub_name(key)) }
+          _keys_count: hash.size,
+          _keys: hash.each_key.take(10).map { |key| normalize_summary_key(StringScrubber.scrub_name(key)) }
         }
       end
 

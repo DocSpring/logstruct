@@ -102,6 +102,12 @@ module LogStruct
       assert_includes result, "[PASSWORD]"
     end
 
+    def test_scrub_short_basic_credentials
+      ["a:b", ":x", "x:", ":"].each do |credentials|
+        assert_equal "Basic [FILTERED]", StringScrubber.scrub("Basic #{Base64.strict_encode64(credentials)}")
+      end
+    end
+
     def test_scrub_credit_card_numbers
       # Test with a 16-digit card number
       input = "Card: 4111111111111111"
@@ -175,6 +181,13 @@ module LogStruct
       LogStruct.config.filters.url_query_params = false
 
       assert_equal "/reset?token=abc123", StringScrubber.scrub("/reset?token=abc123")
+    end
+
+    def test_scrub_sensitive_query_params_in_arrays_and_nested_hashes
+      %w[password[] token[value] user[password][] user%5Bpassword%5D%5B%5D].each do |name|
+        assert_equal "/login?#{name}=[FILTERED]&page=2", StringScrubber.scrub("/login?#{name}=synthetic-secret&page=2")
+      end
+      assert_equal "/search?tags[]=ruby", StringScrubber.scrub("/search?tags[]=ruby")
     end
 
     def test_scrub_name_skips_identifiers

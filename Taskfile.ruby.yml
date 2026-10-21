@@ -17,6 +17,13 @@ tasks:
       - bundle exec tapioca dsl
       - bundle exec tapioca annotations
 
+  tapioca:verify:
+    desc: Verify committed RBI files without downloading new annotations
+    deps: [generate]
+    cmds:
+      - bundle exec tapioca gems --verify
+      - bundle exec tapioca dsl --verify
+
   typecheck:
     desc: Run Sorbet type checking
     deps: [generate]

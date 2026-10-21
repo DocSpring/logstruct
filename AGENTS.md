@@ -8,6 +8,7 @@
 4. **This rule must ALWAYS be followed no matter what**
 5. **`additional_data` is ONLY for unknown and dynamic fields that a user or integration might send. IF YOU KNOW THE NAME OF A FIELD, IT GOES IN THE SCHEMA. NEVER use `additional_data` for known fields.**
 6. **NEVER run `git tag` without `-m` flag** - it opens an interactive editor and freezes. Always use: `git tag -a v0.1.7 -m "Release v0.1.7"`
+7. **Filter failures must protect the value.** If a key or path filter raises and the error mode lets logging continue, filter the value. Apply size and depth limits before traversing values that will not be logged.
 
 ## Commands
 
@@ -36,6 +37,7 @@ All commands use [Task](https://taskfile.dev) - run `task --list` to see all ava
 **Rails Integration Tests**: Located in `rails_test_app/templates/test/integration/`. The script automatically copies template files to the test app when you run `scripts/rails_tests.sh`.
 
 **FORCE_RECREATE**: Do NOT use `FORCE_RECREATE=true` unless absolutely necessary. It deletes the entire test app and recreates from scratch, which is slow. Only needed when:
+
 - Gemfile changes require reinstalling gems
 - Something is fundamentally broken with the cached app
 - Rails version changes (but the script auto-detects this anyway)
@@ -70,6 +72,7 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 
 - Generate all (structs + catalog): `task generate`
 - Generate Sorbet RBI files: `task ruby:tapioca`
+- Verify committed Sorbet RBI files: `task ruby:tapioca:verify` (also part of `task ci`). Keep annotation updates separate from checks; downloading them while typechecking makes results depend on upstream changes and task timing.
 - Generate spellcheck dictionary: `scripts/generate_lockfile_words.sh`
 - Check generated files are up to date: `task ruby:check-generated`
 
@@ -168,6 +171,7 @@ You do not need to check if these are defined with `defined?` - they are guarant
 
   What's left: splatting an Array or Hash whose size Sorbet doesn't know, a duck-typed call after `respond_to?` on
   another library's object, a `Minitest::Mock`, and a test that passes a wrong type on purpose.
+
 - Don't call `def` inside a method definition in tests (or anywhere). Use mocks or stubs.
 - For modules included in other classes, use `requires_ancestor`
 - Custom type overrides belong in `sorbet/rbi/overrides/`
