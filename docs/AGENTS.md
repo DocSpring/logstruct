@@ -2,7 +2,8 @@
 
 ## Project Structure & Module Organization
 
-- This directory contains the Next.js docs (TypeScript, React 19, Next 15).
+- This directory contains the Next.js docs (TypeScript, React 19, Next 16).
+- Keep `@types/node` on the same major version as the Node.js runtime used in CI. Upgrade the runtime and its types together.
 - Key paths:
   - `app/` – routes, server and client components
   - `components/` – shared UI components

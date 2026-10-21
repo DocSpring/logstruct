@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-21
+
+### Changed
+
+- **Development**: Update Prettier, cspell and pnpm's setup action. The development tools require Node.js 22.18 or later in the 22.x series.
+- **Docs**: Upgrade the site to Next.js 16 and align its Node type declarations with the Node.js 22 runtime used in CI.
+
 ### Fixed
 
 - **Filtering**: Nested URL query parameters such as `password[]` and `token[value]` are filtered, including URL-encoded names and paths in Rails' `filter_parameters`.
@@ -18,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs**: Correct the supported security release series and contributor instructions for releases, generated log types and schema fields. Describe size limits as limits per value, not a guarantee on total formatting time. Ensure the site's integration tests run when a local Watchman installation is broken.
 - **Development**: `task ci` verifies committed RBI files, matching GitHub CI, instead of downloading new annotations concurrently with typechecking.
 - **Generation**: A failed formatter or Sorbet JSON export stops code generation instead of leaving incomplete artifacts with a successful exit status.
+- **Development**: Update the locked `crass` dependency to 1.0.7, which fixes a denial-of-service issue in CSS number parsing.
 
 ## [0.2.1] - 2026-10-18
 
