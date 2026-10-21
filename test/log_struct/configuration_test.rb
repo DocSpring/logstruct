@@ -268,6 +268,32 @@ module LogStruct
       refute ParamFilters.should_filter_key?("name", "Ada")
     end
 
+    def test_failing_rails_filter_blocks_filter_the_value
+      filters = [
+        ->(key, _value) {
+          raise "filter failed" if key == "private_data"
+          nil
+        },
+        ->(key, _value, _root) {
+          raise "filter failed" if key == "private_data"
+          nil
+        }
+      ]
+      filters.each do |filter|
+        LogStruct.config.filters.filter_matchers = []
+        LogStruct.config.filters.path_matchers = []
+        with_rails_filter_parameters([filter]) { LogStruct.merge_rails_filter_parameters! }
+        reported = []
+        line = LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
+          Formatter.new.call(:info, Time.now, nil, {private_data: "synthetic-secret", public_data: "visible"})
+        end
+
+        assert_equal ["filter failed"], reported
+        assert_not_includes line, "synthetic-secret"
+        assert_equal "visible", JSON.parse(line)["public_data"]
+      end
+    end
+
     def test_rails_filter_blocks_with_three_arguments_get_the_parameters
       # Rails gives the block the whole params Hash, with indifferent access
       number_filter = ->(key, _value, params) { key == "number" && params[:kind] == "card" }
@@ -299,6 +325,15 @@ module LogStruct
       assert_not_includes log_line, "hidden-motto"
       # Rails doesn't apply a dotted entry to a key on its own
       refute ParamFilters.should_filter_key?("nickname", "x")
+    end
+
+    def test_rails_dotted_filters_match_nested_query_parameters
+      with_rails_filter_parameters(["profile.nickname", /\Ateam\.motto\z/]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+
+      assert_equal "/save?profile[nickname][]=[FILTERED]&nickname=visible&team[motto]=[FILTERED]",
+        StringScrubber.scrub("/save?profile[nickname][]=hidden&nickname=visible&team[motto]=hidden")
     end
 
     # A Hash that counts its conversions to indifferent access

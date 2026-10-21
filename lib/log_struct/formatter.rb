@@ -194,12 +194,12 @@ module LogStruct
       StringScrubber.valid_utf8(string)
     end
 
-    # A String or Symbol key as valid UTF-8 (symbolize_keys makes Symbols of binary String keys)
+    # Normalize only keys that will be logged, after applying the size limits.
     sig { params(key: T.untyped).returns(T.untyped) }
     def valid_utf8_key(key)
       case key
       when String
-        valid_utf8(key)
+        valid_utf8(key).to_sym
       when Symbol
         name = key.name
         fixed = valid_utf8(name)
@@ -232,31 +232,6 @@ module LogStruct
       "#{kept}... (cut from #{string.bytesize} bytes)"
     end
 
-    # Like deep_symbolize_keys, but stops at circular references and at the depth where
-    # process_values stops, leaving those values for process_values to summarize
-    sig { params(value: T.untyped, recursion_depth: Integer, ancestors: T::Hash[T.untyped, T::Boolean]).returns(T.untyped) }
-    def symbolize_keys(value, recursion_depth: 0, ancestors: {}.compare_by_identity)
-      return value if recursion_depth > MAX_RECURSION_DEPTH || ancestors.key?(value)
-
-      case value
-      when Hash
-        ancestors[value] = true
-        result = value.each_with_object({}) do |(key, nested_value), symbolized|
-          symbol_key = key.respond_to?(:to_sym) ? key.to_sym : key
-          symbolized[symbol_key] = symbolize_keys(nested_value, recursion_depth: recursion_depth + 1, ancestors: ancestors)
-        end
-        ancestors.delete(value)
-        result
-      when Array
-        ancestors[value] = true
-        result = value.map { |item| symbolize_keys(item, recursion_depth: recursion_depth + 1, ancestors: ancestors) }
-        ancestors.delete(value)
-        result
-      else
-        value
-      end
-    end
-
     # Describes a value without filtering, scrubbing or serializing it, so that values which
     # couldn't be processed are never logged raw. Hashes and arrays are not serialized because
     # they may contain circular references.
@@ -267,16 +242,16 @@ module LogStruct
         {_filtered: {_class: arg.class.name, _keys_count: arg.size}}
       when Array
         {_filtered: {_class: arg.class.name, _count: arg.size}}
-      when String
+      when String, Symbol
         {_filtered: {_class: arg.class.name}}
-      when Numeric, Symbol, TrueClass, FalseClass, NilClass
+      when Numeric, TrueClass, FalseClass, NilClass
         arg
       else
         {_filtered: {_class: arg.class.name}}
       end
     end
 
-    sig { params(log_value: T.untyped, time: Time).returns(T::Hash[Symbol, T.untyped]) }
+    sig { params(log_value: T.untyped, time: Time).returns(T::Hash[T.untyped, T.untyped]) }
     def log_value_to_hash(log_value, time:)
       case log_value
       when Log::Interfaces::CommonFields
@@ -284,12 +259,10 @@ module LogStruct
         log_value.serialize
 
       when T::Struct
-        # Default T::Struct.serialize methods returns a hash with string keys, so convert them to symbols
-        symbolize_keys(log_value.serialize)
+        log_value.serialize
 
       when Hash
-        # Use hash as is and convert string keys to symbols
-        symbolize_keys(log_value)
+        log_value
 
       when Exception
         # logger.error(exception): its class, message and backtrace
@@ -357,9 +330,15 @@ module LogStruct
       ).returns(String)
     end
     def call(severity, time, progname, log_value, request_id: nil, context: nil, tags: nil)
+      previous_internal_error = Thread.current[:logstruct_formatting_internal_error]
       level_enum = Level.from_severity(severity)
 
       data = log_value_to_hash(log_value, time: time)
+      source = data[:src] || data["src"]
+      event = data[:evt] || data["evt"]
+      if [Source::Internal, :logstruct, "logstruct"].include?(source) && [Event::Error, :error, "error"].include?(event)
+        Thread.current[:logstruct_formatting_internal_error] = true
+      end
 
       # Filter params, scrub sensitive values, format ActiveJob GlobalID arguments
       data = process_values(data)
@@ -376,6 +355,8 @@ module LogStruct
       rescue SystemStackError, StandardError => e
         unwritable_line_json(data, e)
       end
+    ensure
+      Thread.current[:logstruct_formatting_internal_error] = previous_internal_error
     end
 
     # A line that can't be written as JSON is replaced by one that says so, instead of being lost
@@ -420,7 +401,7 @@ module LogStruct
       if request_id.is_a?(String) && !request_id.empty? && !data.key?(:req_id)
         metadata[:req_id] = request_id
       end
-      metadata[:ctx] = symbolize_keys(context) if context.present?
+      metadata[:ctx] = context if context.present?
       return if metadata.empty?
 
       processed = process_values(metadata)

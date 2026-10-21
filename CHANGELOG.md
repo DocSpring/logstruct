@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Filtering**: Nested URL query parameters such as `password[]` and `token[value]` are filtered, including URL-encoded names and paths in Rails' `filter_parameters`.
+- **Filtering**: Basic credentials are scrubbed even when their Base64 encoding is shorter than eight characters.
+- **Filtering**: Symbols beyond the nesting limit are summarized instead of being written without scrubbing.
+- **Filtering**: When a key or path matcher raises and error handling lets logging continue, its value is filtered. This also applies to Rails filter blocks.
+- **Errors**: A failed filter or scrubber does not keep queuing or reporting errors when it fails again while formatting its own error line or report context.
+- **Formatting**: Hash keys are normalized during filtering, so arrays, hashes and filtered values are no longer copied recursively before size limits are applied. Circular references are summarized at their first recurrence.
+- **Docs**: Correct the supported security release series and contributor instructions for releases, generated log types and schema fields. Describe size limits as limits per value, not a guarantee on total formatting time. Ensure the site's integration tests run when a local Watchman installation is broken.
+- **Development**: `task ci` verifies committed RBI files, matching GitHub CI, instead of downloading new annotations concurrently with typechecking.
+- **Generation**: A failed formatter or Sorbet JSON export stops code generation instead of leaving incomplete artifacts with a successful exit status.
+
+## [0.2.1] - 2026-10-18
+
+### Fixed
+
+- **Lograge**: With `config.exceptions_app = routes`, a request whose action raises has one request line, the action's: the error page's controller no longer logs a second line as `GET /500`. When the error comes before any action (a routing error) or after it (in a middleware), the error page's line has the request's own method and path instead of `GET /404` (#28)
+
 ## [0.2.0] - 2026-10-18
 
 ### Changed

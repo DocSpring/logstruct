@@ -63,7 +63,7 @@ tasks:
       - spellcheck
       - docs:test
       - test
-      - ruby:tapioca
+      - ruby:tapioca:verify
 
   fix:
     desc: Auto-fix lint issues then run the full validation workflow (replaces scripts/all_write.sh)

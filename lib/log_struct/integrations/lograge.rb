@@ -36,6 +36,20 @@ module LogStruct
         T::Array[Symbol]
       )
 
+      # With config.exceptions_app = routes, Rails renders an error page by sending the request through the app again
+      # as GET /<status>, and keeps the request's own method and path in these headers
+      ORIGINAL_METHOD_HEADER = "action_dispatch.original_request_method"
+      ORIGINAL_PATH_HEADER = "action_dispatch.original_path"
+      # Set when the request's action logged a line with its error, so the error page for it logs none
+      ACTION_ERROR_LOGGED_HEADER = "logstruct.action_error_logged"
+
+      # A Proc, not a Method: sorbet-runtime replaces a method with sig checks on its first call, so a Method taken
+      # before then isn't equal to one taken after, and setup couldn't tell it had added the test already
+      IGNORE_REPEATED_ERROR_PAGE = T.let(
+        ->(event) { Lograge.repeated_error_page?(event) },
+        T.proc.params(event: ActiveSupport::Notifications::Event).returns(T::Boolean)
+      )
+
       class << self
         extend T::Sig
 
@@ -77,6 +91,9 @@ module LogStruct
               Integrations::Lograge.unsubscribe_rails_request_lines unless app.config.lograge.keep_original_rails_log
             end
           end
+
+          # Lograge.setup adds the app's own ignore tests to the same list
+          ::Lograge.ignore(IGNORE_REPEATED_ERROR_PAGE) unless ::Lograge.ignore_tests.include?(IGNORE_REPEATED_ERROR_PAGE)
         end
 
         # Rails' "Processing by", "Completed 200 OK" and "Rendered" lines, which the request line replaces
@@ -98,6 +115,7 @@ module LogStruct
             :source_ip
           ).compact
           add_request_address(event.payload[:request], options)
+          add_error_page_request(event, options)
 
           if event.payload[:params].present?
             options[:params] = event.payload[:params].except("controller", "action")
@@ -125,6 +143,29 @@ module LogStruct
             # The forwarding headers disagree, so the address the connection came from
             request.get_header("REMOTE_ADDR")
           end
+        end
+
+        # An error page's line has the method and path of the request it's for, not GET /500
+        sig { params(event: ActiveSupport::Notifications::Event, options: T::Hash[Symbol, T.untyped]).void }
+        def add_error_page_request(event, options)
+          request = event.payload[:request]
+          return unless request.is_a?(::ActionDispatch::Request)
+
+          if request.has_header?(ORIGINAL_PATH_HEADER)
+            options[:method] = request.get_header(ORIGINAL_METHOD_HEADER)
+            options[:path] = "#{request.script_name}#{request.get_header(ORIGINAL_PATH_HEADER)}"
+          elsif event.payload[:exception]
+            request.set_header(ACTION_ERROR_LOGGED_HEADER, true)
+          end
+        end
+
+        # The error page for an error its action's line logged would log the request a second time. A request whose
+        # error came before any action (a routing error) or after it (in a middleware) keeps its error page's line.
+        sig { params(event: ActiveSupport::Notifications::Event).returns(T::Boolean) }
+        def repeated_error_page?(event)
+          request = event.payload[:request]
+          request.is_a?(::ActionDispatch::Request) && request.has_header?(ORIGINAL_PATH_HEADER) &&
+            request.get_header(ACTION_ERROR_LOGGED_HEADER) == true
         end
 
         # Process headers from the event payload

@@ -84,6 +84,7 @@ However, some apps might skip certain parts of Rails and only require what they 
 - `defined?(::ActionMailer)`
 - `defined?(::ActiveJob)`
 - `defined?(::ActiveStorage)`
+- `defined?(::ActiveRecord)`
 
 And you always need to check for any third-party gems that are not part of Rails:
 
@@ -109,7 +110,8 @@ And you always need to check for any third-party gems that are not part of Rails
 - Ensure all tests pass before submitting a pull request
 - Regular tests: `scripts/test.rb`
 - Rails integration tests: `scripts/rails_tests.sh`
-- You can specify Rails version for integration tests: `RAILS_VERSION=7.1.3 scripts/rails_tests.sh`
+- You can specify Rails version for integration tests: `RAILS_VERSION=7.2.3 scripts/rails_tests.sh`
+- Run `task ci` before submitting changes, and `cd docs && pnpm check` for changes to the docs site.
 
 ## Working with Sorbet and Tapioca
 
@@ -152,7 +154,7 @@ And you always need to check for any third-party gems that are not part of Rails
 When typing modules that are included in other classes (like concerns, helpers, etc.), use the following approach:
 
 1. Create an RBI file in `sorbet/rbi/overrides/` that mirrors the module's path
-2. Use `requires_ancestor` to specify that a class includes a module
+2. Use `requires_ancestor` to specify the class or module that a consumer must inherit from or include
 3. For class methods added via `extend`, declare them in a separate `ClassMethods` module
 
 Example from `sorbet/rbi/overrides/log_struct/integrations/action_mailer/error_handling.rbi`:
@@ -162,7 +164,8 @@ Example from `sorbet/rbi/overrides/log_struct/integrations/action_mailer/error_h
 
 # This tells Sorbet that any class including ErrorHandling will have these methods
 module LogStruct::Integrations::ActionMailer::ErrorHandling
-  requires_ancestor { ActionMailer::Base }
+  extend T::Helpers
+  requires_ancestor { ::ActionMailer::Base }
 
   # Instance methods available to including classes
   def log_and_ignore_error; end
@@ -184,7 +187,8 @@ When using `ActiveSupport::Concern` with an `included` block, you need to use `T
 
 ```ruby
 module MyModule
-  extend ActiveSupport::Concern
+  extend ::ActiveSupport::Concern
+  extend T::Helpers
 
   requires_ancestor { ParentClass }
 
@@ -302,30 +306,36 @@ end
 
 #### Common Sorbet Patterns
 
-1. **Binding `self` in class methods**:
+1. **Typing an instance yielded to a block**:
 
    ```ruby
    class MyClass
+     extend T::Sig
+
      class << self
        extend T::Sig
 
-       sig { params(value: String).void }
-       def configure(value)
-         yield(new(value))
+       sig { params(value: String, blk: T.proc.params(instance: MyClass).void).void }
+       def configure(value, &blk)
+         blk.call(new(value))
        end
      end
 
-     sig { params(config: T.untyped).void }
+     sig { params(config: String).void }
      def initialize(config)
-       @config = config
+       @config = T.let(config, String)
      end
+
+     sig { returns(String) }
+     attr_reader :config
    end
 
    MyClass.configure("test") do |instance|
-     T.bind(self, MyClass)
-     # Now you can call MyClass instance methods
+     puts instance.config
    end
    ```
+
+   Yielding an instance does not change `self`. Use the block parameter; reserve `T.bind` for DSLs that change the block's receiver.
 
 2. **Typing procs and blocks**:
 
@@ -364,17 +374,12 @@ Remember: Taking shortcuts with Sorbet defeats the purpose of having static type
 
 ## Releasing
 
-1. Update the version number in `lib/log_struct/version.rb`
-2. Update the `CHANGELOG.md` file
-3. Create a git tag for the version
-4. Push the tag to GitHub
-5. Build and push the gem to RubyGems
+1. Update the version in `lib/log_struct/version.rb` and the release entry in `CHANGELOG.md`.
+2. Run `task ci`, commit the changes, and merge them into `main`.
+3. From a clean `main` checkout matching `origin/main`, run `task gem:release`. It creates and pushes an annotated version tag.
+4. Review and approve the `release` environment in the **Release Gem + Sync Terraform Provider** GitHub Actions workflow. It waits for CI on the tagged commit and publishes through RubyGems trusted publishing.
 
-```bash
-# Update version in lib/log_struct/version.rb first!
-bundle exec rake build
-gem push pkg/logstruct-x.y.z.gem
-```
+Use the workflow's `dry_run` option to validate the release without publishing. `task gem:build` builds a local package; do not push gems from a laptop. See [AGENTS.md](AGENTS.md#automated-releases-gem--provider) for the release workflow and provider synchronization.
 
 ## Documentation
 

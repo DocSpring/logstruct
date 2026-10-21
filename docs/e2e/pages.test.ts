@@ -80,7 +80,7 @@ async function get(path: string): Promise<string> {
 describe('Site integration pages', () => {
   test('home page renders', async () => {
     const html = await get('/');
-    expect(html).toContain('Zero-config JSON logging for Ruby on Rails');
+    expect(html).toContain('Zero-config structured logging for Ruby on Rails');
     expect(html).toContain('Get Started');
   });
 

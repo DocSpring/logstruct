@@ -33,7 +33,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'ActionMailer',
         description:
-          "Logs each mail before it's sent (delivery) and after (delivered), with the mailer, the action and the record IDs you choose with actionmailer_id_mapping. A delivery error is an error line, and what happens next (raise, report, retry) follows error_handling_modes.",
+          "Logs each mail before it's sent (delivery) and after (delivered), with the mailer, the action and the record IDs you choose with actionmailer_id_mapping. A delivery error is logged and raised again by default; a mailer's rescue_from handlers can choose to ignore or report it instead.",
         docsPath: '/docs/integrations/action-mailer',
       };
 
@@ -71,7 +71,7 @@ export function getLogTypeInfo(logType: LogType): {
       return {
         title: 'Security Logging',
         description:
-          'Logs requests that HostAuthorization blocked, failed CSRF checks and IP spoofing attempts as security lines, and reports them according to error_handling_modes.security_errors.',
+          'Logs requests that HostAuthorization blocked, failed CSRF checks and IP spoofing attempts as security lines. CSRF and IP spoofing errors are reported according to error_handling_modes.security_errors; blocked hosts are only logged.',
         docsPath: '/docs/integrations/security',
       };
 

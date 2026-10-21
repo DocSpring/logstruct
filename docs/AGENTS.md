@@ -29,7 +29,7 @@
 - Components: PascalCase files in `components/`; hooks start with `use*`.
 - Route segments and non-component utilities: kebab-case or lowerCamelCase as idiomatic for Next.js.
 - 2-space indentation; avoid default exports for shared components.
-- ESLint config: `eslint.config.mjs`. Fix issues as reported by `pnpm lint`.
+- Biome config: `biome.json`. Fix issues as reported by `pnpm lint`.
 - Styling via Tailwind CSS v4; keep atomic classes close to components.
 
 ## Testing Guidelines

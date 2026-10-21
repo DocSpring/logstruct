@@ -8,6 +8,7 @@
 4. **This rule must ALWAYS be followed no matter what**
 5. **`additional_data` is ONLY for unknown and dynamic fields that a user or integration might send. IF YOU KNOW THE NAME OF A FIELD, IT GOES IN THE SCHEMA. NEVER use `additional_data` for known fields.**
 6. **NEVER run `git tag` without `-m` flag** - it opens an interactive editor and freezes. Always use: `git tag -a v0.1.7 -m "Release v0.1.7"`
+7. **Filter failures must protect the value.** If a key or path filter raises and the error mode lets logging continue, filter the value. Apply size and depth limits before traversing values that will not be logged.
 
 ## Commands
 
@@ -36,6 +37,7 @@ All commands use [Task](https://taskfile.dev) - run `task --list` to see all ava
 **Rails Integration Tests**: Located in `rails_test_app/templates/test/integration/`. The script automatically copies template files to the test app when you run `scripts/rails_tests.sh`.
 
 **FORCE_RECREATE**: Do NOT use `FORCE_RECREATE=true` unless absolutely necessary. It deletes the entire test app and recreates from scratch, which is slow. Only needed when:
+
 - Gemfile changes require reinstalling gems
 - Something is fundamentally broken with the cached app
 - Rails version changes (but the script auto-detects this anyway)
@@ -70,6 +72,7 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 
 - Generate all (structs + catalog): `task generate`
 - Generate Sorbet RBI files: `task ruby:tapioca`
+- Verify committed Sorbet RBI files: `task ruby:tapioca:verify` (also part of `task ci`). Keep annotation updates separate from checks; downloading them while typechecking makes results depend on upstream changes and task timing.
 - Generate spellcheck dictionary: `scripts/generate_lockfile_words.sh`
 - Check generated files are up to date: `task ruby:check-generated`
 
@@ -127,8 +130,12 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 
 ## Required secrets
 
-- `TF_PROVIDER_GITHUB_TOKEN` (a `release` environment secret): PAT with write access to
-  `DocSpring/terraform-provider-logstruct` for syncing/tagging.
+- `TF_PROVIDER_DEPLOY_KEY` (a `release` environment secret): the private half of a deploy key with write access to
+  `DocSpring/terraform-provider-logstruct`, for syncing and tagging it. To replace it, generate an ed25519 key, add the
+  public half as a write deploy key on the provider repo and set the private half as this secret.
+- The provider repo's own release (GoReleaser, on its `v*` tags) signs with the GPG key in its `GPG_PRIVATE_KEY`
+  secret. The Terraform Registry only accepts releases signed by a key registered for the DocSpring namespace, so a
+  new signing key must be added to the registry before the next provider release.
 - RubyGems needs no secret: the `logstruct` gem has a trusted publisher for this repository's Release workflow and its
   `release` environment.
 
@@ -164,6 +171,7 @@ You do not need to check if these are defined with `defined?` - they are guarant
 
   What's left: splatting an Array or Hash whose size Sorbet doesn't know, a duck-typed call after `respond_to?` on
   another library's object, a `Minitest::Mock`, and a test that passes a wrong type on purpose.
+
 - Don't call `def` inside a method definition in tests (or anywhere). Use mocks or stubs.
 - For modules included in other classes, use `requires_ancestor`
 - Custom type overrides belong in `sorbet/rbi/overrides/`
@@ -175,6 +183,10 @@ You do not need to check if these are defined with `defined?` - they are guarant
 - NEVER ignore warnings (especially deprecation warnings) - keep the logs clean
 - When handling objects with as_json method in Rails apps, consider whether ActiveSupport's default implementation or a custom implementation is being used
 - Use minitest mocks and stubs, not `def`, `Object`, etc.
+
+## Commits and PRs
+
+- Refer to a GitHub issue as "Addresses #N" in commit messages and PR descriptions, never "Fixes #N" or "Closes #N". GitHub closes an issue when a commit that says "Fixes #N" reaches `main`, before the fix is released and without a reply, so the reporter isn't told which version has the fix. After the release, reply on the issue with the version and close it.
 
 ## Code Comments
 

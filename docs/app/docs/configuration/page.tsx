@@ -180,9 +180,10 @@ LOGSTRUCT_ENABLED=false bin/rails test`}
 
       <HeadingWithAnchor id="limits">Limits</HeadingWithAnchor>
       <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-        LogStruct writes only part of very large values, so a huge request body or Hash can&apos;t
-        slow down the thread that writes your logs. Long strings are scrubbed before they&apos;re
-        cut.
+        LogStruct writes only part of very large values to reduce log size and formatting work.
+        These are limits on each value, not a total size or time limit for a line. Custom
+        serializers and filters can still do expensive work. Long strings are scrubbed before
+        they&apos;re cut.
       </p>
 
       <RubyCodeExample name="limits_configuration" />
@@ -254,6 +255,16 @@ end`}
       <p className="text-neutral-600 dark:text-neutral-300 mt-4">
         The fields are added at the top level of the request line, and filtered like everything
         else.
+      </p>
+      <p className="text-neutral-600 dark:text-neutral-300 mt-4">
+        With <code>config.exceptions_app = routes</code>, Rails renders an error page by sending the
+        request through your routes again as <code>GET /500</code> (or <code>/404</code>,{' '}
+        <code>/422</code>). When an action raises, the request has one line, the action&apos;s, with
+        the error&apos;s status: the error page logs none. When the error comes before any action (a
+        routing error), the error page&apos;s line is the request&apos;s line, with the
+        request&apos;s own method and path. When a middleware raises after the action has finished,
+        the request has two lines: the action&apos;s, with the status the action returned, and the
+        error page&apos;s, with the error&apos;s status and the request&apos;s method and path.
       </p>
 
       <HeadingWithAnchor id="custom-string-scrubbing">Custom String Scrubbing</HeadingWithAnchor>
