@@ -13,7 +13,7 @@ This is the documentation website for the LogStruct gem, built with Next.js and 
 
 ### Prerequisites
 
-- Node.js 22 and pnpm 10.18.3 (the versions used in CI)
+- Node.js 22.18 or later in the 22.x series and pnpm 10.18.3 (CI uses Node.js 22)
 - The repository's Ruby version, Bundler and Task, with `bundle install` completed at the repository root
 
 ### Getting Started

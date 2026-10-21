@@ -1,5 +1,7 @@
 # Development Guidelines
 
+The development tools require Node.js 22.18 or later in the 22.x series and pnpm 10.18.3. Keep the docs site's `@types/node` major version aligned with the Node.js runtime used in CI.
+
 # Sorbet Usage
 
 - `T::Sig` is not available globally, we must extend it whenever we need it (we're building a library, not an application.)
