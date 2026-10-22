@@ -222,7 +222,7 @@ module LogStruct
         fixed = valid_utf8(name)
         fixed.equal?(name) ? key : fixed.to_sym
       else
-        key
+        valid_utf8(key.to_s)
       end
     end
 

@@ -19,6 +19,12 @@ module LogStruct
       end
     end
 
+    class EmailKey
+      def to_s
+        "person@example.com"
+      end
+    end
+
     def setup
       @formatter = Formatter.new
       @severity = ::Logger::INFO
@@ -173,6 +179,14 @@ module LogStruct
 
       assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, key)
       assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, result.dig(key, :status))
+    end
+
+    def test_scrubs_object_hash_keys
+      line = @formatter.call(@severity, @time, @progname, {data: {EmailKey.new => "visible"}})
+      result = JSON.parse(line)["data"]
+
+      assert_equal ["[EMAIL:#{StringScrubber.value_hash("person@example.com")}]"], result.keys
+      refute_includes line, "person@example.com"
     end
 
     def test_omits_the_keys_of_filtered_hashes
