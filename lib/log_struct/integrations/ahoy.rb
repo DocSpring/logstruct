@@ -45,10 +45,24 @@ module LogStruct
       # Event properties can come from the browser, so they can be anything; a non-Hash is logged as its class
       sig { params(properties: T.untyped).returns(T.nilable(T::Hash[Symbol, T.untyped])) }
       def self.properties_for_log(properties)
-        properties = properties.to_unsafe_h if properties.respond_to?(:to_unsafe_h)
         case properties
         when nil then nil
-        when Hash then properties.to_h { |key, value| [key.to_s.to_sym, value] }
+        when Hash, ::ActionController::Parameters
+          result = T.let({}, T::Hash[Symbol, T.untyped])
+          truncated = T.let(false, T::Boolean)
+          properties.each_pair.with_index do |(key, value), index|
+            if index >= LogStruct.config.limits.max_hash_keys
+              truncated = true
+              break
+            end
+            next if key.to_s.bytesize > LogStruct.config.limits.max_string_bytes
+
+            result[key.to_s.to_sym] = value
+          end
+          if truncated
+            result[:_more_keys] = properties.is_a?(Hash) ? properties.size - LogStruct.config.limits.max_hash_keys : true
+          end
+          result
         else {_class: properties.class.name}
         end
       end

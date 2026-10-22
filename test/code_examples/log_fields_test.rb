@@ -160,11 +160,7 @@ module LogStruct
 
         assert_equal %w[src evt lvl ts msg account_id rows prog], line.keys
 
-        # Its keys replace the line's own fields, except the reserved ones
-        replaced = LogStruct::Log::Plain.new(message: "Imported", additional_data: {msg: "Replaced"}).serialize
-
-        assert_equal "Replaced", replaced[:msg]
-        %i[src evt lvl ts].each do |key|
+        %i[src evt lvl ts msg backtrace].each do |key|
           error = assert_raises(ArgumentError) do
             LogStruct::Log::Plain.new(message: "Imported", additional_data: {key => "x"}).serialize
           end
@@ -195,7 +191,7 @@ module LogStruct
         assert_equal({"_class" => "String", "_hash" => StringScrubber.value_hash("linda.martinez@example.com")}, line.dig("email", "_filtered"))
         assert_equal({"_class" => "String"}, line.dig("password", "_filtered"))
         assert_equal({"_class" => "Array", "_count" => 2}, line.dig("api_tokens", "_filtered"))
-        assert_equal({"_class" => "Hash", "_keys_count" => 2, "_keys" => %w[client_id client_secret]}, line.dig("credentials", "_filtered"))
+        assert_equal({"_class" => "Hash", "_keys_count" => 2}, line.dig("credentials", "_filtered"))
         assert_equal "Call Linda on [PHONE]", line["note"]
       end
 
@@ -415,15 +411,13 @@ module LogStruct
 
         stored_file = {
           storage: :file,
-          file_id: "avatar.png",
+          file_id: HashUtils.hash_value("avatar.png"),
           uploader: "AvatarUploader",
           model: "User",
           mount_point: "avatar",
-          version: "",
-          store_path: "uploads/user/avatar/1873/avatar.png",
-          extension: "png"
+          version: ""
         }
-        upload = {**stored_file, filename: "avatar.png", mime_type: "image/png", size: 48_213}
+        upload = {**stored_file, mime_type: "image/png", size: 48_213}
         example(Log::CarrierWave::Upload) { in_request { rails.info(Log::CarrierWave::Upload.new(**upload, duration_ms: 12.7)) } }
         # A remote URL fetched into the cache (remote_avatar_url=)
         example(Log::CarrierWave::Download) { in_request { rails.info(Log::CarrierWave::Download.new(**upload)) } }

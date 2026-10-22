@@ -37,6 +37,23 @@ module LogStruct
       assert_failing_matcher_filters_value
     end
 
+    test "a matcher failure does not report its value or key" do
+      LogStruct.config.filters.filter_matchers << ConfigStruct::FilterMatcher.new(
+        callable: ->(key, value) { raise "#{key}: #{value}" },
+        label: "failed matcher"
+      )
+      reported = []
+
+      line = LogStruct.stub(:handle_exception, ->(error, source:, context:) { reported << [error.message, source, context] }) do
+        Formatter.new.call(:info, Time.now, nil, {"sensitive_field" => "secret-in-value"})
+      end
+
+      refute_includes line, "secret-in-value"
+      refute_includes reported.to_s, "sensitive_field"
+      refute_includes reported.to_s, "secret-in-value"
+      assert_equal ["RuntimeError: filter matcher failed"], reported.map(&:first)
+    end
+
     test "a failing path matcher filters the value when its error is handled" do
       LogStruct.config.filters.path_matchers << ConfigStruct::PathFilterMatcher.new(
         callable: ->(path, _value, _root) {
@@ -49,13 +66,27 @@ module LogStruct
       assert_failing_matcher_filters_value
     end
 
+    test "path matcher roots fail closed when limits omit context" do
+      LogStruct.config.limits.max_hash_keys = 1
+      root = ConfigStruct::LazyRoot.new({"visible" => {"name" => "Ada", "ignored" => "hidden"}, "ignored" => {"secret" => "hidden"}})
+
+      assert_same ConfigStruct::LazyRoot::UNAVAILABLE, root.value
+      matcher = ConfigStruct::PathFilterMatcher.new(callable: ->(_path, _value, _root) { false }, label: "root matcher")
+
+      assert matcher.matches?(["visible"], "secret", root)
+
+      complete_root = ConfigStruct::LazyRoot.new({"visible" => {"name" => "Ada"}})
+
+      assert_equal "Ada", complete_root.value["visible"]["name"]
+    end
+
     private def assert_failing_matcher_filters_value
       reported = []
       line = LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
         Formatter.new.call(:info, Time.now, nil, {private_data: "synthetic-secret", public_data: "visible"})
       end
 
-      assert_equal ["matcher failed"], reported
+      assert_equal ["RuntimeError: filter matcher failed"], reported
       assert_not_includes line, "synthetic-secret"
       assert_equal({"_filtered" => {"_class" => "String"}}, JSON.parse(line)["private_data"])
       assert_equal "visible", JSON.parse(line)["public_data"]
@@ -105,7 +136,7 @@ module LogStruct
       assert_equal 1, reported.size
       report = T.must(reported.first)
 
-      assert_equal "matcher failed", report.first
+      assert_equal "RuntimeError: filter matcher failed", report.first
       assert_equal({_filtered: {_class: String}}, report.last[:matcher])
       assert_nil Thread.current[:logstruct_formatting_internal_error]
     end
@@ -124,9 +155,9 @@ module LogStruct
       assert_equal({_class: String}, s)
     end
 
-    test "summarize_hash has the keys, not the size" do
-      assert_equal({_class: Hash, _keys_count: 2, _keys: [:a, :b]}, ParamFilters.summarize_hash({a: 1, b: 2}))
-      assert_equal({_class: Hash, _keys_count: 1, _keys: [:value]}, ParamFilters.summarize_hash({value: "secret"}))
+    test "summarize_hash does not expose child keys" do
+      assert_equal({_class: Hash, _keys_count: 2}, ParamFilters.summarize_hash({a: 1, b: 2}))
+      assert_equal({_class: Hash, _keys_count: 1}, ParamFilters.summarize_hash({"secret-as-key" => "hidden"}))
     end
 
     test "summarize_hash handles non symbol keys" do
@@ -134,7 +165,7 @@ module LogStruct
 
       assert_equal Hash, summary[:_class]
       assert_equal 1, summary[:_keys_count]
-      assert_equal ["1"], summary[:_keys]
+      refute summary.key?(:_keys)
     end
 
     test "summarize_array reports the count, not the size, and handles empty" do

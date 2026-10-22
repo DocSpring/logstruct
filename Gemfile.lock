@@ -105,6 +105,9 @@ GEM
     bugsnag (6.27.1)
       concurrent-ruby (~> 1.0)
     builder (3.3.0)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
+      thor (~> 1.0)
     carrierwave (3.1.4)
       activemodel (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -119,7 +122,8 @@ GEM
     connection_pool (2.5.0)
     content_disposition (1.0.0)
     crass (1.0.7)
-    dalli (3.2.8)
+    dalli (3.2.13)
+      logger
     date (3.4.1)
     debug (1.10.0)
       irb (~> 1.10)
@@ -460,9 +464,10 @@ DEPENDENCIES
   amazing_print
   bigdecimal
   bugsnag (~> 6.26)
+  bundler-audit
   carrierwave (~> 3.0)
   climate_control (~> 1.2)
-  dalli
+  dalli (~> 3.2.13)
   debug
   dotenv-rails (~> 3.1)
   drb

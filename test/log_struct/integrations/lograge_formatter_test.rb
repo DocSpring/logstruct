@@ -39,10 +39,10 @@ module LogStruct
         assert_in_delta 1.23, log.view
         assert_in_delta 0.45, log.database
 
-        # params should be symbolized deeply
+        # Top-level param names are normalized for the struct; nested values stay untouched until formatting.
         refute_nil log.params
         assert_equal "bar", log.params[:foo]
-        assert_equal "x", log.params[:nested][:inner]
+        assert_equal "x", log.params[:nested]["inner"]
 
         # ensure serialize works without type errors
         json_hash = log.serialize

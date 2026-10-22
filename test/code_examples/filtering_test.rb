@@ -70,14 +70,12 @@ module LogStruct
         assert_equal({_filtered: {_class: "Hash", _empty: true}}, formatter.process_values({credentials: {}})[:credentials])
         assert_equal({_filtered: {_class: "Array", _empty: true}}, formatter.process_values({tokens: []})[:tokens])
         assert_equal({_filtered: {_class: NilClass}}, formatter.process_values({password: nil})[:password])
-        # Only the first 10 keys of a filtered Hash, scrubbed like any string
         summary = formatter.process_values({credentials: (1..12).to_h { |i| [:"key#{i}", i] }})
 
         assert_equal 12, summary.dig(:credentials, :_filtered, :_keys_count)
-        assert_equal 10, summary.dig(:credentials, :_filtered, :_keys).size
         email_key = formatter.process_values({credentials: {"linda@example.com" => 1}})
 
-        assert_equal [:"[EMAIL:#{StringScrubber.value_hash("linda@example.com")}]"], email_key.dig(:credentials, :_filtered, :_keys)
+        assert_equal({_class: Hash, _keys_count: 1}, email_key.dig(:credentials, :_filtered))
         # A value Rails' parameter filter has already replaced stays as it is, with no hash
         assert_equal({email: "[FILTERED]", password: "[FILTERED]"}, formatter.process_values({email: "[FILTERED]", password: "[FILTERED]"}))
         # At any depth, and in Arrays

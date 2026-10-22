@@ -219,7 +219,7 @@ module LogStruct
         assert_equal({"_class" => "String", "_hash" => email_hash}, line.dig("email", "_filtered"))
         # One hash for the address, whatever its case, under a key or inside a string
         assert_equal "Reset link sent to [EMAIL:#{email_hash}]", line["note"]
-        assert_equal({"_class" => "Hash", "_keys_count" => 2, "_keys" => %w[username password]}, line.dig("credentials", "_filtered"))
+        assert_equal({"_class" => "Hash", "_keys_count" => 2}, line.dig("credentials", "_filtered"))
         assert_equal "https://app.example.com/reset?token=[FILTERED]&step=2", line["reset_url"]
         assert_equal "[CREDIT_CARD]", line["card"]
         # Nothing matches a name, so it's logged as it is

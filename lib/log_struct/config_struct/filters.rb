@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "active_support/hash_with_indifferent_access"
+require_relative "../bounded_input"
 
 module LogStruct
   # A key's words, lowercase and joined by underscores, so that keys match however they're written:
@@ -38,8 +39,8 @@ module LogStruct
     # A filter that needs more than the key: Rails' entries with a dot (`card.number`) match a key by its
     # path, and Rails gives filter blocks with three arguments the parameters around the key. The path
     # starts at the line's top-level field (`["params", "card", "number"]`); `root` is that field's value,
-    # or the whole line for a top-level key, with indifferent access as Rails gives it. Building it copies
-    # every value inside it, so a matcher that doesn't read it sets uses_root to false and gets nil.
+    # or the whole line for a top-level key, with indifferent access as Rails gives it. A matcher
+    # that doesn't read the root sets uses_root to false and gets nil.
     class PathFilterMatcher < T::Struct
       extend T::Sig
 
@@ -50,13 +51,18 @@ module LogStruct
       sig { params(path: T::Array[String], value: T.untyped, root: T.untyped).returns(T::Boolean) }
       def matches?(path, value, root)
         root = nil unless uses_root
-        callable.call(path, value, root.is_a?(LazyRoot) ? root.value : root)
+        root = root.value if root.is_a?(LazyRoot)
+        return true if root.equal?(LazyRoot::UNAVAILABLE)
+
+        callable.call(path, value, root)
       end
     end
 
     # The root a PathFilterMatcher gets, built the first time a matcher reads it
     class LazyRoot
       extend T::Sig
+
+      UNAVAILABLE = T.let(Object.new.freeze, Object)
 
       sig { params(value: T.untyped).void }
       def initialize(value)
@@ -70,12 +76,20 @@ module LogStruct
       def value
         return @value if @built
 
-        @built = true
-        @value = begin
-          @source.is_a?(Hash) ? ActiveSupport::HashWithIndifferentAccess.new(@source) : @source
-        rescue SystemStackError, StandardError
-          @source
+        state = BoundedInput::State.new
+        bounded = BoundedInput.copy(@source, state: state)
+        @value = if state.truncated
+          UNAVAILABLE
+        elsif bounded.is_a?(Hash)
+          ActiveSupport::HashWithIndifferentAccess.new(bounded)
+        else
+          bounded
         end
+        @built = true
+        @value
+      rescue SystemStackError, StandardError
+        @built = true
+        @value = UNAVAILABLE
       end
     end
 
@@ -86,7 +100,7 @@ module LogStruct
       # A filtered value is replaced by a summary of it, with no length (which would say how long a
       # secret is):
       #
-      # { _filtered: { _class: "Hash", _keys_count: 3, _keys: [:key1, :key2, :key3] } }  # first 10 keys
+      # { _filtered: { _class: "Hash", _keys_count: 3 } }
       # { _filtered: { _class: "Array", _count: 2 } }
       # { _filtered: { _class: "String" } }  # plus its _hash for filter_keys_with_hashes
       #

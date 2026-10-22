@@ -207,10 +207,10 @@ bundle exec srb tc`}
         <li>
           <code>LogStruct::Log::Interfaces::AdditionalDataField</code> and{' '}
           <code>LogStruct::Log::Shared::MergeAdditionalDataFields</code>, for an optional{' '}
-          <code>additional_data</code> Hash whose keys go at the top level of the line. A key named{' '}
-          <code>src</code>, <code>evt</code>, <code>lvl</code> or <code>ts</code> is a LogStruct
-          error (<code>logstruct_errors</code>): raised in development and test, and logged and left
-          out in production.
+          <code>additional_data</code> Hash whose keys go at the top level of the line. A key that
+          matches any built-in log field, such as <code>msg</code> or <code>ts</code>, is a
+          LogStruct error (<code>logstruct_errors</code>): raised in development and test, and
+          logged and left out in production.
         </li>
       </ul>
       <p className={pClass}>

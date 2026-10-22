@@ -85,8 +85,8 @@ export default function SOC2CompliancePage() {
           keys, cookies, sessions, authorization headers, card numbers, social security numbers and
           the like), or a key in Rails&apos; <code>filter_parameters</code> or your{' '}
           <code>filter_keys</code>, is replaced by a summary: its class, plus a Hash&apos;s key
-          count and first 10 keys or an Array&apos;s item count. <code>email</code> and{' '}
-          <code>email_address</code> values get a hash of the address too.
+          count or an Array&apos;s item count. <code>email</code> and <code>email_address</code>{' '}
+          values get a hash of the address too.
         </li>
         <li>
           <strong>Strings.</strong> In every string, LogStruct replaces email addresses with{' '}
@@ -113,11 +113,7 @@ export default function SOC2CompliancePage() {
   "credentials": {
     "_filtered": {
       "_class": "Hash",
-      "_keys_count": 2,
-      "_keys": [
-        "username",
-        "password"
-      ]
+      "_keys_count": 2
     }
   },
   "reset_url": "https://app.example.com/reset?token=[FILTERED]&step=2",

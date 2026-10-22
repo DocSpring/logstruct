@@ -21,7 +21,7 @@ module LogStruct
       # Default: 20
       prop :max_backtrace_lines, Integer, default: 20
 
-      # Strings longer than this many bytes are cut, and say how long they were
+      # Strings longer than this many bytes are cut; oversized Hash keys and their values are omitted
       # Default: 32768 (32 KB)
       prop :max_string_bytes, Integer, default: 32_768
     end

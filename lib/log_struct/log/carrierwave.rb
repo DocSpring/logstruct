@@ -21,8 +21,6 @@ module LogStruct
         const :model, T.nilable(String), default: nil
         const :mount_point, T.nilable(String), default: nil
         const :version, T.nilable(String), default: nil
-        const :store_path, T.nilable(String), default: nil
-        const :extension, T.nilable(String), default: nil
 
         Kwargs = T.type_alias do
           {
@@ -31,9 +29,7 @@ module LogStruct
             uploader: T.nilable(String),
             model: T.nilable(String),
             mount_point: T.nilable(String),
-            version: T.nilable(String),
-            store_path: T.nilable(String),
-            extension: T.nilable(String)
+            version: T.nilable(String)
           }
         end
 
@@ -45,9 +41,7 @@ module LogStruct
             uploader: uploader,
             model: model,
             mount_point: mount_point,
-            version: version,
-            store_path: store_path,
-            extension: extension
+            version: version
           }
         end
       end

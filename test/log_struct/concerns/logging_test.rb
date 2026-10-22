@@ -142,7 +142,7 @@ module LogStruct
         timestamp: Time.new(2023, 1, 1, 12, 0, 0),
         additional_data: {
           user_id: 123,
-          action: "test",
+          integration_action: "test",
           custom_field: "custom value"
         }
       )
@@ -157,7 +157,7 @@ module LogStruct
       # Verify the message and custom fields were logged correctly
       assert_equal "Message with extra fields", parsed_log["msg"]
       assert_equal 123, parsed_log["user_id"]
-      assert_equal "test", parsed_log["action"]
+      assert_equal "test", parsed_log["integration_action"]
       assert_equal "custom value", parsed_log["custom_field"]
     end
   end

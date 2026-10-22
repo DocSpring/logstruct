@@ -196,7 +196,7 @@ module LogStruct
           result = custom_options_proc.call(event, options)
           return if !result.is_a?(Hash) || result.equal?(options)
 
-          options.merge!(result.to_h { |key, value| [key.to_s.to_sym, value] })
+          options.merge!(normalize_lograge_data(result))
         end
 
         sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(Log::Request) }
@@ -210,7 +210,7 @@ module LogStruct
           db = ((b = normalized_data[:db]) && b.respond_to?(:to_f)) ? b.to_f : b
 
           params = normalized_data[:params]
-          params = params.deep_symbolize_keys if params&.respond_to?(:deep_symbolize_keys)
+          params = normalize_lograge_data(params) if params.is_a?(Hash) || params.is_a?(::ActionController::Parameters)
 
           additional_data = extract_additional_data(normalized_data)
 
@@ -237,11 +237,23 @@ module LogStruct
           )
         end
 
-        sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
+        sig { params(data: T.untyped).returns(T::Hash[Symbol, T.untyped]) }
         def normalize_lograge_data(data)
-          data.each_with_object({}) do |(key, value), normalized|
+          normalized = T.let({}, T::Hash[Symbol, T.untyped])
+          truncated = T.let(false, T::Boolean)
+          data.each_pair.with_index do |(key, value), index|
+            if index >= LogStruct.config.limits.max_hash_keys
+              truncated = true
+              break
+            end
+            next if key.to_s.bytesize > LogStruct.config.limits.max_string_bytes
+
             normalized[key.to_s.to_sym] = value
           end
+          if truncated
+            normalized[:_more_keys] = data.is_a?(Hash) ? data.size - LogStruct.config.limits.max_hash_keys : true
+          end
+          normalized
         end
 
         sig { params(data: T::Hash[Symbol, T.untyped]).returns(T.nilable(T::Hash[Symbol, T.untyped])) }

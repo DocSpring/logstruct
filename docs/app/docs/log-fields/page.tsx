@@ -192,13 +192,14 @@ export default function LogFieldsPage() {
       <CodeBlock language="json">{json(FORMATS.additional_data)}</CodeBlock>
       <ul className={list}>
         <li>
-          A key with the same name as one of the type&apos;s fields replaces that field: an{' '}
-          <code>additional_data</code> of <code>{'{msg: "..."}'}</code> replaces the message.
+          Use <code>additional_data</code> only for unknown fields. Put known fields in the log
+          type&apos;s schema.
         </li>
         <li>
-          <code>src</code>, <code>evt</code>, <code>lvl</code> and <code>ts</code> are reserved.
-          LogStruct drops them and handles the <code>ArgumentError</code> as a LogStruct error
-          (raised in <code>local_environments</code>, logged elsewhere).
+          All built-in field names, including <code>src</code>, <code>evt</code>, <code>msg</code>
+          and <code>backtrace</code>, are reserved. LogStruct drops them and handles the{' '}
+          <code>ArgumentError</code> as a LogStruct error (raised in <code>local_environments</code>
+          , logged elsewhere).
         </li>
       </ul>
 
@@ -328,8 +329,8 @@ export default function LogFieldsPage() {
           it&apos;s capitalized.
         </li>
         <li>
-          A Hash: <code>_class</code>, <code>_keys_count</code> and its first 10 keys in{' '}
-          <code>_keys</code>. An empty Hash is <code>{'{"_class": "Hash", "_empty": true}'}</code>.
+          A Hash: <code>_class</code> and <code>_keys_count</code>. An empty Hash is{' '}
+          <code>{'{"_class": "Hash", "_empty": true}'}</code>.
         </li>
         <li>
           An Array: <code>_class</code> and <code>_count</code>. An empty Array is{' '}
@@ -344,7 +345,7 @@ export default function LogFieldsPage() {
         </li>
         <li>
           Values nested more than 20 levels deep, and values that contain themselves, are written as
-          a summary without <code>_keys</code>.
+          a summary.
         </li>
       </ul>
       <p className={text}>
@@ -366,6 +367,8 @@ export default function LogFieldsPage() {
         <li>
           <code>max_hash_keys</code> (default 100): a Hash writes its first 100 keys, then{' '}
           <code>_more_keys</code> with the number left out. The line&apos;s own keys count too.
+          Rails parameters use <code>true</code> for <code>_more_keys</code> because their count is
+          unavailable without traversing the whole input.
         </li>
         <li>
           <code>max_array_items</code> (default 10): an Array writes its first 10 items, then a last
@@ -380,7 +383,9 @@ export default function LogFieldsPage() {
         <li>
           <code>max_string_bytes</code> (default 32768, 32 KB): a longer string is cut to that many
           bytes after it&apos;s scrubbed, and ends with{' '}
-          <code>&quot;... (cut from N bytes)&quot;</code>.
+          <code>&quot;... (cut from N bytes)&quot;</code>. A longer Hash key and its value are
+          omitted;
+          <code>_oversized_keys</code> counts omitted keys.
         </li>
       </ul>
       <RubyCodeExample name="log_fields_limits" />

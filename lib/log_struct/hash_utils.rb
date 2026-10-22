@@ -2,13 +2,12 @@
 # frozen_string_literal: true
 
 require "openssl"
+require "securerandom"
 
 module LogStruct
   # Utility module for hashing sensitive data
   module HashUtils
-    # The key when there's neither a configured hash_salt nor a Rails app with a secret_key_base.
-    # It's public, so these hashes can be matched to a list of candidate values.
-    FALLBACK_KEY = "l0g5t0p"
+    FALLBACK_KEY = T.let(::SecureRandom.random_bytes(32).freeze, String)
 
     class << self
       extend T::Sig
@@ -17,7 +16,13 @@ module LogStruct
       sig { params(value: String).returns(String) }
       def hash_value(value)
         length = LogStruct.config.filters.hash_length
-        OpenSSL::HMAC.hexdigest("SHA256", hash_key, value)[0...length] || "error"
+        max_bytes = LogStruct.config.limits.max_string_bytes
+        input = if value.bytesize > max_bytes
+          value.byteslice(0, max_bytes).to_s.b + "\0".b + value.bytesize.to_s.b
+        else
+          value
+        end
+        OpenSSL::HMAC.hexdigest("SHA256", hash_key, input)[0...length] || "error"
       end
 
       # The configured hash_salt, or a key derived from the app's secret_key_base

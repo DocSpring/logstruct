@@ -72,6 +72,15 @@ module LogStruct
         assert_equal({_class: "String"}, json["properties"])
       end
 
+      test "parameter properties are bounded without converting the full input" do
+        LogStruct.config.limits.max_hash_keys = 1
+        params = ::ActionController::Parameters.new("visible" => "yes", "ignored" => {"password" => "secret"})
+
+        params.stub(:to_unsafe_h, -> { raise "full conversion" }) do
+          assert_equal({visible: "yes", _more_keys: true}, Integrations::Ahoy.properties_for_log(params))
+        end
+      end
+
       test "Ahoy gets the arguments as they were given, so its defaults still apply" do
         LogStruct.stub(:info, ->(_log) {}) do
           assert_equal [:ok, "signup", {}], ::Ahoy::Tracker.new.track("signup")

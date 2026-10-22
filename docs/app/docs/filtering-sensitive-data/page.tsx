@@ -40,8 +40,7 @@ const FILTERED_VALUES_LINE = `{
   "credentials": {
     "_filtered": {
       "_class": "Hash",
-      "_keys_count": 2,
-      "_keys": ["client_id", "client_secret"]
+      "_keys_count": 2
     }
   },
   "src": "app",
@@ -463,8 +462,8 @@ export default function FilteringSensitiveDataPage() {
           ).
         </li>
         <li>
-          <strong>Hash</strong>: its class, how many keys it has (<code>_keys_count</code>) and its
-          first 10 keys (<code>_keys</code>), scrubbed like any string. An empty Hash is{' '}
+          <strong>Hash</strong>: its class and how many keys it has (<code>_keys_count</code>).
+          Child keys are omitted because they may contain secrets. An empty Hash is{' '}
           <code>{'{"_class": "Hash", "_empty": true}'}</code>.
         </li>
         <li>
@@ -630,8 +629,10 @@ export default function FilteringSensitiveDataPage() {
       </p>
       <RubyCodeExample name="filtering_hash_salt" />
       <p className="text-neutral-600 dark:text-neutral-300">
-        Outside a Rails app, without <code>hash_salt</code>, LogStruct uses a fixed key that is
-        public in its source code.
+        Outside a Rails app, without <code>hash_salt</code>, LogStruct uses a random process key.
+        Set <code>hash_salt</code> if hashes must be stable across processes or restarts. Values
+        longer than <code>max_string_bytes</code> are hashed using their bounded prefix and total
+        byte length.
       </p>
       <Callout type="warning">
         Hashes are pseudonyms, not anonymous data: anyone who has the key and a list of email
@@ -814,8 +815,8 @@ export default function FilteringSensitiveDataPage() {
           (its key or location), not the name it was uploaded with, which often names a person.
           Shrine&apos;s upload options are logged with the file names taken out of a{' '}
           <code>content_disposition</code>. A location your uploader builds from a file&apos;s name
-          (and CarrierWave&apos;s paths, which use the uploaded name by default) is logged as it is:
-          scrub it with a <code>string_scrubbing_handler</code>.
+          is logged as it is: scrub it with a <code>string_scrubbing_handler</code>. CarrierWave
+          logs an HMAC of the file ID and omits the file name and storage path.
         </li>
         <li>
           <strong>Mail delivery job arguments</strong>: a <code>deliver_later</code> job (

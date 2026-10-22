@@ -17,16 +17,11 @@ base:
     Model: String
     MountPoint: String
     Version: String
-    StorePath: String
-    Extension: String
 
 events:
   Upload:
     default_required: false
     fields:
-      Filename:
-        type: String
-        required: false
       MimeType:
         type: String
         required: false
@@ -47,9 +42,6 @@ events:
   Download:
     default_required: false
     fields:
-      Filename:
-        type: String
-        required: false
       MimeType:
         type: String
         required: false

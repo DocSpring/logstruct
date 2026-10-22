@@ -80,13 +80,13 @@ module LogStruct
       return summarize_unprocessed_value(arg) if recursion_depth > MAX_RECURSION_DEPTH || ancestors.key?(arg)
 
       case arg
-      when Hash, Array
+      when Hash, Array, ::ActionController::Parameters
         ancestors[arg] = true
         begin
-          if arg.is_a?(Hash)
-            process_hash(arg, recursion_depth: recursion_depth, ancestors: ancestors, path: path, root: root)
-          else
+          if arg.is_a?(Array)
             process_array(arg, recursion_depth: recursion_depth, ancestors: ancestors, path: path, root: root)
+          else
+            process_hash(arg, recursion_depth: recursion_depth, ancestors: ancestors, path: path, root: root)
           end
         ensure
           ancestors.delete(arg)
@@ -125,7 +125,7 @@ module LogStruct
       when Numeric, TrueClass, FalseClass, NilClass
         arg
       else
-        # Structs, ActionController::Parameters and other objects: filter and scrub what
+        # Structs and other objects: filter and scrub what
         # to_json would write
         process_values(arg.as_json, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: path, root: root)
       end
@@ -138,13 +138,15 @@ module LogStruct
         value_type: arg.class.name,
         recursion_depth: recursion_depth
       }
-      LogStruct.handle_exception(e, source: Source::Internal, context: context)
+      safe_error = RuntimeError.new("#{e.class}: value formatting failed")
+      safe_error.set_backtrace(e.backtrace)
+      LogStruct.handle_exception(safe_error, source: Source::Internal, context: context)
       summarize_unprocessed_value(arg)
     end
 
     sig do
       params(
-        hash: T::Hash[T.untyped, T.untyped],
+        hash: T.untyped,
         recursion_depth: Integer,
         ancestors: T::Hash[T.untyped, T::Boolean],
         path: T.nilable(T::Array[String]),
@@ -158,13 +160,24 @@ module LogStruct
       line_root = (path && recursion_depth == 0) ? ConfigStruct::LazyRoot.new(hash) : nil
 
       max_keys = LogStruct.config.limits.max_hash_keys
-      hash.each_with_index do |(key, value), index|
+      max_key_bytes = LogStruct.config.limits.max_string_bytes
+      oversized_keys = 0
+      hash.each_pair.with_index do |(key, value), index|
         if index >= max_keys
-          result[:_more_keys] = hash.size - max_keys
+          result[:_more_keys] = hash.is_a?(Hash) ? hash.size - max_keys : true
           break
         end
 
+        if key.to_s.bytesize > max_key_bytes
+          oversized_keys += 1
+          next
+        end
+
         key = valid_utf8_key(key)
+        if key.to_s.bytesize > max_key_bytes
+          oversized_keys += 1
+          next
+        end
         logstruct_field = recursion_depth == 0 && LOG_FIELD_KEYS.include?(key)
         key_path = path && [*path, key.to_s]
         # A top-level key's root is the line; the keys below it get the top-level field's value
@@ -173,7 +186,9 @@ module LogStruct
         # Check if this key should be filtered at any depth
         filtered = ParamFilters.should_filter_key?(key, value, logstruct_field: logstruct_field, path: key_path, root: key_root)
         # Keys are scrubbed too: an email address can be a key
-        result[StringScrubber.scrub_name(key)] = if !filtered
+        scrubbed_key = StringScrubber.scrub_name(key)
+        scrubbed_key = scrub_limited_string(scrubbed_key) if scrubbed_key.is_a?(String) && scrubbed_key.bytesize > max_key_bytes
+        result[scrubbed_key] = if !filtered
           process_values(value, recursion_depth: recursion_depth + 1, ancestors: ancestors, path: key_path, root: children_root)
         elsif value == RAILS_FILTERED_MASK
           # Rails' parameter filter has already replaced the value
@@ -182,6 +197,8 @@ module LogStruct
           {_filtered: ParamFilters.summarize_json_attribute(key, value)}
         end
       end
+
+      result[:_oversized_keys] = oversized_keys if oversized_keys.positive?
 
       result
     end
@@ -296,14 +313,13 @@ module LogStruct
             end
           rescue => e
             # Handle serialization errors
-            context = {
-              object_class: log_value.class.name,
-              object_inspect: log_value.inspect.truncate(100)
-            }
-            LogStruct.handle_exception(e, source: Source::Internal, context: context)
+            context = {object_class: log_value.class.name}
+            safe_error = RuntimeError.new("#{e.class}: value serialization failed")
+            safe_error.set_backtrace(e.backtrace)
+            LogStruct.handle_exception(safe_error, source: Source::Internal, context: context)
 
-            # Fall back to the string representation to ensure we continue processing
-            log_value.to_s
+            # An object's string representation may contain the same secret that broke serialization.
+            "[SERIALIZATION_ERROR]"
           end
         end
 
