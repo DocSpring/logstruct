@@ -24,11 +24,12 @@ env:
   # Empty when a dry run is dispatched from a branch
   TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
 
+# Not ubuntu-latest: it's moving to Ubuntu 26.04, and ruby/setup-ruby only has the newest Ruby patch releases for it
 jobs:
   # Every other job needs this one, so a tag that doesn't match version.rb publishes nothing
   wait_ci:
     name: Validate the tag and wait for CI success
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       actions: read # to read the CI runs for the tagged commit
@@ -101,7 +102,7 @@ jobs:
   gem:
     name: Build RubyGem
     needs: wait_ci
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       gem_file: ${{ steps.build.outputs.gem_file }}
     steps:
@@ -158,7 +159,7 @@ jobs:
     name: Publish RubyGem
     needs: gem
     if: github.event_name == 'push' || inputs.dry_run != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: release
     permissions:
       contents: read
@@ -185,7 +186,7 @@ jobs:
   provider:
     name: Build Terraform provider catalog
     needs: wait_ci
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -252,7 +253,7 @@ jobs:
     name: Push + Tag Provider
     needs: provider
     if: github.event_name == 'push' || inputs.dry_run != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: release
     steps:
       - name: Download the provider changes
