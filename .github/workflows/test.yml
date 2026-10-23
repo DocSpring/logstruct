@@ -97,6 +97,34 @@ jobs:
       - name: jscpd (Duplicate Code Detection)
         run: pnpm exec jscpd .
 
+  audit:
+    name: Security Audit
+    # The Release workflow waits for this workflow, so a release can't ship a dependency with a known advisory
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        with:
+          ruby-version: '.ruby-version'
+          bundler-cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10.18.3
+
+      - name: Check locked Ruby and docs dependencies for known advisories
+        run: scripts/security_audit.sh
+
   docs:
     name: 'Next.js Site Tests'
     runs-on: ubuntu-22.04
