@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-23
+
+### Changed
+
+- **Breaking**: CarrierWave lines log `file_id` as an HMAC of the file's identifier (keyed like email hashes, see `hash_salt`), and no longer log `filename`, `store_path` or `ext`. CarrierWave names stored files after the uploaded file by default, and an uploaded file's name often names a person. `LogField::Filename`, `LogField::StorePath` and `LogField::Extension` are removed.
+- **Breaking**: A filtered Hash's summary has its `_keys_count` but not its first 10 keys (`_keys`): a Hash's keys can be secrets themselves, like tokens or email addresses used as keys.
+- **Breaking**: `additional_data` can't set any field of its line's own type, whether or not the line has it (an error line's `msg`, `backtrace` or `error_message`), or `req_id`. Like `src`, `evt`, `lvl` and `ts`, such a key is left out and handled as a LogStruct error (raised in `local_environments`). It used to replace the field. Other types' field names, like `name` on a plain line, can still be used.
+- **Filtering**: Without a `hash_salt`, values hashed before the Rails app has its `secret_key_base` use a random key for each process, instead of a fixed key that was public in LogStruct's source. Set `hash_salt` to keep these hashes the same across processes.
+- **Development**: `task ci` checks the locked Ruby and docs dependencies for known advisories, with `bundler-audit` and `pnpm audit`.
+
+### Fixed
+
+- **Formatting**: Hash keys longer than `max_string_bytes` are left out with their values, and counted in `_oversized_keys`. A request's parameter names could make a line any size.
+- **Formatting**: `ActionController::Parameters` are written like a Hash, within the size limits, instead of being converted whole first. Lograge's `params` and Ahoy's `properties` are converted at their first level only, and only as many keys as the line keeps; `_more_keys` and `_oversized_keys` count the rest.
+- **Filtering**: A Rails filter block with three arguments gets a copy of the parameters that stops at 10,000 values, 20 levels of nesting or a value that contains itself. Past those, every key the block would check is filtered. The parameters used to be copied whole.
+- **Errors**: An error raised while formatting, serializing or filtering a value is reported with its class and backtrace but not its message, which can quote the value. Errors in Rails filter blocks and LogStruct's filter matchers aren't reported with the key, which can be the secret. An object whose `as_json` raises is logged as `[SERIALIZATION_ERROR]` instead of its `to_s`, and its `inspect` isn't reported.
+- **Formatting**: A Hash key that isn't a String or Symbol is written as its string, scrubbed, so an email address in its `to_s` is scrubbed.
+- **Filtering**: A value longer than `max_string_bytes` is hashed by its first `max_string_bytes` bytes and its length.
+- **Development**: Update Next.js to 16.4.1 for the docs site, which fixes three advisories in features the static site doesn't use, and the test-only Dalli to 3.2.13.
+
 ## [0.2.2] - 2026-10-21
 
 ### Changed
