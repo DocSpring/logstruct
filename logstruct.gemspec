@@ -52,7 +52,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "carrierwave", "~> 3.0"
   spec.add_development_dependency "honeybadger", "~> 5.4"
   spec.add_development_dependency "rollbar", "~> 3.4"
-  spec.add_development_dependency "sentry-ruby", "~> 5.15"
+  spec.add_development_dependency "sentry-ruby", "~> 7.1"
   spec.add_development_dependency "shrine", "~> 3.5"
   spec.add_development_dependency "sidekiq", "~> 7.2"
   spec.add_development_dependency "sorbet", "~> 0.5"
