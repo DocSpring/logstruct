@@ -2,12 +2,12 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "fileutils"
 require "erb"
 require "sorbet-runtime"
 
 require_relative "models"
 require_relative "schema_loader"
+require_relative "staging"
 require_relative "templates"
 
 module LogStruct
@@ -15,48 +15,47 @@ module LogStruct
     module SorbetGenerator
       extend T::Sig
 
-      sig { params(root: String).void }
-      def self.generate_all(root)
-        out_base_dir = File.join(root, "lib", "log_struct", "log")
-        FileUtils.mkdir_p(out_base_dir)
+      OUT_DIR = "lib/log_struct/log"
 
+      # Returns the generated files' paths in the repository
+      sig { params(root: String, staging: Staging).returns(T::Array[String]) }
+      def self.generate_all(root, staging)
         payloads = SchemaLoader.payloads(root)
         if payloads.empty?
           warn("No schemas found in #{File.join(root, "schemas", "log_sources")}")
-          return
+          return []
         end
 
-        payloads.each do |payload|
-          generate_source(root, out_base_dir, payload)
+        payloads.flat_map do |payload|
+          generate_source(root, staging, payload)
         end
       end
 
-      sig { params(root: String, out_base_dir: String, payload: SourcePayload).void }
-      def self.generate_source(root, out_base_dir, payload)
+      sig { params(root: String, staging: Staging, payload: SourcePayload).returns(T::Array[String]) }
+      def self.generate_source(root, staging, payload)
         source_snake = payload.source_snake
-        source_dir = File.join(out_base_dir, source_snake)
 
         if payload.events.size == 1
           evt = T.must(payload.events.first)
-          single_out = File.join(out_base_dir, "#{source_snake}.rb")
           single_content = render_template(root, "event.rb.erb", {payload: payload, event: evt, single_event: true})
-          File.write(single_out, single_content)
-          puts "Generated: #{single_out}"
+          [write(staging, "#{source_snake}.rb", single_content)]
         else
-          FileUtils.mkdir_p(source_dir)
-
-          payload.events.each do |evt|
-            ev_out = File.join(source_dir, "#{LogStruct::Codegen.snake_case(evt.name)}.rb")
+          files = payload.events.map do |evt|
             ev_content = render_template(root, "event.rb.erb", {payload: payload, event: evt, single_event: false})
-            File.write(ev_out, ev_content)
-            puts "Generated: #{ev_out}"
+            write(staging, File.join(source_snake, "#{LogStruct::Codegen.snake_case(evt.name)}.rb"), ev_content)
           end
 
-          parent_out = File.join(out_base_dir, "#{source_snake}.rb")
           parent_content = render_template(root, "source_parent.rb.erb", {payload: payload})
-          File.write(parent_out, parent_content)
-          puts "Generated: #{parent_out}"
+          files << write(staging, "#{source_snake}.rb", parent_content)
         end
+      end
+
+      sig { params(staging: Staging, file: String, content: String).returns(String) }
+      def self.write(staging, file, content)
+        relative_path = File.join(OUT_DIR, file)
+        staging.write(relative_path, content)
+        puts "Generated: #{relative_path}"
+        relative_path
       end
 
       sig { params(root: String, template_name: String, locals: T::Hash[Symbol, T.untyped]).returns(String) }

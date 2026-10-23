@@ -2,12 +2,12 @@
 # typed: strict
 # frozen_string_literal: true
 
-require "fileutils"
 require "sorbet-runtime"
 
 require_relative "models"
 require_relative "schema_loader"
 require_relative "helpers"
+require_relative "staging"
 require "erb"
 
 module LogStruct
@@ -15,29 +15,27 @@ module LogStruct
     module TSGenerator
       extend T::Sig
 
-      sig { params(root: String).void }
-      def self.generate_all(root)
-        out_dir = File.join(root, "docs", "generated", "logstruct")
-        FileUtils.rm_rf(out_dir)
-        FileUtils.mkdir_p(out_dir)
+      OUT_DIR = "docs/generated/logstruct"
 
-        generate_enums(root, out_dir)
+      sig { params(root: String, staging: Staging).void }
+      def self.generate_all(root, staging)
+        generate_enums(root, staging)
 
         SchemaLoader.payloads(root).each do |payload|
-          generate_source_ts(root, out_dir, payload)
+          generate_source_ts(root, staging, payload)
         end
 
-        generate_barrel(root, out_dir)
+        generate_barrel(root, staging)
       end
 
-      sig { params(root: String, out_dir: String).void }
-      def self.generate_enums(root, out_dir)
+      sig { params(root: String, staging: Staging).void }
+      def self.generate_enums(root, staging)
         template_path = File.join(root, "tools", "codegen", "templates", "typescript", "enums.ts.erb")
         erb = ERB.new(File.read(template_path), trim_mode: "-")
         ctx = Object.new
         ctx.extend(LogStruct::Codegen::Helpers)
         content = erb.result(ctx.instance_eval { binding })
-        File.write(File.join(out_dir, "enums.ts"), content)
+        staging.write(File.join(OUT_DIR, "enums.ts"), content)
       end
 
       sig { params(payload: SourcePayload).returns(String) }
@@ -52,10 +50,9 @@ module LogStruct
           .downcase
       end
 
-      sig { params(root: String, out_dir: String, payload: SourcePayload).void }
-      def self.generate_source_ts(root, out_dir, payload)
-        dir = File.join(out_dir, "sources", payload.source_snake)
-        FileUtils.mkdir_p(dir)
+      sig { params(root: String, staging: Staging, payload: SourcePayload).void }
+      def self.generate_source_ts(root, staging, payload)
+        dir = File.join(OUT_DIR, "sources", payload.source_snake)
 
         payload.events.each do |evt|
           out = File.join(dir, "#{snake(evt.name)}.ts")
@@ -63,26 +60,26 @@ module LogStruct
           erb = ERB.new(File.read(template_path), trim_mode: "-")
           ctx = LogStruct::Codegen::TemplateBinding.new(payload, evt, root, {})
           content = erb.result(ctx.get_binding)
-          File.write(out, content)
+          staging.write(out, content)
         end
 
         template_path = File.join(root, "tools", "codegen", "templates", "typescript", "source_index.ts.erb")
         erb = ERB.new(File.read(template_path), trim_mode: "-")
         ctx = LogStruct::Codegen::TemplateBinding.new(payload, nil, root, {})
         content = erb.result(ctx.get_binding)
-        File.write(File.join(dir, "index.ts"), content)
+        staging.write(File.join(dir, "index.ts"), content)
       end
 
-      sig { params(root: String, out_dir: String).void }
-      def self.generate_barrel(root, out_dir)
-        roots = Dir[File.join(out_dir, "sources", "*")].map { |p| File.basename(p) }
+      sig { params(root: String, staging: Staging).void }
+      def self.generate_barrel(root, staging)
+        roots = Dir[staging.path(File.join(OUT_DIR, "sources", "*"))].map { |p| File.basename(p) }
         template_path = File.join(root, "tools", "codegen", "templates", "typescript", "root_index.ts.erb")
         erb = ERB.new(File.read(template_path), trim_mode: "-")
         ctx = Object.new
         ctx.extend(LogStruct::Codegen::Helpers)
         ctx.define_singleton_method(:roots) { roots }
         content = erb.result(ctx.instance_eval { binding })
-        File.write(File.join(out_dir, "index.ts"), content)
+        staging.write(File.join(OUT_DIR, "index.ts"), content)
       end
     end
   end

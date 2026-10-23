@@ -11,7 +11,8 @@ tasks:
   typecheck:
     dir: docs
     desc: Run TypeScript type checking
-    deps: [deps]
+    # The pages import docs/generated, which isn't committed
+    deps: [deps, ':ruby:generate']
     cmds:
       - pnpm exec tsc --noEmit
 
@@ -32,6 +33,7 @@ tasks:
   test:
     dir: docs
     desc: Run frontend tests
-    deps: [deps]
+    # The tests import docs/generated, which isn't committed
+    deps: [deps, ':ruby:generate']
     cmds:
       - npm test

@@ -9,16 +9,17 @@ begin
 rescue LoadError
   require_relative "../../lib/log_struct/enums/log_field"
 end
+require_relative "staging"
 
 module LogStruct
   module Codegen
     module LogFieldsGenerator
       extend T::Sig
 
-      sig { params(root: String).void }
-      def self.generate(root)
-        out_file = File.join(root, "schemas", "meta", "log-fields.json")
+      OUT_FILE = "schemas/meta/log-fields.json"
 
+      sig { params(staging: Staging).void }
+      def self.generate(staging)
         names = enum_constant_names
         data = {
           "$schema" => "http://json-schema.org/draft-07/schema#",
@@ -32,8 +33,8 @@ module LogStruct
           }
         }
 
-        File.write(out_file, JSON.pretty_generate(data) + "\n")
-        puts "Generated: #{out_file} (#{names.size} fields)"
+        staging.write(OUT_FILE, JSON.pretty_generate(data) + "\n")
+        puts "Generated: #{OUT_FILE} (#{names.size} fields)"
       end
 
       sig { returns(T::Array[String]) }
