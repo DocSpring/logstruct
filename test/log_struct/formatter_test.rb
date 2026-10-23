@@ -763,7 +763,7 @@ module LogStruct
 
       assert_equal "Loop", JSON.parse(log_line)["msg"]
       assert_equal ["SystemStackError: value formatting failed"], reported.map(&:message)
-      assert_match(/in 'as_json'/, reported.first.backtrace.first)
+      assert_match(/formatter_test\.rb:\d+:in .as_json'/, reported.first.backtrace.first)
     end
 
     private
