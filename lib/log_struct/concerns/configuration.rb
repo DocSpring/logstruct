@@ -259,7 +259,7 @@ module LogStruct
             result = filter.call(key, value, root)
             !!result || (value.is_a?(String) && value != original_value)
           rescue => e
-            handle_filter_error(e, filter, original_key || "")
+            handle_filter_error(e, filter)
             true
           end
           ConfigStruct::PathFilterMatcher.new(callable: callable, label: filter.inspect)
@@ -290,11 +290,11 @@ module LogStruct
             begin
               !!filter.call(key)
             rescue => e
-              handle_filter_error(e, filter, key)
+              handle_filter_error(e, filter)
               true
             end
           rescue => e
-            handle_filter_error(e, filter, key)
+            handle_filter_error(e, filter)
             true
           end
           ConfigStruct::FilterMatcher.new(callable: callable, label: filter.inspect)
@@ -305,11 +305,11 @@ module LogStruct
           filter.respond_to?(:arity) ? filter.arity : 2
         end
 
-        sig { params(error: StandardError, filter: T.untyped, key: String).void }
-        def handle_filter_error(error, filter, key)
+        # The key isn't reported: a key can be the secret (an email address or a token used as a key)
+        sig { params(error: StandardError, filter: T.untyped).void }
+        def handle_filter_error(error, filter)
           context = {
             filter: filter.class.name,
-            key: key,
             filter_label: begin
               filter.inspect
             rescue
@@ -317,7 +317,7 @@ module LogStruct
             end
           }
 
-          LogStruct.handle_exception(error, source: Source::Internal, context: context)
+          LogStruct.handle_value_error(error, "filter_parameters entry failed", context: context)
         end
       end
     end

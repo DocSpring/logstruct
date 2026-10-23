@@ -48,6 +48,16 @@ module LogStruct
       const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
       include LogStruct::Log::Shared::MergeAdditionalDataFields
 
+      FIELD_KEYS = T.let(
+        [LogField::Path, LogField::HttpMethod, LogField::SourceIp, LogField::UserAgent, LogField::Referer, LogField::ErrorClass, LogField::Message, LogField::ErrorMessage, LogField::Backtrace, LogField::Status, LogField::CauseClass, LogField::CauseMessage].to_set(&:serialize).freeze,
+        T::Set[Symbol]
+      )
+
+      sig { override.returns(T::Set[Symbol]) }
+      def field_keys
+        FIELD_KEYS
+      end
+
       # Request fields (optional)
       include LogStruct::Log::Interfaces::RequestFields
 

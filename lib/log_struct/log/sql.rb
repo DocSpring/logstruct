@@ -47,6 +47,16 @@ module LogStruct
       const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
       include LogStruct::Log::Shared::MergeAdditionalDataFields
 
+      FIELD_KEYS = T.let(
+        [LogField::Message, LogField::Sql, LogField::Name, LogField::DurationMs, LogField::RowCount, LogField::Adapter, LogField::BindParams, LogField::DatabaseName, LogField::ConnectionPoolSize, LogField::ActiveConnections, LogField::OperationType, LogField::TableNames].to_set(&:serialize).freeze,
+        T::Set[Symbol]
+      )
+
+      sig { override.returns(T::Set[Symbol]) }
+      def field_keys
+        FIELD_KEYS
+      end
+
       # Serialize shared fields
       include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon

@@ -34,7 +34,8 @@ gem "sorbet-typescript"
 
 # Essential testing gems that don't have Ruby version restrictions
 group :test do
-  gem "dalli"
+  gem "dalli", "~> 3.2.13"
+  gem "bundler-audit", require: false
   gem "minitest", "~> 5.20"
   gem "minitest-reporters", "~> 1.6"
   gem "simplecov", "~> 0.22", require: false

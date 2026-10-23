@@ -5,6 +5,26 @@ require "test_helper"
 
 module LogStruct
   class FormatterTest < ActiveSupport::TestCase
+    class BrokenJsonValue
+      def as_json(*)
+        raise "secret-in-error-message"
+      end
+
+      def inspect
+        "secret-in-inspect"
+      end
+
+      def to_s
+        "secret-in-string"
+      end
+    end
+
+    class EmailKey
+      def to_s
+        "person@example.com"
+      end
+    end
+
     def setup
       @formatter = Formatter.new
       @severity = ::Logger::INFO
@@ -96,13 +116,13 @@ module LogStruct
       # Create an instance of it
       error_obj = my_gid_class.new
 
-      # Need to stub LogStruct.handle_exception to avoid actually reporting an error
-      LogStruct.stub(:handle_exception, nil) do
-        # Test the error handling path in process_values
+      reported = []
+      LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
         result = @formatter.process_values(error_obj)
 
         assert_equal "[GLOBALID_ERROR]", result
       end
+      assert_equal ["StandardError: GlobalID formatting failed"], reported
     end
 
     def test_tagged_logging_support
@@ -161,11 +181,19 @@ module LogStruct
       assert_match(/\A\[EMAIL:[a-f0-9]+\]\z/, result.dig(key, :status))
     end
 
-    def test_scrubs_the_keys_of_filtered_hashes
+    def test_scrubs_object_hash_keys
+      line = @formatter.call(@severity, @time, @progname, {data: {EmailKey.new => "visible"}})
+      result = JSON.parse(line)["data"]
+
+      assert_equal ["[EMAIL:#{StringScrubber.value_hash("person@example.com")}]"], result.keys
+      refute_includes line, "person@example.com"
+    end
+
+    def test_omits_the_keys_of_filtered_hashes
       log_line = @formatter.call(@severity, @time, @progname, {msg: "tokens", tokens: {"ada@example.com" => "t1"}})
 
       assert_not_includes log_line, "ada@example.com"
-      assert_match(/\[EMAIL:[a-f0-9]+\]/, JSON.parse(log_line).dig("tokens", "_filtered", "_keys", 0))
+      assert_equal({"_class" => "Hash", "_keys_count" => 1}, JSON.parse(log_line).dig("tokens", "_filtered"))
     end
 
     def test_process_values_formats_hashes_recursively
@@ -332,7 +360,7 @@ module LogStruct
       result = JSON.parse(log_line)
 
       assert_equal({"_class" => "Array", "_count" => 1}, result.dig("password", "_filtered"))
-      assert_equal({"_class" => "Hash", "_keys_count" => 1, "_keys" => ["value"]}, result.dig("creds", "_filtered"))
+      assert_equal({"_class" => "Hash", "_keys_count" => 1}, result.dig("creds", "_filtered"))
     end
 
     def test_an_email_has_one_hash_under_a_key_and_in_text_however_its_written
@@ -382,17 +410,14 @@ module LogStruct
     end
 
     def test_does_not_log_raw_values_when_processing_fails
-      exploding_hash = Class.new(Hash) do
-        def each(*)
-          raise "boom"
-        end
-      end.new
-      exploding_hash[:password] = "hunter2"
+      exploding_hash = {password: "hunter2"}
 
       LogStruct.stub(:handle_exception, nil) do
-        result = @formatter.process_values(exploding_hash)
+        result = exploding_hash.stub(:each_pair, -> { raise "boom" }) do
+          @formatter.process_values(exploding_hash)
+        end
 
-        assert_equal({_filtered: {_class: exploding_hash.class.name, _keys_count: 1}}, result)
+        assert_equal({_filtered: {_class: "Hash", _keys_count: 1}}, result)
       end
     end
 
@@ -606,6 +631,43 @@ module LogStruct
       assert_equal({"k1" => 1, "k2" => 2, "k3" => 3, "_more_keys" => 7}, result["data"])
     end
 
+    def test_oversized_keys_and_their_values_are_omitted
+      LogStruct.config.limits.max_string_bytes = 32
+      key = "secret-in-key-#{"x" * 10_000}"
+
+      line = @formatter.call(@severity, @time, @progname, {data: {key => "secret-in-value", "safe" => "visible"}})
+      parsed = JSON.parse(line)
+
+      assert_equal({"safe" => "visible", "_oversized_keys" => 1}, parsed["data"])
+      assert_operator line.bytesize, :<, 500
+      refute_includes line, "secret-in-key"
+      refute_includes line, "secret-in-value"
+    end
+
+    def test_action_controller_parameters_obey_hash_limits_without_full_conversion
+      LogStruct.config.limits.max_hash_keys = 1
+      params = ::ActionController::Parameters.new("visible" => "yes", "ignored" => {"token" => "secret-in-omitted-value"})
+
+      params.stub(:to_unsafe_h, -> { raise "full conversion" }) do
+        result = @formatter.process_values(params)
+
+        assert_equal({visible: "yes", _more_keys: 1}, result)
+      end
+    end
+
+    def test_serialization_failure_does_not_inspect_or_stringify_the_object
+      reported = []
+      line = LogStruct.stub(:handle_exception, ->(error, source:, context:) { reported << [error.message, source, context] }) do
+        @formatter.call(@severity, @time, @progname, BrokenJsonValue.new)
+      end
+
+      assert_equal "[SERIALIZATION_ERROR]", JSON.parse(line)["msg"]
+      refute_includes line, "secret-in-inspect"
+      refute_includes line, "secret-in-string"
+      assert_equal ["RuntimeError: value serialization failed"], reported.map(&:first)
+      assert_equal [{object_class: "LogStruct::FormatterTest::BrokenJsonValue"}], reported.map(&:last)
+    end
+
     class KeyProbe
       attr_reader :visits
 
@@ -694,11 +756,14 @@ module LogStruct
         end
       end.new
 
-      log_line = LogStruct.stub(:is_production?, true) do
+      reported = []
+      log_line = LogStruct.stub(:handle_exception, ->(error, **) { reported << error }) do
         @formatter.call(@severity, @time, @progname, {msg: "Loop", value: looping})
       end
 
       assert_equal "Loop", JSON.parse(log_line)["msg"]
+      assert_equal ["SystemStackError: value formatting failed"], reported.map(&:message)
+      assert_match(/formatter_test\.rb:\d+:in .as_json'/, reported.first.backtrace.first)
     end
 
     private

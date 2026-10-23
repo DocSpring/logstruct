@@ -37,5 +37,27 @@ module LogStruct
     test "hashes are 16 characters by default" do
       assert_equal 16, ConfigStruct::Filters.new.hash_length
     end
+
+    test "hashing a long value uses a bounded input" do
+      LogStruct.config.filters.hash_salt = "salt:"
+      LogStruct.config.limits.max_string_bytes = 8
+      value = "x" * 10_000
+      expected = OpenSSL::HMAC.hexdigest("SHA256", "salt:", "xxxxxxxx\0#{value.bytesize}")[0...LogStruct.config.filters.hash_length]
+
+      assert_equal expected, HashUtils.hash_value(value)
+    end
+
+    test "fallback key is random and private to the process" do
+      LogStruct.configure { |c| c.filters.hash_salt = nil }
+      HashUtils.reset!
+
+      ::Rails.stub(:application, nil) do
+        key = HashUtils.hash_key
+
+        assert_equal 32, key.bytesize
+        refute_equal "l0g5t0p", key
+        assert_equal key, HashUtils.hash_key
+      end
+    end
   end
 end

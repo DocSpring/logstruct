@@ -89,6 +89,16 @@ module LogStruct
           Thread.current[:logstruct_formatting_internal_error] = previous_internal_error
         end
 
+        # Handle an error raised while LogStruct read a value it was logging, without the error's message: the
+        # message can quote that value, as a NoMethodError quotes its receiver's inspect before Ruby 3.4.
+        # failure says what failed, and the reported error keeps the original's class and backtrace.
+        sig { params(error: Exception, failure: String, context: T.nilable(T::Hash[Symbol, T.untyped])).void }
+        def handle_value_error(error, failure, context: nil)
+          reported = RuntimeError.new("#{error.class}: #{failure}")
+          reported.set_backtrace(error.backtrace)
+          handle_exception(reported, source: Source::Internal, context: context)
+        end
+
         # Handle an error according to the configured error handling mode (log, report, raise, etc).
         # Pass `log: false` when the caller has already logged the error in its own structured line.
         sig { params(error: StandardError, source: Source, context: T.nilable(T::Hash[Symbol, T.untyped]), log: T::Boolean).void }

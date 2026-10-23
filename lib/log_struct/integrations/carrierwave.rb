@@ -6,6 +6,7 @@ begin
 rescue LoadError
   # CarrierWave gem is not available, integration will be skipped
 end
+require_relative "../hash_utils"
 
 module LogStruct
   module Integrations
@@ -49,7 +50,6 @@ module LogStruct
             # file_fields is a Hash Sorbet can't check against the struct's keyword arguments
             Log::CarrierWave::Upload.new(
               **T.unsafe(file_fields),
-              filename: file&.filename,
               mime_type: file&.content_type,
               size: file&.size,
               duration_ms: duration_ms
@@ -72,7 +72,6 @@ module LogStruct
           log_file_operation do
             Log::CarrierWave::Download.new(
               **T.unsafe(file_fields),
-              filename: file&.filename,
               mime_type: file&.content_type,
               size: file&.size
             )
@@ -87,13 +86,11 @@ module LogStruct
         def file_fields
           {
             storage: storage.class.name.to_s.split("::").last.to_s.downcase.to_sym,
-            file_id: identifier.to_s,
+            file_id: HashUtils.hash_value(identifier.to_s),
             uploader: self.class.name,
             model: model&.class&.name,
             mount_point: mounted_as&.to_s,
-            version: version_name&.to_s,
-            store_path: store_path,
-            extension: file&.extension
+            version: version_name&.to_s
           }
         end
 

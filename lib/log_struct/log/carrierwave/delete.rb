@@ -35,8 +35,6 @@ module LogStruct
         const :model, T.nilable(String), default: nil
         const :mount_point, T.nilable(String), default: nil
         const :version, T.nilable(String), default: nil
-        const :store_path, T.nilable(String), default: nil
-        const :extension, T.nilable(String), default: nil
 
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
@@ -51,8 +49,6 @@ module LogStruct
           h[LogField::Model] = model unless model.nil?
           h[LogField::MountPoint] = mount_point unless mount_point.nil?
           h[LogField::Version] = version unless version.nil?
-          h[LogField::StorePath] = store_path unless store_path.nil?
-          h[LogField::Extension] = extension unless extension.nil?
           h
         end
       end

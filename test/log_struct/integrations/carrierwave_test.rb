@@ -40,8 +40,10 @@ class CarrierWaveIntegrationTest < ActiveSupport::TestCase
 
     upload = logged_lines.find { |line| line["src"] == "carrierwave" }
 
-    assert_equal ["upload", "avatar.png", "avatar.png", 9, "file"],
-      upload&.values_at("evt", "file_id", "filename", "size", "storage")
+    assert_equal ["upload", LogStruct::HashUtils.hash_value("avatar.png"), 9, "file"],
+      upload&.values_at("evt", "file_id", "size", "storage")
+    refute_includes upload.to_s, "avatar.png"
+    refute upload.key?("store_path")
     assert_kind_of Float, upload["duration_ms"]
   end
 
@@ -66,7 +68,9 @@ class CarrierWaveIntegrationTest < ActiveSupport::TestCase
 
     delete = logged_lines.find { |line| line["src"] == "carrierwave" && line["evt"] == "delete" }
 
-    assert_equal ["avatar.png", "file", "CarrierWaveIntegrationTest::AvatarUploader"], delete&.values_at("file_id", "storage", "uploader")
+    assert_equal [LogStruct::HashUtils.hash_value("avatar.png"), "file", "CarrierWaveIntegrationTest::AvatarUploader"],
+      delete&.values_at("file_id", "storage", "uploader")
+    refute_includes delete.to_s, "avatar.png"
     refute_path_exists File.join(@root, "uploads", "avatar.png")
   end
 
@@ -80,7 +84,9 @@ class CarrierWaveIntegrationTest < ActiveSupport::TestCase
 
     download = logged_lines.find { |line| line["src"] == "carrierwave" && line["evt"] == "download" }
 
-    assert_equal ["remote.png", "remote.png", "image/png", 12], download&.values_at("file_id", "filename", "mime_type", "size")
+    assert_equal [LogStruct::HashUtils.hash_value("remote.png"), "image/png", 12],
+      download&.values_at("file_id", "mime_type", "size")
+    refute_includes download.to_s, "remote.png"
     refute_includes download.to_s, "secret"
   end
 

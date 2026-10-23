@@ -192,13 +192,17 @@ export default function LogFieldsPage() {
       <CodeBlock language="json">{json(FORMATS.additional_data)}</CodeBlock>
       <ul className={list}>
         <li>
-          A key with the same name as one of the type&apos;s fields replaces that field: an{' '}
-          <code>additional_data</code> of <code>{'{msg: "..."}'}</code> replaces the message.
+          Use <code>additional_data</code> only for unknown fields. Put known fields in the log
+          type&apos;s schema.
         </li>
         <li>
-          <code>src</code>, <code>evt</code>, <code>lvl</code> and <code>ts</code> are reserved.
-          LogStruct drops them and handles the <code>ArgumentError</code> as a LogStruct error
-          (raised in <code>local_environments</code>, logged elsewhere).
+          <code>src</code>, <code>evt</code>, <code>lvl</code>, <code>ts</code>, <code>req_id</code>{' '}
+          and the fields of the line&apos;s own type are reserved, whether or not the line has them:
+          an error line&apos;s <code>msg</code>, <code>backtrace</code> and{' '}
+          <code>error_message</code>. LogStruct drops them and handles the{' '}
+          <code>ArgumentError</code> as a LogStruct error (raised in <code>local_environments</code>
+          , logged elsewhere). Other types&apos; field names, like <code>name</code> on a plain
+          line, are free to use.
         </li>
       </ul>
 
@@ -328,8 +332,8 @@ export default function LogFieldsPage() {
           it&apos;s capitalized.
         </li>
         <li>
-          A Hash: <code>_class</code>, <code>_keys_count</code> and its first 10 keys in{' '}
-          <code>_keys</code>. An empty Hash is <code>{'{"_class": "Hash", "_empty": true}'}</code>.
+          A Hash: <code>_class</code> and <code>_keys_count</code>. An empty Hash is{' '}
+          <code>{'{"_class": "Hash", "_empty": true}'}</code>.
         </li>
         <li>
           An Array: <code>_class</code> and <code>_count</code>. An empty Array is{' '}
@@ -344,7 +348,7 @@ export default function LogFieldsPage() {
         </li>
         <li>
           Values nested more than 20 levels deep, and values that contain themselves, are written as
-          a summary without <code>_keys</code>.
+          a summary.
         </li>
       </ul>
       <p className={text}>
@@ -380,7 +384,9 @@ export default function LogFieldsPage() {
         <li>
           <code>max_string_bytes</code> (default 32768, 32 KB): a longer string is cut to that many
           bytes after it&apos;s scrubbed, and ends with{' '}
-          <code>&quot;... (cut from N bytes)&quot;</code>.
+          <code>&quot;... (cut from N bytes)&quot;</code>. A longer Hash key and its value are
+          omitted;
+          <code>_oversized_keys</code> counts omitted keys.
         </li>
       </ul>
       <RubyCodeExample name="log_fields_limits" />

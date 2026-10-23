@@ -120,7 +120,6 @@ module LogStruct
       Storage = new(:storage)
       Operation = new(:op)
       FileId = new(:file_id)
-      Filename = new(:filename)
       MimeType = new(:mime_type)
       Size = new(:size)
       Metadata = new(:metadata)
@@ -134,8 +133,6 @@ module LogStruct
       Model = new(:model)
       MountPoint = new(:mount_point)
       Version = new(:version)
-      StorePath = new(:store_path)
-      Extension = new(:ext)
 
       # SQL-specific fields
       Sql = new(:sql)

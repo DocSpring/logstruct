@@ -208,9 +208,10 @@ bundle exec srb tc`}
           <code>LogStruct::Log::Interfaces::AdditionalDataField</code> and{' '}
           <code>LogStruct::Log::Shared::MergeAdditionalDataFields</code>, for an optional{' '}
           <code>additional_data</code> Hash whose keys go at the top level of the line. A key named{' '}
-          <code>src</code>, <code>evt</code>, <code>lvl</code> or <code>ts</code> is a LogStruct
-          error (<code>logstruct_errors</code>): raised in development and test, and logged and left
-          out in production.
+          <code>src</code>, <code>evt</code>, <code>lvl</code>, <code>ts</code> or{' '}
+          <code>req_id</code> is a LogStruct error (<code>logstruct_errors</code>): raised in
+          development and test, and logged and left out in production. Your own fields win over
+          additional data when your <code>serialize</code> writes them after merging it.
         </li>
       </ul>
       <p className={pClass}>

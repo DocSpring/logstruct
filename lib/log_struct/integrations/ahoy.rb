@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require_relative "../bounded_input"
+
 module LogStruct
   module Integrations
     # Ahoy analytics integration. If Ahoy is present, prepend a small hook to
@@ -45,10 +47,9 @@ module LogStruct
       # Event properties can come from the browser, so they can be anything; a non-Hash is logged as its class
       sig { params(properties: T.untyped).returns(T.nilable(T::Hash[Symbol, T.untyped])) }
       def self.properties_for_log(properties)
-        properties = properties.to_unsafe_h if properties.respond_to?(:to_unsafe_h)
         case properties
         when nil then nil
-        when Hash then properties.to_h { |key, value| [key.to_s.to_sym, value] }
+        when Hash, ::ActionController::Parameters then BoundedInput.symbolize_keys(properties)
         else {_class: properties.class.name}
         end
       end

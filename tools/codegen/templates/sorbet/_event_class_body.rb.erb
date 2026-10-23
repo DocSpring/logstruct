@@ -26,6 +26,16 @@ extend T::Sig
       include LogStruct::Log::Interfaces::AdditionalDataField
       const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
       include LogStruct::Log::Shared::MergeAdditionalDataFields
+
+      FIELD_KEYS = T.let(
+        [<%= (base_fields + event_only(event)).map { |f| "LogField::#{f.enum_name}" }.join(", ") %>].to_set(&:serialize).freeze,
+        T::Set[Symbol]
+      )
+
+      sig { override.returns(T::Set[Symbol]) }
+      def field_keys
+        FIELD_KEYS
+      end
 <% end -%>
 <% if add_request_fields -%>
 

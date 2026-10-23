@@ -6,6 +6,7 @@ begin
 rescue LoadError
   # Lograge gem is not available, integration will be skipped
 end
+require_relative "../bounded_input"
 
 module LogStruct
   module Integrations
@@ -196,12 +197,12 @@ module LogStruct
           result = custom_options_proc.call(event, options)
           return if !result.is_a?(Hash) || result.equal?(options)
 
-          options.merge!(result.to_h { |key, value| [key.to_s.to_sym, value] })
+          options.merge!(BoundedInput.symbolize_keys(result))
         end
 
         sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(Log::Request) }
         def build_request_log(data)
-          normalized_data = normalize_lograge_data(data)
+          normalized_data = BoundedInput.symbolize_keys(data)
 
           # Coerce common fields to expected types
           status = ((s = normalized_data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
@@ -210,7 +211,7 @@ module LogStruct
           db = ((b = normalized_data[:db]) && b.respond_to?(:to_f)) ? b.to_f : b
 
           params = normalized_data[:params]
-          params = params.deep_symbolize_keys if params&.respond_to?(:deep_symbolize_keys)
+          params = BoundedInput.symbolize_keys(params) if params.is_a?(Hash) || params.is_a?(::ActionController::Parameters)
 
           additional_data = extract_additional_data(normalized_data)
 
@@ -235,13 +236,6 @@ module LogStruct
             additional_data: additional_data,
             timestamp: Time.now
           )
-        end
-
-        sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
-        def normalize_lograge_data(data)
-          data.each_with_object({}) do |(key, value), normalized|
-            normalized[key.to_s.to_sym] = value
-          end
         end
 
         sig { params(data: T::Hash[Symbol, T.untyped]).returns(T.nilable(T::Hash[Symbol, T.untyped])) }

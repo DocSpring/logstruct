@@ -64,6 +64,13 @@ tasks:
       - docs:test
       - test
       - ruby:tapioca:verify
+      - security
+
+  security:
+    desc: Check locked Ruby and docs dependencies for known advisories
+    cmds:
+      - bundle exec bundler-audit check --update
+      - cd docs && pnpm audit
 
   fix:
     desc: Auto-fix lint issues then run the full validation workflow (replaces scripts/all_write.sh)

@@ -42,6 +42,16 @@ module LogStruct
         const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
         include LogStruct::Log::Shared::MergeAdditionalDataFields
 
+        FIELD_KEYS = T.let(
+          [LogField::To, LogField::From, LogField::Subject, LogField::MessageId, LogField::MailerClass, LogField::MailerAction, LogField::AttachmentCount].to_set(&:serialize).freeze,
+          T::Set[Symbol]
+        )
+
+        sig { override.returns(T::Set[Symbol]) }
+        def field_keys
+          FIELD_KEYS
+        end
+
         # Serialize shared fields
         include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon

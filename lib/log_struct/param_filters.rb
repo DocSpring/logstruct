@@ -43,7 +43,7 @@ module LogStruct
 
           matcher.matches?(normalized_key, value)
         rescue => e
-          handle_filter_matcher_error(e, matcher.label, normalized_key)
+          handle_filter_matcher_error(e, matcher.label)
           # An unsuccessful filter must never expose the value it was meant to protect.
           true
         end
@@ -55,7 +55,7 @@ module LogStruct
         filters.path_matchers.any? do |matcher|
           matcher.matches?(path, value, root)
         rescue => e
-          handle_filter_matcher_error(e, matcher.label, normalized_key)
+          handle_filter_matcher_error(e, matcher.label)
           true
         end
       end
@@ -94,16 +94,14 @@ module LogStruct
         filtered_string
       end
 
-      # Summarize a filtered Hash: its first 10 keys and how many there are. No size, which would say
-      # how long the secrets in it are.
+      # A filtered Hash's child keys can themselves contain secrets.
       sig { params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[Symbol, T.untyped]) }
       def summarize_hash(hash)
         return {_class: "Hash", _empty: true} if hash.empty?
 
         {
           _class: Hash,
-          _keys_count: hash.size,
-          _keys: hash.each_key.take(10).map { |key| normalize_summary_key(StringScrubber.scrub_name(key)) }
+          _keys_count: hash.size
         }
       end
 
@@ -120,26 +118,9 @@ module LogStruct
 
       private
 
-      sig { params(key: T.any(String, Symbol, Integer, T.untyped)).returns(T.any(Symbol, String)) }
-      def normalize_summary_key(key)
-        if key.is_a?(Symbol)
-          key
-        elsif key.respond_to?(:to_sym)
-          key.to_sym
-        else
-          key.to_s
-        end
-      rescue
-        key.to_s
-      end
-
-      sig { params(error: StandardError, label: String, key: String).void }
-      def handle_filter_matcher_error(error, label, key)
-        context = {
-          matcher: label,
-          key: key
-        }
-        LogStruct.handle_exception(error, source: Source::Internal, context: context)
+      sig { params(error: StandardError, label: String).void }
+      def handle_filter_matcher_error(error, label)
+        LogStruct.handle_value_error(error, "filter matcher failed", context: {matcher: label})
       end
     end
   end
