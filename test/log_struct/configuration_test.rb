@@ -284,11 +284,14 @@ module LogStruct
         LogStruct.config.filters.path_matchers = []
         with_rails_filter_parameters([filter]) { LogStruct.merge_rails_filter_parameters! }
         reported = []
-        line = LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
+        line = LogStruct.stub(:handle_exception, ->(error, source:, context:) { reported << [error.message, context] }) do
           Formatter.new.call(:info, Time.now, nil, {private_data: "synthetic-secret", public_data: "visible"})
         end
 
-        assert_equal ["filter failed"], reported
+        assert_equal ["RuntimeError: filter_parameters entry failed"], reported.map(&:first)
+        # The key can be the secret
+        assert_equal [%i[filter filter_label]], reported.map { |(_message, context)| context.keys }
+        assert_not_includes reported.to_s, "private_data"
         assert_not_includes line, "synthetic-secret"
         assert_equal "visible", JSON.parse(line)["public_data"]
       end
@@ -307,6 +310,37 @@ module LogStruct
 
       assert_not_includes card_line, "card-1"
       assert_includes phone_line, "phone-1"
+    end
+
+    def test_rails_filter_blocks_with_three_arguments_get_the_parameters_the_line_leaves_out
+      number_filter = ->(key, _value, params) { key == "number" && params[:kinds].include?("card") }
+
+      with_rails_filter_parameters([number_filter]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+      # The size limits only cut what's written: "card" is past max_array_items
+      kinds = Array.new(LogStruct.config.limits.max_array_items, "phone") << "card"
+
+      line = Formatter.new.call(::Logger::INFO, Time.now, nil, {msg: "Saved", params: {kinds: kinds, number: "card-1"}})
+
+      assert_not_includes line, "card-1"
+    end
+
+    def test_rails_filter_blocks_with_three_arguments_leave_lines_with_long_backtraces_readable
+      with_rails_filter_parameters([->(key, _value, _params) { key == "pin" }]) do
+        LogStruct.merge_rails_filter_parameters!
+      end
+      error = Log::Error.new(
+        source: Source::App,
+        error_class: RuntimeError,
+        message: "Failed",
+        backtrace: Array.new(30) { |line| "app/models/user.rb:#{line + 1}:in 'save'" }
+      )
+
+      line = JSON.parse(Formatter.new.call(::Logger::ERROR, Time.now, nil, error))
+
+      assert_equal %w[app error Failed RuntimeError], line.values_at("src", "evt", "msg", "error_class")
+      assert_equal LogStruct.config.limits.max_backtrace_lines + 1, line["backtrace"].size
     end
 
     def test_rails_dotted_filters_match_nested_keys_by_their_path

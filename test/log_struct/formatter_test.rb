@@ -116,13 +116,13 @@ module LogStruct
       # Create an instance of it
       error_obj = my_gid_class.new
 
-      # Need to stub LogStruct.handle_exception to avoid actually reporting an error
-      LogStruct.stub(:handle_exception, nil) do
-        # Test the error handling path in process_values
+      reported = []
+      LogStruct.stub(:handle_exception, ->(error, **) { reported << error.message }) do
         result = @formatter.process_values(error_obj)
 
         assert_equal "[GLOBALID_ERROR]", result
       end
+      assert_equal ["StandardError: GlobalID formatting failed"], reported
     end
 
     def test_tagged_logging_support
@@ -651,7 +651,7 @@ module LogStruct
       params.stub(:to_unsafe_h, -> { raise "full conversion" }) do
         result = @formatter.process_values(params)
 
-        assert_equal({visible: "yes", _more_keys: true}, result)
+        assert_equal({visible: "yes", _more_keys: 1}, result)
       end
     end
 
@@ -756,11 +756,14 @@ module LogStruct
         end
       end.new
 
-      log_line = LogStruct.stub(:is_production?, true) do
+      reported = []
+      log_line = LogStruct.stub(:handle_exception, ->(error, **) { reported << error }) do
         @formatter.call(@severity, @time, @progname, {msg: "Loop", value: looping})
       end
 
       assert_equal "Loop", JSON.parse(log_line)["msg"]
+      assert_equal ["SystemStackError: value formatting failed"], reported.map(&:message)
+      assert_match(/in 'as_json'/, reported.first.backtrace.first)
     end
 
     private

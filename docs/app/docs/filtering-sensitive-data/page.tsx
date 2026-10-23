@@ -576,7 +576,10 @@ export default function FilteringSensitiveDataPage() {
           when the block returns a truthy value or changes the String it was given. A block that
           takes three arguments gets the parameters around the key, with indifferent access: the
           value of the line&apos;s top-level field (a request line&apos;s params), or the line
-          itself for a top-level key.
+          itself for a top-level key. They&apos;re all there, including what the size limits leave
+          out of the line. Parameters with more than 10,000 values, nested more than 20 levels deep
+          or containing themselves aren&apos;t copied for the block: every key it would check is
+          filtered.
         </li>
         <li>
           The partial matches of Symbols and Strings don&apos;t apply to the names of

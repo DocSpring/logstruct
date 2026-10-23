@@ -6,6 +6,7 @@ begin
 rescue LoadError
   # Lograge gem is not available, integration will be skipped
 end
+require_relative "../bounded_input"
 
 module LogStruct
   module Integrations
@@ -196,12 +197,12 @@ module LogStruct
           result = custom_options_proc.call(event, options)
           return if !result.is_a?(Hash) || result.equal?(options)
 
-          options.merge!(normalize_lograge_data(result))
+          options.merge!(BoundedInput.symbolize_keys(result))
         end
 
         sig { params(data: T::Hash[T.any(Symbol, String), T.untyped]).returns(Log::Request) }
         def build_request_log(data)
-          normalized_data = normalize_lograge_data(data)
+          normalized_data = BoundedInput.symbolize_keys(data)
 
           # Coerce common fields to expected types
           status = ((s = normalized_data[:status]) && s.respond_to?(:to_i)) ? s.to_i : s
@@ -210,7 +211,7 @@ module LogStruct
           db = ((b = normalized_data[:db]) && b.respond_to?(:to_f)) ? b.to_f : b
 
           params = normalized_data[:params]
-          params = normalize_lograge_data(params) if params.is_a?(Hash) || params.is_a?(::ActionController::Parameters)
+          params = BoundedInput.symbolize_keys(params) if params.is_a?(Hash) || params.is_a?(::ActionController::Parameters)
 
           additional_data = extract_additional_data(normalized_data)
 
@@ -235,25 +236,6 @@ module LogStruct
             additional_data: additional_data,
             timestamp: Time.now
           )
-        end
-
-        sig { params(data: T.untyped).returns(T::Hash[Symbol, T.untyped]) }
-        def normalize_lograge_data(data)
-          normalized = T.let({}, T::Hash[Symbol, T.untyped])
-          truncated = T.let(false, T::Boolean)
-          data.each_pair.with_index do |(key, value), index|
-            if index >= LogStruct.config.limits.max_hash_keys
-              truncated = true
-              break
-            end
-            next if key.to_s.bytesize > LogStruct.config.limits.max_string_bytes
-
-            normalized[key.to_s.to_sym] = value
-          end
-          if truncated
-            normalized[:_more_keys] = data.is_a?(Hash) ? data.size - LogStruct.config.limits.max_hash_keys : true
-          end
-          normalized
         end
 
         sig { params(data: T::Hash[Symbol, T.untyped]).returns(T.nilable(T::Hash[Symbol, T.untyped])) }

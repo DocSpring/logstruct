@@ -120,9 +120,7 @@ module LogStruct
 
       sig { params(error: StandardError, label: String).void }
       def handle_filter_matcher_error(error, label)
-        safe_error = RuntimeError.new("#{error.class}: filter matcher failed")
-        safe_error.set_backtrace(error.backtrace)
-        LogStruct.handle_exception(safe_error, source: Source::Internal, context: {matcher: label})
+        LogStruct.handle_value_error(error, "filter matcher failed", context: {matcher: label})
       end
     end
   end

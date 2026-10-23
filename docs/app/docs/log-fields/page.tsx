@@ -367,8 +367,6 @@ export default function LogFieldsPage() {
         <li>
           <code>max_hash_keys</code> (default 100): a Hash writes its first 100 keys, then{' '}
           <code>_more_keys</code> with the number left out. The line&apos;s own keys count too.
-          Rails parameters use <code>true</code> for <code>_more_keys</code> because their count is
-          unavailable without traversing the whole input.
         </li>
         <li>
           <code>max_array_items</code> (default 10): an Array writes its first 10 items, then a last

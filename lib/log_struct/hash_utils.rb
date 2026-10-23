@@ -7,6 +7,8 @@ require "securerandom"
 module LogStruct
   # Utility module for hashing sensitive data
   module HashUtils
+    # The key without a hash_salt, before the Rails app has its secret_key_base. A fixed key would be public,
+    # and anyone could match its hashes to a list of candidate emails; these hashes differ between processes.
     FALLBACK_KEY = T.let(::SecureRandom.random_bytes(32).freeze, String)
 
     class << self

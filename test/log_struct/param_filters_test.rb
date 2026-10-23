@@ -66,18 +66,33 @@ module LogStruct
       assert_failing_matcher_filters_value
     end
 
-    test "path matcher roots fail closed when limits omit context" do
+    test "path matcher roots keep what the size limits leave out of the line" do
       LogStruct.config.limits.max_hash_keys = 1
-      root = ConfigStruct::LazyRoot.new({"visible" => {"name" => "Ada", "ignored" => "hidden"}, "ignored" => {"secret" => "hidden"}})
+      LogStruct.config.limits.max_array_items = 1
+      LogStruct.config.limits.max_string_bytes = 8
+      long_key = "k" * 100
+      root = ConfigStruct::LazyRoot.new({"first" => [1, 2, 3], "second" => {long_key => "v"}})
 
-      assert_same ConfigStruct::LazyRoot::UNAVAILABLE, root.value
+      assert_equal({"first" => [1, 2, 3], "second" => {long_key => "v"}}, root.value)
+      assert_equal "v", root.value[:second][long_key]
+    end
+
+    test "path matcher roots fail closed when the parameters are too large to copy" do
       matcher = ConfigStruct::PathFilterMatcher.new(callable: ->(_path, _value, _root) { false }, label: "root matcher")
+      cyclic = {"name" => "Ada"}
+      cyclic["self"] = cyclic
+      too_deep = (BoundedInput::MAX_DEPTH + 1).times.reduce({}) { |inner, _level| {"nested" => inner} }
+      roots = [
+        ConfigStruct::LazyRoot.new({"items" => Array.new(BoundedInput::MAX_NODES, 1)}),
+        ConfigStruct::LazyRoot.new(too_deep),
+        ConfigStruct::LazyRoot.new(cyclic)
+      ]
 
-      assert matcher.matches?(["visible"], "secret", root)
-
-      complete_root = ConfigStruct::LazyRoot.new({"visible" => {"name" => "Ada"}})
-
-      assert_equal "Ada", complete_root.value["visible"]["name"]
+      roots.each do |root|
+        assert_same ConfigStruct::LazyRoot::UNAVAILABLE, root.value
+        assert matcher.matches?(["name"], "Ada", root)
+      end
+      refute matcher.matches?(["name"], "Ada", ConfigStruct::LazyRoot.new({"items" => Array.new(BoundedInput::MAX_NODES - 2, 1)}))
     end
 
     private def assert_failing_matcher_filters_value

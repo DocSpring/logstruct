@@ -1,6 +1,8 @@
 # typed: strict
 # frozen_string_literal: true
 
+require_relative "../bounded_input"
+
 module LogStruct
   module Integrations
     # Ahoy analytics integration. If Ahoy is present, prepend a small hook to
@@ -47,22 +49,7 @@ module LogStruct
       def self.properties_for_log(properties)
         case properties
         when nil then nil
-        when Hash, ::ActionController::Parameters
-          result = T.let({}, T::Hash[Symbol, T.untyped])
-          truncated = T.let(false, T::Boolean)
-          properties.each_pair.with_index do |(key, value), index|
-            if index >= LogStruct.config.limits.max_hash_keys
-              truncated = true
-              break
-            end
-            next if key.to_s.bytesize > LogStruct.config.limits.max_string_bytes
-
-            result[key.to_s.to_sym] = value
-          end
-          if truncated
-            result[:_more_keys] = properties.is_a?(Hash) ? properties.size - LogStruct.config.limits.max_hash_keys : true
-          end
-          result
+        when Hash, ::ActionController::Parameters then BoundedInput.symbolize_keys(properties)
         else {_class: properties.class.name}
         end
       end

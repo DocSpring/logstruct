@@ -10,6 +10,7 @@ require_relative "enums/source"
 require_relative "enums/event"
 require_relative "enums/log_field"
 require_relative "string_scrubber"
+require_relative "bounded_input"
 require_relative "log"
 require_relative "param_filters"
 require_relative "multi_error_reporter"
@@ -107,7 +108,7 @@ module LogStruct
               scrub_string(String(object))
             end
           rescue => e
-            LogStruct.handle_exception(e, source: Source::Internal)
+            LogStruct.handle_value_error(e, "GlobalID formatting failed")
             "[GLOBALID_ERROR]"
           end
         end
@@ -131,16 +132,12 @@ module LogStruct
       end
     rescue SystemStackError, StandardError => e
       # A SystemStackError comes from an object whose as_json refers back to itself
-      e = RuntimeError.new("#{e.class}: #{e.message}") unless e.is_a?(StandardError)
-      # Report error through LogStruct's framework
       context = {
         processor_method: "process_values",
         value_type: arg.class.name,
         recursion_depth: recursion_depth
       }
-      safe_error = RuntimeError.new("#{e.class}: value formatting failed")
-      safe_error.set_backtrace(e.backtrace)
-      LogStruct.handle_exception(safe_error, source: Source::Internal, context: context)
+      LogStruct.handle_value_error(e, "value formatting failed", context: context)
       summarize_unprocessed_value(arg)
     end
 
@@ -164,8 +161,13 @@ module LogStruct
       oversized_keys = 0
       hash.each_pair.with_index do |(key, value), index|
         if index >= max_keys
-          result[:_more_keys] = hash.is_a?(Hash) ? hash.size - max_keys : true
+          result[:_more_keys] = BoundedInput.key_count(hash) - max_keys
           break
+        end
+
+        if BoundedInput::COUNT_KEYS.include?(key) && value.is_a?(Integer)
+          result[key] = value
+          next
         end
 
         if key.to_s.bytesize > max_key_bytes
@@ -173,6 +175,7 @@ module LogStruct
           next
         end
 
+        # Checked again: each byte that isn't valid UTF-8 becomes a 3-byte U+FFFD
         key = valid_utf8_key(key)
         if key.to_s.bytesize > max_key_bytes
           oversized_keys += 1
@@ -312,11 +315,7 @@ module LogStruct
               log_value.to_s
             end
           rescue => e
-            # Handle serialization errors
-            context = {object_class: log_value.class.name}
-            safe_error = RuntimeError.new("#{e.class}: value serialization failed")
-            safe_error.set_backtrace(e.backtrace)
-            LogStruct.handle_exception(safe_error, source: Source::Internal, context: context)
+            LogStruct.handle_value_error(e, "value serialization failed", context: {object_class: log_value.class.name})
 
             # An object's string representation may contain the same secret that broke serialization.
             "[SERIALIZATION_ERROR]"
