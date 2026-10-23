@@ -50,6 +50,7 @@ For template file changes (tests, rake tasks, etc.), just run `scripts/rails_tes
 - Run all linting: `task lint`
 - Auto-fix all lint issues: `task lint:fix`
 - Spellcheck: `task spellcheck`
+- Check locked dependencies for known advisories: `task security` (also a CI job, so releases wait for it)
 
 #### Ruby Commands
 

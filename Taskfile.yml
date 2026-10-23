@@ -69,8 +69,7 @@ tasks:
   security:
     desc: Check locked Ruby and docs dependencies for known advisories
     cmds:
-      - bundle exec bundler-audit check --update
-      - cd docs && pnpm audit
+      - scripts/security_audit.sh
 
   fix:
     desc: Auto-fix lint issues then run the full validation workflow (replaces scripts/all_write.sh)
