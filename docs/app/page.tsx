@@ -55,8 +55,7 @@ export default function Home() {
                 LogStruct adds typed JSON logs to Ruby on Rails apps, and filters sensitive data out
                 of them, which helps you meet SOC 2&apos;s logging requirements. Add the gem to your
                 Gemfile, and in production your app writes JSON lines that are easy to search,
-                filter, and turn into dashboards. To see them in development, start your server with{' '}
-                <code>LOGSTRUCT_ENABLED=true</code>.
+                filter, and turn into dashboards.
               </p>
 
               <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 mt-6">
