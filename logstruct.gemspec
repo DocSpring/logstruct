@@ -50,7 +50,7 @@ Gem::Specification.new do |spec|
   # Optional integrations
   spec.add_development_dependency "bugsnag", "~> 6.26"
   spec.add_development_dependency "carrierwave", "~> 3.0"
-  spec.add_development_dependency "honeybadger", "~> 5.4"
+  spec.add_development_dependency "honeybadger", "~> 6.9"
   spec.add_development_dependency "rollbar", "~> 3.4"
   spec.add_development_dependency "sentry-ruby", "~> 5.15"
   spec.add_development_dependency "shrine", "~> 3.5"
