@@ -160,13 +160,24 @@ module LogStruct
 
         assert_equal %w[src evt lvl ts msg account_id rows prog], line.keys
 
-        %i[src evt lvl ts msg backtrace].each do |key|
+        # The line's own fields and the request ID are reserved
+        %i[src evt lvl ts req_id msg].each do |key|
           error = assert_raises(ArgumentError) do
             LogStruct::Log::Plain.new(message: "Imported", additional_data: {key => "x"}).serialize
           end
 
           assert_equal "additional_data attempted to overwrite reserved key: #{key}", error.message
         end
+        # So are the type's fields this line doesn't have: an Error's error_message and backtrace
+        %i[error_message backtrace].each do |key|
+          error = assert_raises(ArgumentError) do
+            LogStruct::Log::Error.new(source: Source::App, error_class: RuntimeError, message: "Failed", additional_data: {key => "x"}).serialize
+          end
+
+          assert_equal "additional_data attempted to overwrite reserved key: #{key}", error.message
+        end
+        # Another type's field names are free to use
+        assert_equal "Invoices", LogStruct::Log::Plain.new(message: "Imported", additional_data: {name: "Invoices"}).serialize[:name]
       end
 
       def test_filtered_summaries

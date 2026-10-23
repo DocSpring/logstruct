@@ -196,10 +196,13 @@ export default function LogFieldsPage() {
           type&apos;s schema.
         </li>
         <li>
-          All built-in field names, including <code>src</code>, <code>evt</code>, <code>msg</code>
-          and <code>backtrace</code>, are reserved. LogStruct drops them and handles the{' '}
+          <code>src</code>, <code>evt</code>, <code>lvl</code>, <code>ts</code>, <code>req_id</code>{' '}
+          and the fields of the line&apos;s own type are reserved, whether or not the line has them:
+          an error line&apos;s <code>msg</code>, <code>backtrace</code> and{' '}
+          <code>error_message</code>. LogStruct drops them and handles the{' '}
           <code>ArgumentError</code> as a LogStruct error (raised in <code>local_environments</code>
-          , logged elsewhere).
+          , logged elsewhere). Other types&apos; field names, like <code>name</code> on a plain
+          line, are free to use.
         </li>
       </ul>
 
