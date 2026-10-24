@@ -15,7 +15,7 @@ end
 
 # Use a stable Rails for gem development/test environment.
 # Rails version for the generated test app is controlled by RAILS_VERSION in rails_tests.
-gem "rails", "~> 8.0.5", require: false
+gem "rails", "~> 8.1.4", require: false
 
 # Add these gems to silence Ruby 3.4+ warnings
 gem "bigdecimal"
@@ -29,7 +29,7 @@ gem "ostruct"  # For Ruby 3.5+ compatibility
 gem "json", "< 3"
 
 # Sorbet is needed for development
-gem "sorbet", "~> 0.5"
+gem "sorbet", "~> 0.6"
 gem "sorbet-typescript"
 
 # Essential testing gems that don't have Ruby version restrictions
@@ -37,7 +37,7 @@ group :test do
   gem "dalli", "~> 3.2.13"
   gem "bundler-audit", require: false
   gem "minitest", "~> 5.20"
-  gem "minitest-reporters", "~> 1.6"
+  gem "minitest-reporters", "~> 1.8"
   gem "simplecov", "~> 0.22", require: false
   gem "simplecov-json", "~> 0.2", require: false
   gem "climate_control", "~> 1.2"
