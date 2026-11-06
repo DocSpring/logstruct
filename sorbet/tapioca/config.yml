@@ -28,7 +28,6 @@ gem:
     - tapioca
     - yard
     - yard-sorbet
-    - zeitwerk
     - parallel
     - parser
     - hana
