@@ -7,10 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-06
+
 ### Changed
 
-- **Dependencies**: Requires `sorbet-runtime` 0.6.12698 or later, the first version with `T::Module`, which `LogStruct::SemanticLogger::Logger`'s signature uses.
-- **Type checking**: Log structs mark the props that implement their interfaces with `override: true`, which current versions of Sorbet require. A custom log struct needs the same on its `level`, `timestamp` and `additional_data` props, with the interfaces included above them.
+- **Breaking**: Requires `sorbet-runtime` 0.6.12698 or later, the first version with `T::Module`, which `LogStruct::SemanticLogger::Logger`'s signature uses.
+- **Breaking**: Log structs mark the props that implement their interfaces with `override: true`, which current versions of Sorbet require. A custom log struct needs the same on its `level`, `timestamp` and `additional_data` props, with the interfaces included above them.
+- **Development**: Update the locked gems and the docs and tooling packages, including Sorbet 0.6, Tapioca 0.20 and RuboCop 1.91. CI tests Rails 7.2.4, 8.0.5.2 and 8.1.4.1.
+- **Development**: `task ci` runs `jscpd`. GitHub CI runs the dependency audits, and a release waits for them.
+
+### Fixed
+
+- **Development**: Update the locked `crass` dependency to 1.0.8, which fixes GHSA-pq4g-8rxf-4g29, and move `glob` and `minimatch` in the development tools to patched versions.
+- **Generation**: An interrupted run leaves the generated files as they were, because they're written to a staging directory and moved into place.
 
 ## [0.3.0] - 2026-10-23
 
