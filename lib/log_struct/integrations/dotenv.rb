@@ -17,11 +17,12 @@ module LogStruct
     module Dotenv
       extend T::Sig
       extend IntegrationInterface
+
       @original_logger_setter = T.let(nil, T.nilable(UnboundMethod))
 
       # Internal state holder to avoid duplicate subscriptions in a Sorbet-friendly way
       State = ::Struct.new(:subscribed)
-      STATE = T.let(State.new(false), State)
+      STATE = State.new(false)
 
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }
       def self.setup(config)

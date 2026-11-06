@@ -62,7 +62,7 @@ module LogStruct
     class LazyRoot
       extend T::Sig
 
-      UNAVAILABLE = T.let(Object.new.freeze, Object)
+      UNAVAILABLE = Object.new.freeze
 
       sig { params(value: T.untyped).void }
       def initialize(value)
@@ -187,10 +187,7 @@ module LogStruct
       # - api_key, secret_key, private_key, access_key, encryption_key, signing_key, master_key: X-Api-Key
       # - signature, sig, salt and certificate as the last word: X-Amz-Signature (but not signature_field_id)
       # Matching whole words avoids false positives like "keyboard", "author" or "cron_key".
-      DEFAULT_SENSITIVE_KEY_PATTERN = T.let(
-        /(?:\A|_)(?:passwords?|passwd|passphrases?|passcodes?|pwd|tokens?|secrets?|auth|authorization|authentication|creds?|credentials?|cookies?|sessions?|jwts?|bearer|otps?|apikeys?|cvv|cvc|ssn|social_security(?:_numbers?)?|credit_cards?|card_numbers?|crypt|crypted)(?:_|\z)|(?:\A|_)(?:api|secret|private|access|encryption|signing|master)_keys?(?:_|\z)|(?:\A|_)(?:signature|sig|salt|certificate)s?\z/,
-        Regexp
-      )
+      DEFAULT_SENSITIVE_KEY_PATTERN = /(?:\A|_)(?:passwords?|passwd|passphrases?|passcodes?|pwd|tokens?|secrets?|auth|authorization|authentication|creds?|credentials?|cookies?|sessions?|jwts?|bearer|otps?|apikeys?|cvv|cvc|ssn|social_security(?:_numbers?)?|credit_cards?|card_numbers?|crypt|crypted)(?:_|\z)|(?:\A|_)(?:api|secret|private|access|encryption|signing|master)_keys?(?:_|\z)|(?:\A|_)(?:signature|sig|salt|certificate)s?\z/
 
       # Matchers for keys that aren't listed by name in filter_keys. Each matcher receives the key (String)
       # and optional value, returning true when the pair should be filtered. Includes a regex matcher for

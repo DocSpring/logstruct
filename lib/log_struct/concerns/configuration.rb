@@ -12,7 +12,7 @@ module LogStruct
       module ClassMethods
         extend T::Sig
 
-        CONSOLE_COMMAND_ARGS = T.let(["console", "c"].freeze, T::Array[String])
+        CONSOLE_COMMAND_ARGS = ["console", "c"].freeze
         EMPTY_ARGV = T.let([].freeze, T::Array[String])
         RAILS_PATTERNS_LABEL = "Rails filter_parameters"
         RAILS_REGEXPS_LABEL = "Rails filter_parameters (Regexps)"
@@ -237,7 +237,7 @@ module LogStruct
         # there or from the field's value down, as it would in Rails.
         sig { params(patterns: T::Array[T.untyped]).returns(ConfigStruct::PathFilterMatcher) }
         def build_rails_path_matcher(patterns)
-          regexps = patterns.select { |entry| entry.is_a?(Regexp) }
+          regexps = patterns.grep(Regexp)
           strings = patterns.reject { |entry| entry.is_a?(Regexp) }.map { |entry| Regexp.escape(entry.to_s) }
           regexps << Regexp.new(strings.join("|"), true) if strings.any?
           callable = Kernel.lambda do |path, _value, _root|

@@ -107,7 +107,8 @@ class BootLogsIntegrationTest < ActiveSupport::TestCase
   private
 
   def runner_loggers(env)
-    script = 'puts "LOGGERS #{LogStruct.enabled?} #{Rails.logger.class} #{ActiveRecord::Base.logger.class}"'
+    # Interpolated by the rails runner process, which has the app loaded
+    script = 'puts "LOGGERS #{LogStruct.enabled?} #{Rails.logger.class} #{ActiveRecord::Base.logger.class}"' # rubocop:disable Lint/InterpolationCheck
     stdout_str, stderr_str, status = Open3.capture3(env, "bundle", "exec", "rails", "runner", script)
 
     assert_predicate status, :success?, "rails runner failed: #{stderr_str}"

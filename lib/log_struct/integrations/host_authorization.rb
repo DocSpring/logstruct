@@ -12,14 +12,11 @@ module LogStruct
       extend T::Sig
       extend IntegrationInterface
 
-      RESPONSE_HTML = T.let(
-        "<html><head><title>Blocked Host</title></head><body>" \
+      RESPONSE_HTML = "<html><head><title>Blocked Host</title></head><body>" \
         "<h1>Blocked Host</h1>" \
         "<p>This host is not permitted to access this application.</p>" \
         "<p>If you are the administrator, check your configuration.</p>" \
-        "</body></html>",
-        String
-      )
+        "</body></html>"
       RESPONSE_HEADERS = T.let(
         {
           "Content-Type" => "text/html",
@@ -27,7 +24,7 @@ module LogStruct
         }.freeze,
         T::Hash[String, String]
       )
-      FORBIDDEN_STATUS = T.let(403, Integer)
+      FORBIDDEN_STATUS = 403
 
       # Set up host authorization logging
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }

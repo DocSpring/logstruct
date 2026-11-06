@@ -7,6 +7,7 @@ module LogStruct
       # Handles collection of metadata for email logging
       module MetadataCollection
         extend T::Sig
+
         # Add message-specific metadata to log data
         sig { params(mailer: T.untyped, log_data: T::Hash[Symbol, T.untyped]).void }
         def self.add_message_metadata(mailer, log_data)

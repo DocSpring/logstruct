@@ -20,7 +20,7 @@ module LogStruct
 
             # Takes whatever Ahoy's track takes and passes it on as given, so Ahoy's defaults still apply
             sig { params(name: T.untyped, args: T.untyped).returns(T.untyped) }
-            def track(name, *args)
+            def track(name, *args) # rubocop:disable Sorbet/BlockMethodDefinition -- it's prepended and calls implicit super, which define_method can't do
               result = super
               begin
                 LogStruct.info(

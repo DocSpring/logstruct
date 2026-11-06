@@ -67,7 +67,7 @@ module LogStruct
       end
 
       # Set the reporter to use (user-friendly API that accepts symbols)
-      sig { params(reporter_type: T.any(ErrorReporter, Symbol, Handlers::ErrorReporter)).returns(ReporterImpl) }
+      sig { params(reporter_type: T.any(ErrorReporter, Symbol, Handlers::ErrorReporter)).void }
       def reporter=(reporter_type)
         @reporter_impl = case reporter_type
         when ErrorReporter

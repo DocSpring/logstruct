@@ -32,7 +32,7 @@ module LogStruct
     end
 
     # Convert a string or integer severity to a Level
-    sig { params(severity: T.any(String, Symbol, Integer, NilClass)).returns(Level) }
+    sig { params(severity: T.nilable(T.any(String, Symbol, Integer))).returns(Level) }
     def self.from_severity(severity)
       return Unknown if severity.nil?
       return from_severity_int(severity) if severity.is_a?(Integer)

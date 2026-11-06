@@ -18,6 +18,8 @@ def fetch_latest_rails_versions
   puts "Fetching latest Rails versions from RubyGems.org..."
   uri = URI("https://rubygems.org/api/v1/versions/rails.json")
   response = Net::HTTP.get(uri)
+  raise "Empty response from #{uri}" if response.nil?
+
   versions = JSON.parse(response)
 
   # Filter out prerelease versions and map by version number
@@ -82,8 +84,8 @@ def update_github_workflow(versions)
   versions.each do |major_minor, version|
     # Look for matrix entries with this major.minor version
     # Handle both cases: with patch number or without
-    if updated_content.match?(/rails:\s*'#{major_minor}([\.\d]*)'/)
-      updated_content.gsub!(/rails:\s*'#{major_minor}([\.\d]*)'/, "rails: '#{version}'")
+    if updated_content.match?(/rails:\s*'#{major_minor}([.\d]*)'/)
+      updated_content.gsub!(/rails:\s*'#{major_minor}([.\d]*)'/, "rails: '#{version}'")
       puts "  Updated matrix Rails #{major_minor} to version #{version}"
     else
       puts "  Warning: Could not find matrix entry for Rails #{major_minor} in test.yml"

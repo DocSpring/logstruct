@@ -112,7 +112,7 @@ module LogStruct
         # GoodJob 4: CurrentThread.job is the GoodJob::Job being run
         test "logs the running job's fields from GoodJob::CurrentThread.job" do
           clear_log_buffer(@io)
-          job = Struct.new(:active_job_id, :job_class, :queue_name, :executions_count, :scheduled_at, :priority, keyword_init: true).new(
+          job = Struct.new(:active_job_id, :job_class, :queue_name, :executions_count, :scheduled_at, :priority).new(
             active_job_id: "job_123", job_class: "TestJob", queue_name: "default", executions_count: 1, scheduled_at: Time.now, priority: 5
           )
 
@@ -127,7 +127,7 @@ module LogStruct
         # GoodJob 3: CurrentThread.execution, with the job class in its serialized params
         test "logs the running job's fields from GoodJob::CurrentThread.execution" do
           clear_log_buffer(@io)
-          execution = Struct.new(:active_job_id, :serialized_params, :queue_name, keyword_init: true).new(
+          execution = Struct.new(:active_job_id, :serialized_params, :queue_name).new(
             active_job_id: "job_456", serialized_params: {"job_class" => "OlderJob"}, queue_name: "low"
           )
 

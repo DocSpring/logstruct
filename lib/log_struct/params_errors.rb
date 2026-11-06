@@ -10,16 +10,13 @@ module LogStruct
     extend T::Sig
 
     # Matched by name, so this works without ActionDispatch or Rack loaded
-    NAMES = T.let(
-      [
-        "ActionDispatch::Http::Parameters::ParseError",
-        "Rack::BadRequest",
-        "Rack::QueryParser::InvalidParameterError",
-        "Rack::QueryParser::ParameterTypeError",
-        "Rack::QueryParser::ParamsTooDeepError"
-      ].freeze,
-      T::Array[String]
-    )
+    NAMES = [
+      "ActionDispatch::Http::Parameters::ParseError",
+      "Rack::BadRequest",
+      "Rack::QueryParser::InvalidParameterError",
+      "Rack::QueryParser::ParameterTypeError",
+      "Rack::QueryParser::ParamsTooDeepError"
+    ].freeze
     # Rails' message for a ParseError
     PARSE_ERROR_MESSAGE = "Error occurred while parsing request parameters"
     PARAMS_ERROR_MESSAGE = "Invalid request parameters"

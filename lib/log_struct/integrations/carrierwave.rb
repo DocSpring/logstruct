@@ -35,6 +35,7 @@ module LogStruct
       module LoggingMethods
         extend T::Sig
         extend T::Helpers
+
         requires_ancestor { ::CarrierWave::Uploader::Base }
 
         sig { params(args: T.untyped).returns(T.untyped) }

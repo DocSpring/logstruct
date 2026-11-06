@@ -78,6 +78,7 @@ end
 # Create a minimal Rails application for testing
 class TestApp < Rails::Application
   extend T::Sig
+
   sig { returns(T::Boolean) }
   def self.eager_load_frameworks
     false

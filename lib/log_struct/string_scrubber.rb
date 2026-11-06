@@ -36,7 +36,7 @@ module LogStruct
       # A URL's query string, for the sensitive params in it
       QUERY_STRING_REGEX = /\?([^\s#"'<>]+)/
       # OAuth authorization codes, which no key pattern would filter
-      SENSITIVE_QUERY_PARAMS = T.let(["code"].freeze, T::Array[String])
+      SENSITIVE_QUERY_PARAMS = ["code"].freeze
       QUERY_PARAM_REPLACEMENT = "[FILTERED]"
 
       # Letters and digits of any script (an accented name, a domain in another alphabet)

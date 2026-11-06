@@ -14,7 +14,7 @@ module LogStruct
       extend T::Sig
       extend IntegrationInterface
 
-      SHRINE_EVENTS = T.let(%i[upload exists download delete metadata open].freeze, T::Array[Symbol])
+      SHRINE_EVENTS = %i[upload exists download delete metadata open].freeze
 
       # The file name in a Content-Disposition (attachment; filename="..."; filename*=UTF-8''...). A quoted name
       # can hold a semicolon, and whatever follows a quote (malformed or not) goes too.
