@@ -112,7 +112,7 @@ And you always need to check for any third-party gems that are not part of Rails
 - Ensure all tests pass before submitting a pull request
 - Regular tests: `scripts/test.rb`
 - Rails integration tests: `scripts/rails_tests.sh`
-- You can specify Rails version for integration tests: `RAILS_VERSION=7.2.3 scripts/rails_tests.sh`
+- You can specify Rails version for integration tests: `RAILS_VERSION=7.2.4 scripts/rails_tests.sh`
 - Run `task ci` before submitting changes, and `cd docs && pnpm check` for changes to the docs site.
 
 ## Working with Sorbet and Tapioca

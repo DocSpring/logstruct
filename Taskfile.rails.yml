@@ -16,9 +16,9 @@ tasks:
       - cmd: RAILS_VERSION={{.RAILS_VERSION}} FORCE_RECREATE=true ./scripts/rails_tests.sh
 
   test:matrix:
-    desc: Run Rails integration tests for supported versions (7.1.6, 7.2.3, 8.0.4, 8.1.2)
+    desc: Run Rails integration tests for supported versions (7.1.6, 7.2.4, 8.0.5.2, 8.1.4.1)
     cmds:
       - RAILS_VERSION=7.1.6 ./scripts/rails_tests.sh
-      - RAILS_VERSION=7.2.3 ./scripts/rails_tests.sh
-      - RAILS_VERSION=8.0.4 ./scripts/rails_tests.sh
-      - RAILS_VERSION=8.1.2 ./scripts/rails_tests.sh
+      - RAILS_VERSION=7.2.4 ./scripts/rails_tests.sh
+      - RAILS_VERSION=8.0.5.2 ./scripts/rails_tests.sh
+      - RAILS_VERSION=8.1.4.1 ./scripts/rails_tests.sh

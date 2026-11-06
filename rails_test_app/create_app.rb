@@ -15,11 +15,11 @@ if rails_version != "main" && rails_version.count(".") < 2
   when "7.1"
     "7.1.6"  # Updated by update_rails_versions script
   when "7.2"
-    "7.2.3"  # Updated by update_rails_versions script
+    "7.2.4"  # Updated by update_rails_versions script
   when "8.0"
-    "8.0.4"  # Updated by update_rails_versions script
+    "8.0.5.2"  # Updated by update_rails_versions script
   when "8.1"
-    "8.1.2"  # Updated by update_rails_versions script
+    "8.1.4.1"  # Updated by update_rails_versions script
   else
     raise "Unrecognized Rails version #{rails_version}"
   end
