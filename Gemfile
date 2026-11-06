@@ -15,7 +15,7 @@ end
 
 # Use a stable Rails for gem development/test environment.
 # Rails version for the generated test app is controlled by RAILS_VERSION in rails_tests.
-gem "rails", "~> 8.0.5", require: false
+gem "rails", "~> 8.1.4", require: false
 
 # Add these gems to silence Ruby 3.4+ warnings
 gem "bigdecimal"
