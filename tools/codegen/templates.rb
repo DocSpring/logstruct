@@ -29,6 +29,12 @@ module LogStruct
         required ? type : "T.nilable(#{type})"
       end
 
+      # Request fields implement the abstract methods of Interfaces::RequestFields
+      sig { params(field: FieldSpec).returns(String) }
+      def request_field_override(field)
+        (add_request_fields && REQUEST_FIELD_NAMES.include?(field.enum_name)) ? ", override: true" : ""
+      end
+
       sig { params(str: String, level: Integer, all: T::Boolean).returns(String) }
       def indent(str, level = 2, all: false)
         str.split("\n").map.with_index { |line, index| (index == 0 && !all) ? line : " " * level + line }.join("\n")

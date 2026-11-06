@@ -43,7 +43,7 @@ module LogStruct
 
       # Track subscription state keyed to the current Notifications.notifier instance
       State = ::Struct.new(:subscribed, :notifier_id)
-      STATE = T.let(State.new(false, nil), State)
+      STATE = State.new(false, nil)
 
       # Set up SQL query logging integration
       sig { override.params(config: LogStruct::Configuration).returns(T.nilable(T::Boolean)) }

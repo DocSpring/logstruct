@@ -7,6 +7,7 @@
 module FilterByLine
   module ClassMethods
     extend T::Helpers
+
     requires_ancestor { Module }
 
     def runnable_methods

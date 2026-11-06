@@ -26,7 +26,7 @@ module LogStruct
     class Logger < ::SemanticLogger::Logger
       extend T::Sig
 
-      sig { params(name: T.any(String, Symbol, Module, T::Class[T.anything]), level: T.nilable(Symbol), filter: T.untyped).void }
+      sig { params(name: T.any(String, Symbol, T::Module[T.anything]), level: T.nilable(Symbol), filter: T.untyped).void }
       def initialize(name = "Application", level: nil, filter: nil)
         # SemanticLogger::Logger expects positional arguments, not named arguments
         super(name, level, filter)

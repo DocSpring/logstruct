@@ -196,7 +196,7 @@ module LogStruct
             return true
           end
 
-          if (m = l.match(/^(?:\*\s*)?Puma version: (\S+)(?:.*"([^\"]+)")?/))
+          if (m = l.match(/^(?:\*\s*)?Puma version: (\S+)(?:.*"([^"]+)")?/))
             T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:puma_version] = m[1]
             if m[2]
               T.cast(STATE[:start_info], T::Hash[Symbol, T.untyped])[:puma_codename] = m[2]

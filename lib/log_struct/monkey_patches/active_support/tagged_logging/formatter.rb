@@ -24,6 +24,7 @@ module ActiveSupport
     module FormatterExtension
       extend T::Sig
       extend T::Helpers
+
       requires_ancestor { ::ActiveSupport::TaggedLogging::Formatter }
 
       sig { params(severity: T.any(String, Symbol), time: Time, progname: T.untyped, data: T.untyped).returns(String) }

@@ -9,6 +9,7 @@ module LogStruct
         extend ActiveSupport::Concern
         extend T::Sig
         extend T::Helpers
+
         requires_ancestor { ::ActionMailer::Base }
         requires_ancestor { ErrorHandling }
 

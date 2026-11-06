@@ -23,8 +23,14 @@
   "homepage": "https://github.com/docspring/logstruct#readme",
   "devDependencies": {
     "@docspring/cspell-lockfile-dicts": "^1.2.0",
-    "cspell": "^10.3.6",
-    "jscpd": "^4.0.7",
+    "cspell": "^10.4.0",
+    "jscpd": "^4.3.0",
     "prettier": "^3.9.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "glob@>=9.0.0 <14.0.2": "^14.0.2",
+      "minimatch@>=7.0.0 <11.0.1": "^11.0.1"
+    }
   }
 }

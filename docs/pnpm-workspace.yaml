@@ -6,3 +6,11 @@ onlyBuiltDependencies:
 overrides:
   # Next 15.5 pins postcss 8.4.31, which has open advisories; Next 16 moved to 8.5
   'next>postcss': ^8.5.23
+  # Jest 30 still asks for glob 10 and its minimatch, which have open advisories
+  'glob@>=9.0.0 <14.0.2': ^14.0.2
+  'minimatch@>=7.0.0 <11.0.1': ^11.0.1
+
+auditConfig:
+  ignoreGhsas:
+    # deepmerge has no patched version. Only jest-config uses it here, on Jest's own config in development
+    - GHSA-gcqx-w48m-w2h4

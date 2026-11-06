@@ -12,10 +12,7 @@ module LogStruct
       module ErrorLines
         extend T::Sig
 
-        CSRF_ERROR_NAMES = T.let(
-          ["ActionController::InvalidAuthenticityToken", "ActionController::InvalidCrossOriginRequest"].freeze,
-          T::Array[String]
-        )
+        CSRF_ERROR_NAMES = ["ActionController::InvalidAuthenticityToken", "ActionController::InvalidCrossOriginRequest"].freeze
 
         sig { returns(T::Boolean) }
         def self.enabled?

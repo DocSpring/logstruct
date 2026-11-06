@@ -15,6 +15,7 @@ module LogStruct
     class ActionMailer
       class BaseFields < T::Struct
         extend T::Sig
+
         const :to, T.nilable(T::Array[String]), default: nil
         const :from, T.nilable(String), default: nil
         const :subject, T.nilable(String), default: nil

@@ -14,28 +14,25 @@ module LogStruct
     module Lograge
       extend IntegrationInterface
 
-      LOGRAGE_KNOWN_KEYS = T.let(
-        [
-          :method,
-          :path,
-          :format,
-          :controller,
-          :action,
-          :status,
-          :duration,
-          :view,
-          :db,
-          :params,
-          :request_id,
-          :source_ip,
-          :user_agent,
-          :referer,
-          :host,
-          :content_type,
-          :accept
-        ].freeze,
-        T::Array[Symbol]
-      )
+      LOGRAGE_KNOWN_KEYS = [
+        :method,
+        :path,
+        :format,
+        :controller,
+        :action,
+        :status,
+        :duration,
+        :view,
+        :db,
+        :params,
+        :request_id,
+        :source_ip,
+        :user_agent,
+        :referer,
+        :host,
+        :content_type,
+        :accept
+      ].freeze
 
       # With config.exceptions_app = routes, Rails renders an error page by sending the request through the app again
       # as GET /<status>, and keeps the request's own method and path in these headers

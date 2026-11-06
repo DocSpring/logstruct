@@ -18,10 +18,7 @@ module LogStruct
       extend T::Sig
 
       # Load hooks for the framework components whose loggers LogStruct replaces
-      COMPONENT_LOAD_HOOKS = T.let(
-        %i[active_record action_controller action_mailer active_job action_view action_cable].freeze,
-        T::Array[Symbol]
-      )
+      COMPONENT_LOAD_HOOKS = %i[active_record action_controller action_mailer active_job action_view action_cable].freeze
 
       # The logger LogStruct installed, and the loggers it replaced
       @logger = T.let(nil, T.nilable(LogStruct::SemanticLogger::Logger))

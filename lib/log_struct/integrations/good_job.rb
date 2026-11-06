@@ -157,7 +157,8 @@ module LogStruct
         return true unless defined?(::GoodJob::Notifier::CONNECTION_ERRORS)
 
         ::GoodJob::Notifier::CONNECTION_ERRORS.any? do |error_name|
-          error_class = error_name.safe_constantize
+          # CONNECTION_ERRORS holds class names, because an app might not have loaded the database adapter they belong to
+          error_class = error_name.safe_constantize # rubocop:disable Sorbet/ConstantsFromStrings
           error_class.is_a?(Class) && exception.is_a?(error_class)
         end
       end

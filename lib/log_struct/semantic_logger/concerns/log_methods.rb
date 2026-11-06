@@ -7,6 +7,7 @@ module LogStruct
       module LogMethods
         extend T::Sig
         extend T::Helpers
+
         requires_ancestor { LogStruct::SemanticLogger::Logger }
 
         # Override log methods to handle LogStruct types and broadcast

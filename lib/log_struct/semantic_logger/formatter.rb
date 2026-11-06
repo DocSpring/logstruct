@@ -97,7 +97,7 @@ module LogStruct
       end
 
       # A logged Hash may set its own src and evt, but the line's timestamp and level come from the logger
-      HASH_RESERVED_KEYS = T.let(%w[ts lvl].freeze, T::Array[String])
+      HASH_RESERVED_KEYS = %w[ts lvl].freeze
 
       sig { params(hash: T::Hash[T.untyped, T.untyped]).returns(T::Hash[T.untyped, T.untyped]) }
       def without_reserved_keys(hash)

@@ -15,6 +15,7 @@ module LogStruct
     class CarrierWave
       class BaseFields < T::Struct
         extend T::Sig
+
         const :storage, Symbol
         const :file_id, String
         const :uploader, T.nilable(String), default: nil

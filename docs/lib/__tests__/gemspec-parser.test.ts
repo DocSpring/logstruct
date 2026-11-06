@@ -58,7 +58,7 @@ describe('parseCiCombinations', () => {
     expect(combinations).toHaveLength(matrixEntries.length + 1);
     for (const combination of combinations) {
       expect(combination.ruby).toMatch(/^\d+\.\d+(\.\d+)?$/);
-      expect(combination.rails).toMatch(/^(\d+\.\d+\.\d+|main)$/);
+      expect(combination.rails).toMatch(/^(\d+\.\d+\.\d+(\.\d+)?|main)$/);
     }
     // The pilot job tests Rails' main branch (RAILS_VERSION "latest")
     expect(combinations[combinations.length - 1].rails).toBe('main');

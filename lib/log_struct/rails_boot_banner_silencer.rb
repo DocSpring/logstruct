@@ -55,6 +55,7 @@ module LogStruct
     module ServerCommandSilencer
       extend T::Sig
       extend T::Helpers
+
       requires_ancestor { Object }
 
       sig { params(args: T.untyped, block: T.nilable(T.proc.returns(T.untyped))).returns(T.untyped) }

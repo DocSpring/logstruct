@@ -1,17 +1,26 @@
 extend T::Sig
 
+      # A prop marked `override` needs the method it implements to exist already
+      include LogStruct::Log::Interfaces::CommonFields
+<% if additional_data -%>
+      include LogStruct::Log::Interfaces::AdditionalDataField
+<% end -%>
+<% if add_request_fields -%>
+      include LogStruct::Log::Interfaces::RequestFields
+<% end -%>
+
       # Shared/common fields
       <% if source_has_default -%>
-      const :source, <%= source_enum %>, default: <%= source_enum %>
+      const :source, <%= source_enum %>, default: <%= source_enum %>, override: true
       <% else -%>
-      const :source, Source
+      const :source, Source, override: true
       <% end -%>
-      const :event, Event, default: Event::<%= event.name %>
-      const :timestamp, Time, factory: -> { Time.now }
-      const :level, Level, default: Level::Info
+      const :event, Event, default: Event::<%= event.name %>, override: true
+      const :timestamp, Time, factory: -> { Time.now }, override: true
+      const :level, Level, default: Level::Info, override: true
 
 <% base_fields.each do |f| -%>
-      const :<%= f.prop_name %>, <%= nilable(f.sorbet_type, f.required) %><% if !f.required %>, default: nil<% end %>
+      const :<%= f.prop_name %>, <%= nilable(f.sorbet_type, f.required) %><% if !f.required %>, default: nil<% end %><%= request_field_override(f) %>
 <% end -%>
 <% if event_only(event).any? -%>
 
@@ -23,8 +32,7 @@ extend T::Sig
 <% if additional_data -%>
 
       # Additional data
-      include LogStruct::Log::Interfaces::AdditionalDataField
-      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil, override: true
       include LogStruct::Log::Shared::MergeAdditionalDataFields
 
       FIELD_KEYS = T.let(
@@ -37,14 +45,8 @@ extend T::Sig
         FIELD_KEYS
       end
 <% end -%>
-<% if add_request_fields -%>
-
-      # Request fields (optional)
-      include LogStruct::Log::Interfaces::RequestFields
-<% end -%>
 
       # Serialize shared fields
-      include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon
 <% if add_request_fields -%>
       include LogStruct::Log::Shared::AddRequestFields

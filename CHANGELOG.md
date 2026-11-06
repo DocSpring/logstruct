@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Dependencies**: Requires `sorbet-runtime` 0.6.12698 or later, the first version with `T::Module`, which `LogStruct::SemanticLogger::Logger`'s signature uses.
+- **Type checking**: Log structs mark the props that implement their interfaces with `override: true`, which current versions of Sorbet require. A custom log struct needs the same on its `level`, `timestamp` and `additional_data` props, with the interfaces included above them.
+
 ## [0.3.0] - 2026-10-23
 
 ### Changed

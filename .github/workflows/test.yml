@@ -20,7 +20,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: '.ruby-version'
           # Install all gems (both test and development)
@@ -107,7 +107,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: '.ruby-version'
           bundler-cache: true
@@ -134,7 +134,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: '.ruby-version'
           bundler-cache: true
@@ -183,7 +183,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: '.ruby-version'
           bundler-cache: true
@@ -242,7 +242,7 @@ jobs:
         run: rm -f Gemfile.lock
 
       - name: Setup Ruby 4.0.1
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: '4.0.1'
           bundler-cache: true
@@ -297,15 +297,15 @@ jobs:
 
           - name: 'Ruby 3.4 / Rails 7.2'
             ruby: '3.4'
-            rails: '7.2.3'
+            rails: '7.2.4'
 
           - name: 'Ruby 3.4 / Rails 8.0'
             ruby: '3.4'
-            rails: '8.0.4'
+            rails: '8.0.5.2'
 
           - name: 'Ruby 4.0 / Rails 8.1'
             ruby: '4.0.1'
-            rails: '8.1.2'
+            rails: '8.1.4.1'
 
           # NOTE: Latest Ruby/Rails is tested in the 'pilot' job above with coverage.
 
@@ -325,7 +325,7 @@ jobs:
         run: rm -f Gemfile.lock
 
       - name: Setup Ruby ${{ matrix.ruby }}
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
@@ -346,7 +346,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@651ff0d62c5c79bed6d53ec518387aae20e72c1a # v1.329.0
+        uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1.335.0
         with:
           ruby-version: '.ruby-version'
 

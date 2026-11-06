@@ -23,11 +23,15 @@ module LogStruct
       class Delivery < T::Struct
         extend T::Sig
 
+        # A prop marked `override` needs the method it implements to exist already
+        include LogStruct::Log::Interfaces::CommonFields
+        include LogStruct::Log::Interfaces::AdditionalDataField
+
         # Shared/common fields
-        const :source, Source::Mailer, default: Source::Mailer
-        const :event, Event, default: Event::Delivery
-        const :timestamp, Time, factory: -> { Time.now }
-        const :level, Level, default: Level::Info
+        const :source, Source::Mailer, default: Source::Mailer, override: true
+        const :event, Event, default: Event::Delivery, override: true
+        const :timestamp, Time, factory: -> { Time.now }, override: true
+        const :level, Level, default: Level::Info, override: true
 
         const :to, T.nilable(T::Array[String]), default: nil
         const :from, T.nilable(String), default: nil
@@ -38,8 +42,7 @@ module LogStruct
         const :attachment_count, T.nilable(Integer), default: nil
 
         # Additional data
-        include LogStruct::Log::Interfaces::AdditionalDataField
-        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil, override: true
         include LogStruct::Log::Shared::MergeAdditionalDataFields
 
         FIELD_KEYS = T.let(
@@ -53,7 +56,6 @@ module LogStruct
         end
 
         # Serialize shared fields
-        include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }

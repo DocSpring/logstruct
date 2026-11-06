@@ -22,11 +22,14 @@ module LogStruct
     class ActiveModelSerializers < T::Struct
       extend T::Sig
 
+      # A prop marked `override` needs the method it implements to exist already
+      include LogStruct::Log::Interfaces::CommonFields
+
       # Shared/common fields
-      const :source, Source::Rails, default: Source::Rails
-      const :event, Event, default: Event::Generate
-      const :timestamp, Time, factory: -> { Time.now }
-      const :level, Level, default: Level::Info
+      const :source, Source::Rails, default: Source::Rails, override: true
+      const :event, Event, default: Event::Generate, override: true
+      const :timestamp, Time, factory: -> { Time.now }, override: true
+      const :level, Level, default: Level::Info, override: true
 
       # Event-specific fields
       const :message, String
@@ -36,7 +39,6 @@ module LogStruct
       const :duration_ms, Float
 
       # Serialize shared fields
-      include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }

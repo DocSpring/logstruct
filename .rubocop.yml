@@ -1,5 +1,7 @@
 require:
   - standard
+
+plugins:
   - rubocop-minitest
   - rubocop-performance
   - rubocop-sorbet
@@ -21,6 +23,7 @@ AllCops:
     - coverage_rails/**/*
     - docs/public/**/*
     - docspring/**/*
+    - reference/**/*
     - convox_racks_terraform/**/*
     - terraform-aws-logstruct/**/*
     - terraform-example/**/*
@@ -38,6 +41,12 @@ Layout/MultilineMethodArgumentLineBreaks:
 
 Bundler/DuplicatedGem:
   Enabled: false # ignore duplicated gem errors because we have duplicated gems for testing
+
+# Tests build their doubles with Class.new, which needs real method definitions: define_method can't use implicit
+# super, and the cop's autocorrect doesn't produce code that parses for all of them
+Sorbet/BlockMethodDefinition:
+  Exclude:
+    - test/**/*
 
 # We use UTC for all timestamps, no timezones required for logs
 # Rails/TimeZone:

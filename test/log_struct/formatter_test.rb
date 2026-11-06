@@ -771,6 +771,7 @@ module LogStruct
     def create_user_class
       Class.new do
         include GlobalID::Identification
+
         attr_accessor :id
 
         def initialize(id)

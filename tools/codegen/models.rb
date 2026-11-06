@@ -8,6 +8,8 @@ module LogStruct
   module Codegen
     extend T::Sig
 
+    REQUEST_FIELD_NAMES = ["Path", "HttpMethod", "SourceIp", "UserAgent", "Referer"].freeze
+
     class FieldSpec < T::Struct
       const :enum_name, String # e.g., "RequestId"
       const :prop_name, String # e.g., "request_id"
