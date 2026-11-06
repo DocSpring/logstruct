@@ -60,6 +60,7 @@ tasks:
       - generate
       - typecheck
       - lint
+      - jscpd
       - spellcheck
       - docs:test
       - test

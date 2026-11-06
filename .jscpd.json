@@ -17,6 +17,8 @@
     "**/docs/.next/**",
     "**/docs/out/**",
     "**/docs/.vercel/**",
+    "**/docs/public/yard/**",
+    "bin/**",
     "**/docspring/**",
     "**/terraform-provider-logstruct/**",
     "**/terraform-aws-logstruct/**",
