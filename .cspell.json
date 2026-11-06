@@ -1,5 +1,7 @@
 {
   "ignorePaths": [
+    "reference/**",
+    "terraform-provider-logstruct/**",
     "sorbet/rbi/annotations/**",
     "sorbet/rbi/dsl/**",
     "sorbet/rbi/gems/**",
@@ -24,8 +26,5 @@
       "addWords": false
     }
   ],
-  "dictionaries": [
-    "project-words",
-    "lockfile-words-root"
-  ]
+  "dictionaries": ["project-words", "lockfile-words-root"]
 }
