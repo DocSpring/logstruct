@@ -76,8 +76,8 @@ module LogStruct
             def source = "payments"
 
             const :event, Event
-            const :level, ::LogStruct::Level, default: T.let(::LogStruct::Level::Info, ::LogStruct::Level)
-            const :timestamp, Time, factory: -> { Time.now }
+            const :level, ::LogStruct::Level, default: T.let(::LogStruct::Level::Info, ::LogStruct::Level), override: true
+            const :timestamp, Time, factory: -> { Time.now }, override: true
 
             # Domain fields
             const :payment_id, String
@@ -87,7 +87,7 @@ module LogStruct
             const :user_id, T.nilable(Integer), default: nil
 
             # Optional extra data merged at top-level
-            const :additional_data, T::Hash[Symbol, T.untyped], default: {}
+            const :additional_data, T::Hash[Symbol, T.untyped], default: {}, override: true
 
             sig { override.params(strict: T::Boolean).returns(T::Hash[Symbol, T.untyped]) }
             def serialize(strict = true)

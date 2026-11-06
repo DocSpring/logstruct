@@ -14,6 +14,7 @@ module LogStruct
     class GoodJob
       class BaseFields < T::Struct
         extend T::Sig
+
         const :job_id, T.nilable(String), default: nil
         const :job_class, T.nilable(String), default: nil
         const :queue_name, T.nilable(Symbol), default: nil

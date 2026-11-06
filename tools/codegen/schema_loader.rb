@@ -66,15 +66,8 @@ module LogStruct
         add_request_fields = T.cast(schema[:add_request_fields], T.nilable(T::Boolean)) || false
 
         if add_request_fields
-          req_fields = [
-            ["Path", "String"],
-            ["HttpMethod", "String"],
-            ["SourceIp", "String"],
-            ["UserAgent", "String"],
-            ["Referer", "String"]
-          ]
-          req_fields.each do |name, type|
-            base_fields << FieldSpec.new(enum_name: name, prop_name: LogStruct::Codegen.snake_case(name), type: type, sorbet_type: LogStruct::Codegen.type_to_sorbet(type), required: false)
+          LogStruct::Codegen::REQUEST_FIELD_NAMES.each do |name|
+            base_fields << FieldSpec.new(enum_name: name, prop_name: LogStruct::Codegen.snake_case(name), type: "String", sorbet_type: LogStruct::Codegen.type_to_sorbet("String"), required: false)
           end
         end
 

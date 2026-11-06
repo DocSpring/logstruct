@@ -20,6 +20,7 @@ module LogStruct
     class ActiveJob
       class BaseFields < T::Struct
         extend T::Sig
+
         const :job_id, String
         const :job_class, String
         const :queue_name, T.nilable(Symbol), default: nil

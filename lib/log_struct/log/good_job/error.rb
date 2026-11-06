@@ -23,11 +23,14 @@ module LogStruct
       class Error < T::Struct
         extend T::Sig
 
+        # A prop marked `override` needs the method it implements to exist already
+        include LogStruct::Log::Interfaces::CommonFields
+
         # Shared/common fields
-        const :source, Source::Job, default: Source::Job
-        const :event, Event, default: Event::Error
-        const :timestamp, Time, factory: -> { Time.now }
-        const :level, Level, default: Level::Info
+        const :source, Source::Job, default: Source::Job, override: true
+        const :event, Event, default: Event::Error, override: true
+        const :timestamp, Time, factory: -> { Time.now }, override: true
+        const :level, Level, default: Level::Info, override: true
 
         const :job_id, T.nilable(String), default: nil
         const :job_class, T.nilable(String), default: nil
@@ -45,7 +48,6 @@ module LogStruct
         const :backtrace, T.nilable(T::Array[String]), default: nil
 
         # Serialize shared fields
-        include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }

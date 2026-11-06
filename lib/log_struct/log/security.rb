@@ -15,6 +15,7 @@ module LogStruct
     class Security
       class BaseFields < T::Struct
         extend T::Sig
+
         const :path, T.nilable(String), default: nil
         const :http_method, T.nilable(String), default: nil
         const :source_ip, T.nilable(String), default: nil

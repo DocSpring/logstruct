@@ -23,11 +23,14 @@ module LogStruct
       class Delete < T::Struct
         extend T::Sig
 
+        # A prop marked `override` needs the method it implements to exist already
+        include LogStruct::Log::Interfaces::CommonFields
+
         # Shared/common fields
-        const :source, Source::CarrierWave, default: Source::CarrierWave
-        const :event, Event, default: Event::Delete
-        const :timestamp, Time, factory: -> { Time.now }
-        const :level, Level, default: Level::Info
+        const :source, Source::CarrierWave, default: Source::CarrierWave, override: true
+        const :event, Event, default: Event::Delete, override: true
+        const :timestamp, Time, factory: -> { Time.now }, override: true
+        const :level, Level, default: Level::Info, override: true
 
         const :storage, Symbol
         const :file_id, String
@@ -37,7 +40,6 @@ module LogStruct
         const :version, T.nilable(String), default: nil
 
         # Serialize shared fields
-        include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }

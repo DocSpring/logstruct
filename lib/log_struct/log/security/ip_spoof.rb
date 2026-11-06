@@ -23,17 +23,22 @@ module LogStruct
       class IPSpoof < T::Struct
         extend T::Sig
 
-        # Shared/common fields
-        const :source, Source::Security, default: Source::Security
-        const :event, Event, default: Event::IPSpoof
-        const :timestamp, Time, factory: -> { Time.now }
-        const :level, Level, default: Level::Info
+        # A prop marked `override` needs the method it implements to exist already
+        include LogStruct::Log::Interfaces::CommonFields
+        include LogStruct::Log::Interfaces::AdditionalDataField
+        include LogStruct::Log::Interfaces::RequestFields
 
-        const :path, T.nilable(String), default: nil
-        const :http_method, T.nilable(String), default: nil
-        const :source_ip, T.nilable(String), default: nil
-        const :user_agent, T.nilable(String), default: nil
-        const :referer, T.nilable(String), default: nil
+        # Shared/common fields
+        const :source, Source::Security, default: Source::Security, override: true
+        const :event, Event, default: Event::IPSpoof, override: true
+        const :timestamp, Time, factory: -> { Time.now }, override: true
+        const :level, Level, default: Level::Info, override: true
+
+        const :path, T.nilable(String), default: nil, override: true
+        const :http_method, T.nilable(String), default: nil, override: true
+        const :source_ip, T.nilable(String), default: nil, override: true
+        const :user_agent, T.nilable(String), default: nil, override: true
+        const :referer, T.nilable(String), default: nil, override: true
 
         # Event-specific fields
         const :message, T.nilable(String), default: nil
@@ -41,8 +46,7 @@ module LogStruct
         const :x_forwarded_for, T.nilable(String), default: nil
 
         # Additional data
-        include LogStruct::Log::Interfaces::AdditionalDataField
-        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+        const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil, override: true
         include LogStruct::Log::Shared::MergeAdditionalDataFields
 
         FIELD_KEYS = T.let(
@@ -55,11 +59,7 @@ module LogStruct
           FIELD_KEYS
         end
 
-        # Request fields (optional)
-        include LogStruct::Log::Interfaces::RequestFields
-
         # Serialize shared fields
-        include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
         include LogStruct::Log::Shared::AddRequestFields
 

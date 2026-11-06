@@ -23,11 +23,14 @@ module LogStruct
       class Upload < T::Struct
         extend T::Sig
 
+        # A prop marked `override` needs the method it implements to exist already
+        include LogStruct::Log::Interfaces::CommonFields
+
         # Shared/common fields
-        const :source, Source::Shrine, default: Source::Shrine
-        const :event, Event, default: Event::Upload
-        const :timestamp, Time, factory: -> { Time.now }
-        const :level, Level, default: Level::Info
+        const :source, Source::Shrine, default: Source::Shrine, override: true
+        const :event, Event, default: Event::Upload, override: true
+        const :timestamp, Time, factory: -> { Time.now }, override: true
+        const :level, Level, default: Level::Info, override: true
 
         # Event-specific fields
         const :storage, Symbol
@@ -40,7 +43,6 @@ module LogStruct
         const :duration_ms, T.nilable(Float), default: nil
 
         # Serialize shared fields
-        include LogStruct::Log::Interfaces::CommonFields
         include LogStruct::Log::Shared::SerializeCommon
 
         sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }

@@ -18,6 +18,7 @@ module LogStruct
     class ActiveStorage
       class BaseFields < T::Struct
         extend T::Sig
+
         const :storage, Symbol
         const :file_id, T.nilable(String), default: nil
 

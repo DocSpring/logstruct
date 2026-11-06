@@ -22,18 +22,21 @@ module LogStruct
     class Plain < T::Struct
       extend T::Sig
 
+      # A prop marked `override` needs the method it implements to exist already
+      include LogStruct::Log::Interfaces::CommonFields
+      include LogStruct::Log::Interfaces::AdditionalDataField
+
       # Shared/common fields
-      const :source, Source::App, default: Source::App
-      const :event, Event, default: Event::Log
-      const :timestamp, Time, factory: -> { Time.now }
-      const :level, Level, default: Level::Info
+      const :source, Source::App, default: Source::App, override: true
+      const :event, Event, default: Event::Log, override: true
+      const :timestamp, Time, factory: -> { Time.now }, override: true
+      const :level, Level, default: Level::Info, override: true
 
       # Event-specific fields
       const :message, T.untyped
 
       # Additional data
-      include LogStruct::Log::Interfaces::AdditionalDataField
-      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil
+      const :additional_data, T.nilable(T::Hash[T.any(String, Symbol), T.untyped]), default: nil, override: true
       include LogStruct::Log::Shared::MergeAdditionalDataFields
 
       FIELD_KEYS = T.let(
@@ -47,7 +50,6 @@ module LogStruct
       end
 
       # Serialize shared fields
-      include LogStruct::Log::Interfaces::CommonFields
       include LogStruct::Log::Shared::SerializeCommon
 
       sig { returns(T::Hash[LogStruct::LogField, T.untyped]) }
