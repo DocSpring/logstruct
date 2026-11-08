@@ -276,8 +276,8 @@ export default function SidekiqIntegrationPage() {
       <HeadingWithAnchor id="versions">Sidekiq versions</HeadingWithAnchor>
       <ul className="list-disc list-outside ml-6 space-y-2 text-neutral-600 dark:text-neutral-300">
         <li>
-          <strong>Sidekiq 7:</strong> everything on this page. LogStruct&apos;s tests run against
-          Sidekiq 7.
+          <strong>Sidekiq 7 and 8:</strong> everything on this page. LogStruct&apos;s tests run
+          against Sidekiq 8, and ran against Sidekiq 7 up to LogStruct 0.4.0.
         </li>
         <li>
           <strong>Sidekiq 6:</strong> LogStruct sets the logger on the <code>Sidekiq</code> module
@@ -285,9 +285,6 @@ export default function SidekiqIntegrationPage() {
           its own error handler stays: a failed job is three <code>warn</code> lines (the job as a
           JSON string with its arguments, the error, and the backtrace), written through
           LogStruct&apos;s logger.
-        </li>
-        <li>
-          <strong>Sidekiq 8</strong> isn&apos;t tested.
         </li>
       </ul>
 

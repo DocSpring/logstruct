@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Development**: The tests run against Sentry 7, Honeybadger 6 and Sidekiq 8. Development uses Rails 8.1, and the Rails 8.1 test apps no longer pin `json` below 3, because ActiveSupport 8.1 dropped the `quirks_mode` option that json 3 rejects.
+- **Development**: Update SimpleCov to 1.3, jscpd to 5.4, and the docs site to Next.js 16.4.3, TypeScript 6 and lucide-react 1.66.
+
 ## [0.4.0] - 2026-11-06
 
 ### Changed

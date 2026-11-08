@@ -67,7 +67,7 @@ module LogStruct
         @original_logger = nil
       end
 
-      # Sidekiq 7 keeps the logger on its default configuration, Sidekiq 6 on the module
+      # Sidekiq 7 and 8 keep the logger on their default configuration, Sidekiq 6 on the module
       sig { returns(T.untyped) }
       def self.sidekiq_logger_config
         ::Sidekiq.respond_to?(:default_configuration) ? ::Sidekiq.default_configuration : ::Sidekiq
