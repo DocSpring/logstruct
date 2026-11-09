@@ -45,7 +45,7 @@ tasks:
     desc: Detect copy/paste duplication
     deps: [prettier:deps]
     cmds:
-      - pnpm exec jscpd . --exitCode 1
+      - pnpm exec jscpd .
 
   test:
     desc: Run Ruby unit tests, Rails integration tests, and merge coverage

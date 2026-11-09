@@ -321,9 +321,9 @@ if !skip_app_creation
   # e.g., %i[ mri mingw x64_mingw ] -> %i[ mri windows ]
   gemfile_content.gsub!(%r{%i\[\s*mri\s+mingw\s+x64_mingw\s*\]}, "%i[ mri windows ]")
 
-  # ActiveSupport's JSON encoder passes quirks_mode to JSON.generate, which json 3 rejects
-  # (fixed on Rails main)
-  if rails_version != "main"
+  # Before Rails 8.1, ActiveSupport's JSON encoder passes quirks_mode to JSON.generate, which
+  # json 3 rejects
+  if rails_version != "main" && Gem::Version.new(@rails_major_minor) < Gem::Version.new("8.1")
     gemfile_content += <<~GEMS
       gem "json", "< 3"
     GEMS

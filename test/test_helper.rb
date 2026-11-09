@@ -17,7 +17,7 @@ SimpleCov.start do
   coverage_dir "./coverage"
   command_name "test"
 
-  add_filter "test/"
+  skip "test/"
 
   enable_coverage :branch
   primary_coverage :branch
@@ -91,9 +91,6 @@ class TestApp < Rails::Application
     [:password, :token, :secret, :key, :access, :auth, :credentials],
     T::Array[Symbol]
   )
-
-  # Fix Rails 8.1 deprecation warning for to_time timezone preservation
-  config.active_support.to_time_preserves_timezone = :zone
 end
 
 # Initialize the application - Railtie initializers will run now

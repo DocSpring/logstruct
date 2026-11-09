@@ -1,6 +1,6 @@
 'use client';
 
-import { Github, Loader2 } from 'lucide-react';
+import { Loader2, Workflow } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type WorkflowStatus = {
@@ -120,7 +120,7 @@ export function GitHubStatus() {
     >
       <div className="flex items-center mb-4">
         <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-          <Github className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+          <Workflow className="h-5 w-5 text-blue-500 dark:text-blue-400" />
         </div>
         <h3 className="text-xl font-semibold">Build Status</h3>
       </div>
