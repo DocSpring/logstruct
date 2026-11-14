@@ -205,7 +205,9 @@ GEM
       net-smtp
     marcel (1.2.1)
     mini_mime (1.1.5)
-    minitest (5.27.0)
+    minitest (6.1.0)
+      drb (~> 2.0)
+      prism (>= 1.5, < 3)
     minitest-reporters (1.8.0)
       ansi
       builder
@@ -516,7 +518,7 @@ DEPENDENCIES
   json_schemer
   listen
   logstruct!
-  minitest (~> 5.20)
+  minitest (~> 6.1)
   minitest-reporters (~> 1.6)
   mutex_m
   openssl
