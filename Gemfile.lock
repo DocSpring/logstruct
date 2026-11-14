@@ -7,7 +7,7 @@ PATH
       globalid (>= 1.0)
       lograge (>= 0.11)
       railties (>= 7.1)
-      semantic_logger (~> 4.15)
+      semantic_logger (>= 4.15, < 6.0)
       sorbet-runtime (>= 0.6.12698)
 
 GEM
@@ -365,8 +365,9 @@ GEM
     rubydex (0.4.4-x86_64-linux)
     safely_block (1.0.0)
     securerandom (0.4.1)
-    semantic_logger (4.18.0)
+    semantic_logger (5.2.0)
       concurrent-ruby (~> 1.0)
+      logger (~> 1.5)
     sentry-ruby (7.2.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)

@@ -44,7 +44,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "globalid", ">= 1.0"
   spec.add_dependency "lograge", ">= 0.11"
   spec.add_dependency "railties", ">= 7.1"
-  spec.add_dependency "semantic_logger", "~> 4.15"
+  spec.add_dependency "semantic_logger", ">= 4.15", "< 6.0"
   spec.add_dependency "sorbet-runtime", ">= 0.6.12698"
 
   # Optional integrations
