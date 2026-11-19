@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-20
+
 ### Changed
 
 - **SemanticLogger**: Works with SemanticLogger 5 as well as 4.15 and later. SemanticLogger 5 reopens its appenders in a forked child itself, so LogStruct leaves that to it, and `SemanticLogger.reopen_on_fork = false` turns it off.
