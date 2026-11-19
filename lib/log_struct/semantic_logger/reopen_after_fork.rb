@@ -15,6 +15,8 @@ module LogStruct
       def self.install!
         return if @installed
         @installed = true
+        # SemanticLogger 5 reopens after a fork itself, and an app can turn that off with reopen_on_fork = false
+        return if ::SemanticLogger.respond_to?(:reopen_on_fork?)
 
         Process.singleton_class.prepend(ForkHook)
       end

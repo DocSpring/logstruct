@@ -24,6 +24,7 @@ SimpleCov.start do
 end
 
 require "minitest/autorun"
+require "minitest/mock"
 require "minitest/reporters"
 require "climate_control"
 

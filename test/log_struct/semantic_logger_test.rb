@@ -215,6 +215,18 @@ module LogStruct
       reader&.close
     end
 
+    test "reopens after a fork only when SemanticLogger doesn't" do
+      LogStruct::SemanticLogger::ReopenAfterFork.install!
+      ancestors = Process.singleton_class.ancestors
+      hook = LogStruct::SemanticLogger::ReopenAfterFork::ForkHook
+
+      if ::SemanticLogger.respond_to?(:reopen_on_fork?)
+        refute_includes ancestors, hook
+      else
+        assert_includes ancestors, hook
+      end
+    end
+
     test "logs plain messages through SemanticLogger" do
       @logger.info("Test message")
       ::SemanticLogger.flush
