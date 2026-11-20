@@ -44,7 +44,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "globalid", ">= 1.0"
   spec.add_dependency "lograge", ">= 0.11"
   spec.add_dependency "railties", ">= 7.1"
-  spec.add_dependency "semantic_logger", "~> 4.15"
+  spec.add_dependency "semantic_logger", ">= 4.15", "< 6.0"
   spec.add_dependency "sorbet-runtime", ">= 0.6.12698"
 
   # Optional integrations
@@ -55,7 +55,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "sentry-ruby", "~> 7.2"
   spec.add_development_dependency "shrine", "~> 3.5"
   spec.add_development_dependency "sidekiq", "~> 8.1"
-  spec.add_development_dependency "sorbet", "~> 0.5"
+  spec.add_development_dependency "sorbet", "~> 0.6"
   spec.add_development_dependency "ahoy_matey", ">= 4.1", "< 6.0"
   spec.add_development_dependency "active_model_serializers", "~> 0.10.13"
   spec.add_development_dependency "dotenv-rails", "~> 3.1"

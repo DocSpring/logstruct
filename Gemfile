@@ -25,14 +25,14 @@ gem "openssl"  # For tapioca SSL certificate verification
 gem "ostruct"  # For Ruby 3.5+ compatibility
 
 # Sorbet is needed for development
-gem "sorbet", "~> 0.5"
+gem "sorbet", "~> 0.6"
 gem "sorbet-typescript"
 
 # Essential testing gems that don't have Ruby version restrictions
 group :test do
-  gem "dalli", "~> 3.2.15"
   gem "bundler-audit", require: false
-  gem "minitest", "~> 5.20"
+  gem "minitest", "~> 6.1"
+  gem "minitest-mock", "~> 5.27"
   gem "minitest-reporters", "~> 1.6"
   gem "simplecov", "~> 1.3", require: false
   gem "simplecov-json", "~> 0.2", require: false

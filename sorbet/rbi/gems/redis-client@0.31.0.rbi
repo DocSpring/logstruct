@@ -8,7 +8,7 @@
 module Process
   extend ::ConnectionPool::ForkTracker
   extend ::RedisClient::PIDCache::CoreExt
-  extend ::Dalli::PIDCache::CoreExt
+  extend ::SemanticLogger::CoreExt::Process
   extend ::ActiveSupport::ForkTracker::CoreExt
 end
 

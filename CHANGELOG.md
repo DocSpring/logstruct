@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-20
+
 ### Changed
 
+- **SemanticLogger**: Works with SemanticLogger 5 as well as 4.15 and later. SemanticLogger 5 reopens its appenders in a forked child itself, so LogStruct leaves that to it, and `SemanticLogger.reopen_on_fork = false` turns it off.
 - **Development**: The tests run against Sentry 7, Honeybadger 6 and Sidekiq 8. Development uses Rails 8.1, and the Rails 8.1 test apps no longer pin `json` below 3, because ActiveSupport 8.1 dropped the `quirks_mode` option that json 3 rejects.
 - **Development**: Update SimpleCov to 1.3, jscpd to 5.4, and the docs site to Next.js 16.4.3, TypeScript 6 and lucide-react 1.66.
+- **Development**: Update Minitest to 6 (with `minitest-mock`), Sorbet to 0.6.13672 and CSpell to 10.4.1, and the docs site to lucide-react 1.72, Biome 2.6.7, Playwright 1.65 and Tailwind CSS 4.3.5.
+
+### Fixed
+
+- **Development**: Update the docs site to Next.js 16.4.5, which fixes GHSA-vc7v-qv4w-wrv8 and GHSA-mfr8-8qww-v76h, in `use cache` features the static site doesn't use. Remove the unused test dependency on Dalli, which had GHSA-5wpc-45jc-6ccc.
 
 ## [0.4.0] - 2026-11-06
 

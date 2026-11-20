@@ -19891,24 +19891,6 @@ class ActionDispatch::Session::CookieStore::SessionId
   def cookie_value; end
 end
 
-# # Action Dispatch Session MemCacheStore
-#
-# A session store that uses MemCache to implement storage.
-#
-# #### Options
-# *   `expire_after`  - The length of time a session will be stored before
-#     automatically expiring.
-#
-# pkg:gem/actionpack#lib/action_dispatch/middleware/session/mem_cache_store.rb:23
-class ActionDispatch::Session::MemCacheStore < ::Rack::Session::Dalli
-  include ::ActionDispatch::Session::Compatibility
-  include ::ActionDispatch::Session::StaleSessionCheck
-  include ::ActionDispatch::Session::SessionObject
-
-  # pkg:gem/actionpack#lib/action_dispatch/middleware/session/mem_cache_store.rb:28
-  def initialize(app, options = T.unsafe(nil)); end
-end
-
 # pkg:gem/actionpack#lib/action_dispatch/middleware/session/abstract_store.rb:76
 module ActionDispatch::Session::SessionObject
   # pkg:gem/actionpack#lib/action_dispatch/middleware/session/abstract_store.rb:77
