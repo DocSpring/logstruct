@@ -114,7 +114,7 @@ jobs:
 
       # No bundler cache in release jobs: a cache is shared with other runs, and gem build needs no bundle
       - name: Setup Ruby
-        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
         with:
           ruby-version: '.ruby-version'
 
@@ -171,7 +171,7 @@ jobs:
           name: gem
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
         with:
           ruby-version: ruby
 
@@ -196,7 +196,7 @@ jobs:
 
       # No bundler cache in release jobs: a cache is shared with other runs
       - name: Setup Ruby
-        uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199 # v1.338.0
+        uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18 # v1.343.0
         with:
           ruby-version: '.ruby-version'
 
@@ -216,7 +216,7 @@ jobs:
         run: ruby scripts/export_provider_catalog.rb
 
       - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: '1.22'
           cache: false
